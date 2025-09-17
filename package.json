@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:playwright": "npx playwright test tests/playwright/no_repeat.spec.js --reporter=list"
+  "test:playwright": "npx playwright test tests/playwright --reporter=list"
   },
   "repository": {
     "type": "git",

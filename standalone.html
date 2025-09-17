@@ -518,6 +518,45 @@
         .hidden {
             display: none !important;
         }
+        /* Audio controls */
+        .audio-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 8px 10px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .audio-controls select,
+        .audio-controls input[type="text"] {
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+        }
+        .audio-controls button {
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .audio-controls .volume {
+            width: 110px;
+        }
+        /* Audio control specific tweaks */
+        #audio-custom { min-width: 220px; }
+        #audio-pause { display: none; }
+        .muted-center { text-align: center; color: #666; }
+        .now-playing { margin-left: 12px; font-weight: 600; }
+    .now-playing-art { display:inline-block; width:20px; height:20px; margin-right:6px; }
+    .truncate { max-width: 220px; display:inline-block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; }
+    .audio-queue { margin-top:8px; background:#fff; border:1px solid #e6e6e6; padding:8px; border-radius:8px; max-height:140px; overflow:auto; }
+    .audio-queue.hidden { display:none; }
+    .audio-queue-item { padding:6px; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:8px; }
+    .audio-queue-item.current { background:#eef2ff; }
     </style>
 </head>
 <body>
@@ -534,6 +573,40 @@
                 <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
                 <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
             </div>
+            <div class="now-playing" id="now-playing" aria-live="polite">
+                <span class="now-playing-art" id="now-playing-art">🎵</span>
+                Now playing: <span id="now-playing-track">None</span>
+            </div>
+            <!-- Audio Controls -->
+            <div class="audio-controls" id="audio-controls">
+                <label for="audio-mode">Mode</label>
+                <select id="audio-mode">
+                    <option value="all">All</option>
+                    <option value="riddles">Riddles</option>
+                    <option value="trivia">Trivia</option>
+                    <option value="animal">Animal Trivia</option>
+                    <option value="burble">Burble</option>
+                    <option value="emoji">Emoji</option>
+                    <option value="valentine">Twenty Questions</option>
+                </select>
+
+                <label for="audio-track">Track</label>
+                <select id="audio-track"></select>
+
+                <input type="text" id="audio-custom" placeholder="Paste audio URL">
+
+                <button id="audio-prev">⏮</button>
+                <button id="audio-rewind">-10s</button>
+                <button id="audio-play">▶️</button>
+                <button id="audio-pause">⏸️</button>
+                <button id="audio-forward">+10s</button>
+                <button id="audio-next">⏭</button>
+
+                <label for="audio-auto" class="audio-auto-label"><input type="checkbox" id="audio-auto"> Auto-advance</label>
+                <label for="audio-show-queue" class="audio-queue-label"><input type="checkbox" id="audio-show-queue"> Show queue</label>
+                <input type="range" id="audio-volume" class="volume" min="0" max="1" step="0.01" aria-label="Audio volume" title="Audio volume">
+            </div>
+            <div id="audio-queue" class="audio-queue hidden" aria-hidden="true"></div>
         </div>
 
         <!-- Home Page -->
@@ -834,7 +907,7 @@
             </div>
 
             <div class="question-history" id="valentine-history">
-                <p style="text-align: center; color: #666;">Ask yes/no questions to figure out what I'm thinking of!</p>
+                <p class="muted-center">Ask yes/no questions to figure out what I'm thinking of!</p>
             </div>
 
             <div class="input-section">
@@ -1681,32 +1754,249 @@
         triviaAudio.loop = true;
         // The audio source URL can be customized by the user; default is empty. Place your file in the repo and set src accordingly.
         // Example: triviaAudio.src = 'assets/soundtrack.mp3';
-        triviaAudio.src = localStorage.getItem('triviaSoundSrc') || '';
+    triviaAudio.src = localStorage.getItem('triviaSoundSrc') || '30%20Second%20Timer%20With%20Jeopardy%20Thinking%20Music.mp3';
         triviaAudio.preload = 'auto';
         triviaAudio.volume = 0.5;
         triviaAudio.style.display = 'none';
         document.body.appendChild(triviaAudio);
 
         function setTriviaSoundSrc(url) {
-            triviaAudio.src = url || '';
-            if (url) localStorage.setItem('triviaSoundSrc', url);
-            else localStorage.removeItem('triviaSoundSrc');
+            if (!url) {
+                triviaAudio.removeAttribute('src');
+                triviaAudio.load();
+                localStorage.removeItem('triviaSoundSrc');
+                return;
+            }
+            try {
+                triviaAudio.src = encodeURI(url);
+                localStorage.setItem('triviaSoundSrc', url);
+            } catch (e) {
+                triviaAudio.src = url;
+                localStorage.setItem('triviaSoundSrc', url);
+            }
         }
 
         function playTriviaAudio() {
+            // Delegate to new audio system when available
+            try { if (window.playModeAudio) { window.playModeAudio('trivia'); return; } } catch (e) {}
             if (!triviaAudio.src) return;
             triviaAudio.play().catch(e => {
-                // Autoplay may be blocked; ignore the error but log it
                 console.warn('Unable to play trivia audio automatically:', e);
             });
         }
 
         function stopTriviaAudio() {
-            try {
-                triviaAudio.pause();
-                triviaAudio.currentTime = 0;
-            } catch (e) {}
+            // Delegate to new audio system when available
+            try { if (window.audioControls && window.audioControls.stop) { window.audioControls.stop(); return; } } catch (e) {}
+            try { triviaAudio.pause(); triviaAudio.currentTime = 0; } catch (e) {}
         }
+
+        // --- Enhanced Audio Controls (UI wiring, per-mode selection, volume, seek, skip) ---
+        (function() {
+            const audioPlayer = triviaAudio; // reuse existing audio element
+            const defaultTracks = [
+                'assets/audio/30 Second Timer With Jeopardy Thinking Music.mp3',
+                'assets/audio/NFL on FOX Theme Song.mp3',
+                'assets/audio/Marvel Opening Theme.mp3',
+                'assets/audio/Pokémon Theme Song.mp3',
+                'assets/audio/Star Wars Main Theme (Full).mp3',
+                'assets/audio/The Price is Right theme song.mp3'
+            ];
+
+            const $mode = document.getElementById('audio-mode');
+            const $track = document.getElementById('audio-track');
+            const $custom = document.getElementById('audio-custom');
+            const $play = document.getElementById('audio-play');
+            const $pause = document.getElementById('audio-pause');
+            const $prev = document.getElementById('audio-prev');
+            const $next = document.getElementById('audio-next');
+            const $rew = document.getElementById('audio-rewind');
+            const $fwd = document.getElementById('audio-forward');
+            const $vol = document.getElementById('audio-volume');
+            const $auto = document.getElementById('audio-auto');
+
+            // Settings persisted per mode
+            let audioSettings = JSON.parse(localStorage.getItem('audioSettings') || '{}');
+            if (!audioSettings.modeMap) audioSettings.modeMap = {};
+            if (typeof audioSettings.index !== 'number') audioSettings.index = 0;
+            if (typeof audioSettings.volume !== 'number') audioSettings.volume = audioPlayer.volume || 0.5;
+            if (typeof audioSettings.autoAdvance !== 'boolean') audioSettings.autoAdvance = false;
+
+            function populateTrackList() {
+                $track.innerHTML = '';
+                const noneOpt = document.createElement('option'); noneOpt.value = ''; noneOpt.textContent = 'No audio';
+                $track.appendChild(noneOpt);
+                defaultTracks.forEach((t, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    $track.appendChild(opt);
+                });
+            }
+
+            function saveSettings() {
+                localStorage.setItem('audioSettings', JSON.stringify(audioSettings));
+            }
+
+            function setPlayerSrc(src) {
+                if (!src) {
+                    audioPlayer.removeAttribute('src');
+                    audioPlayer.load();
+                    return;
+                }
+                // Resolve and encode the src so local filenames with spaces work well
+                try {
+                    const resolved = (src.indexOf('://') === -1) ? encodeURI(src) : src;
+                    audioPlayer.src = resolved;
+                } catch (e) {
+                    audioPlayer.src = src;
+                }
+                localStorage.setItem('triviaSoundSrc', src);
+            }
+
+            // Keep UI in sync with player events
+            audioPlayer.addEventListener('play', () => { try { $play.style.display = 'none'; $pause.style.display = ''; } catch (e) {} });
+            audioPlayer.addEventListener('pause', () => { try { $pause.style.display = 'none'; $play.style.display = ''; } catch (e) {} });
+            audioPlayer.addEventListener('ended', () => {
+                try {
+                    $pause.style.display = 'none'; $play.style.display = '';
+                    // If the current track is in defaultTracks and auto-advance is desired, advance index
+                    if (audioSettings.autoAdvance) {
+                        audioSettings.index = (audioSettings.index + 1) % defaultTracks.length;
+                        const next = defaultTracks[audioSettings.index];
+                        if (next) { setPlayerSrc(next); audioPlayer.play().catch(() => {}); }
+                        saveSettings();
+                    }
+                } catch (e) {}
+            });
+
+            const $nowPlaying = document.getElementById('now-playing-track');
+            function updateNowPlaying(src) {
+                try {
+                    if (!src) { $nowPlaying.textContent = 'None'; return; }
+                    let label = src;
+                    try { label = decodeURIComponent(src); } catch (e) {}
+                    const parts = label.split('/');
+                    label = parts[parts.length - 1] || label;
+                    $nowPlaying.textContent = label;
+                } catch (e) {}
+            }
+            audioPlayer.addEventListener('loadedmetadata', () => updateNowPlaying(audioPlayer.src || audioPlayer.getAttribute('src')));
+            audioPlayer.addEventListener('play', () => updateNowPlaying(audioPlayer.src || audioPlayer.getAttribute('src')));
+            // initialize now playing
+            updateNowPlaying(audioPlayer.src || audioPlayer.getAttribute('src'));
+
+            function setModeSelection(mode) {
+                const modeVal = audioSettings.modeMap[mode] || audioSettings.modeMap['all'] || '';
+                // set track select or custom input
+                if (!modeVal) {
+                    $track.value = '';
+                    $custom.value = '';
+                } else if (defaultTracks.includes(modeVal)) {
+                    $track.value = modeVal;
+                    $custom.value = '';
+                } else {
+                    $track.value = '';
+                    $custom.value = modeVal;
+                }
+            }
+
+            function playModeAudio(mode) {
+                const src = audioSettings.modeMap[mode] || audioSettings.modeMap['all'] || '';
+                if (!src) return; // nothing configured
+                setPlayerSrc(src);
+                audioPlayer.volume = audioSettings.volume;
+                audioPlayer.play().then(() => {
+                    $play.style.display = 'none'; $pause.style.display = '';
+                }).catch(e => {
+                    console.warn('Audio play blocked or failed', e);
+                });
+            }
+
+            // UI event handlers
+            populateTrackList();
+            $vol.value = audioSettings.volume;
+            $vol.addEventListener('input', () => {
+                const v = parseFloat($vol.value);
+                audioSettings.volume = v;
+                audioPlayer.volume = v;
+                saveSettings();
+            });
+
+            $auto.checked = !!audioSettings.autoAdvance;
+            $auto.addEventListener('change', () => {
+                audioSettings.autoAdvance = !!$auto.checked;
+                saveSettings();
+            });
+
+            $play.addEventListener('click', () => {
+                if (!audioPlayer.src) {
+                    // If no src selected, try selected track
+                    const val = $track.value || $custom.value;
+                    if (val) { setPlayerSrc(val); }
+                }
+                audioPlayer.play().then(() => { $play.style.display = 'none'; $pause.style.display = ''; }).catch(e => console.warn(e));
+            });
+            $pause.addEventListener('click', () => { audioPlayer.pause(); $pause.style.display = 'none'; $play.style.display = ''; });
+
+            $prev.addEventListener('click', () => {
+                audioSettings.index = (audioSettings.index - 1 + defaultTracks.length) % defaultTracks.length;
+                const val = defaultTracks[audioSettings.index];
+                $track.value = val; $custom.value = '';
+                setPlayerSrc(val); audioPlayer.play(); saveSettings();
+            });
+
+            $next.addEventListener('click', () => {
+                audioSettings.index = (audioSettings.index + 1) % defaultTracks.length;
+                const val = defaultTracks[audioSettings.index];
+                $track.value = val; $custom.value = '';
+                setPlayerSrc(val); audioPlayer.play(); saveSettings();
+            });
+
+            $rew.addEventListener('click', () => { try { audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 10); } catch (e) {} });
+            $fwd.addEventListener('click', () => { try { audioPlayer.currentTime = Math.min(audioPlayer.duration || Infinity, audioPlayer.currentTime + 10); } catch (e) {} });
+
+            $track.addEventListener('change', () => {
+                const val = $track.value;
+                $custom.value = '';
+                const mode = $mode.value || 'all';
+                if (!audioSettings.modeMap) audioSettings.modeMap = {};
+                audioSettings.modeMap[mode] = val;
+                // update index if this is a default track so prev/next keep working
+                const idx = defaultTracks.indexOf(val);
+                if (idx >= 0) audioSettings.index = idx;
+                setPlayerSrc(val);
+                saveSettings();
+            });
+
+            $custom.addEventListener('change', () => {
+                const val = $custom.value.trim();
+                const mode = $mode.value || 'all';
+                audioSettings.modeMap[mode] = val;
+                $track.value = '';
+                setPlayerSrc(val);
+                saveSettings();
+            });
+
+            $mode.addEventListener('change', () => {
+                setModeSelection($mode.value);
+            });
+
+            // initialize UI based on saved settings
+            if (audioSettings.modeMap && Object.keys(audioSettings.modeMap).length > 0) {
+                const currentMode = $mode.value || 'all';
+                setModeSelection(currentMode);
+            }
+
+            // expose helper to global scope for game wiring
+            window.playModeAudio = playModeAudio;
+            window.audioControls = {
+                setPlayerSrc,
+                play: () => audioPlayer.play(),
+                pause: () => audioPlayer.pause(),
+                stop: () => { audioPlayer.pause(); audioPlayer.currentTime = 0; }
+            };
+        })();
 
         // Riddles: maintain per-filter shuffled pools to avoid repeats until exhausted
         function getRiddleFromPool(category, difficulty) {
@@ -1820,6 +2110,7 @@
             
             updateRiddlesDisplay();
             showFeedback('riddles', 'New riddle loaded! Think carefully about your answer.', 'info');
+            try { if (window.playModeAudio) window.playModeAudio('riddles'); } catch (e) {}
         }
 
         function submitRiddleAnswer() {
@@ -2026,8 +2317,8 @@
             // Start timer
             startTimer('trivia');
 
-            // Play trivia soundtrack if configured
-            playTriviaAudio();
+            // Play configured audio for Burble
+            try { if (window.playModeAudio) window.playModeAudio('burble'); } catch (e) {}
 
             // Show first question
             showTriviaQuestion();
@@ -2086,6 +2377,8 @@
             `;
             
             disableBurbleInputs();
+            // Stop audio for Burble
+            try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
         }
 
         function handleBurbleIncorrect(guess) {
@@ -2098,6 +2391,8 @@
                 burble.gameActive = false;
                 stopTimer('burble');
                 addGameResult(false, 0);
+                // Stop audio for Burble
+                try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
                 
                 document.getElementById('burble-game-over').innerHTML = `
                     <div class="game-over lose">
@@ -2241,6 +2536,8 @@
             
             updateEmojiDisplay();
             showFeedback('emoji', 'New puzzle! What does this emoji combination represent?', 'info');
+            // Play configured audio for Emoji
+            try { if (window.playModeAudio) window.playModeAudio('emoji'); } catch (e) {}
         }
 
         function submitEmojiAnswer() {
@@ -2287,6 +2584,7 @@
             
             disableEmojiInputs();
             updateEmojiDisplay();
+            try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
         }
 
         function handleEmojiIncorrect() {
@@ -2400,10 +2698,12 @@
             document.getElementById('valentine-question').focus();
             
             // Clear history
-            document.getElementById('valentine-history').innerHTML = '<p style="text-align: center; color: #666;">Ask yes/no questions to figure out what I\'m thinking of!</p>';
+            document.getElementById('valentine-history').innerHTML = '<p class="muted-center">Ask yes/no questions to figure out what I\'m thinking of!</p>';
             
             updateValentineDisplay();
             showFeedback('valentine', `I'm thinking of something in the ${valentine.category} category. Ask yes/no questions!`, 'info');
+            // Play configured audio for Valentine (Twenty Questions)
+            try { if (window.playModeAudio) window.playModeAudio('valentine'); } catch (e) {}
         }
 
         function askValentineQuestion() {
@@ -2515,6 +2815,7 @@
             `;
             
             disableValentineInputs();
+            try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
         }
 
         function handleValentineLose() {
@@ -2535,6 +2836,7 @@
             `;
             
             disableValentineInputs();
+            try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
         }
 
         function updateValentineHistory() {
@@ -2551,7 +2853,7 @@
                 `;
             }
             
-            history.innerHTML = historyHTML || '<p style="text-align: center; color: #666;">Ask yes/no questions to figure out what I\'m thinking of!</p>';
+            history.innerHTML = historyHTML || '<p class="muted-center">Ask yes/no questions to figure out what I\'m thinking of!</p>';
         }
 
         function updateValentineDisplay() {
@@ -2601,25 +2903,27 @@
             if (!gameState.animalTrivia.pools[key] || gameState.animalTrivia.pools[key].length === 0) {
                 const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
                 gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
-                savePoolsToStorage();
             }
 
             // Take questions for this run (consume from pool)
             const take = Math.min(animalTrivia.totalQuestions, gameState.animalTrivia.pools[key].length);
             animalTrivia.currentGameQuestions = gameState.animalTrivia.pools[key].splice(0, take);
-            savePoolsToStorage();
             animalTrivia.totalQuestionsUsed = animalTrivia.currentGameQuestions.length;
 
             // Start timer
             startTimer('animalTrivia');
 
+            // Play configured audio for Trivia
+            try { if (window.playModeAudio) window.playModeAudio('trivia'); } catch (e) {}
+
             // Show first question
             showAnimalTriviaQuestion();
+
             // Update buttons
-            document.getElementById('trivia-start').disabled = true;
-            document.getElementById('trivia-submit').disabled = false;
-            
-            updateTriviaDisplay();
+            document.getElementById('animal-start').disabled = true;
+            document.getElementById('animal-submit').disabled = false;
+
+            updateAnimalTriviaDisplay();
         }
 
         function showTriviaQuestion() {
@@ -2711,8 +3015,8 @@
             trivia.gameActive = false;
             stopTimer('trivia');
 
-            // Stop trivia soundtrack
-            stopTriviaAudio();
+            // Stop configured audio
+            try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
             
             const percentage = Math.round((trivia.correctAnswers / trivia.totalQuestions) * 100);
             const won = percentage >= 70;
@@ -2746,6 +3050,45 @@
             document.getElementById('trivia-score').textContent = trivia.score;
         }
 
+        function startTriviaGame() {
+            const trivia = gameState.trivia;
+
+            // Reset game state
+            trivia.currentQuestion = 0;
+            trivia.correctAnswers = 0;
+            trivia.score = 0;
+            trivia.gameActive = true;
+            trivia.selectedAnswer = null;
+
+            // Ensure persistent pools exist
+            if (!gameState.trivia.pools) gameState.trivia.pools = {};
+            const key = `trivia|${trivia.difficulty}`;
+            if (!gameState.trivia.pools[key] || gameState.trivia.pools[key].length === 0) {
+                const allQuestions = triviaQuestions[trivia.difficulty] || [];
+                gameState.trivia.pools[key] = shuffleArray(allQuestions);
+            }
+
+            // Take questions for this run (consume from pool)
+            const take = Math.min(trivia.totalQuestions, gameState.trivia.pools[key].length);
+            trivia.currentGameQuestions = gameState.trivia.pools[key].splice(0, take);
+            trivia.totalQuestionsUsed = trivia.currentGameQuestions.length;
+
+            // Start timer
+            startTimer('trivia');
+
+            // Play configured audio for Trivia
+            try { if (window.playModeAudio) window.playModeAudio('trivia'); } catch (e) {}
+
+            // Show first question
+            showTriviaQuestion();
+
+            // Update buttons
+            document.getElementById('trivia-start').disabled = true;
+            document.getElementById('trivia-submit').disabled = false;
+
+            updateTriviaDisplay();
+        }
+
         // ANIMAL TRIVIA GAME
         function initAnimalTriviaGame() {
             // Difficulty selectors
@@ -2753,7 +3096,6 @@
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('#animal-trivia-page .selector-btn[data-difficulty]').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    gameState.animalTrivia.difficulty = btn.dataset.difficulty;
                 });
             });
 
@@ -2789,8 +3131,8 @@
             // Start timer
             startTimer('animalTrivia');
 
-            // Play trivia soundtrack if configured
-            playTriviaAudio();
+            // Play configured audio for Animal Trivia
+            try { if (window.playModeAudio) window.playModeAudio('animal'); } catch (e) {}
 
             // Show first question
             showAnimalTriviaQuestion();
@@ -2890,8 +3232,8 @@
             animalTrivia.gameActive = false;
             stopTimer('animalTrivia');
 
-            // Stop trivia soundtrack
-            stopTriviaAudio();
+            // Stop configured audio for Animal Trivia
+            try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
 
             const totalUsed = animalTrivia.totalQuestionsUsed || animalTrivia.totalQuestions || 0;
             const percentage = totalUsed > 0 ? Math.round((animalTrivia.correctAnswers / totalUsed) * 100) : 0;
@@ -2936,6 +3278,3 @@
             initAnimalTriviaGame();
             updateUserStats();
         });
-    </script>
-</body>
-</html>
