@@ -565,37 +565,37 @@
 
             <!-- Games Grid -->
             <div class="games-grid">
-                <div class="game-card" onclick="showPage('riddles')">
+                <div class="game-card" onclick="showPage(event,'riddles')">
                     <div class="game-icon">🧩</div>
                     <div class="game-title">Brain Riddles</div>
                     <div class="game-description">Classic riddles and brain teasers across all categories</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('burble')">
+                <div class="game-card" onclick="showPage(event,'burble')">
                     <div class="game-icon">📚</div>
                     <div class="game-title">Burble Word Game</div>
                     <div class="game-description">Word guessing with feedback and hints</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('emoji')">
+                <div class="game-card" onclick="showPage(event,'emoji')">
                     <div class="game-icon">🎨</div>
                     <div class="game-title">Emoji Guess</div>
                     <div class="game-description">Decode emoji combinations</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('valentine')">
+                <div class="game-card" onclick="showPage(event,'valentine')">
                     <div class="game-icon">🎯</div>
                     <div class="game-title">Twenty Questions</div>
                     <div class="game-description">Yes/No question guessing game</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('trivia')">
+                <div class="game-card" onclick="showPage(event,'trivia')">
                     <div class="game-icon">🧠</div>
                     <div class="game-title">General Trivia</div>
                     <div class="game-description">Test your knowledge across various topics</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('animal-trivia')">
+                <div class="game-card" onclick="showPage(event,'animal-trivia')">
                     <div class="game-icon">🦁</div>
                     <div class="game-title">Animal Trivia</div>
                     <div class="game-description">Animal-focused quiz questions</div>
@@ -1628,6 +1628,99 @@
         }
 
         // Utility functions
+        // Fisher-Yates shuffle
+        function shuffleArray(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        // --- Persistence helpers for pools ---
+        function savePoolsToStorage() {
+            try {
+                const payload = {
+                    riddles: gameState.riddles.pools || {},
+                    trivia: gameState.trivia.pools || {},
+                    animalTrivia: gameState.animalTrivia.pools || {}
+                };
+                localStorage.setItem('gamePools', JSON.stringify(payload));
+            } catch (e) {
+                console.warn('Failed to save pools to localStorage', e);
+            }
+        }
+
+        function loadPoolsFromStorage() {
+            try {
+                const raw = localStorage.getItem('gamePools');
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (parsed.riddles) gameState.riddles.pools = parsed.riddles;
+                if (parsed.trivia) gameState.trivia.pools = parsed.trivia;
+                if (parsed.animalTrivia) gameState.animalTrivia.pools = parsed.animalTrivia;
+            } catch (e) {
+                console.warn('Failed to load pools from localStorage', e);
+            }
+        }
+
+        // Save pools after splicing/consuming
+        function ensureSavePoolsAfterChange(key) {
+            // Small debounce could be added; for now save immediately
+            savePoolsToStorage();
+        }
+
+        // Load persisted pools on startup
+        loadPoolsFromStorage();
+
+        // --- Audio soundtrack for trivia ---
+        // Add a hidden audio element to the page and simple controls to play/stop looped soundtrack
+        const triviaAudio = document.createElement('audio');
+        triviaAudio.id = 'trivia-audio';
+        triviaAudio.loop = true;
+        // The audio source URL can be customized by the user; default is empty. Place your file in the repo and set src accordingly.
+        // Example: triviaAudio.src = 'assets/soundtrack.mp3';
+        triviaAudio.src = localStorage.getItem('triviaSoundSrc') || '';
+        triviaAudio.preload = 'auto';
+        triviaAudio.volume = 0.5;
+        triviaAudio.style.display = 'none';
+        document.body.appendChild(triviaAudio);
+
+        function setTriviaSoundSrc(url) {
+            triviaAudio.src = url || '';
+            if (url) localStorage.setItem('triviaSoundSrc', url);
+            else localStorage.removeItem('triviaSoundSrc');
+        }
+
+        function playTriviaAudio() {
+            if (!triviaAudio.src) return;
+            triviaAudio.play().catch(e => {
+                // Autoplay may be blocked; ignore the error but log it
+                console.warn('Unable to play trivia audio automatically:', e);
+            });
+        }
+
+        function stopTriviaAudio() {
+            try {
+                triviaAudio.pause();
+                triviaAudio.currentTime = 0;
+            } catch (e) {}
+        }
+
+        // Riddles: maintain per-filter shuffled pools to avoid repeats until exhausted
+        function getRiddleFromPool(category, difficulty) {
+            const key = `${category}|${difficulty}`;
+            if (!gameState.riddles.pools) gameState.riddles.pools = {};
+            if (!gameState.riddles.pools[key] || gameState.riddles.pools[key].length === 0) {
+                const pool = getRiddlesByFilter(category, difficulty);
+                gameState.riddles.pools[key] = shuffleArray(pool);
+                savePoolsToStorage();
+            }
+            const item = gameState.riddles.pools[key].shift();
+            savePoolsToStorage();
+            return item;
+        }
         function showFeedback(gameType, message, type) {
             const feedback = document.getElementById(gameType + '-feedback');
             feedback.innerHTML = `<div class="feedback ${type}">${message}</div>`;
@@ -1702,16 +1795,11 @@
                 showFeedback('riddles', 'No riddles available for this category/difficulty combination.', 'error');
                 return;
             }
-
-            // Select random riddle (avoid duplicate if possible)
-            let newRiddle;
-            if (availableRiddles.length === 1) {
-                newRiddle = availableRiddles[0];
-            } else {
-                // Try to avoid selecting the same riddle as before
-                do {
-                    newRiddle = availableRiddles[Math.floor(Math.random() * availableRiddles.length)];
-                } while (newRiddle === riddles.currentRiddle && availableRiddles.length > 1);
+            // Select riddle from a shuffled per-filter pool to avoid repeats until pool exhausted
+            let newRiddle = getRiddleFromPool(riddles.category, riddles.difficulty);
+            if (!newRiddle) {
+                // Fallback to random selection
+                newRiddle = availableRiddles[Math.floor(Math.random() * availableRiddles.length)];
             }
             riddles.currentRiddle = newRiddle;
             riddles.currentHintLevel = 0;
@@ -1913,23 +2001,36 @@
 
         function startBurbleGame() {
             const burble = gameState.burble;
-            
             // Reset game state
-            burble.attempts = 0;
-            burble.score = 0;
-            burble.hintsUsed = 0;
-            burble.gameActive = true;
-            
-            // Select random word
-            const category = wordCategories[burble.category];
-            const lengths = Object.keys(category);
-            const randomLength = lengths[Math.floor(Math.random() * lengths.length)];
-            const words = category[randomLength];
-            burble.currentWord = words[Math.floor(Math.random() * words.length)];
-            
+            trivia.currentQuestion = 0;
+            trivia.correctAnswers = 0;
+            trivia.score = 0;
+            trivia.gameActive = true;
+            trivia.selectedAnswer = null;
+
+            // Ensure persistent pools exist
+            if (!gameState.trivia.pools) gameState.trivia.pools = {};
+            const key = `trivia|${trivia.difficulty}`;
+            if (!gameState.trivia.pools[key] || gameState.trivia.pools[key].length === 0) {
+                const allQuestions = triviaQuestions[trivia.difficulty] || [];
+                gameState.trivia.pools[key] = shuffleArray(allQuestions);
+                savePoolsToStorage();
+            }
+
+            // Take questions for this run (consume from pool so they won't repeat across runs until pool exhausted)
+            const take = Math.min(trivia.totalQuestions, gameState.trivia.pools[key].length);
+            trivia.currentGameQuestions = gameState.trivia.pools[key].splice(0, take);
+            savePoolsToStorage();
+            trivia.totalQuestionsUsed = trivia.currentGameQuestions.length;
+
             // Start timer
-            startTimer('burble');
-            
+            startTimer('trivia');
+
+            // Play trivia soundtrack if configured
+            playTriviaAudio();
+
+            // Show first question
+            showTriviaQuestion();
             // Enable inputs
             document.getElementById('burble-input').disabled = false;
             document.getElementById('burble-submit').disabled = false;
@@ -2487,20 +2588,33 @@
 
         function startTriviaGame() {
             const trivia = gameState.trivia;
-            
             // Reset game state
-            trivia.currentQuestion = 0;
-            trivia.correctAnswers = 0;
-            trivia.score = 0;
-            trivia.gameActive = true;
-            trivia.selectedAnswer = null;
-            
+            animalTrivia.currentQuestion = 0;
+            animalTrivia.correctAnswers = 0;
+            animalTrivia.score = 0;
+            animalTrivia.gameActive = true;
+            animalTrivia.selectedAnswer = null;
+
+            // Ensure persistent pools exist
+            if (!gameState.animalTrivia.pools) gameState.animalTrivia.pools = {};
+            const key = `animal|${animalTrivia.difficulty}`;
+            if (!gameState.animalTrivia.pools[key] || gameState.animalTrivia.pools[key].length === 0) {
+                const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
+                gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
+                savePoolsToStorage();
+            }
+
+            // Take questions for this run (consume from pool)
+            const take = Math.min(animalTrivia.totalQuestions, gameState.animalTrivia.pools[key].length);
+            animalTrivia.currentGameQuestions = gameState.animalTrivia.pools[key].splice(0, take);
+            savePoolsToStorage();
+            animalTrivia.totalQuestionsUsed = animalTrivia.currentGameQuestions.length;
+
             // Start timer
-            startTimer('trivia');
-            
+            startTimer('animalTrivia');
+
             // Show first question
-            showTriviaQuestion();
-            
+            showAnimalTriviaQuestion();
             // Update buttons
             document.getElementById('trivia-start').disabled = true;
             document.getElementById('trivia-submit').disabled = false;
@@ -2510,13 +2624,13 @@
 
         function showTriviaQuestion() {
             const trivia = gameState.trivia;
-            const questions = triviaQuestions[trivia.difficulty];
-            
-            if (trivia.currentQuestion >= trivia.totalQuestions || trivia.currentQuestion >= questions.length) {
+            const questions = trivia.currentGameQuestions || [];
+
+            if (trivia.currentQuestion >= trivia.totalQuestionsUsed || trivia.currentQuestion >= questions.length) {
                 endTriviaGame();
                 return;
             }
-            
+
             const question = questions[trivia.currentQuestion];
             
             document.getElementById('trivia-question-text').textContent = question.question;
@@ -2552,7 +2666,7 @@
             if (gameState.trivia.selectedAnswer === null) return;
             
             const trivia = gameState.trivia;
-            const questions = triviaQuestions[trivia.difficulty];
+            const questions = trivia.currentGameQuestions || [];
             const question = questions[trivia.currentQuestion];
             const isCorrect = trivia.selectedAnswer === question.correct;
             
@@ -2596,6 +2710,9 @@
             const trivia = gameState.trivia;
             trivia.gameActive = false;
             stopTimer('trivia');
+
+            // Stop trivia soundtrack
+            stopTriviaAudio();
             
             const percentage = Math.round((trivia.correctAnswers / trivia.totalQuestions) * 100);
             const won = percentage >= 70;
@@ -2622,8 +2739,9 @@
 
         function updateTriviaDisplay() {
             const trivia = gameState.trivia;
-            
-            document.getElementById('trivia-question-num').textContent = `${trivia.currentQuestion}/${trivia.totalQuestions}`;
+
+            const total = trivia.totalQuestionsUsed || Math.min(trivia.totalQuestions, (trivia.pool || []).length || 0);
+            document.getElementById('trivia-question-num').textContent = `${trivia.currentQuestion}/${total}`;
             document.getElementById('trivia-correct').textContent = trivia.correctAnswers;
             document.getElementById('trivia-score').textContent = trivia.score;
         }
@@ -2647,36 +2765,52 @@
 
         function startAnimalTriviaGame() {
             const animalTrivia = gameState.animalTrivia;
-            
+
             // Reset game state
             animalTrivia.currentQuestion = 0;
             animalTrivia.correctAnswers = 0;
             animalTrivia.score = 0;
             animalTrivia.gameActive = true;
             animalTrivia.selectedAnswer = null;
-            
+
+            // Ensure persistent pools exist
+            if (!gameState.animalTrivia.pools) gameState.animalTrivia.pools = {};
+            const key = `animal|${animalTrivia.difficulty}`;
+            if (!gameState.animalTrivia.pools[key] || gameState.animalTrivia.pools[key].length === 0) {
+                const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
+                gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
+            }
+
+            // Take questions for this run (consume from pool)
+            const take = Math.min(animalTrivia.totalQuestions, gameState.animalTrivia.pools[key].length);
+            animalTrivia.currentGameQuestions = gameState.animalTrivia.pools[key].splice(0, take);
+            animalTrivia.totalQuestionsUsed = animalTrivia.currentGameQuestions.length;
+
             // Start timer
             startTimer('animalTrivia');
-            
+
+            // Play trivia soundtrack if configured
+            playTriviaAudio();
+
             // Show first question
             showAnimalTriviaQuestion();
-            
+
             // Update buttons
             document.getElementById('animal-start').disabled = true;
             document.getElementById('animal-submit').disabled = false;
-            
+
             updateAnimalTriviaDisplay();
         }
 
         function showAnimalTriviaQuestion() {
             const animalTrivia = gameState.animalTrivia;
-            const questions = animalTriviaQuestions[animalTrivia.difficulty];
-            
-            if (animalTrivia.currentQuestion >= animalTrivia.totalQuestions || animalTrivia.currentQuestion >= questions.length) {
+            const questions = animalTrivia.currentGameQuestions || [];
+
+            if (animalTrivia.currentQuestion >= (animalTrivia.totalQuestionsUsed || questions.length) || animalTrivia.currentQuestion >= questions.length) {
                 endAnimalTriviaGame();
                 return;
             }
-            
+
             const question = questions[animalTrivia.currentQuestion];
             
             document.getElementById('animal-question-text').textContent = question.question;
@@ -2710,9 +2844,8 @@
 
         function submitAnimalTriviaAnswer() {
             if (gameState.animalTrivia.selectedAnswer === null) return;
-            
             const animalTrivia = gameState.animalTrivia;
-            const questions = animalTriviaQuestions[animalTrivia.difficulty];
+            const questions = animalTrivia.currentGameQuestions || [];
             const question = questions[animalTrivia.currentQuestion];
             const isCorrect = animalTrivia.selectedAnswer === question.correct;
             
@@ -2744,7 +2877,7 @@
         }
 
         function nextAnimalTriviaQuestion() {
-            if (gameState.animalTrivia.currentQuestion >= gameState.animalTrivia.totalQuestions) {
+            if (gameState.animalTrivia.currentQuestion >= (gameState.animalTrivia.totalQuestionsUsed || gameState.animalTrivia.totalQuestions)) {
                 endAnimalTriviaGame();
             } else {
                 showAnimalTriviaQuestion();
@@ -2756,25 +2889,29 @@
             const animalTrivia = gameState.animalTrivia;
             animalTrivia.gameActive = false;
             stopTimer('animalTrivia');
-            
-            const percentage = Math.round((animalTrivia.correctAnswers / animalTrivia.totalQuestions) * 100);
+
+            // Stop trivia soundtrack
+            stopTriviaAudio();
+
+            const totalUsed = animalTrivia.totalQuestionsUsed || animalTrivia.totalQuestions || 0;
+            const percentage = totalUsed > 0 ? Math.round((animalTrivia.correctAnswers / totalUsed) * 100) : 0;
             const won = percentage >= 70;
-            
+
             addGameResult(won, animalTrivia.score);
-            
+
             document.getElementById('animal-question-text').textContent = 'Quiz Complete!';
             document.getElementById('animal-options').innerHTML = '';
-            
+
             document.getElementById('animal-game-over').innerHTML = `
                 <div class="game-over ${won ? 'win' : 'lose'}">
                     <h3>${won ? '🦁 Animal Expert!' : '🐾 Keep Learning!'}</h3>
                     <p><strong>Score:</strong> ${animalTrivia.score} points</p>
-                    <p><strong>Correct:</strong> ${animalTrivia.correctAnswers}/${animalTrivia.totalQuestions} (${percentage}%)</p>
+                    <p><strong>Correct:</strong> ${animalTrivia.correctAnswers}/${totalUsed} (${percentage}%)</p>
                     <p><strong>Time:</strong> ${document.getElementById('animal-timer').textContent}</p>
                     ${won ? '<p>You know your animals!</p>' : '<p>Study more about animals and try again!</p>'}
                 </div>
             `;
-            
+
             document.getElementById('animal-start').disabled = false;
             document.getElementById('animal-submit').disabled = true;
             document.getElementById('animal-next').disabled = true;
@@ -2782,8 +2919,8 @@
 
         function updateAnimalTriviaDisplay() {
             const animalTrivia = gameState.animalTrivia;
-            
-            document.getElementById('animal-question-num').textContent = `${animalTrivia.currentQuestion}/${animalTrivia.totalQuestions}`;
+            const total = animalTrivia.totalQuestionsUsed || animalTrivia.totalQuestions || 0;
+            document.getElementById('animal-question-num').textContent = `${animalTrivia.currentQuestion}/${total}`;
             document.getElementById('animal-correct').textContent = animalTrivia.correctAnswers;
             document.getElementById('animal-score').textContent = animalTrivia.score;
         }
