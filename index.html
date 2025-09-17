@@ -565,37 +565,37 @@
 
             <!-- Games Grid -->
             <div class="games-grid">
-                <div class="game-card" onclick="showPage('riddles')">
+                <div class="game-card" onclick="showPage(event,'riddles')">
                     <div class="game-icon">🧩</div>
                     <div class="game-title">Brain Riddles</div>
                     <div class="game-description">Classic riddles and brain teasers across all categories</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('burble')">
+                <div class="game-card" onclick="showPage(event,'burble')">
                     <div class="game-icon">📚</div>
                     <div class="game-title">Burble Word Game</div>
                     <div class="game-description">Word guessing with feedback and hints</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('emoji')">
+                <div class="game-card" onclick="showPage(event,'emoji')">
                     <div class="game-icon">🎨</div>
                     <div class="game-title">Emoji Guess</div>
                     <div class="game-description">Decode emoji combinations</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('valentine')">
+                <div class="game-card" onclick="showPage(event,'valentine')">
                     <div class="game-icon">🎯</div>
                     <div class="game-title">Twenty Questions</div>
                     <div class="game-description">Yes/No question guessing game</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('trivia')">
+                <div class="game-card" onclick="showPage(event,'trivia')">
                     <div class="game-icon">🧠</div>
                     <div class="game-title">General Trivia</div>
                     <div class="game-description">Test your knowledge across various topics</div>
                 </div>
                 
-                <div class="game-card" onclick="showPage('animal-trivia')">
+                <div class="game-card" onclick="showPage(event,'animal-trivia')">
                     <div class="game-icon">🦁</div>
                     <div class="game-title">Animal Trivia</div>
                     <div class="game-description">Animal-focused quiz questions</div>
@@ -1628,6 +1628,26 @@
         }
 
         // Utility functions
+        // Fisher-Yates shuffle
+        function shuffleArray(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        // Riddles: maintain per-filter shuffled pools to avoid repeats until exhausted
+        function getRiddleFromPool(category, difficulty) {
+            const key = `${category}|${difficulty}`;
+            if (!gameState.riddles.pools) gameState.riddles.pools = {};
+            if (!gameState.riddles.pools[key] || gameState.riddles.pools[key].length === 0) {
+                const pool = getRiddlesByFilter(category, difficulty);
+                gameState.riddles.pools[key] = shuffleArray(pool);
+            }
+            return gameState.riddles.pools[key].shift();
+        }
         function showFeedback(gameType, message, type) {
             const feedback = document.getElementById(gameType + '-feedback');
             feedback.innerHTML = `<div class="feedback ${type}">${message}</div>`;
@@ -1702,16 +1722,11 @@
                 showFeedback('riddles', 'No riddles available for this category/difficulty combination.', 'error');
                 return;
             }
-
-            // Select random riddle (avoid duplicate if possible)
-            let newRiddle;
-            if (availableRiddles.length === 1) {
-                newRiddle = availableRiddles[0];
-            } else {
-                // Try to avoid selecting the same riddle as before
-                do {
-                    newRiddle = availableRiddles[Math.floor(Math.random() * availableRiddles.length)];
-                } while (newRiddle === riddles.currentRiddle && availableRiddles.length > 1);
+            // Select riddle from a shuffled per-filter pool to avoid repeats until pool exhausted
+            let newRiddle = getRiddleFromPool(riddles.category, riddles.difficulty);
+            if (!newRiddle) {
+                // Fallback to random selection
+                newRiddle = availableRiddles[Math.floor(Math.random() * availableRiddles.length)];
             }
             riddles.currentRiddle = newRiddle;
             riddles.currentHintLevel = 0;
@@ -2497,7 +2512,10 @@
             
             // Start timer
             startTimer('trivia');
-            
+            // Prepare a shuffled pool of questions for this difficulty
+            const allQuestions = triviaQuestions[trivia.difficulty] || [];
+            trivia.pool = shuffleArray(allQuestions);
+
             // Show first question
             showTriviaQuestion();
             
@@ -2510,13 +2528,13 @@
 
         function showTriviaQuestion() {
             const trivia = gameState.trivia;
-            const questions = triviaQuestions[trivia.difficulty];
-            
+            const questions = trivia.pool || [];
+
             if (trivia.currentQuestion >= trivia.totalQuestions || trivia.currentQuestion >= questions.length) {
                 endTriviaGame();
                 return;
             }
-            
+
             const question = questions[trivia.currentQuestion];
             
             document.getElementById('trivia-question-text').textContent = question.question;
@@ -2552,7 +2570,7 @@
             if (gameState.trivia.selectedAnswer === null) return;
             
             const trivia = gameState.trivia;
-            const questions = triviaQuestions[trivia.difficulty];
+            const questions = trivia.pool || [];
             const question = questions[trivia.currentQuestion];
             const isCorrect = trivia.selectedAnswer === question.correct;
             
@@ -2657,7 +2675,10 @@
             
             // Start timer
             startTimer('animalTrivia');
-            
+            // Prepare a shuffled pool of animal questions for this difficulty
+            const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
+            animalTrivia.pool = shuffleArray(allQuestions);
+
             // Show first question
             showAnimalTriviaQuestion();
             
@@ -2670,7 +2691,7 @@
 
         function showAnimalTriviaQuestion() {
             const animalTrivia = gameState.animalTrivia;
-            const questions = animalTriviaQuestions[animalTrivia.difficulty];
+            const questions = animalTrivia.pool || [];
             
             if (animalTrivia.currentQuestion >= animalTrivia.totalQuestions || animalTrivia.currentQuestion >= questions.length) {
                 endAnimalTriviaGame();
@@ -2712,7 +2733,7 @@
             if (gameState.animalTrivia.selectedAnswer === null) return;
             
             const animalTrivia = gameState.animalTrivia;
-            const questions = animalTriviaQuestions[animalTrivia.difficulty];
+            const questions = animalTrivia.pool || [];
             const question = questions[animalTrivia.currentQuestion];
             const isCorrect = animalTrivia.selectedAnswer === question.correct;
             
