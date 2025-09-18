@@ -1,0 +1,91 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Build (if needed)
+        run: |
+          # If you have a build step (e.g., static site generator), run it here.
+          # For a plain static site (HTML/CSS/JS) this can be a no-op.
+          echo "No build step defined; publishing repo root"
+
+      - name: Prepare Pages artifact
+        run: |
+          set -eux
+          rm -rf ./.publish
+          mkdir -p ./.publish
+          # Copy the site files only
+          cp ./standalone.html ./.publish/ || true
+          if [ -d ./assets ]; then cp -r ./assets ./.publish/; fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./.publish
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
+
+      - name: Purge Cloudflare cache (optional)
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ZONE_ID != '' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          echo "Purging Cloudflare cache for zone $CLOUDFLARE_ZONE_ID"
+          set -euo pipefail
+          ATTEMPTS=3
+          for i in $(seq 1 $ATTEMPTS); do
+            if curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data '{"purge_everything":true}' | jq -r '.success' | grep -q true; then
+              echo "Cloudflare purge succeeded"; break
+            else
+              echo "Cloudflare purge attempt $i failed"
+              if [ $i -lt $ATTEMPTS ]; then sleep $((2**i)); else echo "All attempts failed"; fi
+            fi
+          done
+
+      - name: Call generic CDN purge webhook (optional)
+        if: ${{ env.CDN_PURGE_URL != '' }}
+        env:
+          CDN_PURGE_URL: ${{ secrets.CDN_PURGE_URL }}
+          CDN_PURGE_SECRET: ${{ secrets.CDN_PURGE_SECRET }}
+        run: |
+          echo "Calling CDN purge webhook"
+          set -euo pipefail
+          HEADER_ARGS=( -H 'Content-Type: application/json' )
+          if [ -n "$CDN_PURGE_SECRET" ]; then
+            HEADER_ARGS+=( -H "X-CDN-Purge-Secret: $CDN_PURGE_SECRET" )
+          fi
+          ATTEMPTS=3
+          for i in $(seq 1 $ATTEMPTS); do
+            if curl -s -X POST "$CDN_PURGE_URL" "${HEADER_ARGS[@]}" -d '{"source":"github-pages","ref":"'${GITHUB_REF}'"}' ; then
+              echo "Webhook purge succeeded"; break
+            else
+              echo "Webhook purge attempt $i failed"
+              if [ $i -lt $ATTEMPTS ]; then sleep $((2**i)); else echo "All attempts failed"; fi
+            fi
+          done

@@ -1,0 +1,100 @@
+name: Playwright E2E
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache root node modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-root-node-${{ hashFiles('package-lock.json', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-root-node-
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json', 'server/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install root dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Cache server node modules
+        uses: actions/cache@v4
+        with:
+          path: server/node_modules
+          key: ${{ runner.os }}-server-node-${{ hashFiles('server/package-lock.json', 'server/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-server-node-
+
+      - name: Install server dependencies
+        working-directory: ./server
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Run server unit tests
+        working-directory: ./server
+        run: |
+          export FAST_CHECK_RUNS=500
+          npm test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start backend and static server (background)
+        run: |
+          # Start backend
+          node ./server/index.js &
+          echo "backend_pid=$!" > /tmp/backend.pid
+          # Start static server
+          python3 -m http.server 8000 &
+          echo "static_pid=$!" > /tmp/static.pid
+          # Wait for services to respond
+          for i in {1..30}; do
+            if curl -sSf http://localhost:4000/api/leaderboard >/dev/null 2>&1 && curl -sSf http://localhost:8000/standalone.html >/dev/null 2>&1; then
+              echo "services are up"; break
+            fi
+            sleep 1
+          done
+
+      - name: Run Playwright via runner script
+        run: node ./scripts/run-playwright-with-backend.js
+
+      - name: Upload Playwright artifacts (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            test-results/**
+            playwright-report/**
+            trace.zip
+            ./playwright-traces/**
+            ./playwright-screenshots/**
+          retention-days: 7
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -f /tmp/backend.pid ]; then kill "$(cat /tmp/backend.pid)" || true; fi
+          if [ -f /tmp/static.pid ]; then kill "$(cat /tmp/static.pid)" || true; fi

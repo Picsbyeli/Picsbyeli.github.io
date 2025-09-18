@@ -4,560 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Burble - Brain Teasers & Riddles Platform</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #667eea;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .nav-btn {
-            padding: 8px 16px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .nav-btn:hover,
-        .nav-btn.active {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        /* Game Container */
-        .game-container {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            min-height: 600px;
-        }
-
-        /* Home Page Styles */
-        .hero-section {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .hero-title {
-            font-size: 3rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .hero-subtitle {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        .user-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-bottom: 40px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            opacity: 0.9;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .game-card {
-            background: #f8f9ff;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .game-card:hover {
-            border-color: #667eea;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
-        }
-
-        .game-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-
-        .game-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .game-description {
-            color: #666;
-            line-height: 1.5;
-        }
-
-        /* Common Game Styles */
-        .game-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .game-title-main {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .difficulty-selector,
-        .category-selector {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .selector-label {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .selector-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .selector-btn {
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .selector-btn:hover,
-        .selector-btn.active {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .game-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .info-card {
-            background: #f8f9ff;
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            text-align: center;
-        }
-
-        .info-label {
-            font-size: 0.8rem;
-            color: #64748b;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .info-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-top: 5px;
-        }
-
-        /* Input and Button Styles */
-        .input-section {
-            margin-bottom: 20px;
-        }
-
-        .game-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: 600;
-            transition: border-color 0.3s ease;
-        }
-
-        .game-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            flex: 1;
-            min-width: 120px;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: #5a67d8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-secondary {
-            background: #f1f5f9;
-            color: #475569;
-            border: 2px solid #e2e8f0;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: #e2e8f0;
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        /* Feedback and Display Styles */
-        .game-display {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #333;
-            letter-spacing: 0.3em;
-            margin: 30px 0;
-            padding: 20px;
-            background: #f8f9ff;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            min-height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .emoji-display {
-            font-size: 3rem;
-            line-height: 1.2;
-        }
-
-        .feedback {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        .feedback.correct {
-            background: #d1fae5;
-            color: #065f46;
-            border: 2px solid #10b981;
-        }
-
-        .feedback.incorrect {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 2px solid #ef4444;
-        }
-
-        .feedback.hint {
-            background: #fef3c7;
-            color: #92400e;
-            border: 2px solid #f59e0b;
-        }
-
-        .feedback.info {
-            background: #dbeafe;
-            color: #1e40af;
-            border: 2px solid #3b82f6;
-        }
-
-        .game-over {
-            margin-top: 30px;
-            padding: 30px;
-            background: #f8f9ff;
-            border-radius: 16px;
-            border: 2px solid #e2e8f0;
-            text-align: center;
-        }
-
-        .game-over.win {
-            background: #d1fae5;
-            border-color: #10b981;
-        }
-
-        .game-over.lose {
-            background: #fef2f2;
-            border-color: #ef4444;
-        }
-
-        /* Trivia Specific Styles */
-        .trivia-question {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        .trivia-options {
-            display: grid;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .trivia-option {
-            padding: 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-        }
-
-        .trivia-option:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-
-        .trivia-option.selected {
-            border-color: #667eea;
-            background: #667eea;
-            color: white;
-        }
-
-        .trivia-option.correct {
-            border-color: #10b981;
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .trivia-option.incorrect {
-            border-color: #ef4444;
-            background: #fef2f2;
-            color: #991b1b;
-        }
-
-        /* Twenty Questions Styles */
-        .question-history {
-            background: #f8f9ff;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .question-item {
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            background: white;
-            border-left: 4px solid #667eea;
-        }
-
-        .question-text {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .answer-text {
-            color: #666;
-            font-style: italic;
-        }
-
-        /* Timer */
-        .timer {
-            font-family: 'Courier New', monospace;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .game-container {
-                padding: 20px;
-            }
-
-            .hero-title {
-                font-size: 2rem;
-            }
-
-            .game-title-main {
-                font-size: 2rem;
-            }
-
-            .game-display {
-                font-size: 1.5rem;
-            }
-
-            .games-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .nav-buttons {
-                justify-content: center;
-                width: 100%;
-                margin-top: 10px;
-            }
-
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-
-        /* Hidden class */
-        .hidden {
-            display: none !important;
-        }
-        /* Audio controls */
-        .audio-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            background: #f1f5f9;
-            padding: 8px 10px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-        }
-        .audio-controls select,
-        .audio-controls input[type="text"] {
-            padding: 6px 8px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.9rem;
-        }
-        .audio-controls button {
-            padding: 6px 8px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            background: white;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .audio-controls .volume {
-            width: 110px;
-        }
-        /* Audio control specific tweaks */
-        #audio-custom { min-width: 220px; }
-        #audio-pause { display: none; }
-        .muted-center { text-align: center; color: #666; }
-        .now-playing { margin-left: 12px; font-weight: 600; }
-    .now-playing-art { display:inline-block; width:20px; height:20px; margin-right:6px; }
-    .truncate { max-width: 220px; display:inline-block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; }
-    .audio-queue { margin-top:8px; background:#fff; border:1px solid #e6e6e6; padding:8px; border-radius:8px; max-height:140px; overflow:auto; }
-    .audio-queue.hidden { display:none; }
-    .audio-queue-item { padding:6px; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:8px; }
-    .audio-queue-item.current { background:#eef2ff; }
-    </style>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
     <div class="container">
@@ -577,10 +24,16 @@
                 <span class="now-playing-art" id="now-playing-art">🎵</span>
                 Now playing: <span id="now-playing-track">None</span>
             </div>
+            <div id="user-area" class="user-area">
+                <button id="signin-btn" class="nav-btn small">Sign in</button>
+                <div id="user-info" class="muted-center hidden">
+                    <a href="#" id="user-email-link"></a>
+                    <div><button id="signout-btn" class="nav-btn xsmall">Sign out</button></div>
+                </div>
+            </div>
             <!-- Audio Controls -->
-            <div class="audio-controls" id="audio-controls">
-                <label for="audio-mode">Mode</label>
-                <select id="audio-mode">
+            <div class="audio-controls" id="audio-controls" aria-label="Audio controls">
+                <select id="audio-mode" title="Mode" aria-label="Audio mode">
                     <option value="all">All</option>
                     <option value="riddles">Riddles</option>
                     <option value="trivia">Trivia</option>
@@ -590,23 +43,27 @@
                     <option value="valentine">Twenty Questions</option>
                 </select>
 
-                <label for="audio-track">Track</label>
-                <select id="audio-track"></select>
+                <select id="audio-track" title="Track" aria-label="Audio track"></select>
 
-                <input type="text" id="audio-custom" placeholder="Paste audio URL">
+                <button id="audio-prev" title="Previous">◀</button>
+                <button id="audio-rewind" title="Rewind 10s">-10s</button>
+                <button id="audio-play" title="Play">▶</button>
+                <button id="audio-pause" title="Pause">❚❚</button>
+                <button id="audio-forward" title="Forward 10s">+10s</button>
+                <button id="audio-next" title="Next">▶▶</button>
 
-                <button id="audio-prev">⏮</button>
-                <button id="audio-rewind">-10s</button>
-                <button id="audio-play">▶️</button>
-                <button id="audio-pause">⏸️</button>
-                <button id="audio-forward">+10s</button>
-                <button id="audio-next">⏭</button>
-
-                <label for="audio-auto" class="audio-auto-label"><input type="checkbox" id="audio-auto"> Auto-advance</label>
-                <label for="audio-show-queue" class="audio-queue-label"><input type="checkbox" id="audio-show-queue"> Show queue</label>
                 <input type="range" id="audio-volume" class="volume" min="0" max="1" step="0.01" aria-label="Audio volume" title="Audio volume">
+                <label for="audio-show-queue" class="audio-queue-label" title="Show queue"><input type="checkbox" id="audio-show-queue">Queue</label>
             </div>
-            <div id="audio-queue" class="audio-queue hidden" aria-hidden="true"></div>
+            <div id="audio-queue" class="audio-queue hidden" aria-hidden="true">
+                <div class="queue-header">
+                        <strong class="queue-title">Queue</strong>
+                        <div>
+                            <button id="audio-clear-queue" title="Clear queue" class="clear-queue-btn">Clear</button>
+                        </div>
+                    </div>
+                <div id="audio-queue-list"></div>
+            </div>
         </div>
 
         <!-- Home Page -->
@@ -970,6 +427,35 @@
 
             <div id="trivia-feedback"></div>
             <div id="trivia-game-over"></div>
+        </div>
+
+        <!-- Leaderboard Page -->
+        <div id="leaderboard-page" class="game-container hidden">
+            <div class="game-header">
+                <h1 class="game-title-main">🏆 Leaderboard</h1>
+            </div>
+                <div class="leaderboard-tabs">
+                <button class="selector-btn active" data-tab="scores" onclick="showLeaderboardTab('scores')">Scores</button>
+                <button class="selector-btn" data-tab="details" onclick="showLeaderboardTab('details')">Details</button>
+            </div>
+            <div id="leaderboard-content">
+                <div id="leaderboard-scores">
+                    <table class="table-full">
+                        <thead>
+                            <tr><th class="text-left">Rank</th><th>User</th><th>Score</th></tr>
+                        </thead>
+                        <tbody id="leaderboard-scores-body"></tbody>
+                    </table>
+                </div>
+                <div id="leaderboard-details" class="hidden">
+                    <table class="table-full">
+                        <thead>
+                            <tr><th class="text-left">Rank</th><th>User</th><th>Questions Solved</th><th>Avg Time (s)</th><th>Highest Streak</th></tr>
+                        </thead>
+                        <tbody id="leaderboard-details-body"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Animal Trivia Game -->
@@ -1757,7 +1243,7 @@
     triviaAudio.src = localStorage.getItem('triviaSoundSrc') || '30%20Second%20Timer%20With%20Jeopardy%20Thinking%20Music.mp3';
         triviaAudio.preload = 'auto';
         triviaAudio.volume = 0.5;
-        triviaAudio.style.display = 'none';
+    triviaAudio.classList.add('hidden');
         document.body.appendChild(triviaAudio);
 
         function setTriviaSoundSrc(url) {
@@ -1855,11 +1341,11 @@
             }
 
             // Keep UI in sync with player events
-            audioPlayer.addEventListener('play', () => { try { $play.style.display = 'none'; $pause.style.display = ''; } catch (e) {} });
-            audioPlayer.addEventListener('pause', () => { try { $pause.style.display = 'none'; $play.style.display = ''; } catch (e) {} });
+            audioPlayer.addEventListener('play', () => { try { $play.classList.add('hidden'); $pause.classList.remove('hidden'); } catch (e) {} });
+            audioPlayer.addEventListener('pause', () => { try { $pause.classList.add('hidden'); $play.classList.remove('hidden'); } catch (e) {} });
             audioPlayer.addEventListener('ended', () => {
                 try {
-                    $pause.style.display = 'none'; $play.style.display = '';
+                    $pause.classList.add('hidden'); $play.classList.remove('hidden');
                     // If the current track is in defaultTracks and auto-advance is desired, advance index
                     if (audioSettings.autoAdvance) {
                         audioSettings.index = (audioSettings.index + 1) % defaultTracks.length;
@@ -1871,6 +1357,10 @@
             });
 
             const $nowPlaying = document.getElementById('now-playing-track');
+            const $nowPlayingArt = document.getElementById('now-playing-art');
+            const $audioQueue = document.getElementById('audio-queue');
+            const $showQueue = document.getElementById('audio-show-queue');
+
             function updateNowPlaying(src) {
                 try {
                     if (!src) { $nowPlaying.textContent = 'None'; return; }
@@ -1878,13 +1368,30 @@
                     try { label = decodeURIComponent(src); } catch (e) {}
                     const parts = label.split('/');
                     label = parts[parts.length - 1] || label;
-                    $nowPlaying.textContent = label;
+                    // truncate long names
+                    $nowPlaying.innerHTML = '';
+                    const span = document.createElement('span');
+                    span.className = 'truncate';
+                    span.textContent = label;
+                    $nowPlaying.appendChild(span);
+                    // simple placeholder artwork using emoji or first letter
+                    try {
+                        $nowPlayingArt.textContent = '🎵';
+                    } catch (e) {}
                 } catch (e) {}
             }
             audioPlayer.addEventListener('loadedmetadata', () => updateNowPlaying(audioPlayer.src || audioPlayer.getAttribute('src')));
             audioPlayer.addEventListener('play', () => updateNowPlaying(audioPlayer.src || audioPlayer.getAttribute('src')));
             // initialize now playing
             updateNowPlaying(audioPlayer.src || audioPlayer.getAttribute('src'));
+
+            // Queue toggle wiring
+            if ($showQueue && $audioQueue) {
+                $showQueue.addEventListener('change', () => {
+                    if ($showQueue.checked) { $audioQueue.classList.remove('hidden'); $audioQueue.setAttribute('aria-hidden', 'false'); }
+                    else { $audioQueue.classList.add('hidden'); $audioQueue.setAttribute('aria-hidden', 'true'); }
+                });
+            }
 
             function setModeSelection(mode) {
                 const modeVal = audioSettings.modeMap[mode] || audioSettings.modeMap['all'] || '';
@@ -1907,7 +1414,7 @@
                 setPlayerSrc(src);
                 audioPlayer.volume = audioSettings.volume;
                 audioPlayer.play().then(() => {
-                    $play.style.display = 'none'; $pause.style.display = '';
+                    $play.classList.add('hidden'); $pause.classList.remove('hidden');
                 }).catch(e => {
                     console.warn('Audio play blocked or failed', e);
                 });
@@ -1935,9 +1442,9 @@
                     const val = $track.value || $custom.value;
                     if (val) { setPlayerSrc(val); }
                 }
-                audioPlayer.play().then(() => { $play.style.display = 'none'; $pause.style.display = ''; }).catch(e => console.warn(e));
+                audioPlayer.play().then(() => { $play.classList.add('hidden'); $pause.classList.remove('hidden'); }).catch(e => console.warn(e));
             });
-            $pause.addEventListener('click', () => { audioPlayer.pause(); $pause.style.display = 'none'; $play.style.display = ''; });
+            $pause.addEventListener('click', () => { audioPlayer.pause(); $pause.classList.add('hidden'); $play.classList.remove('hidden'); });
 
             $prev.addEventListener('click', () => {
                 audioSettings.index = (audioSettings.index - 1 + defaultTracks.length) % defaultTracks.length;
@@ -1994,8 +1501,72 @@
                 setPlayerSrc,
                 play: () => audioPlayer.play(),
                 pause: () => audioPlayer.pause(),
-                stop: () => { audioPlayer.pause(); audioPlayer.currentTime = 0; }
+                stop: () => { audioPlayer.pause(); audioPlayer.currentTime = 0; },
+                // queue helpers
+                getQueue: () => (audioQueue.slice()),
+                addToQueue: (src) => { if (src) { audioQueue.push(src); renderQueue(); } },
+                clearQueue: () => { audioQueue = []; currentQueueIndex = -1; renderQueue(); }
             };
+
+            // Audio queue implementation
+            let audioQueue = []; // list of src strings
+            let currentQueueIndex = -1;
+            const $queueList = document.getElementById('audio-queue-list');
+            const $clearQueue = document.getElementById('audio-clear-queue');
+
+            function renderQueue() {
+                if (!$queueList) return;
+                $queueList.innerHTML = '';
+                audioQueue.forEach((src, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'audio-queue-item' + (i === currentQueueIndex ? ' current' : '');
+                    const label = document.createElement('span');
+                    let pretty = src;
+                    try { pretty = decodeURIComponent(src); } catch (e) {}
+                    const parts = pretty.split('/'); pretty = parts[parts.length - 1] || pretty;
+                    label.textContent = pretty;
+                    item.appendChild(label);
+                    item.addEventListener('click', () => {
+                        currentQueueIndex = i;
+                        const selected = audioQueue[currentQueueIndex];
+                        setPlayerSrc(selected);
+                        audioPlayer.play().catch(() => {});
+                        saveSettings();
+                        renderQueue();
+                    });
+                    $queueList.appendChild(item);
+                });
+            }
+
+            function populateQueueFromDefaults() {
+                audioQueue = defaultTracks.slice();
+                currentQueueIndex = defaultTracks.indexOf(audioPlayer.src) >= 0 ? defaultTracks.indexOf(audioPlayer.src) : -1;
+                renderQueue();
+            }
+
+            if ($clearQueue) {
+                $clearQueue.addEventListener('click', () => { audioQueue = []; currentQueueIndex = -1; renderQueue(); });
+            }
+
+            // Wire next/prev to queue if queue present
+            const originalNext = $next.onclick;
+            $next.addEventListener('click', () => {
+                if (audioQueue.length > 0) {
+                    currentQueueIndex = (currentQueueIndex + 1) % audioQueue.length;
+                    const nextSrc = audioQueue[currentQueueIndex];
+                    setPlayerSrc(nextSrc); audioPlayer.play(); renderQueue(); saveSettings();
+                }
+            });
+            $prev.addEventListener('click', () => {
+                if (audioQueue.length > 0) {
+                    currentQueueIndex = (currentQueueIndex - 1 + audioQueue.length) % audioQueue.length;
+                    const prevSrc = audioQueue[currentQueueIndex];
+                    setPlayerSrc(prevSrc); audioPlayer.play(); renderQueue(); saveSettings();
+                }
+            });
+
+            // initialize queue UI
+            populateQueueFromDefaults();
         })();
 
         // Riddles: maintain per-filter shuffled pools to avoid repeats until exhausted
@@ -2163,6 +1734,11 @@
                 `🎉 Correct! The answer was "${riddles.currentRiddle.answer}". You earned ${totalScore} points! Click "New Riddle" to continue.`, 
                 'success'
             );
+            // leaderboard recording
+            try {
+                const user = JSON.parse(localStorage.getItem('burbleUser') || 'null');
+                if (user && user.username) recordCorrect(user.username, 0);
+            } catch (e) {}
         }
 
         function handleRiddleIncorrect() {
@@ -2191,6 +1767,7 @@
             }
             
             updateRiddlesDisplay();
+            try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordIncorrect(user.username); } catch (e) {}
         }
 
         function getRiddleHint() {
@@ -2379,6 +1956,7 @@
             disableBurbleInputs();
             // Stop audio for Burble
             try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
+            try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordCorrect(user.username, 0); } catch (e) {}
         }
 
         function handleBurbleIncorrect(guess) {
@@ -2404,6 +1982,7 @@
                 `;
                 
                 disableBurbleInputs();
+                try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordIncorrect(user.username); } catch (e) {}
             }
         }
 
@@ -2585,10 +2164,12 @@
             disableEmojiInputs();
             updateEmojiDisplay();
             try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
+            try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordCorrect(user.username, 0); } catch (e) {}
         }
 
         function handleEmojiIncorrect() {
             showFeedback('emoji', '❌ Incorrect! Try again or get a hint.', 'incorrect');
+            try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordIncorrect(user.username); } catch (e) {}
         }
 
         function getEmojiHint() {
@@ -2816,6 +2397,7 @@
             
             disableValentineInputs();
             try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
+            try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordCorrect(user.username, 0); } catch (e) {}
         }
 
         function handleValentineLose() {
@@ -2837,6 +2419,7 @@
             
             disableValentineInputs();
             try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
+            try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordIncorrect(user.username); } catch (e) {}
         }
 
         function updateValentineHistory() {
@@ -2953,6 +2536,8 @@
             trivia.selectedAnswer = null;
             document.getElementById('trivia-submit').disabled = false;
             document.getElementById('trivia-next').disabled = true;
+            // record question start time
+            trivia.questionStart = Date.now();
         }
 
         function selectTriviaOption(index, element) {
@@ -2989,8 +2574,14 @@
                 trivia.correctAnswers++;
                 trivia.score += trivia.difficulty === 'hard' ? 15 : trivia.difficulty === 'medium' ? 10 : 5;
                 showFeedback('trivia', '✅ Correct!', 'correct');
+                try {
+                    const user = JSON.parse(localStorage.getItem('burbleUser') || 'null');
+                    const time = trivia.questionStart ? ((Date.now() - trivia.questionStart) / 1000) : 0;
+                    if (user && user.username) recordCorrect(user.username, time);
+                } catch (e) {}
             } else {
                 showFeedback('trivia', `❌ Incorrect. The correct answer was: ${question.options[question.correct]}`, 'incorrect');
+                try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordIncorrect(user.username); } catch (e) {}
             }
             
             trivia.currentQuestion++;
@@ -3206,8 +2797,10 @@
                 animalTrivia.correctAnswers++;
                 animalTrivia.score += animalTrivia.difficulty === 'hard' ? 15 : animalTrivia.difficulty === 'medium' ? 10 : 5;
                 showFeedback('animal', '✅ Correct!', 'correct');
+                try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordCorrect(user.username, 0); } catch (e) {}
             } else {
                 showFeedback('animal', `❌ Incorrect. The correct answer was: ${question.options[question.correct]}`, 'incorrect');
+                try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordIncorrect(user.username); } catch (e) {}
             }
             
             animalTrivia.currentQuestion++;
@@ -3277,4 +2870,224 @@
             initTriviaGame();
             initAnimalTriviaGame();
             updateUserStats();
+            initAuthAndLeaderboard();
         });
+
+        // --- Simple client-side auth & leaderboard ---
+        function sanitizeUsername(name) {
+            return name.replace(/[^a-zA-Z0-9_\- ]/g, '').trim().slice(0, 30);
+        }
+
+        function isProfane(name) {
+            if (!name) return false;
+            const blocked = ['fuck','shit','bitch','cunt','nigger','faggot','motherfucker'];
+            const low = name.toLowerCase();
+            return blocked.some(w => low.includes(w));
+        }
+
+        function initAuthAndLeaderboard() {
+            const signin = document.getElementById('signin-btn');
+            const userInfo = document.getElementById('user-info');
+            const signout = document.getElementById('signout-btn');
+            const emailLink = document.getElementById('user-email-link');
+
+            function renderUser() {
+                const user = JSON.parse(localStorage.getItem('burbleUser') || 'null');
+                if (user && user.username) {
+                    signin.classList.add('hidden');
+                    userInfo.classList.remove('hidden');
+                    emailLink.textContent = user.username;
+                    emailLink.href = 'mailto:' + encodeURIComponent(user.email || '');
+                } else {
+                    signin.classList.remove('hidden');
+                    userInfo.classList.add('hidden');
+                }
+            }
+
+            // expose for tests and external scripts to trigger UI sync
+            try { window.renderUser = renderUser; } catch (e) {}
+
+            // Note: tests should call `window.renderUser()` after setting `burbleUser` in localStorage.
+
+            signin.addEventListener('click', () => {
+                // Open the sign-in modal (the modal submit handler will handle registration)
+                const modal = document.getElementById('signin-modal');
+                if (modal) { modal.classList.remove('hidden'); modal.setAttribute('aria-hidden', 'false'); }
+            });
+
+            signout.addEventListener('click', () => {
+                localStorage.removeItem('burbleUser');
+                renderUser();
+            });
+
+            renderUser();
+            renderLeaderboard();
+        }
+
+        // Sign-in modal and settings modal UI
+        document.body.insertAdjacentHTML('beforeend', `
+            <div id="signin-modal" class="modal hidden" aria-hidden="true">
+                <div class="card">
+                    <h3>Sign in / Register</h3>
+                    <label>Username</label>
+                    <input id="si-username" class="modal-input" />
+                    <label>Email (optional)</label>
+                    <input id="si-email" class="modal-input" />
+                    <div class="modal-actions">
+                        <button id="si-cancel" class="nav-btn">Cancel</button>
+                        <button id="si-submit" class="nav-btn btn-primary">Submit</button>
+                    </div>
+                    <div id="si-msg" class="message-error"></div>
+                </div>
+            </div>
+            <div id="settings-modal" class="modal hidden" aria-hidden="true">
+                <div class="card">
+                    <h3>Settings</h3>
+                    <label>Theme</label>
+                    <select id="pref-theme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                    <label>Font size</label>
+                    <select id="pref-font">
+                        <option value="small">Small</option>
+                        <option value="normal">Normal</option>
+                        <option value="large">Large</option>
+                    </select>
+                    <label>Profile banner</label>
+                    <input id="pref-banner" type="file" accept="image/*" />
+                    <div class="modal-actions mt12">
+                        <button id="settings-cancel" class="nav-btn">Close</button>
+                        <button id="settings-save" class="nav-btn btn-primary">Save</button>
+                    </div>
+                    <div id="settings-msg" class="message-error"></div>
+                </div>
+            </div>
+            <div id="settings-gear" class="settings-gear" title="Settings">⚙️</div>
+        `);
+
+        // wire modal buttons
+        const signinModal = document.getElementById('signin-modal');
+        const settingsModal = document.getElementById('settings-modal');
+        const signinBtn = document.getElementById('signin-btn');
+        const siCancel = document.getElementById('si-cancel');
+        const siSubmit = document.getElementById('si-submit');
+        const siMsg = document.getElementById('si-msg');
+        const settingsGear = document.getElementById('settings-gear');
+        const settingsCancel = document.getElementById('settings-cancel');
+        const settingsSave = document.getElementById('settings-save');
+
+        signinBtn.addEventListener('click', () => { signinModal.classList.remove('hidden'); signinModal.setAttribute('aria-hidden', 'false'); });
+        siCancel.addEventListener('click', () => { signinModal.classList.add('hidden'); siMsg.textContent = ''; });
+
+        siSubmit.addEventListener('click', async () => {
+            siMsg.textContent = '';
+            const username = document.getElementById('si-username').value || '';
+            const email = document.getElementById('si-email').value || '';
+            try {
+                // check username availability via server
+                const check = await fetch('http://localhost:4000/api/check-username', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ username }) });
+                const chk = await check.json();
+                if (!chk.ok) { siMsg.textContent = 'Username not available: ' + (chk.reason || ''); return; }
+                const reg = await fetch('http://localhost:4000/api/register', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ username, email }) });
+                const jr = await reg.json();
+                if (!reg.ok) { siMsg.textContent = jr.error || 'Registration failed'; return; }
+                localStorage.setItem('burbleUser', JSON.stringify({ username: jr.user.username, email: jr.user.email }));
+                signinModal.classList.add('hidden'); renderUser(); renderLeaderboard();
+            } catch (e) {
+                // fallback to local storage registration
+                const clean = sanitizeUsername(username);
+                if (!clean || isProfane(clean)) { siMsg.textContent = 'Invalid or disallowed username'; return; }
+                const existing = JSON.parse(localStorage.getItem('burbleLeaderboard')||'{}');
+                if (existing[clean]) { siMsg.textContent = 'Username taken locally'; return; }
+                localStorage.setItem('burbleUser', JSON.stringify({ username: clean, email }));
+                existing[clean] = { score:0, questionsSolved:0, totalCorrectTime:0, correctCount:0, highestStreak:0 };
+                localStorage.setItem('burbleLeaderboard', JSON.stringify(existing));
+                signinModal.classList.add('hidden'); renderUser(); renderLeaderboard();
+            }
+        });
+
+        settingsGear.addEventListener('click', () => { settingsModal.classList.remove('hidden'); settingsModal.setAttribute('aria-hidden','false'); });
+        settingsCancel.addEventListener('click', () => { settingsModal.classList.add('hidden'); });
+        settingsSave.addEventListener('click', async () => {
+            const theme = document.getElementById('pref-theme').value;
+            const font = document.getElementById('pref-font').value;
+            const bannerInput = document.getElementById('pref-banner');
+            const user = JSON.parse(localStorage.getItem('burbleUser') || 'null');
+            if (user && user.username && bannerInput.files && bannerInput.files[0]) {
+                const f = bannerInput.files[0];
+                const fd = new FormData(); fd.append('banner', f); fd.append('username', user.username);
+                try {
+                    const up = await fetch('http://localhost:4000/api/upload-profile', { method:'POST', body: fd });
+                    const ju = await up.json();
+                    if (up.ok) {
+                        user.banner = ju.url; localStorage.setItem('burbleUser', JSON.stringify(user));
+                    }
+                } catch (e) { /* ignore */ }
+            }
+            const prefs = { theme, font };
+            if (user && user.username) {
+                // save to server prefs if available
+                try { await fetch('http://localhost:4000/api/save-prefs', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ username: user.username, prefs }) }); } catch (e) {}
+            }
+            localStorage.setItem('burblePrefs', JSON.stringify(prefs));
+            settingsModal.classList.add('hidden');
+        });
+
+        function recordCorrect(username, timeTakenSeconds) {
+            if (!username) return;
+            const lb = JSON.parse(localStorage.getItem('burbleLeaderboard') || '{}');
+            if (!lb[username]) lb[username] = { score: 0, questionsSolved: 0, totalCorrectTime: 0, correctCount: 0, highestStreak: 0, currentStreak: 0 };
+            lb[username].questionsSolved = (lb[username].questionsSolved || 0) + 1;
+            lb[username].totalCorrectTime = (lb[username].totalCorrectTime || 0) + (timeTakenSeconds || 0);
+            lb[username].correctCount = (lb[username].correctCount || 0) + 1;
+            lb[username].currentStreak = (lb[username].currentStreak || 0) + 1;
+            if (lb[username].currentStreak > (lb[username].highestStreak || 0)) lb[username].highestStreak = lb[username].currentStreak;
+            // update score simple heuristic
+            lb[username].score = (lb[username].score || 0) + 10;
+            localStorage.setItem('burbleLeaderboard', JSON.stringify(lb));
+        }
+
+        function recordIncorrect(username) {
+            if (!username) return;
+            const lb = JSON.parse(localStorage.getItem('burbleLeaderboard') || '{}');
+            if (!lb[username]) lb[username] = { score: 0, questionsSolved: 0, totalCorrectTime: 0, correctCount: 0, highestStreak: 0, currentStreak: 0 };
+            lb[username].currentStreak = 0;
+            localStorage.setItem('burbleLeaderboard', JSON.stringify(lb));
+        }
+
+        function renderLeaderboard() {
+            const tbody = document.getElementById('leaderboard-scores-body');
+            const tbodyDetails = document.getElementById('leaderboard-details-body');
+            if (!tbody || !tbodyDetails) return;
+            const lb = JSON.parse(localStorage.getItem('burbleLeaderboard') || '{}');
+            const rows = Object.keys(lb).map(u => ({ username: u, ...lb[u] }));
+            // sort by score desc
+            rows.sort((a,b) => (b.score || 0) - (a.score || 0));
+            tbody.innerHTML = '';
+            tbodyDetails.innerHTML = '';
+            rows.forEach((r, i) => {
+                const tr = document.createElement('tr');
+                const rank = i+1;
+                tr.innerHTML = `<td class="td-pad">${rank}</td><td class="td-pad">${r.username}</td><td class="td-pad">${r.score || 0}</td>`;
+                if (rank <= 3) {
+                    tr.classList.add(rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : 'rank-3');
+                }
+                tbody.appendChild(tr);
+
+                const avg = r.correctCount ? ((r.totalCorrectTime || 0) / r.correctCount).toFixed(1) : '—';
+                const tr2 = document.createElement('tr');
+                tr2.innerHTML = `<td class="td-pad">${rank}</td><td class="td-pad">${r.username}</td><td class="td-pad">${r.questionsSolved || 0}</td><td class="td-pad">${avg}</td><td class="td-pad">${r.highestStreak || 0}</td>`;
+                if (rank <= 3) {
+                    tr2.classList.add(rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : 'rank-3');
+                    tr2.classList.add('details');
+                }
+                tbodyDetails.appendChild(tr2);
+            });
+        }
+
+        function showLeaderboardTab(tab) {
+            document.getElementById('leaderboard-scores').classList.toggle('hidden', tab !== 'scores');
+            document.getElementById('leaderboard-details').classList.toggle('hidden', tab !== 'details');
+            document.querySelectorAll('#leaderboard-page .selector-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+        }
