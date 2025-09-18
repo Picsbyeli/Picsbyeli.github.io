@@ -42,7 +42,7 @@ async function main() {
   let backendProc = null;
   let staticProc = null;
   const backendUrl = 'http://localhost:4000/api/leaderboard';
-  const staticUrl = 'http://localhost:8000/standalone.html';
+  const staticUrl = 'http://localhost:8001/standalone.html';
 
   const backendUp = await isListening(backendUrl);
   if (!backendUp) {
@@ -53,9 +53,9 @@ async function main() {
   }
 
   const staticUp = await isListening(staticUrl);
-  if (!staticUp) {
-    console.log('Starting static file server on port 8000...');
-    staticProc = spawnProcess('python3', ['-m', 'http.server', '8000'], { cwd: repoRoot });
+    if (!staticUp) {
+    console.log('Starting static file server on port 8001...');
+    staticProc = spawnProcess('python3', ['-m', 'http.server', '8001'], { cwd: repoRoot });
   } else {
     console.log('Static server already running; reusing existing instance.');
   }
