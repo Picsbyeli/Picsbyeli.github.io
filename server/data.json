@@ -1,0 +1,48 @@
+{
+  "users": {
+    "alice": {
+      "id": "_PnfwR74Pg3sVtJPsAD3R",
+      "username": "alice",
+      "email": "a@b.c",
+      "created": 1758145802681,
+      "prefs": {}
+    },
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": {
+      "id": "-hBPNsnKZFqq0-qVXWvb2",
+      "username": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "email": "a@b.c",
+      "created": 1758145802691,
+      "prefs": {}
+    },
+    "Alex": {
+      "id": "FrsYZOq02HqWiRjjUs5rI",
+      "username": "Alex",
+      "email": "a@b.c",
+      "created": 1758145802702,
+      "prefs": {}
+    }
+  },
+  "leaderboard": {
+    "alice": {
+      "score": 0,
+      "questionsSolved": 0,
+      "totalCorrectTime": 0,
+      "correctCount": 0,
+      "highestStreak": 0
+    },
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": {
+      "score": 0,
+      "questionsSolved": 0,
+      "totalCorrectTime": 0,
+      "correctCount": 0,
+      "highestStreak": 0
+    },
+    "Alex": {
+      "score": 0,
+      "questionsSolved": 0,
+      "totalCorrectTime": 0,
+      "correctCount": 0,
+      "highestStreak": 0
+    }
+  }
+}
