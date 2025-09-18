@@ -1101,7 +1101,12 @@
                 { question: "How many chambers does a cow's stomach have?", options: ["2", "3", "4"], correct: 2 },
                 { question: "Which animal can change its color?", options: ["Octopus", "Chameleon", "Both"], correct: 2 },
                 { question: "What is the loudest animal on Earth?", options: ["Lion", "Blue whale", "Howler monkey"], correct: 1 },
-                { question: "Which animal sleeps standing up?", options: ["Giraffe", "Horse", "Both"], correct: 2 }
+                { question: "Which animal sleeps standing up?", options: ["Giraffe", "Horse", "Both"], correct: 2 },
+                { question: "Which animal is the largest rodent in the world?", options: ["Beaver", "Capybara", "Porcupine"], correct: 1 },
+                { question: "What animal is known as the ship of the desert?", options: ["Camel", "Horse", "Donkey"], correct: 0 },
+                { question: "Which animal has blue blood?", options: ["Octopus", "Lobster", "Horsehoe crab"], correct: 2 },
+                { question: "What animal can sleep for up to three years?", options: ["Bear", "Snail", "Frog"], correct: 1 },
+                { question: "Which animal is the only one that cannot jump?", options: ["Elephant", "Rhino", "Hippo"], correct: 0 }
             ],
             hard: [
                 { question: "What percentage of a jellyfish is water?", options: ["85%", "90%", "95%"], correct: 2 },
@@ -2706,13 +2711,12 @@
             animalTrivia.gameActive = true;
             animalTrivia.selectedAnswer = null;
 
-            // Ensure persistent pools exist
+            // Always clear and reshuffle the pool for a fresh game
             if (!gameState.animalTrivia.pools) gameState.animalTrivia.pools = {};
             const key = `animal|${animalTrivia.difficulty}`;
-            if (!gameState.animalTrivia.pools[key] || gameState.animalTrivia.pools[key].length === 0) {
-                const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
-                gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
-            }
+            const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
+            gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
+            savePoolsToStorage();
 
             // Take questions for this run (consume from pool)
             const take = Math.min(animalTrivia.totalQuestions, gameState.animalTrivia.pools[key].length);
@@ -2860,7 +2864,7 @@
             document.getElementById('animal-score').textContent = animalTrivia.score;
         }
 
-        // Initialize all games when page loads
+        // Add a button to reset the animal trivia pool
         window.addEventListener('DOMContentLoaded', () => {
             loadUserStats();
             initRiddlesGame();
@@ -2871,6 +2875,28 @@
             initAnimalTriviaGame();
             updateUserStats();
             initAuthAndLeaderboard();
+
+            // Add reset button to animal trivia page
+            const animalPage = document.getElementById('animal-trivia-page');
+            if (animalPage && !document.getElementById('reset-animal-pool')) {
+                const resetBtn = document.createElement('button');
+                resetBtn.id = 'reset-animal-pool';
+                resetBtn.textContent = 'Reset Animal Trivia Pool';
+                resetBtn.className = 'nav-btn';
+                resetBtn.style.margin = '12px 0';
+                resetBtn.onclick = () => {
+                    if (confirm('Reset the animal trivia question pool? This will reshuffle and use all available questions.')) {
+                        if (gameState.animalTrivia && gameState.animalTrivia.pools) {
+                            const key = `animal|${gameState.animalTrivia.difficulty}`;
+                            const allQuestions = animalTriviaQuestions[gameState.animalTrivia.difficulty] || [];
+                            gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
+                            savePoolsToStorage();
+                            alert('Animal trivia pool reset! Start a new game to see changes.');
+                        }
+                    }
+                };
+                animalPage.insertBefore(resetBtn, animalPage.firstChild);
+            }
         });
 
         // --- Simple client-side auth & leaderboard ---
