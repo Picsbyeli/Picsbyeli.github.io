@@ -135,7 +135,10 @@ async function main() {
   // Run Playwright with HTML reporter and request trace/video generation so
   // CI can collect these artifacts reliably. We keep --workers=1 to make
   // artifacts and logs deterministic and avoid parallel interleaving.
-  const test = spawn('npx', ['playwright', 'test', 'tests/playwright', '--reporter=html', '--workers=1', '--trace=on', '--video=on'], { stdio: 'inherit', shell: true });
+  // Use Playwright CLI flags that are broadly supported and let the
+  // `playwright.config.js` control trace/video retention and reporter
+  // options for consistent artifact generation across versions.
+  const test = spawn('npx', ['playwright', 'test', 'tests/playwright', '--reporter=html', '--workers=1', '--trace=on'], { stdio: 'inherit', shell: true });
     test.on('exit', (code) => {
       console.log('Playwright exited with code', code);
       // kill child servers we started
