@@ -1,8 +1,11 @@
 const { test, expect } = require('@playwright/test');
 const crypto = require('crypto');
 
+const TEST_BASE = process.env.TEST_BASE || 'http://127.0.0.1:8001';
+const BACKEND_BASE = process.env.BACKEND_BASE || 'http://127.0.0.1:4000';
+
 test('sign in, answer a question, and leaderboard updates', async ({ page, request }) => {
-  const base = 'http://localhost:8000/standalone.html';
+  const base = `${TEST_BASE}/standalone.html`;
   await page.goto(base);
 
   // open sign-in modal (click preference + ensure visible for determinism)
@@ -41,7 +44,7 @@ test('sign in, answer a question, and leaderboard updates', async ({ page, reque
   const email = `${username}@example.com`;
 
   // Try to register via backend API so the app can pick up the user reliably
-  const reg = await request.post('http://localhost:4000/api/register', {
+  const reg = await request.post(`${BACKEND_BASE}/api/register`, {
     data: { username, email }
   }).catch(() => null);
   if (reg && reg.ok()) {
@@ -90,11 +93,11 @@ test('sign in, answer a question, and leaderboard updates', async ({ page, reque
   expect(emailText).toBeTruthy();
 
   // Simulate a correct answer by posting directly to the backend record endpoint
-  const rec = await request.post('http://localhost:4000/api/record', { data: { username, type: 'correct', time: 2 } });
+  const rec = await request.post(`${BACKEND_BASE}/api/record`, { data: { username, type: 'correct', time: 2 } });
   expect(rec.ok()).toBeTruthy();
 
   // Query backend leaderboard directly and verify user stats updated
-  const resp = await request.get('http://localhost:4000/api/leaderboard');
+  const resp = await request.get(`${BACKEND_BASE}/api/leaderboard`);
   expect(resp.ok()).toBeTruthy();
   const json = await resp.json();
   const lb = json.leaderboard || {};

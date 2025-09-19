@@ -1,10 +1,11 @@
 const { test, expect } = require('@playwright/test');
 
-// This test assumes you have a local static server running at http://localhost:8000
-// It starts two consecutive trivia runs and ensures the question sets do not overlap.
+// This test assumes you have a local static server running. Use TEST_BASE env to
+// override the base URL (e.g. TEST_BASE=http://127.0.0.1:8001).
+const TEST_BASE = process.env.TEST_BASE || 'http://127.0.0.1:8001';
 
 test('trivia no-repeat across two consecutive runs', async ({ page }) => {
-  await page.goto('http://localhost:8000/index.html');
+  await page.goto(`${TEST_BASE}/index.html`);
 
   // Navigate to Trivia page
   await page.click('text=Trivia');
@@ -46,7 +47,7 @@ test('trivia no-repeat across two consecutive runs', async ({ page }) => {
 
   // Ensure the run is finished by navigating away/reloading (pools persist in localStorage)
   await page.reload();
-  await page.goto('http://localhost:8000/index.html');
+  await page.goto(`${TEST_BASE}/index.html`);
   await page.click('text=Trivia');
   // Restore test-friendly small totalQuestions
   await page.evaluate(() => { if (window.gameState && window.gameState.trivia) window.gameState.trivia.totalQuestions = 3; });
