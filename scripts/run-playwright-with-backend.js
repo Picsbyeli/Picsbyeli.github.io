@@ -94,10 +94,27 @@ async function main() {
     console.log('Static server already running; reusing existing instance.');
   }
 
-  try {
+    try {
     await waitForUrl(backendUrl, 12000);
     console.log('Backend responsive. Waiting for static server...');
-    await waitForUrl(staticUrl, 12000);
+
+    // Robust static server readiness: prefer TCP connect checks and retry HTTP probes.
+    const staticTotalTimeout = 60000; // ms
+    const start = Date.now();
+    let staticReady = false;
+    while (Date.now() - start < staticTotalTimeout) {
+      // quick HTTP probe
+      if (await isListening(staticUrl, 2000)) { staticReady = true; break; }
+      // if HTTP probe fails, check if port is bound and retry
+      if (await isPortTaken(8001)) {
+        // port is bound; retry short HTTP probes for a bit
+        try {
+          if (await isListening(staticUrl, 2000)) { staticReady = true; break; }
+        } catch (e) {}
+      }
+      await sleep(500);
+    }
+    if (!staticReady) throw new Error('timeout waiting for ' + staticUrl);
     console.log('Static server responsive. Running Playwright tests...');
 
   const test = spawn('npx', ['playwright', 'test', 'tests/playwright', '--reporter=list', '--workers=1'], { stdio: 'inherit', shell: true });
