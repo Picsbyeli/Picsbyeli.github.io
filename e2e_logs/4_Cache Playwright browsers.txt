@@ -1,0 +1,14 @@
+﻿2025-09-19T12:22:18.4891258Z ##[group]Run actions/cache@v4
+2025-09-19T12:22:18.4891608Z with:
+2025-09-19T12:22:18.4891846Z   path: ~/.cache/ms-playwright
+2025-09-19T12:22:18.4892308Z   key: Linux-playwright-22941a22530ab80707140b28eb0c3ffbfa7741eab03cef362ab1ce050ed2c1d8
+2025-09-19T12:22:18.4892807Z   restore-keys: Linux-playwright-
+
+2025-09-19T12:22:18.4893113Z   enableCrossOsArchive: false
+2025-09-19T12:22:18.4893384Z   fail-on-cache-miss: false
+2025-09-19T12:22:18.4893638Z   lookup-only: false
+2025-09-19T12:22:18.4893874Z   save-always: false
+2025-09-19T12:22:18.4894092Z env:
+2025-09-19T12:22:18.4894320Z   NODE_OPTIONS: --experimental-vm-modules
+2025-09-19T12:22:18.4894654Z ##[endgroup]
+2025-09-19T12:22:18.6966842Z Cache not found for input keys: Linux-playwright-22941a22530ab80707140b28eb0c3ffbfa7741eab03cef362ab1ce050ed2c1d8, Linux-playwright-

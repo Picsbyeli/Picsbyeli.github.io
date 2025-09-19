@@ -1,0 +1,15 @@
+﻿2025-09-19T12:22:18.7088118Z ##[group]Run actions/setup-node@v4
+2025-09-19T12:22:18.7088433Z with:
+2025-09-19T12:22:18.7088643Z   node-version: 18
+2025-09-19T12:22:18.7088871Z   always-auth: false
+2025-09-19T12:22:18.7089109Z   check-latest: false
+2025-09-19T12:22:18.7089474Z   token: ***
+2025-09-19T12:22:18.7089674Z env:
+2025-09-19T12:22:18.7089897Z   NODE_OPTIONS: --experimental-vm-modules
+2025-09-19T12:22:18.7090377Z ##[endgroup]
+2025-09-19T12:22:18.9181987Z Found in cache @ /opt/hostedtoolcache/node/18.20.8/x64
+2025-09-19T12:22:18.9188849Z ##[group]Environment details
+2025-09-19T12:22:21.2354275Z node: v18.20.8
+2025-09-19T12:22:21.2354583Z npm: 10.8.2
+2025-09-19T12:22:21.2354850Z yarn: 1.22.22
+2025-09-19T12:22:21.2355870Z ##[endgroup]

@@ -1,0 +1,16 @@
+﻿2025-09-19T12:22:18.1867570Z ##[group]Run actions/cache@v4
+2025-09-19T12:22:18.1867900Z with:
+2025-09-19T12:22:18.1868123Z   path: ~/.npm
+node_modules
+
+2025-09-19T12:22:18.1868577Z   key: Linux-root-node-c0e02a21023114227bf5467e460a268a9901d357ed5e5a7bc7e9c5b94703267f
+2025-09-19T12:22:18.1869062Z   restore-keys: Linux-root-node-
+
+2025-09-19T12:22:18.1869364Z   enableCrossOsArchive: false
+2025-09-19T12:22:18.1869634Z   fail-on-cache-miss: false
+2025-09-19T12:22:18.1869899Z   lookup-only: false
+2025-09-19T12:22:18.1870660Z   save-always: false
+2025-09-19T12:22:18.1870895Z env:
+2025-09-19T12:22:18.1871127Z   NODE_OPTIONS: --experimental-vm-modules
+2025-09-19T12:22:18.1871413Z ##[endgroup]
+2025-09-19T12:22:18.4253888Z Cache not found for input keys: Linux-root-node-c0e02a21023114227bf5467e460a268a9901d357ed5e5a7bc7e9c5b94703267f, Linux-root-node-

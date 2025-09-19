@@ -1,0 +1,71 @@
+﻿2025-09-19T12:22:16.7887246Z ##[group]Run actions/checkout@v4
+2025-09-19T12:22:16.7888367Z with:
+2025-09-19T12:22:16.7889048Z   repository: Picsbyeli/Picsbyeli.github.io
+2025-09-19T12:22:16.7890355Z   token: ***
+2025-09-19T12:22:16.7890953Z   ssh-strict: true
+2025-09-19T12:22:16.7891568Z   ssh-user: git
+2025-09-19T12:22:16.7892189Z   persist-credentials: true
+2025-09-19T12:22:16.7892897Z   clean: true
+2025-09-19T12:22:16.7893519Z   sparse-checkout-cone-mode: true
+2025-09-19T12:22:16.7894286Z   fetch-depth: 1
+2025-09-19T12:22:16.7894887Z   fetch-tags: false
+2025-09-19T12:22:16.7895515Z   show-progress: true
+2025-09-19T12:22:16.7896140Z   lfs: false
+2025-09-19T12:22:16.7896707Z   submodules: false
+2025-09-19T12:22:16.7897356Z   set-safe-directory: true
+2025-09-19T12:22:16.7898265Z env:
+2025-09-19T12:22:16.7898929Z   NODE_OPTIONS: --experimental-vm-modules
+2025-09-19T12:22:16.7899755Z ##[endgroup]
+2025-09-19T12:22:16.8967130Z Syncing repository: Picsbyeli/Picsbyeli.github.io
+2025-09-19T12:22:16.8969685Z ##[group]Getting Git version info
+2025-09-19T12:22:16.8971631Z Working directory is '/home/runner/work/Picsbyeli.github.io/Picsbyeli.github.io'
+2025-09-19T12:22:16.8973736Z [command]/usr/bin/git version
+2025-09-19T12:22:16.9022127Z git version 2.51.0
+2025-09-19T12:22:16.9047813Z ##[endgroup]
+2025-09-19T12:22:16.9068449Z Temporarily overriding HOME='/home/runner/work/_temp/b4c4cbc5-d5d9-40a7-b431-e6f0934fd3dc' before making global git config changes
+2025-09-19T12:22:16.9071029Z Adding repository directory to the temporary git global config as a safe directory
+2025-09-19T12:22:16.9073977Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Picsbyeli.github.io/Picsbyeli.github.io
+2025-09-19T12:22:16.9106678Z Deleting the contents of '/home/runner/work/Picsbyeli.github.io/Picsbyeli.github.io'
+2025-09-19T12:22:16.9109709Z ##[group]Initializing the repository
+2025-09-19T12:22:16.9114094Z [command]/usr/bin/git init /home/runner/work/Picsbyeli.github.io/Picsbyeli.github.io
+2025-09-19T12:22:16.9202309Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-09-19T12:22:16.9205307Z hint: is subject to change. To configure the initial branch name to use in all
+2025-09-19T12:22:16.9208251Z hint: of your new repositories, which will suppress this warning, call:
+2025-09-19T12:22:16.9209569Z hint:
+2025-09-19T12:22:16.9210834Z hint: 	git config --global init.defaultBranch <name>
+2025-09-19T12:22:16.9211934Z hint:
+2025-09-19T12:22:16.9213364Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-09-19T12:22:16.9215089Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-09-19T12:22:16.9216420Z hint:
+2025-09-19T12:22:16.9217102Z hint: 	git branch -m <name>
+2025-09-19T12:22:16.9218200Z hint:
+2025-09-19T12:22:16.9219705Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2025-09-19T12:22:16.9222094Z Initialized empty Git repository in /home/runner/work/Picsbyeli.github.io/Picsbyeli.github.io/.git/
+2025-09-19T12:22:16.9224956Z [command]/usr/bin/git remote add origin https://github.com/Picsbyeli/Picsbyeli.github.io
+2025-09-19T12:22:16.9254405Z ##[endgroup]
+2025-09-19T12:22:16.9255883Z ##[group]Disabling automatic garbage collection
+2025-09-19T12:22:16.9257298Z [command]/usr/bin/git config --local gc.auto 0
+2025-09-19T12:22:16.9285670Z ##[endgroup]
+2025-09-19T12:22:16.9287100Z ##[group]Setting up auth
+2025-09-19T12:22:16.9291521Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-09-19T12:22:16.9321110Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-09-19T12:22:16.9821091Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-09-19T12:22:16.9850412Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-09-19T12:22:17.0068331Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-09-19T12:22:17.0103096Z ##[endgroup]
+2025-09-19T12:22:17.0104277Z ##[group]Fetching the repository
+2025-09-19T12:22:17.0114165Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +9f425a4bbe3c212edc817cb26d467d3ae2159466:refs/remotes/origin/main
+2025-09-19T12:22:18.0049004Z From https://github.com/Picsbyeli/Picsbyeli.github.io
+2025-09-19T12:22:18.0050621Z  * [new ref]         9f425a4bbe3c212edc817cb26d467d3ae2159466 -> origin/main
+2025-09-19T12:22:18.0084828Z ##[endgroup]
+2025-09-19T12:22:18.0087755Z ##[group]Determining the checkout info
+2025-09-19T12:22:18.0089313Z ##[endgroup]
+2025-09-19T12:22:18.0093555Z [command]/usr/bin/git sparse-checkout disable
+2025-09-19T12:22:18.0134197Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2025-09-19T12:22:18.0163617Z ##[group]Checking out the ref
+2025-09-19T12:22:18.0167652Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2025-09-19T12:22:18.1041880Z Switched to a new branch 'main'
+2025-09-19T12:22:18.1043737Z branch 'main' set up to track 'origin/main'.
+2025-09-19T12:22:18.1052658Z ##[endgroup]
+2025-09-19T12:22:18.1091602Z [command]/usr/bin/git log -1 --format=%H
+2025-09-19T12:22:18.1114436Z 9f425a4bbe3c212edc817cb26d467d3ae2159466

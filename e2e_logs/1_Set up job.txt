@@ -1,0 +1,32 @@
+﻿2025-09-19T12:22:15.6207773Z Current runner version: '2.328.0'
+2025-09-19T12:22:15.6239600Z ##[group]Runner Image Provisioner
+2025-09-19T12:22:15.6241030Z Hosted Compute Agent
+2025-09-19T12:22:15.6241958Z Version: 20250829.383
+2025-09-19T12:22:15.6243135Z Commit: 27cb235aab5b0e52e153a26cd86b4742e89dac5d
+2025-09-19T12:22:15.6244319Z Build Date: 2025-08-29T13:48:48Z
+2025-09-19T12:22:15.6245406Z ##[endgroup]
+2025-09-19T12:22:15.6246267Z ##[group]Operating System
+2025-09-19T12:22:15.6247204Z Ubuntu
+2025-09-19T12:22:15.6247929Z 24.04.3
+2025-09-19T12:22:15.6248864Z LTS
+2025-09-19T12:22:15.6249638Z ##[endgroup]
+2025-09-19T12:22:15.6250700Z ##[group]Runner Image
+2025-09-19T12:22:15.6251811Z Image: ubuntu-24.04
+2025-09-19T12:22:15.6252657Z Version: 20250907.24.1
+2025-09-19T12:22:15.6254366Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20250907.24/images/ubuntu/Ubuntu2404-Readme.md
+2025-09-19T12:22:15.6256868Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20250907.24
+2025-09-19T12:22:15.6258842Z ##[endgroup]
+2025-09-19T12:22:15.6261182Z ##[group]GITHUB_TOKEN Permissions
+2025-09-19T12:22:15.6264081Z Contents: read
+2025-09-19T12:22:15.6265075Z Metadata: read
+2025-09-19T12:22:15.6265924Z Packages: read
+2025-09-19T12:22:15.6266780Z ##[endgroup]
+2025-09-19T12:22:15.6269516Z Secret source: Actions
+2025-09-19T12:22:15.6271168Z Prepare workflow directory
+2025-09-19T12:22:15.6794919Z Prepare all required actions
+2025-09-19T12:22:15.6850409Z Getting action download info
+2025-09-19T12:22:16.0184741Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+2025-09-19T12:22:16.2101712Z Download action repository 'actions/cache@v4' (SHA:0400d5f644dc74513175e3cd8d07132dd4860809)
+2025-09-19T12:22:16.3626386Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2025-09-19T12:22:16.4857227Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2025-09-19T12:22:16.7094764Z Complete job name: e2e
