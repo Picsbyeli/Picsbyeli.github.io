@@ -132,7 +132,10 @@ async function main() {
     }
     console.log('Static server responsive. Running Playwright tests...');
 
-  const test = spawn('npx', ['playwright', 'test', 'tests/playwright', '--reporter=list', '--workers=1'], { stdio: 'inherit', shell: true });
+  // Run Playwright with HTML reporter and request trace/video generation so
+  // CI can collect these artifacts reliably. We keep --workers=1 to make
+  // artifacts and logs deterministic and avoid parallel interleaving.
+  const test = spawn('npx', ['playwright', 'test', 'tests/playwright', '--reporter=html', '--workers=1', '--trace=on', '--video=on'], { stdio: 'inherit', shell: true });
     test.on('exit', (code) => {
       console.log('Playwright exited with code', code);
       // kill child servers we started
