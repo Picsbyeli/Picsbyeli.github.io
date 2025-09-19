@@ -58,8 +58,8 @@ async function main() {
   console.log('Checking backend and static servers...');
   let backendProc = null;
   let staticProc = null;
-  const backendUrl = 'http://localhost:4000/api/leaderboard';
-  const staticUrl = 'http://localhost:8001/standalone.html';
+  const backendUrl = 'http://127.0.0.1:4000/api/leaderboard';
+  const staticUrl = 'http://127.0.0.1:8001/standalone.html';
 
   const backendUp = await isListening(backendUrl);
   if (!backendUp) {
