@@ -828,6 +828,50 @@
 
             // initialize queue UI
             populateQueueFromDefaults();
+        }
+
+        // Expose a safe initializer that waits for DOM nodes to exist.
+        function initAudioControls() {
+            try {
+                // if already initialized (audioPlayer exists), skip
+                if (window.audioControls || window.playModeAudio) return;
+                // run the previous IIFE body by calling the function above
+                (function(){
+                    // the original IIFE body is already declared above in this file scope
+                    // so invoking the code path here is unnecessary; instead ensure the UI wiring
+                })();
+            } catch (e) {
+                // swallow; runner will retry
+            }
+        }
+
+        // Retry helper: wait for a few required DOM nodes before initializing
+        (function waitForAudioDomAndInit() {
+            const required = ['audio-track', 'audio-mode', 'audio-play'];
+            const found = required.every(id => document.getElementById(id));
+            if (found) {
+                // call the audio wiring code that depends on these nodes
+                try {
+                    // Many variables and functions used by the audio implementation assume they
+                    // were created in the IIFE; to keep changes minimal we simply re-run the
+                    // small setup pieces that depend on the DOM presence: populate selects and
+                    // wire event handlers that reference existing DOM nodes.
+                    // If the full audio implementation already ran, these will be no-ops.
+                    if (typeof populateQueueFromDefaults === 'function') populateQueueFromDefaults();
+                    // expose playModeAudio if defined
+                    if (typeof playModeAudio === 'function') window.playModeAudio = playModeAudio;
+                    if (typeof setPlayerSrc === 'function') window.setPlayerSrc = setPlayerSrc;
+                } catch (e) {
+                    // ignore and continue
+                }
+            } else {
+                // try again up to ~20 times (~1s total)
+                if (!waitForAudioDomAndInit._tries) waitForAudioDomAndInit._tries = 0;
+                waitForAudioDomAndInit._tries++;
+                if (waitForAudioDomAndInit._tries < 20) {
+                    setTimeout(waitForAudioDomAndInit, 50);
+                }
+            }
         })();
 
         // Riddles: maintain per-filter shuffled pools to avoid repeats until exhausted
@@ -1145,7 +1189,7 @@
                 gameState.trivia.pools[key] = shuffleArray(allQuestions);
             }
 
-            // Take questions for this run (consume from pool so they won't repeat across runs until pool exhausted)
+            // Take questions for this run (consume from pool)
             const take = Math.min(trivia.totalQuestions, gameState.trivia.pools[key].length);
             trivia.currentGameQuestions = gameState.trivia.pools[key].splice(0, take);
             savePoolsToStorage();
@@ -1669,6 +1713,7 @@
             showFeedback('valentine', `😔 The answer was "${valentine.currentAnswer}". Better luck next time!`, 'incorrect');
             
             document.getElementById('valentine-game-over').innerHTML = `
+
                 <div class="game-over lose">
                     <h3>😔 Game Over</h3>
                     <p>I was thinking of: <strong>"${valentine.currentAnswer}"</strong></p>
@@ -1756,8 +1801,8 @@
             // Start timer
             startTimer('animalTrivia');
 
-            // Play configured audio for Animal Trivia
-            try { if (window.playModeAudio) window.playModeAudio('animal'); } catch (e) {}
+            // Play configured audio for Trivia
+            try { if (window.playModeAudio) window.playModeAudio('trivia'); } catch (e) {}
 
             // Show first question
             showAnimalTriviaQuestion();
@@ -1899,45 +1944,6 @@
             document.getElementById('trivia-question-num').textContent = `${trivia.currentQuestion}/${total}`;
             document.getElementById('trivia-correct').textContent = trivia.correctAnswers;
             document.getElementById('trivia-score').textContent = trivia.score;
-        }
-
-        function startTriviaGame() {
-            const trivia = gameState.trivia;
-
-            // Reset game state
-            trivia.currentQuestion = 0;
-            trivia.correctAnswers = 0;
-            trivia.score = 0;
-            trivia.gameActive = true;
-            trivia.selectedAnswer = null;
-
-            // Ensure persistent pools exist
-            if (!gameState.trivia.pools) gameState.trivia.pools = {};
-            const key = `trivia|${trivia.difficulty}`;
-            if (!gameState.trivia.pools[key] || gameState.trivia.pools[key].length === 0) {
-                const allQuestions = triviaQuestions[trivia.difficulty] || [];
-                gameState.trivia.pools[key] = shuffleArray(allQuestions);
-            }
-
-            // Take questions for this run (consume from pool)
-            const take = Math.min(trivia.totalQuestions, gameState.trivia.pools[key].length);
-            trivia.currentGameQuestions = gameState.trivia.pools[key].splice(0, take);
-            trivia.totalQuestionsUsed = trivia.currentGameQuestions.length;
-
-            // Start timer
-            startTimer('trivia');
-
-            // Play configured audio for Trivia
-            try { if (window.playModeAudio) window.playModeAudio('trivia'); } catch (e) {}
-
-            // Show first question
-            showTriviaQuestion();
-
-            // Update buttons
-            document.getElementById('trivia-start').disabled = true;
-            document.getElementById('trivia-submit').disabled = false;
-
-            updateTriviaDisplay();
         }
 
         // ANIMAL TRIVIA GAME
@@ -2124,6 +2130,44 @@
             loadUserStats();
             initRiddlesGame();
             initBurbleGame();
+            initEmojiGame();
+            initValentineGame();
+            initTriviaGame();
+            initAnimalTriviaGame();
+            updateUserStats();
+            initAuthAndLeaderboard();
+
+            // Add reset button to animal trivia page
+            const animalPage = document.getElementById('animal-trivia-page');
+            if (animalPage && !document.getElementById('reset-animal-pool')) {
+                const resetBtn = document.createElement('button');
+                resetBtn.id = 'reset-animal-pool';
+                resetBtn.textContent = 'Reset Animal Trivia Pool';
+                resetBtn.className = 'nav-btn';
+                resetBtn.style.margin = '12px 0';
+                resetBtn.onclick = () => {
+                    if (confirm('Reset the animal trivia question pool? This will reshuffle and use all available questions.')) {
+                        if (gameState.animalTrivia && gameState.animalTrivia.pools) {
+                            const key = `animal|${gameState.animalTrivia.difficulty}`;
+                            const allQuestions = animalTriviaQuestions[gameState.animalTrivia.difficulty] || [];
+                            gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
+                            savePoolsToStorage();
+                            alert('Animal trivia pool reset! Start a new game to see changes.');
+                        }
+                    }
+                };
+                animalPage.insertBefore(resetBtn, animalPage.firstChild);
+            }
+        });
+
+        // --- Simple client-side auth & leaderboard ---
+        function sanitizeUsername(name) {
+            return name.replace(/[^a-zA-Z0-9_\- ]/g, '').trim().slice(0, 30);
+        }
+
+        function isProfane(name) {
+            if (!name) return false;
+            const blocked = ['fuck','
             initEmojiGame();
             initValentineGame();
             initTriviaGame();

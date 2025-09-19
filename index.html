@@ -20,6 +20,50 @@
                 <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
                 <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
             </div>
+            <div class="now-playing" id="now-playing" aria-live="polite">
+                <span class="now-playing-art" id="now-playing-art">🎵</span>
+                Now playing: <span id="now-playing-track">None</span>
+            </div>
+            <div id="user-area" class="user-area">
+                <button id="signin-btn" class="nav-btn small">Sign in</button>
+                <div id="user-info" class="muted-center hidden">
+                    <a href="#" id="user-email-link" title="User email">User</a>
+                    <div><button id="signout-btn" class="nav-btn xsmall">Sign out</button></div>
+                </div>
+            </div>
+            <!-- Audio Controls -->
+            <div class="audio-controls" id="audio-controls" aria-label="Audio controls">
+                <select id="audio-mode" title="Mode" aria-label="Audio mode">
+                    <option value="all">All</option>
+                    <option value="riddles">Riddles</option>
+                    <option value="trivia">Trivia</option>
+                    <option value="animal">Animal Trivia</option>
+                    <option value="burble">Burble</option>
+                    <option value="emoji">Emoji</option>
+                    <option value="valentine">Twenty Questions</option>
+                </select>
+
+                <select id="audio-track" title="Track" aria-label="Audio track"></select>
+
+                <button id="audio-prev" title="Previous">◀</button>
+                <button id="audio-rewind" title="Rewind 10s">-10s</button>
+                <button id="audio-play" title="Play">▶</button>
+                <button id="audio-pause" title="Pause">❚❚</button>
+                <button id="audio-forward" title="Forward 10s">+10s</button>
+                <button id="audio-next" title="Next">▶▶</button>
+
+                <input type="range" id="audio-volume" class="volume" min="0" max="1" step="0.01" aria-label="Audio volume" title="Audio volume">
+                <label for="audio-show-queue" class="audio-queue-label" title="Show queue"><input type="checkbox" id="audio-show-queue">Queue</label>
+            </div>
+            <div id="audio-queue" class="audio-queue hidden" aria-hidden="true">
+                <div class="queue-header">
+                        <strong class="queue-title">Queue</strong>
+                        <div>
+                            <button id="audio-clear-queue" title="Clear queue" class="clear-queue-btn">Clear</button>
+                        </div>
+                    </div>
+                <div id="audio-queue-list"></div>
+            </div>
         </div>
 
         <!-- Home Page -->

@@ -541,6 +541,33 @@ body {
 .audio-controls .volume {
     width: 110px;
 }
+/* Responsive tweaks for audio controls to fit header on small screens */
+@media (max-width: 768px) {
+    .audio-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        padding: 6px;
+    }
+    /* Make selects and volume smaller */
+    .audio-controls select { min-width: 80px; font-size: 0.85rem; }
+    .audio-controls .volume { width: 90px; }
+    /* Hide non-essential text on tiny buttons to save space */
+    .audio-controls button { padding: 6px; min-width: 36px; }
+    /* hide full labels for prev/next icons if present (icons remain) */
+    #audio-rewind, #audio-forward { display: none; }
+    /* stack now-playing under the controls and allow truncation */
+    .now-playing { margin-left: 0; width: 100%; margin-top: 6px; font-size: 0.95rem; }
+    .truncate { max-width: 160px; }
+}
+
+@media (max-width: 420px) {
+    /* On very small screens, hide the queue toggle and reduce audio-mode to icon only */
+    #audio-show-queue { display: none; }
+    #audio-mode { display: none; }
+    .audio-controls .volume { width: 70px; }
+    .truncate { max-width: 120px; }
+}
 /* Audio control specific tweaks */
 #audio-custom { min-width: 220px; }
 #audio-pause { display: none; }
