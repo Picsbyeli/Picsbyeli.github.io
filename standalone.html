@@ -1029,6 +1029,14 @@
                 if (t.id === 'signout-btn') { localStorage.removeItem('burbleUser'); renderUser(); }
             });
 
+            // Ensure the signin button has a direct handler attached for determinism
+            try {
+                const $signin = document.getElementById('signin-btn');
+                if ($signin) {
+                    $signin.addEventListener('click', (ev) => { ev.preventDefault(); showSignInModal(); });
+                }
+            } catch (e) {}
+
             // Also attach a direct handler to the submit button to be resilient
             try {
                 const $siSubmit = document.getElementById('si-submit');
