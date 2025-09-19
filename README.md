@@ -54,3 +54,5 @@ If you prefer Playwright directly, make sure Playwright is installed and browser
 npx playwright install --with-deps
 npm run test:playwright -- --headed
 ```
+
+<!-- CI retrigger: 2025-09-19T12:33:00Z -->
