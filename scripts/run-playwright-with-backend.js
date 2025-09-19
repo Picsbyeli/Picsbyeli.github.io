@@ -36,6 +36,8 @@ function isListening(url, timeout = 2000) {
   });
 }
 
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
 async function main() {
   const repoRoot = path.resolve(__dirname, '..');
   console.log('Checking backend and static servers...');
@@ -53,9 +55,19 @@ async function main() {
   }
 
   const staticUp = await isListening(staticUrl);
-    if (!staticUp) {
-    console.log('Starting static file server on port 8001...');
-    staticProc = spawnProcess('python3', ['-m', 'http.server', '8001'], { cwd: repoRoot });
+  if (!staticUp) {
+    // brief retry loop in case a background step is concurrently starting the static server
+    let becameUp = false;
+    for (let i = 0; i < 20; i++) {
+      if (await isListening(staticUrl)) { becameUp = true; break; }
+      await sleep(200);
+    }
+    if (becameUp) {
+      console.log('Static server came up while waiting; reusing existing instance.');
+    } else {
+      console.log('Starting static file server on port 8001...');
+      staticProc = spawnProcess('python3', ['-m', 'http.server', '8001'], { cwd: repoRoot });
+    }
   } else {
     console.log('Static server already running; reusing existing instance.');
   }
