@@ -589,9 +589,9 @@ body {
 /* Leaderboard basics */
 #leaderboard-page table th, #leaderboard-page table td { padding:6px; border-bottom:1px solid #f0f0f0; }
 /* modals */
-.modal { position:fixed; left:0; right:0; top:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.4); }
-.modal .card { background:white; padding:20px; border-radius:12px; width:320px; max-width:90%; }
-.modal.hidden { display:none; }
+.modal { position:fixed; left:0; right:0; top:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.4); z-index:9999; pointer-events:auto; }
+.modal .card { background:white; padding:20px; border-radius:12px; width:320px; max-width:90%; z-index:10000; }
+.modal.hidden { display:none; pointer-events:none; }
 .settings-gear { position: absolute; right: 18px; top: 18px; cursor:pointer; font-size:1.2rem; }
 
 /* Reusable helpers to replace inline styles */
