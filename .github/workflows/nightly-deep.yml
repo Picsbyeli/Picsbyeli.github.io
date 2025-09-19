@@ -40,7 +40,9 @@ jobs:
           FAST_CHECK_RUNS: '2000'
           CI: 'true'
         run: |
-          npm test --silent
+          set -euo pipefail
+          echo "Running deep server tests with experimental VM modules"
+          NODE_OPTIONS="--experimental-vm-modules" node ./node_modules/.bin/mocha --recursive --reporter spec
 
       - name: Prepare rotated moderation logs archive
         id: prepare-archive

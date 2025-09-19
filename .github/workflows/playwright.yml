@@ -55,8 +55,13 @@ jobs:
       - name: Run server unit tests
         working-directory: ./server
         run: |
-          export FAST_CHECK_RUNS=500
-          npm test
+          # Run server unit tests with Node experimental VM modules enabled so Mocha
+          # can load ESM-only dependencies without ERR_REQUIRE_ESM on the runner.
+          # This is a minimal, low-risk change to the CI environment.
+          set -euo pipefail
+          echo "Running server unit tests (mocha)"
+          NODE_OPTIONS="--experimental-vm-modules" \
+            node ./node_modules/.bin/mocha --recursive --reporter spec
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
