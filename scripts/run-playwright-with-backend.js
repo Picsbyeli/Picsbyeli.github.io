@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const { spawn } = require('child_process');
 const http = require('http');
+const net = require('net');
 const path = require('path');
 
 function waitForUrl(url, timeout = 10000, interval = 200) {
@@ -38,6 +39,20 @@ function isListening(url, timeout = 2000) {
 
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
+function isPortTaken(port, host = '127.0.0.1') {
+  return new Promise((resolve) => {
+    const tester = net.createServer()
+      .once('error', (err) => {
+        if (err && err.code === 'EADDRINUSE') return resolve(true);
+        return resolve(false);
+      })
+      .once('listening', () => {
+        tester.close(() => resolve(false));
+      })
+      .listen(port, host);
+  });
+}
+
 async function main() {
   const repoRoot = path.resolve(__dirname, '..');
   console.log('Checking backend and static servers...');
@@ -65,8 +80,15 @@ async function main() {
     if (becameUp) {
       console.log('Static server came up while waiting; reusing existing instance.');
     } else {
-      console.log('Starting static file server on port 8001...');
-      staticProc = spawnProcess('python3', ['-m', 'http.server', '8001'], { cwd: repoRoot });
+      // final port-level check: if port is already bound, assume another process
+      // (background step) has started the server and reuse it instead of spawning.
+      const portTaken = await isPortTaken(8001);
+      if (portTaken) {
+        console.log('Port 8001 is bound by another process; reusing existing static server.');
+      } else {
+        console.log('Starting static file server on port 8001...');
+        staticProc = spawnProcess('python3', ['-m', 'http.server', '8001'], { cwd: repoRoot });
+      }
     }
   } else {
     console.log('Static server already running; reusing existing instance.');
