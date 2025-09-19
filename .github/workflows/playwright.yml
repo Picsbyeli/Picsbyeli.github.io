@@ -10,6 +10,8 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      NODE_OPTIONS: "--experimental-vm-modules"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,18 +70,19 @@ jobs:
 
       - name: Start backend and static server (background)
         run: |
-          # Start backend
-          node ./server/index.js &
-          echo "backend_pid=$!" > /tmp/backend.pid
-          # Start static server
-          python3 -m http.server 8000 &
-          echo "static_pid=$!" > /tmp/static.pid
-          # Wait for services to respond
-          for i in {1..30}; do
-            if curl -sSf http://localhost:4000/api/leaderboard >/dev/null 2>&1 && curl -sSf http://localhost:8000/standalone.html >/dev/null 2>&1; then
+          set -euo pipefail
+          # Start backend and log to /tmp/backend.log
+          node ./server/index.js > /tmp/backend.log 2>&1 &
+          echo "$!" > /tmp/backend.pid
+          # Start static server on the agreed port (8001) and log to /tmp/static.log
+          python3 -m http.server 8001 > /tmp/static.log 2>&1 &
+          echo "$!" > /tmp/static.pid
+          # Wait for services to respond (increase retries for flaky runners)
+          for i in {1..60}; do
+            if curl -sSf http://localhost:4000/api/leaderboard >/dev/null 2>&1 && curl -sSf http://localhost:8001/standalone.html >/dev/null 2>&1; then
               echo "services are up"; break
             fi
-            sleep 1
+            sleep 2
           done
 
       - name: Run Playwright via runner script
@@ -96,6 +99,8 @@ jobs:
             trace.zip
             ./playwright-traces/**
             ./playwright-screenshots/**
+            /tmp/backend.log
+            /tmp/static.log
           retention-days: 7
 
       - name: Cleanup

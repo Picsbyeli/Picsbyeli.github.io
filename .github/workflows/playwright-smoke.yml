@@ -25,15 +25,16 @@ jobs:
 
       - name: Start backend and static server (background)
         run: |
-          node ./server/index.js &
-          echo "backend_pid=$!" > /tmp/backend.pid
-          python3 -m http.server 8000 &
-          echo "static_pid=$!" > /tmp/static.pid
-          for i in {1..30}; do
-            if curl -sSf http://localhost:4000/api/leaderboard >/dev/null 2>&1 && curl -sSf http://localhost:8000/standalone.html >/dev/null 2>&1; then
+          set -euo pipefail
+          node ./server/index.js > /tmp/backend.log 2>&1 &
+          echo "$!" > /tmp/backend.pid
+          python3 -m http.server 8001 > /tmp/static.log 2>&1 &
+          echo "$!" > /tmp/static.pid
+          for i in {1..60}; do
+            if curl -sSf http://localhost:4000/api/leaderboard >/dev/null 2>&1 && curl -sSf http://localhost:8001/standalone.html >/dev/null 2>&1; then
               echo "services are up"; break
             fi
-            sleep 1
+            sleep 2
           done
 
       - name: Run Playwright smoke tests
@@ -47,6 +48,8 @@ jobs:
           path: |
             test-results/**
             playwright-report/**
+            /tmp/backend.log
+            /tmp/static.log
 
       - name: Cleanup
         if: always()
