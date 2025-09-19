@@ -5,7 +5,25 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const Filter = require('bad-words');
 const multer = require('multer');
-const { nanoid } = require('nanoid');
+// nanoid v4+ is ESM-only and will throw when required from CommonJS on some runners.
+// Try to require it; if that fails, fall back to a small synchronous UUID generator
+// using Node's crypto APIs so CI and older environments remain compatible.
+let nanoid;
+try {
+  // prefer the official nanoid when available
+  ({ nanoid } = require('nanoid'));
+} catch (e) {
+  const crypto = require('crypto');
+  // Provide a compact identifier similar in length to nanoid (21 chars by default)
+  nanoid = function(size = 21) {
+    if (crypto.randomUUID) {
+      // randomUUID returns a 36-char UUID with hyphens; strip and truncate
+      return crypto.randomUUID().replace(/-/g, '').slice(0, size);
+    }
+    // fallback to random bytes hex
+    return crypto.randomBytes(Math.ceil(size / 2)).toString('hex').slice(0, size);
+  };
+}
 const { scrubConfusables, remoteModerationCheck, logDecision } = require('./lib/moderation');
 
 const app = express();
