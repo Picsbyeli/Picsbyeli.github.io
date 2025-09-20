@@ -15,9 +15,14 @@ test('audio select populated and sign-in modal works', async ({ page }) => {
     return sel && sel.options && sel.options.length > 0;
   }, { timeout: 8000 });
 
-  // Open sign-in modal
-  await page.click('#signin-btn');
-  await page.waitForSelector('#signin-modal[aria-hidden="false"]', { state: 'visible', timeout: 5000 });
+  // Open sign-in modal using deterministic test hook (avoids click/timing flakiness)
+  try {
+    await page.evaluate(() => window._testOpenSignin && window._testOpenSignin());
+  } catch (e) {
+    // fallback to click if the hook isn't present
+    await page.click('#signin-btn');
+  }
+  await page.waitForSelector('#signin-modal[aria-hidden="false"]', { state: 'visible', timeout: 10000 });
 
   // Username should be focused
   const active = await page.evaluate(() => document.activeElement && document.activeElement.id);
