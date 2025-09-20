@@ -66,7 +66,7 @@
                     <input id="si-password" type="password" autocomplete="new-password" />
                     <div class="modal-actions">
                         <button id="si-cancel" class="nav-btn">Cancel</button>
-                        <button id="si-submit" class="nav-btn btn-primary">Submit</button>
+                        <button id="si-submit" class="nav-btn btn-primary" onclick="(window.handleSigninSubmit||function(){})();">Submit</button>
                     </div>
                 </div>
             </div>
@@ -1067,6 +1067,9 @@
                 const $siSubmit = document.getElementById('si-submit');
                 if ($siSubmit) $siSubmit.addEventListener('click', (ev) => { ev.preventDefault(); handleSigninSubmit(); });
             } catch (e) {}
+
+            // Expose the submit handler to window so inline onclick and external tests can call it
+            try { window.handleSigninSubmit = handleSigninSubmit; } catch (e) {}
 
             // Expose a global helper so external tools/tests can set the user reliably
             try { window.saveBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } catch(e){}
