@@ -1087,10 +1087,24 @@
             }
 
             const originalShow = showSignInModal;
-            window.showSignInModal = function() { originalShow(); const modal = document.getElementById('signin-modal'); if (!modal) return; const username = document.getElementById('si-username'); try { if (username) username.focus(); } catch (e) {};
+            window.showSignInModal = function() {
+                // Ensure attributes and display are set synchronously for test determinism
+                const modal = document.getElementById('signin-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.style.display = 'flex';
+                    modal.setAttribute('aria-hidden', 'false');
+                }
+                // call original to prefill and focus
+                try { originalShow(); } catch (e) {}
                 // attach trap
-                if (!modal._untrap) modal._untrap = trapFocus(modal);
+                if (modal && !modal._untrap) modal._untrap = trapFocus(modal);
+                // ensure username is focused synchronously when possible
+                try { const username = document.getElementById('si-username'); if (username) username.focus(); } catch (e) {}
             };
+
+            // Test helper: allow tests to open the signin modal deterministically
+            try { window._testOpenSignin = function(){ window.showSignInModal(); }; } catch(e){}
 
             const originalHide = hideSignInModal;
             window.hideSignInModal = function() { originalHide(); const modal = document.getElementById('signin-modal'); if (modal && modal._untrap) { modal._untrap(); modal._untrap = null; } };
@@ -3216,22 +3230,9 @@
             renderLeaderboard();
         }
 
-        // Sign-in modal and settings modal UI
+        // Settings modal UI (signin modal is defined earlier to avoid duplicates)
+        // Only inject settings markup here to avoid creating multiple `#signin-modal` nodes
         document.body.insertAdjacentHTML('beforeend', `
-            <div id="signin-modal" class="modal hidden" aria-hidden="true">
-                <div class="card">
-                    <h3>Sign in / Register</h3>
-                    <label>Username</label>
-                    <input id="si-username" class="modal-input" />
-                    <label>Email (optional)</label>
-                    <input id="si-email" class="modal-input" />
-                    <div class="modal-actions">
-                        <button id="si-cancel" class="nav-btn">Cancel</button>
-                        <button id="si-submit" class="nav-btn btn-primary">Submit</button>
-                    </div>
-                    <div id="si-msg" class="message-error"></div>
-                </div>
-            </div>
             <div id="settings-modal" class="modal hidden" aria-hidden="true">
                 <div class="card">
                     <h3>Settings</h3>
