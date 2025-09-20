@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-  "test:playwright": "npx playwright test tests/playwright --reporter=list",
-  "test:playwright:with-server": "node scripts/run-playwright-with-backend.js"
+    "test:playwright": "npx playwright test tests/playwright --reporter=list",
+    "test:playwright:with-server": "node scripts/run-playwright-with-backend.js"
   },
   "repository": {
     "type": "git",

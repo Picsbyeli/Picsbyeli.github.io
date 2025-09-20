@@ -2,6 +2,7 @@ const { devices } = require('@playwright/test');
 
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
 module.exports = {
+  testDir: 'tests/playwright',
   reporter: [['html', { open: 'never' }]],
   use: {
     headless: true,

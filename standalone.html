@@ -61,8 +61,6 @@
                 </select>
 
                 <select id="audio-track" title="Track" aria-label="Audio track"></select>
-                <!-- Real audio element used by the player controls. Kept visually hidden because UI uses custom buttons. -->
-                <audio id="audio-player" preload="metadata" style="display:none;" aria-hidden="true"></audio>
                 <script>
                 // Quick, defensive population: run immediately where the select is defined
                 (function immediatePopulate(){
@@ -87,82 +85,6 @@
                         // expose helpers for tests
                         try { window.populateAudioSelect = function(){ return Array.from(sel.options).map(o=>o.value); }; window.defaultTracks = tracks.slice(); } catch(e){}
                     } catch (e) { /* ignore */ }
-                })();
-                // Minimal runtime audio wiring to ensure playback works even if the larger audio
-                // implementation experiences a race or partial-load. This keeps behavior
-                // deterministic for manual use and tests.
-                (function attachSimpleAudioRuntime(){
-                    function qs(id){ return document.getElementById(id); }
-                    const audio = qs('audio-player');
-                    const sel = qs('audio-track');
-                    const btnPlay = qs('audio-play');
-                    const btnPause = qs('audio-pause');
-                    const btnNext = qs('audio-next');
-                    const btnPrev = qs('audio-prev');
-                    const vol = qs('audio-volume');
-                    // Ensure defaultTracks exists and is URL-encoded
-                    try { if (!window.defaultTracks || !Array.isArray(window.defaultTracks)) window.defaultTracks = Array.from((window.defaultTracks||[])); } catch(e){}
-
-                    function setPlayerSrc(src){
-                        if (!audio) return;
-                        if (!src) return;
-                        try { audio.src = src; } catch(e){ audio.src = encodeURI(src); }
-                        // update now playing label when possible
-                        try { const np = qs('now-playing-track'); if (np) np.textContent = decodeURIComponent(src.split('/').pop()); } catch(e){}
-                        // expose current src for older code
-                        try { window.currentAudioSrc = audio.src; } catch(e){}
-                    }
-
-                    // wire UI actions when DOM nodes become available
-                    function wire(){
-                        if (!sel || !audio) return;
-                        // when play pressed, ensure a src exists
-                        if (btnPlay) btnPlay.addEventListener('click', () => {
-                            if (!audio.src) {
-                                const val = (sel.value || (window.defaultTracks && window.defaultTracks[0]) || '');
-                                if (val) setPlayerSrc(val);
-                            }
-                            audio.play().catch(()=>{});
-                        });
-                        if (btnPause) btnPause.addEventListener('click', () => { try{ audio.pause(); }catch(e){} });
-                        if (btnNext) btnNext.addEventListener('click', () => {
-                            const list = (window.defaultTracks && window.defaultTracks.length) ? window.defaultTracks : Array.from(sel.options).map(o=>o.value);
-                            if (!list || list.length === 0) return;
-                            const cur = decodeURIComponent((audio.src || '').split('/').pop() || '');
-                            let idx = list.findIndex(s => decodeURIComponent(s.split('/').pop()) === cur);
-                            idx = (idx + 1) % list.length;
-                            const next = list[idx]; setPlayerSrc(next); audio.play().catch(()=>{});
-                        });
-                        if (btnPrev) btnPrev.addEventListener('click', () => {
-                            const list = (window.defaultTracks && window.defaultTracks.length) ? window.defaultTracks : Array.from(sel.options).map(o=>o.value);
-                            if (!list || list.length === 0) return;
-                            const cur = decodeURIComponent((audio.src || '').split('/').pop() || '');
-                            let idx = list.findIndex(s => decodeURIComponent(s.split('/').pop()) === cur);
-                            if (idx === -1) idx = 0;
-                            idx = (idx - 1 + list.length) % list.length;
-                            const prev = list[idx]; setPlayerSrc(prev); audio.play().catch(()=>{});
-                        });
-                        if (vol) {
-                            // initialize slider value
-                            try { audio.volume = (audio.volume !== undefined) ? audio.volume : 1; vol.value = audio.volume; } catch(e){}
-                            vol.addEventListener('input', ()=>{ try { audio.volume = parseFloat(vol.value); }catch(e){} });
-                        }
-                        // when selection changes, set src but don't autoplay
-                        sel.addEventListener('change', () => {
-                            const v = sel.value; if (v) setPlayerSrc(v);
-                        });
-
-                        // expose helpers for compatibility
-                        try { window.setPlayerSrc = setPlayerSrc; if (!window.audioControls) window.audioControls = {}; window.audioControls.play = () => audio.play(); window.audioControls.pause = () => audio.pause(); window.audioControls.stop = () => { audio.pause(); audio.currentTime = 0; }; } catch(e){}
-                    }
-
-                    // attempt to wire now; if elements not present, retry briefly
-                    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                        setTimeout(wire, 0);
-                    } else {
-                        document.addEventListener('DOMContentLoaded', wire);
-                        setTimeout(wire, 500);
-                    }
                 })();
                 // centralized wiring is implemented inside the `enhanceAudioAndAuth()` IIFE
                 // further down; avoid duplicate immediate fallbacks so there is a single
