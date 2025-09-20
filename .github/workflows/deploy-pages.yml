@@ -3,7 +3,16 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      include_audio:
+        description: 'Set to true to include and compress audio in the Pages publish (default: false)'
+        required: false
+        default: 'false'
+      audio_bitrate:
+        description: 'Bitrate to compress audio to (e.g., 64k, 96k). Used only when include_audio=true.'
+        required: false
+        default: '64k'
 
 jobs:
   build-and-deploy:
@@ -31,19 +40,37 @@ jobs:
           echo "No build step defined; publishing repo root"
 
       - name: Prepare Pages artifact
+        env:
+          INCLUDE_AUDIO: ${{ github.event.inputs.include_audio || 'false' }}
+          AUDIO_BITRATE: ${{ github.event.inputs.audio_bitrate || '64k' }}
         run: |
           set -eux
           rm -rf ./.publish
           mkdir -p ./.publish
-          # Copy the site files only. Exclude large audio files to speed up deploys.
+          # Copy the site files only by default. Audio is optional to keep Pages light.
           cp ./standalone.html ./.publish/ || true
           if [ -d ./assets ]; then
             mkdir -p ./.publish/assets
-            # Copy css and other assets, but skip the audio directory
+            # Copy css and other assets, but skip the audio directory by default
             if [ -d ./assets/css ]; then cp -r ./assets/css ./.publish/assets/; fi
             if [ -d ./assets/image ]; then cp -r ./assets/image ./.publish/assets/; fi
-            # If you want audio published, create a separate smaller set or
-            # enable it via a workflow input/secret. Currently we skip assets/audio
+          fi
+
+          # If the workflow was triggered with include_audio=true, compress and include audio
+          if [ "${INCLUDE_AUDIO}" = "true" ] && [ -d ./assets/audio ]; then
+            echo "Including audio files and compressing to bitrate: ${AUDIO_BITRATE}"
+            # install ffmpeg (Ubuntu runner)
+            apt-get update -y && apt-get install -y ffmpeg
+            mkdir -p ./.publish/assets/audio
+            for f in ./assets/audio/*; do
+              if [ -f "$f" ]; then
+                filename=$(basename "$f")
+                # Re-encode to target bitrate and mono/downsample to reduce size
+                ffmpeg -y -i "$f" -b:a "${AUDIO_BITRATE}" -ar 22050 -ac 1 ./.publish/assets/audio/"${filename}"
+              fi
+            done
+          else
+            echo "Skipping audio files (INCLUDE_AUDIO=${INCLUDE_AUDIO})"
           fi
 
       - name: Deploy to GitHub Pages (via peaceiris)

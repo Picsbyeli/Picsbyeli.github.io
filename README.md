@@ -72,3 +72,28 @@ For this repository the expected Pages URL is:
 
 	- `https://Picsbyeli.github.io/`
 
+Including audio in a Pages publish
+---------------------------------
+
+By default the Pages publish excludes the `assets/audio/` directory to keep the published site small and fast. If you want to include audio files in a publish you have two recommended options:
+
+Option A (recommended): Host audio externally (S3, Cloudflare R2, GitHub Releases, or another CDN) and reference remote URLs from `standalone.html`. This keeps Pages lightweight and fast.
+
+Option B: Trigger the deploy workflow with `include_audio=true`. The workflow supports a `workflow_dispatch` input called `include_audio` (defaults to `false`) and `audio_bitrate` (default `64k`) to compress audio on-the-fly using `ffmpeg` during the Pages preparation step.
+
+Trigger from the Actions UI: open the 'Deploy to GitHub Pages' workflow and run it manually with `include_audio=true`.
+
+Trigger from the API (example using a PAT stored in `DEPLOY_PERSONAL_TOKEN`):
+
+```bash
+curl -X POST \
+	-H "Accept: application/vnd.github+json" \
+	-H "Authorization: Bearer $DEPLOY_PERSONAL_TOKEN" \
+	https://api.github.com/repos/Picsbyeli/Picsbyeli.github.io/actions/workflows/deploy-pages.yml/dispatches \
+	-d '{"ref":"main","inputs":{"include_audio":"true","audio_bitrate":"64k"}}'
+```
+
+Notes:
+- The workflow will install `ffmpeg` on the Ubuntu runner to compress audio; compression adds time and compute cost to the run.
+- Consider compressing and hosting audio once (e.g., in `gh-pages` or a Releases asset) and referencing remote URLs for faster subsequent publishes.
+
