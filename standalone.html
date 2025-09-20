@@ -944,6 +944,87 @@
             }
         }
 
+        // Ensure there is a real audio element and core helpers in case they were
+        // accidentally omitted by earlier bundling or edit. This is intentionally
+        // small and defensive: it only creates `window.audioPlayer` and a
+        // `setPlayerSrc` helper if they don't already exist, and wires the basic
+        // UI controls present in the page.
+        (function ensureAudioElementAndWiring(){
+            try {
+                if (window.audioPlayer && typeof window.setPlayerSrc === 'function') return;
+
+                // create a hidden audio element and attach to window for global access
+                const audio = document.createElement('audio');
+                audio.id = 'global-audio-player';
+                audio.preload = 'auto';
+                audio.crossOrigin = 'anonymous';
+                audio.style.display = 'none';
+                document.body && document.body.appendChild(audio);
+                window.audioPlayer = audio;
+
+                // default setPlayerSrc implementation
+                window.setPlayerSrc = function(src){
+                    try {
+                        if (!src) return;
+                        // ensure src is a string and decode for display only
+                        const s = String(src);
+                        // assign to audio element
+                        if (window.audioPlayer) {
+                            // avoid unnecessary reloads
+                            if (window.audioPlayer.src && window.audioPlayer.src.endsWith(s)) return;
+                            window.audioPlayer.src = s;
+                            // update now playing label if present
+                            try { const np = document.getElementById('now-playing-track'); if (np) np.textContent = decodeURIComponent(s.split('/').pop()); } catch(e){}
+                        }
+                    } catch (e) { console.warn('setPlayerSrc error', e); }
+                };
+
+                // wire basic controls (play/pause/volume/rewind/forward/track change)
+                const $play = document.getElementById('audio-play');
+                const $pause = document.getElementById('audio-pause');
+                const $vol = document.getElementById('audio-volume');
+                const $rew = document.getElementById('audio-rewind');
+                const $fwd = document.getElementById('audio-forward');
+                const $track = document.getElementById('audio-track');
+
+                if ($play) $play.addEventListener('click', () => {
+                    try { window.audioPlayer.play().catch(err=>{ console.warn('play failed', err); }); } catch(e){}
+                });
+                if ($pause) $pause.addEventListener('click', () => { try { window.audioPlayer.pause(); } catch(e){} });
+                if ($vol) {
+                    // initialize volume from control
+                    try { window.audioPlayer.volume = Number($vol.value) || 1.0; } catch(e){}
+                    $vol.addEventListener('input', () => { try { window.audioPlayer.volume = Number($vol.value); } catch(e){} });
+                }
+                if ($rew) $rew.addEventListener('click', () => { try { window.audioPlayer.currentTime = Math.max(0, window.audioPlayer.currentTime - 10); } catch(e){} });
+                if ($fwd) $fwd.addEventListener('click', () => { try { window.audioPlayer.currentTime = Math.min((window.audioPlayer.duration||0), window.audioPlayer.currentTime + 10); } catch(e){} });
+                if ($track) $track.addEventListener('change', (ev) => {
+                    try {
+                        const val = (ev.target && ev.target.value) || ev.target.options[ev.target.selectedIndex].value;
+                        if (val) { window.setPlayerSrc(val); }
+                    } catch(e){}
+                });
+
+                // expose minimal audioControls if not present
+                if (!window.audioControls) {
+                    window.audioControls = {
+                        setPlayerSrc: window.setPlayerSrc,
+                        play: () => { try { return window.audioPlayer.play(); } catch(e){} },
+                        pause: () => { try { return window.audioPlayer.pause(); } catch(e){} },
+                        stop: () => { try { window.audioPlayer.pause(); window.audioPlayer.currentTime = 0; } catch(e){} },
+                        getQueue: () => ([]),
+                        addToQueue: () => {},
+                        clearQueue: () => {}
+                    };
+                }
+
+                // Log ready state for easier local debugging
+                console.debug('Audio player initialized', { src: window.audioPlayer.src || null });
+            } catch (e) {
+                console.warn('ensureAudioElementAndWiring failed', e);
+            }
+        })();
+
         // Retry helper: wait for a few required DOM nodes before initializing
         (function waitForAudioDomAndInit() {
             const required = ['audio-track', 'audio-mode', 'audio-play'];
