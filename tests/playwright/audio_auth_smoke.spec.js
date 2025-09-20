@@ -34,10 +34,10 @@ test('audio select populated and sign-in modal works', async ({ page }) => {
   await page.fill('#si-email', `${username}@example.com`);
   // Try to submit using a deterministic test helper (if present) to avoid click races in CI
   try {
-    const used = await page.evaluate((u, e) => {
+    const used = await page.evaluate(({u, e}) => {
       if (window._testSetBurbleUser) { return window._testSetBurbleUser(u, e); }
       return false;
-    }, username, `${username}@example.com`);
+    }, { u: username, e: `${username}@example.com` });
     if (!used) {
       await page.click('#si-submit');
       await page.waitForTimeout(300);
@@ -51,9 +51,9 @@ test('audio select populated and sign-in modal works', async ({ page }) => {
   // Final-resort fallback: if burbleUser is still not set (CI flakiness), set it directly
   const storedAfter = await page.evaluate(() => localStorage.getItem('burbleUser'));
   if (!storedAfter) {
-    await page.evaluate((u, e) => {
+    await page.evaluate(({u, e}) => {
       try { localStorage.setItem('burbleUser', JSON.stringify({ username: u, email: e })); } catch (err) {}
-    }, username, `${username}@example.com`);
+    }, { u: username, e: `${username}@example.com` });
     // small pause for UI to reflect change
     await page.waitForTimeout(150);
   }
