@@ -47,7 +47,7 @@ jobs:
           # that prevent token-based pushes, create a personal access token with
           # `repo` scope and store it as the secret `DEPLOY_PERSONAL_TOKEN`.
           # The action will use `personal_token` if provided, otherwise GITHUB_TOKEN.
-          personal_token: ${{ secrets.DEPLOY_PERSONAL_TOKEN }}
+          personal_token: ${{ secrets.DEPLOY_PERSONAL_TOKEN || secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
