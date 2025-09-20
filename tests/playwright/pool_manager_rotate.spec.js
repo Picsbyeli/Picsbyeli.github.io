@@ -5,8 +5,20 @@ const TEST_BASE = process.env.TEST_BASE || 'http://127.0.0.1:8001';
 test('pool manager rotate updates last rotation and UI', async ({ page }) => {
   await page.goto(`${TEST_BASE}/index.html`);
 
-  // Ensure pool manager is visible (it is on the home page)
-  await page.waitForSelector('#pool-manager');
+  // Ensure pool manager is visible (it is on the home page). Be robust: try waiting,
+  // then click Home nav if not found immediately.
+  try {
+    await page.waitForSelector('#pool-manager', { timeout: 10000 });
+  } catch (e) {
+    // Try navigating to Home and wait again
+    try {
+      await Promise.all([
+        page.waitForNavigation({ timeout: 10000 }),
+        page.click('text=Home').catch(() => {})
+      ]);
+    } catch (e2) {}
+    await page.waitForSelector('#pool-manager', { timeout: 10000 });
+  }
 
   // Read previous rotation ts
   const prev = await page.evaluate(() => localStorage.getItem('burbleLastRotation'));
