@@ -620,7 +620,7 @@ input[type="range"].seek::-webkit-slider-thumb {
 #audio-clear-queue { padding:4px 8px; border-radius:6px; border:1px solid #e2e8f0; background:white; cursor:pointer; }
 /* header user area */
 #user-area { margin-left:12px; }
-#signin-btn { padding:6px 10px; font-size:0.9rem; }
+#leaderboard-btn { padding:6px 10px; font-size:0.9rem; }
 #signout-btn { padding:6px 8px; font-size:0.8rem; }
 /* Leaderboard basics */
 #leaderboard-page table th, #leaderboard-page table td { padding:6px; border-bottom:1px solid #f0f0f0; }
@@ -635,6 +635,19 @@ input[type="range"].seek::-webkit-slider-thumb {
 .modal-actions { display:flex; gap:8px; justify-content:flex-end; }
 .modal-actions.mt12 { margin-top:12px; }
 .message-error { margin-top:8px; color:#b91c1c; }
+/* Helpers that replace inline styles from standalone.html */
+.mt-8 { margin-top:8px; }
+.mt-6 { margin-top:6px; }
+.inline-flex { display:flex; gap:8px; align-items:center; }
+.inline-block { display:inline-block; }
+.audio-alert-actions { display:inline-block; margin-left:8px; }
+.audio-alert-msg { display:inline-block; }
+.audio-status-muted { color:#444; min-width:110px; }
+.audio-time { min-width:110px; color:#444; text-align:right; }
+.yt-controls { margin-top:6px; display:flex; gap:8px; align-items:center; }
+.yt-volume { width:90px; }
+.flex-1 { flex:1; }
+.audio-url-input { padding:6px; }
 .queue-header { display:flex; justify-content:space-between; align-items:center; padding-bottom:6px; }
 .queue-title { font-size:0.9rem; }
 .clear-queue-btn { margin-right:6px; }
@@ -645,6 +658,18 @@ input[type="range"].seek::-webkit-slider-thumb {
 .user-area { margin-left:12px; }
 .nav-btn.small { padding:6px 10px; font-size:0.9rem; }
 .nav-btn.xsmall { padding:6px 8px; font-size:0.8rem; }
+
+/* Leaderboard list helper (replaces inline max-height/overflow) */
+.leaderboard-list { max-height:300px; overflow:auto; margin-bottom:12px; }
+.build-quiz-controls { margin-top:8px; display:flex; gap:8px; align-items:center; }
+.build-quiz-file { display:inline-block; }
+
+/* Audio alert UI */
+.audio-alert { display:inline-block; padding:6px 10px; background:#fff7ed; border:1px solid #ffd8a8; border-radius:8px; color:#92400e; }
+.audio-alert .audio-alert-actions { display:inline-block; margin-left:8px; }
+.audio-alert-btn { background:transparent; border:1px solid transparent; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:600; color:#92400e; }
+.audio-alert-btn:hover { background:rgba(0,0,0,0.03); }
+.audio-alert-btn.hidden { display:none; }
 
 /* Top ranks styling as classes */
 .rank-1 { background: #ffd70033 !important; }

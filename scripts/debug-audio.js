@@ -36,7 +36,7 @@ const { chromium } = require('playwright');
   console.log('found snippet:', foundText ? foundText.slice(0,800) : '--- not found ---');
   // Try opening the sign-in modal by clicking the button and report its state
   try {
-    await page.click('#signin-btn');
+  await page.click('#leaderboard-btn');
     await page.waitForTimeout(200);
     const modalState = await page.evaluate(() => {
       const m = document.getElementById('signin-modal');

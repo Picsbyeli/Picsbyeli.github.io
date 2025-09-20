@@ -12,7 +12,7 @@ test('sign in, answer a question, and leaderboard updates', async ({ page, reque
   // ensure clean slate
   await page.evaluate(() => { localStorage.removeItem('burbleUser'); localStorage.removeItem('burbleLeaderboard'); });
   await page.waitForTimeout(200);
-  await page.click('#signin-btn').catch(() => {});
+  await page.click('#leaderboard-btn').catch(() => {});
   // ensure the modal exists in DOM and is visible; if not, inject a minimal modal so test can proceed
   await page.waitForTimeout(200);
   await page.evaluate(() => {

@@ -20,7 +20,7 @@ test('audio select populated and sign-in modal works', async ({ page }) => {
     await page.evaluate(() => window._testOpenSignin && window._testOpenSignin());
   } catch (e) {
     // fallback to click if the hook isn't present
-    await page.click('#signin-btn');
+  await page.click('#leaderboard-btn');
   }
   await page.waitForSelector('#signin-modal[aria-hidden="false"]', { state: 'visible', timeout: 10000 });
 

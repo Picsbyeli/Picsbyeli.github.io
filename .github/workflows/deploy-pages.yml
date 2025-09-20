@@ -47,13 +47,16 @@ jobs:
           set -eux
           rm -rf ./.publish
           mkdir -p ./.publish
-          # Copy the site files only by default. Audio is optional to keep Pages light.
+          # Copy site files. Copy the entire `assets` dir so the Pages publish
+          # mirrors the local repository. Audio will be present by default; if
+          # `include_audio=true` the workflow will optionally re-encode audio to
+          # the requested bitrate and overwrite the files in the publish folder.
           cp ./standalone.html ./.publish/ || true
           if [ -d ./assets ]; then
-            mkdir -p ./.publish/assets
-            # Copy css and other assets, but skip the audio directory by default
-            if [ -d ./assets/css ]; then cp -r ./assets/css ./.publish/assets/; fi
-            if [ -d ./assets/image ]; then cp -r ./assets/image ./.publish/assets/; fi
+            # Copy all assets recursively so deployed site matches local
+            cp -r ./assets ./.publish/ || true
+            # Ensure audio folder exists in publish dir (may be overwritten by re-encode step)
+            mkdir -p ./.publish/assets/audio
           fi
 
           # If the workflow was triggered with include_audio=true, compress and include audio
