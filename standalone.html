@@ -1974,6 +1974,9 @@
                     const sub = Object.keys(inner).map(k => `${k}: ${inner[k]}`).join(', ') || 'none';
                     parts.push(`<strong>${name}</strong>: ${sub}`);
                 });
+                // Append last rotation timestamp if available
+                const last = localStorage.getItem('burbleLastRotation');
+                if (last) parts.push(`<em>Last rotation:</em> ${escapeHtml(String(last))}`);
                 container.innerHTML = parts.join('<br>');
             } catch (e) { /* ignore */ }
         }
@@ -2028,6 +2031,13 @@
                             const parts = key.split('::'); // ['pool', name, difficulty]
                             const name = parts[1];
                             const difficulty = parts[2];
+                            // Skip rotating pools for games that are currently active so we don't
+                            // disturb an in-progress session for players.
+                            try {
+                                if (name === 'trivia' && gameState.trivia && gameState.trivia.gameActive) return;
+                                if (name === 'animal' && gameState.animalTrivia && gameState.animalTrivia.gameActive) return;
+                                if (name === 'riddles' && gameState.riddles && gameState.riddles.gameActive) return;
+                            } catch (e) { /* ignore gameState read errors and proceed */ }
                             let allItems = [];
 
                             if (name === 'trivia' && window.triviaQuestions && triviaQuestions[difficulty]) {
@@ -2068,6 +2078,8 @@
                     // Also refresh the summary snapshot used by pool-manager
                     try { savePoolsToStorage(); } catch (e) {}
                     try { renderPoolCounts(); } catch (e) {}
+                    // persist last rotation timestamp for UI
+                    try { localStorage.setItem('burbleLastRotation', new Date().toISOString()); } catch (e) {}
                 } catch (e) { console.error('rotatePersistentPools', e); }
             }
 
