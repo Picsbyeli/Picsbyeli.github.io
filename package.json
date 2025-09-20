@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "test:unit": "node test/drawFromPool.test.js",
     "test:playwright": "npx playwright test tests/playwright --reporter=list",
     "test:playwright:with-server": "node scripts/run-playwright-with-backend.js"
   },
@@ -21,5 +22,8 @@
   "homepage": "https://github.com/Picsbyeli/Picsbyeli.github.io#readme",
   "devDependencies": {
     "@playwright/test": "^1.55.0"
+  },
+  "dependencies": {
+    "jsdom": "^22.1.0"
   }
 }

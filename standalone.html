@@ -2010,6 +2010,76 @@
             } catch (e) { console.error('initPoolManager', e); }
         }
 
+            // Periodically rotate (reshuffle) persistent pools so users see different questions
+            // every `minutes` minutes. This will attempt to rebuild pools from the canonical
+            // question sources when available (e.g. `triviaQuestions`, `animalTriviaQuestions`)
+            // and otherwise reshuffle the existing stored pool.
+            function rotatePersistentPools() {
+                try {
+                    const keysToRotate = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (!key) continue;
+                        if (key.startsWith('pool::')) keysToRotate.push(key);
+                    }
+
+                    keysToRotate.forEach(key => {
+                        try {
+                            const parts = key.split('::'); // ['pool', name, difficulty]
+                            const name = parts[1];
+                            const difficulty = parts[2];
+                            let allItems = [];
+
+                            if (name === 'trivia' && window.triviaQuestions && triviaQuestions[difficulty]) {
+                                allItems = triviaQuestions[difficulty].slice();
+                            } else if (name === 'animal' && window.animalTriviaQuestions && animalTriviaQuestions[difficulty]) {
+                                allItems = animalTriviaQuestions[difficulty].slice();
+                            } else if (name === 'riddles') {
+                                // For riddles we may not have a global full-list by difficulty available
+                                // so fall back to the stored pool if present.
+                                const raw = localStorage.getItem(key);
+                                if (raw) {
+                                    try { allItems = JSON.parse(raw) || []; } catch (e) { allItems = []; }
+                                }
+                            } else {
+                                // Fallback: use what's currently stored
+                                const raw = localStorage.getItem(key);
+                                if (raw) {
+                                    try { allItems = JSON.parse(raw) || []; } catch (e) { allItems = []; }
+                                }
+                            }
+
+                            // If we have a base list, reshuffle it; otherwise reshuffle the stored pool
+                            let newPool = [];
+                            if (Array.isArray(allItems) && allItems.length > 0) {
+                                newPool = shuffleArray(allItems.slice());
+                            } else {
+                                // last resort: shuffle existing stored pool
+                                const rawExisting = localStorage.getItem(key);
+                                try { newPool = rawExisting ? shuffleArray(JSON.parse(rawExisting).slice()) : []; } catch (e) { newPool = []; }
+                            }
+
+                            try { localStorage.setItem(key, JSON.stringify(newPool)); } catch (e) {}
+                        } catch (e) {
+                            /* ignore per-key errors */
+                        }
+                    });
+
+                    // Also refresh the summary snapshot used by pool-manager
+                    try { savePoolsToStorage(); } catch (e) {}
+                    try { renderPoolCounts(); } catch (e) {}
+                } catch (e) { console.error('rotatePersistentPools', e); }
+            }
+
+            function schedulePoolRotation(minutes) {
+                try {
+                    const ms = Math.max(1, Number(minutes) || 30) * 60 * 1000;
+                    // Run immediately once, then schedule
+                    rotatePersistentPools();
+                    setInterval(rotatePersistentPools, ms);
+                } catch (e) { console.error('schedulePoolRotation', e); }
+            }
+
         // Riddles: maintain per-filter shuffled pools to avoid repeats until exhausted
         function getRiddleFromPool(category, difficulty) {
             // Use persistent drawFromPool so riddles never repeat until pool exhausts
@@ -2050,59 +2120,7 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        function startTimer(gameType) {
-            const game = gameState[gameType];
-            game.startTime = Date.now();
-            game.timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - game.startTime) / 1000);
-                document.getElementById(gameType + '-timer').textContent = formatTime(elapsed);
-            }, 1000);
-        }
-
-        function stopTimer(gameType) {
-            const game = gameState[gameType];
-            if (game.timerInterval) {
-                clearInterval(game.timerInterval);
-                game.timerInterval = null;
-            }
-        }
-
-        // RIDDLES GAME
-        function initRiddlesGame() {
-            // Difficulty selectors
-            document.querySelectorAll('#riddles-page .selector-btn[data-difficulty]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('#riddles-page .selector-btn[data-difficulty]').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    gameState.riddles.difficulty = btn.dataset.difficulty;
-                    updateRiddlesDisplay();
-                });
-            });
-
-            // Category selectors
-            document.querySelectorAll('#riddles-page .selector-btn[data-category]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('#riddles-page .selector-btn[data-category]').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    gameState.riddles.category = btn.dataset.category;
-                    updateRiddlesDisplay();
-                });
-            });
-
-            // Game buttons
-            document.getElementById('riddles-next').addEventListener('click', nextRiddle);
-            document.getElementById('riddles-submit').addEventListener('click', submitRiddleAnswer);
-            document.getElementById('riddles-hint').addEventListener('click', getRiddleHint);
-
-            // Input handling
-            document.getElementById('riddles-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && gameState.riddles.gameActive) {
-                    submitRiddleAnswer();
-                }
-            });
-
-            updateRiddlesDisplay();
-        }
+        
 
         function nextRiddle() {
             const riddles = gameState.riddles;
@@ -2342,9 +2360,11 @@
             }
 
             // Take questions for this run (consume from pool)
-            const take = Math.min(trivia.totalQuestions, gameState.trivia.pools[key].length);
-            trivia.currentGameQuestions = gameState.trivia.pools[key].splice(0, take);
-            savePoolsToStorage();
+            const take = Math.min(trivia.totalQuestions, (gameState.trivia.pools[key] || []).length);
+            // Draw from the rotating persistent pool so questions don't repeat across runs
+            const allQ = (window.triviaQuestions && triviaQuestions[trivia.difficulty]) || [];
+            trivia.currentGameQuestions = drawFromPool('trivia', trivia.difficulty, allQ, take);
+            try { savePoolsToStorage(); } catch (e) {}
             trivia.totalQuestionsUsed = trivia.currentGameQuestions.length;
 
             // Start timer
@@ -2645,59 +2665,8 @@
             document.getElementById('emoji-hints').textContent = emoji.hintsUsed;
             document.getElementById('emoji-category').textContent = emoji.category.charAt(0).toUpperCase() + emoji.category.slice(1);
             document.getElementById('emoji-difficulty').textContent = emoji.difficulty.charAt(0).toUpperCase() + emoji.difficulty.slice(1);
-            
-            if (emoji.currentPuzzle && emoji.gameActive) {
-                document.getElementById('emoji-display').textContent = emoji.currentPuzzle.emoji;
-            } else if (emoji.currentPuzzle && !emoji.gameActive) {
-                document.getElementById('emoji-display').textContent = emoji.currentPuzzle.emoji;
-            } else {
-                document.getElementById('emoji-display').textContent = 'Click "New Puzzle" to start!';
-            }
         }
-
-        function disableEmojiInputs() {
-            document.getElementById('emoji-input').disabled = true;
-            document.getElementById('emoji-submit').disabled = true;
-            document.getElementById('emoji-hint').disabled = true;
-        }
-
-        // TWENTY QUESTIONS GAME
-        function initValentineGame() {
-            // Difficulty selectors
-            document.querySelectorAll('#valentine-page .selector-btn[data-difficulty]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('#valentine-page .selector-btn[data-difficulty]').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    gameState.valentine.difficulty = btn.dataset.difficulty;
-                    setValentineQuestions();
-                    updateValentineDisplay();
-                });
-            });
-
-            // Category selectors
-            document.querySelectorAll('#valentine-page .selector-btn[data-category]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('#valentine-page .selector-btn[data-category]').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    gameState.valentine.category = btn.dataset.category;
-                    updateValentineDisplay();
-                });
-            });
-
-            // Game buttons
-            document.getElementById('valentine-new-game').addEventListener('click', startValentineGame);
-            document.getElementById('valentine-ask').addEventListener('click', askValentineQuestion);
-            document.getElementById('valentine-guess').addEventListener('click', makeValentineGuess);
-
-            // Input handling
-            document.getElementById('valentine-question').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && gameState.valentine.gameActive) {
-                    askValentineQuestion();
-                }
-            });
-
-            setValentineQuestions();
-        }
+        
 
         function setValentineQuestions() {
             switch (gameState.valentine.difficulty) {
@@ -2928,6 +2897,7 @@
             document.getElementById('trivia-next').addEventListener('click', nextTriviaQuestion);
         }
 
+        // Single canonical start: draw unique questions from rotating pool and persist
         function startTriviaGame() {
             const trivia = gameState.trivia;
             // Reset game state
@@ -2937,10 +2907,13 @@
             trivia.gameActive = true;
             trivia.selectedAnswer = null;
 
-            // Use persistent rotating pool to select questions without immediate repeats
+            // Use rotating persistent pool to select questions without immediate repeats
             const allQuestions = (window.triviaQuestions && triviaQuestions[trivia.difficulty]) || [];
             trivia.currentGameQuestions = drawFromPool('trivia', trivia.difficulty, allQuestions, trivia.totalQuestions);
             trivia.totalQuestionsUsed = trivia.currentGameQuestions.length;
+
+            // Persist pool snapshot so subsequent runs avoid repeats
+            try { savePoolsToStorage(); } catch (e) {}
 
             // Start timer
             startTimer('trivia');
@@ -2962,18 +2935,17 @@
             const trivia = gameState.trivia;
             const questions = trivia.currentGameQuestions || [];
 
-            if (trivia.currentQuestion >= trivia.totalQuestionsUsed || trivia.currentQuestion >= questions.length) {
+            if (trivia.currentQuestion >= (trivia.totalQuestionsUsed || questions.length) || trivia.currentQuestion >= questions.length) {
                 endTriviaGame();
                 return;
             }
 
             const question = questions[trivia.currentQuestion];
-            
             document.getElementById('trivia-question-text').textContent = question.question;
-            
+
             const optionsContainer = document.getElementById('trivia-options');
             optionsContainer.innerHTML = '';
-            
+
             question.options.forEach((option, index) => {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'trivia-option';
@@ -2981,7 +2953,7 @@
                 optionDiv.onclick = () => selectTriviaOption(index, optionDiv);
                 optionsContainer.appendChild(optionDiv);
             });
-            
+
             trivia.selectedAnswer = null;
             document.getElementById('trivia-submit').disabled = false;
             document.getElementById('trivia-next').disabled = true;
@@ -2994,7 +2966,7 @@
             document.querySelectorAll('#trivia-options .trivia-option').forEach(opt => {
                 opt.classList.remove('selected');
             });
-            
+
             // Select new option
             element.classList.add('selected');
             gameState.trivia.selectedAnswer = index;
@@ -3002,23 +2974,20 @@
 
         function submitTriviaAnswer() {
             if (gameState.trivia.selectedAnswer === null) return;
-            
+
             const trivia = gameState.trivia;
             const questions = trivia.currentGameQuestions || [];
             const question = questions[trivia.currentQuestion];
             const isCorrect = trivia.selectedAnswer === question.correct;
-            
-            // Show correct/incorrect styling
+
+            // Show correct/incorrect styling and disable options
             const options = document.querySelectorAll('#trivia-options .trivia-option');
             options.forEach((opt, index) => {
-                if (index === question.correct) {
-                    opt.classList.add('correct');
-                } else if (index === trivia.selectedAnswer && !isCorrect) {
-                    opt.classList.add('incorrect');
-                }
-                opt.onclick = null; // Disable clicking
+                if (index === question.correct) opt.classList.add('correct');
+                else if (index === trivia.selectedAnswer && !isCorrect) opt.classList.add('incorrect');
+                opt.onclick = null;
             });
-            
+
             if (isCorrect) {
                 trivia.correctAnswers++;
                 trivia.score += trivia.difficulty === 'hard' ? 15 : trivia.difficulty === 'medium' ? 10 : 5;
@@ -3032,12 +3001,10 @@
                 showFeedback('trivia', `❌ Incorrect. The correct answer was: ${question.options[question.correct]}`, 'incorrect');
                 try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordIncorrect(user.username); } catch (e) {}
             }
-            
+
             trivia.currentQuestion++;
-            
             document.getElementById('trivia-submit').disabled = true;
             document.getElementById('trivia-next').disabled = false;
-            
             updateTriviaDisplay();
         }
 
@@ -3057,15 +3024,15 @@
 
             // Stop configured audio
             try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
-            
+
             const percentage = Math.round((trivia.correctAnswers / trivia.totalQuestions) * 100);
             const won = percentage >= 70;
-            
+
             addGameResult(won, trivia.score);
-            
+
             document.getElementById('trivia-question-text').textContent = 'Quiz Complete!';
             document.getElementById('trivia-options').innerHTML = '';
-            
+
             document.getElementById('trivia-game-over').innerHTML = `
                 <div class="game-over ${won ? 'win' : 'lose'}">
                     <h3>${won ? '🎉 Great Job!' : '📚 Keep Studying!'}</h3>
@@ -3075,7 +3042,7 @@
                     ${won ? '<p>Excellent knowledge!</p>' : '<p>Try again to improve your score!</p>'}
                 </div>
             `;
-            
+
             document.getElementById('trivia-start').disabled = false;
             document.getElementById('trivia-submit').disabled = true;
             document.getElementById('trivia-next').disabled = true;
@@ -3083,7 +3050,6 @@
 
         function updateTriviaDisplay() {
             const trivia = gameState.trivia;
-
             const total = trivia.totalQuestionsUsed || Math.min(trivia.totalQuestions, (trivia.pool || []).length || 0);
             document.getElementById('trivia-question-num').textContent = `${trivia.currentQuestion}/${total}`;
             document.getElementById('trivia-correct').textContent = trivia.correctAnswers;
@@ -3304,40 +3270,7 @@
         }
 
         // TWENTY QUESTIONS GAME
-        function initValentineGame() {
-            // Difficulty selectors
-            document.querySelectorAll('#valentine-page .selector-btn[data-difficulty]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('#valentine-page .selector-btn[data-difficulty]').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    gameState.valentine.difficulty = btn.dataset.difficulty;
-                    setValentineQuestions();
-                    updateValentineDisplay();
-                });
-            });
-
-            // Category selectors
-            document.querySelectorAll('#valentine-page .selector-btn[data-category]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('#valentine-page .selector-btn[data-category]').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    gameState.valentine.category = btn.dataset.category;
-                    updateValentineDisplay();
-                });
-            });
-
-            // Game buttons
-            document.getElementById('valentine-new-game').addEventListener('click', startValentineGame);
-            document.getElementById('valentine-ask').addEventListener('click', askValentineQuestion);
-            document.getElementById('valentine-guess').addEventListener('click', makeValentineGuess);
-
-            // Input handling
-            document.getElementById('valentine-question').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && gameState.valentine.gameActive) {
-                    askValentineQuestion();
-                }
-            });
-
+        function nextRiddle() {
             setValentineQuestions();
         }
 
@@ -3569,43 +3502,7 @@
             document.getElementById('trivia-next').addEventListener('click', nextTriviaQuestion);
         }
 
-        function startTriviaGame() {
-            const trivia = gameState.trivia;
-            // Reset game state
-            animalTrivia.currentQuestion = 0;
-            animalTrivia.correctAnswers = 0;
-            animalTrivia.score = 0;
-            animalTrivia.gameActive = true;
-            animalTrivia.selectedAnswer = null;
-
-            // Ensure persistent pools exist
-            if (!gameState.animalTrivia.pools) gameState.animalTrivia.pools = {};
-            const key = `animal|${animalTrivia.difficulty}`;
-            if (!gameState.animalTrivia.pools[key] || gameState.animalTrivia.pools[key].length === 0) {
-                const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
-                gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
-            }
-
-            // Take questions for this run (consume from pool)
-            const take = Math.min(animalTrivia.totalQuestions, gameState.animalTrivia.pools[key].length);
-            animalTrivia.currentGameQuestions = gameState.animalTrivia.pools[key].splice(0, take);
-            animalTrivia.totalQuestionsUsed = animalTrivia.currentGameQuestions.length;
-
-            // Start timer
-            startTimer('animalTrivia');
-
-            // Play configured audio for Trivia
-            try { if (window.playModeAudio) window.playModeAudio('trivia'); } catch (e) {}
-
-            // Show first question
-            showAnimalTriviaQuestion();
-
-            // Update buttons
-            document.getElementById('animal-start').disabled = true;
-            document.getElementById('animal-submit').disabled = false;
-
-            updateAnimalTriviaDisplay();
-        }
+        
 
         function showTriviaQuestion() {
             const trivia = gameState.trivia;
@@ -3758,8 +3655,10 @@
             }
 
             // Take questions for this run (consume from pool)
-            const take = Math.min(trivia.totalQuestions, gameState.trivia.pools[key].length);
-            trivia.currentGameQuestions = gameState.trivia.pools[key].splice(0, take);
+            const take = Math.min(trivia.totalQuestions, (gameState.trivia.pools[key] || []).length);
+            const allQ = (window.triviaQuestions && triviaQuestions[trivia.difficulty]) || [];
+            trivia.currentGameQuestions = drawFromPool('trivia', trivia.difficulty, allQ, take);
+            try { savePoolsToStorage(); } catch (e) {}
             trivia.totalQuestionsUsed = trivia.currentGameQuestions.length;
 
             // Start timer
@@ -3811,9 +3710,11 @@
             gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
             savePoolsToStorage();
 
-            // Take questions for this run (consume from pool)
-            const take = Math.min(animalTrivia.totalQuestions, gameState.animalTrivia.pools[key].length);
-            animalTrivia.currentGameQuestions = gameState.animalTrivia.pools[key].splice(0, take);
+            // Take questions for this run (consume from rotating pool)
+            const take = Math.min(animalTrivia.totalQuestions, (gameState.animalTrivia.pools[key] || []).length);
+            const allQ = (window.animalTriviaQuestions && animalTriviaQuestions[animalTrivia.difficulty]) || [];
+            animalTrivia.currentGameQuestions = drawFromPool('animal', animalTrivia.difficulty, allQ, take);
+            try { savePoolsToStorage(); } catch (e) {}
             animalTrivia.totalQuestionsUsed = animalTrivia.currentGameQuestions.length;
 
             // Start timer
@@ -3972,6 +3873,9 @@
             initAuthAndLeaderboard();
             // init pool manager UI
             try { initPoolManager(); } catch (e) {}
+
+            // Start periodic pool rotation every 30 minutes to reshuffle persistent pools
+            try { schedulePoolRotation(30); } catch (e) { console.error('failed to schedule pool rotation', e); }
 
             // Add reset button to animal trivia page
             const animalPage = document.getElementById('animal-trivia-page');
