@@ -144,6 +144,12 @@
                     </div>
                 <div id="audio-queue-list"></div>
             </div>
+            <!-- Playback status and progress -->
+            <div class="audio-feedback" style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                <div id="audio-status" style="min-width:110px;color:#444;">Idle</div>
+                <progress id="audio-progress" value="0" max="100" style="flex:1;height:10px;appearance:none;"></progress>
+                <div id="audio-time" style="min-width:110px;color:#444;text-align:right;">00:00 / 00:00</div>
+            </div>
         </div>
 
         <!-- Home Page -->
@@ -1025,6 +1031,30 @@
 
                 // Log ready state for easier local debugging
                 console.debug('Audio player initialized', { src: window.audioPlayer.src || null });
+                // Wire audio event listeners to update feedback UI
+                try {
+                    const $status = document.getElementById('audio-status');
+                    const $progress = document.getElementById('audio-progress');
+                    const $time = document.getElementById('audio-time');
+                    function fmt(s){
+                        if (!isFinite(s) || s <= 0) return '00:00';
+                        const m = Math.floor(s/60).toString().padStart(2,'0');
+                        const sec = Math.floor(s%60).toString().padStart(2,'0');
+                        return `${m}:${sec}`;
+                    }
+                    window.audioPlayer.addEventListener('waiting', () => { if ($status) $status.textContent = 'Loading...'; });
+                    window.audioPlayer.addEventListener('playing', () => { if ($status) $status.textContent = 'Playing'; });
+                    window.audioPlayer.addEventListener('pause', () => { if ($status) $status.textContent = 'Paused'; });
+                    window.audioPlayer.addEventListener('ended', () => { if ($status) $status.textContent = 'Ended'; $progress && ($progress.value = 0); });
+                    window.audioPlayer.addEventListener('timeupdate', () => {
+                        try {
+                            const cur = window.audioPlayer.currentTime || 0;
+                            const dur = window.audioPlayer.duration || 0;
+                            if ($progress) $progress.value = dur ? (cur / dur) * 100 : 0;
+                            if ($time) $time.textContent = `${fmt(cur)} / ${fmt(dur)}`;
+                        } catch(e){}
+                    });
+                } catch(e) { console.warn('audio UI wiring failed', e); }
             } catch (e) {
                 console.warn('ensureAudioElementAndWiring failed', e);
             }
@@ -1067,16 +1097,52 @@
                         return true;
                     }
 
-                    // Otherwise treat as direct audio URL
+                    // Otherwise treat as direct audio URL. First, preflight with HEAD
                     try {
                         // remove any existing youtube embed
                         const y = document.getElementById('youtube-embed-container'); if (y) y.remove();
-                        if (window.audioPlayer) {
-                            window.setPlayerSrc(url);
-                            // try to play - may require user gesture in some browsers
-                            window.audioPlayer.play().catch(err => { console.warn('play failed for URL', err); });
-                            return true;
+                        // helper to try playing a given candidate url
+                        const tryUrl = async (candidate) => {
+                            try {
+                                // attempt a HEAD to check availability (CORS servers may reject)
+                                let ok = false;
+                                try {
+                                    const resp = await fetch(candidate, { method: 'HEAD' });
+                                    ok = resp && resp.ok;
+                                } catch(e) {
+                                    // HEAD may be blocked; fall back to optimistic attempt
+                                    ok = true;
+                                }
+                                if (!ok) return false;
+                                if (window.audioPlayer) {
+                                    window.setPlayerSrc(candidate);
+                                    await window.audioPlayer.play().catch(err => { console.warn('play failed for URL', err); });
+                                    return true;
+                                }
+                            } catch(e) { console.warn('tryUrl error', e); }
+                            return false;
+                        };
+
+                        // If it's a local assets path, try both encoded and unencoded variants
+                        const isLocalAsset = url.startsWith('assets/');
+                        if (isLocalAsset) {
+                            const candidates = [url];
+                            try { candidates.push(encodeURI(url)); } catch(e){}
+                            try { candidates.push(decodeURI(url)); } catch(e){}
+                            for (let c of candidates) {
+                                // normalize leading ./
+                                c = c.replace(/^\.\//, '');
+                                // try each candidate sequentially
+                                // eslint-disable-next-line no-await-in-loop
+                                const ok = await tryUrl(c);
+                                if (ok) return true;
+                            }
+                            return false;
                         }
+
+                        // Non-local: just try the provided url
+                        // eslint-disable-next-line no-return-await
+                        return await tryUrl(url);
                     } catch(e) { console.warn('playUrlOrYoutube error', e); }
                     return false;
                 };
