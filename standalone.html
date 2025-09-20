@@ -111,8 +111,8 @@
                             try { opt.text = decodeURIComponent(src.split('/').pop()); } catch(e){ opt.text = src; }
                             sel.appendChild(opt);
                         });
-                        // expose helpers for tests
-                        try { window.populateAudioSelect = function(){ return Array.from(sel.options).map(o=>o.value); }; window.defaultTracks = tracks.slice(); } catch(e){}
+                        // expose helpers for tests (only in E2E mode)
+                        try { if (window.__E2E__) { window.populateAudioSelect = function(){ return Array.from(sel.options).map(o=>o.value); }; window.defaultTracks = tracks.slice(); } } catch(e){}
                     } catch (e) { /* ignore */ }
                 })();
                 // centralized wiring is implemented inside the `enhanceAudioAndAuth()` IIFE
@@ -122,7 +122,7 @@
 
                 <button id="audio-prev" title="Previous">◀</button>
                 <button id="audio-rewind" title="Rewind 10s">-10s</button>
-                <button id="audio-play" title="Play">▶</button>
+                <button id="audio-play" title="Play" class="play-btn"><span class="play-icon">▶</span></button>
                 <button id="audio-pause" title="Pause">❚❚</button>
                 <button id="audio-forward" title="Forward 10s">+10s</button>
                 <button id="audio-next" title="Next">▶▶</button>
@@ -147,9 +147,10 @@
             <!-- Playback status and progress -->
             <div class="audio-feedback" style="margin-top:8px;display:flex;gap:8px;align-items:center;">
                 <div id="audio-status" style="min-width:110px;color:#444;">Idle</div>
-                <progress id="audio-progress" value="0" max="100" style="flex:1;height:10px;appearance:none;"></progress>
+                <input id="audio-progress" class="seek" type="range" min="0" max="100" value="0" step="0.1" style="flex:1;--pos:0;" />
                 <div id="audio-time" style="min-width:110px;color:#444;text-align:right;">00:00 / 00:00</div>
             </div>
+            <div id="youtube-api-root"></div>
         </div>
 
         <!-- Home Page -->
@@ -1077,6 +1078,9 @@
                     return null;
                 }
 
+                // YouTube player reference (will be created when needed)
+                let __ytPlayer = null;
+
                 window.playUrlOrYoutube = function(url){
                     if (!url) return false;
                     // if it's a YouTube link, create an iframe embed and mute the audio element
@@ -1088,12 +1092,62 @@
                     if (yt) {
                         // pause/hide audio element
                         try { if (window.audioPlayer) { window.audioPlayer.pause(); window.audioPlayer.src = ''; } } catch(e){}
+                        // ensure youtube API root exists
+                        const root = document.getElementById('youtube-api-root');
+                        // cleanup previous
+                        if (root) root.innerHTML = '';
                         const container = document.createElement('div');
                         container.id = 'youtube-embed-container';
                         container.style.marginTop = '8px';
-                        container.innerHTML = `<iframe id="youtube-player" width="360" height="90" src="https://www.youtube.com/embed/${yt}?autoplay=1&controls=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-                        const audioControlsEl = document.getElementById('audio-controls');
-                        audioControlsEl && audioControlsEl.parentNode && audioControlsEl.parentNode.insertBefore(container, audioControlsEl.nextSibling);
+                        container.innerHTML = `<div id="youtube-player-placeholder"></div><div style="margin-top:6px;"><button id="yt-pause" class="nav-btn">Pause</button><button id="yt-play" class="nav-btn">Play</button><button id="yt-stop" class="nav-btn">Stop</button></div>`;
+                        root && root.appendChild(container);
+
+                        // load YouTube IFrame API if not present
+                        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+                            const tag = document.createElement('script');
+                            tag.src = 'https://www.youtube.com/iframe_api';
+                            document.head.appendChild(tag);
+                        }
+
+                        // create player when API ready
+                        function createPlayer(){
+                            try {
+                                if (__ytPlayer && typeof __ytPlayer.destroy === 'function') { __ytPlayer.destroy(); __ytPlayer = null; }
+                                __ytPlayer = new YT.Player('youtube-player-placeholder', {
+                                    height: '90', width: '360', videoId: yt,
+                                    playerVars: { autoplay: 1, controls: 1 },
+                                    events: {
+                                        onReady: function(){ try { __ytPlayer.playVideo(); } catch(e){} },
+                                        onStateChange: function(e){
+                                            // map to status UI
+                                            const $status = document.getElementById('audio-status');
+                                            if (!$status) return;
+                                            if (e.data === YT.PlayerState.PLAYING) $status.textContent = 'Playing (YouTube)';
+                                            else if (e.data === YT.PlayerState.PAUSED) $status.textContent = 'Paused (YouTube)';
+                                            else if (e.data === YT.PlayerState.BUFFERING) $status.textContent = 'Loading...';
+                                            else if (e.data === YT.PlayerState.ENDED) $status.textContent = 'Ended';
+                                        }
+                                    }
+                                });
+                            } catch(e){ console.warn('YT createPlayer failed', e); }
+                        }
+
+                        window.onYouTubeIframeAPIReady = function(){ createPlayer(); };
+                        // if YT ready now, create immediately
+                        try { if (typeof YT !== 'undefined' && YT && typeof YT.Player !== 'undefined') createPlayer(); } catch(e){}
+
+                        // wire quick play/pause/stop buttons
+                        setTimeout(()=>{
+                            try {
+                                const $pp = document.getElementById('yt-pause');
+                                const $p = document.getElementById('yt-play');
+                                const $st = document.getElementById('yt-stop');
+                                if ($pp) $pp.addEventListener('click', ()=>{ try { __ytPlayer && __ytPlayer.pauseVideo(); } catch(e){} });
+                                if ($p) $p.addEventListener('click', ()=>{ try { __ytPlayer && __ytPlayer.playVideo(); } catch(e){} });
+                                if ($st) $st.addEventListener('click', ()=>{ try { __ytPlayer && __ytPlayer.stopVideo(); const root = document.getElementById('youtube-api-root'); if (root) root.innerHTML=''; } catch(e){} });
+                            } catch(e){}
+                        }, 400);
+
                         return true;
                     }
 
@@ -1217,7 +1271,7 @@
             }
 
             // expose for external testing and add a robust fallback invocation in case of load race
-            try { window.populateAudioSelect = populateAudioSelect; window.defaultTracks = defaultTracks; } catch (e) {}
+            try { if (window.__E2E__) { window.populateAudioSelect = populateAudioSelect; window.defaultTracks = defaultTracks; } } catch (e) {}
             (function ensurePopulate(retries = 0) {
                 try { populateAudioSelect(); } catch (e) {}
                 const sel = document.getElementById('audio-track');
@@ -1299,9 +1353,8 @@
             try { window.saveBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } catch(e){}
 
             // Test-only helper: directly set burbleUser in localStorage (used by E2E tests
-            // when clicks are flaky in CI). Tests should prefer user-driven flows but may
-            // call this helper to deterministically set state.
-            try { window._testSetBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } catch(e){}
+            // when clicks are flaky in CI). Only expose in E2E mode.
+            try { if (window.__E2E__) { window._testSetBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } } catch(e){}
 
             function handleSigninSubmit() {
                 const username = (document.getElementById('si-username')||{}).value || '';
@@ -1357,8 +1410,8 @@
                 try { const username = document.getElementById('si-username'); if (username) username.focus(); } catch (e) {}
             };
 
-            // Test helper: allow tests to open the signin modal deterministically
-            try { window._testOpenSignin = function(){ window.showSignInModal(); }; } catch(e){}
+            // Test helper: allow tests to open the signin modal deterministically (E2E only)
+            try { if (window.__E2E__) { window._testOpenSignin = function(){ window.showSignInModal(); }; } } catch(e){}
 
             const originalHide = hideSignInModal;
             window.hideSignInModal = function() { originalHide(); const modal = document.getElementById('signin-modal'); if (modal && modal._untrap) { modal._untrap(); modal._untrap = null; } };

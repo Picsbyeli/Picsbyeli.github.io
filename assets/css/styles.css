@@ -62,6 +62,35 @@ body {
     transform: translateY(-2px);
 }
 
+/* Audio UI extras */
+.audio-feedback { display:flex; align-items:center; gap:8px; }
+.spinner {
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    border:3px solid rgba(0,0,0,0.08);
+    border-top-color: #667eea;
+    animation: spin 1s linear infinite;
+    display:inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.play-btn.playing { transform: scale(1.05); }
+.play-icon { display:inline-block; transition: transform 0.15s ease; }
+.play-icon.playing { transform: translateX(2px); }
+
+/* Seek bar styling */
+input[type="range"].seek {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#667eea 0%, #667eea var(--pos,0%), #e6e6e6 var(--pos,0%), #e6e6e6 100%);
+}
+input[type="range"].seek::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height:14px; border-radius:50%; background:#fff; border:2px solid #667eea; box-shadow:0 2px 6px rgba(0,0,0,0.12);
+}
+
 /* Game Container */
 .game-container {
     background: white;
