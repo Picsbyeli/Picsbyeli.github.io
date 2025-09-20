@@ -6,26 +6,33 @@
     <title>Burble - Brain Teasers & Riddles Platform</title>
     <link rel="stylesheet" href="assets/css/styles.css">
     <script>
-    // Test-only: expose a minimal, safe hook early so E2E tests can open the sign-in modal
-    // even if later JS fails or loads slowly. This simply sets a function that will
-    // attempt to locate the modal element and flip its visibility attributes
-    // synchronously when invoked by tests. It's intentionally minimal and safe.
-    (function(){
-        try {
-            window._testOpenSignin = function(){
-                try {
-                    const m = document.getElementById('signin-modal');
-                    if (!m) return false;
-                    m.classList.remove('hidden');
-                    m.style.display = 'flex';
-                    m.setAttribute('aria-hidden', 'false');
-                    // attempt to focus username if present
-                    const u = document.getElementById('si-username'); if (u) try{ u.focus(); } catch(e){}
-                    return true;
-                } catch (e) { return false; }
-            };
-        } catch (e) { /* ignore */ }
-    })();
+    // Runtime flag to enable E2E-only helpers when `?e2e=1` (or `?e2e`) is present.
+    try {
+        (function(){
+            var params = new URLSearchParams(window.location.search || '');
+            window.__E2E__ = params.get('e2e') === '1' || params.has('e2e');
+        })();
+    } catch (e) { window.__E2E__ = false; }
+
+    // If E2E mode is enabled, expose a minimal, safe hook early so tests can
+    // open the sign-in modal even if later JS fails or loads slowly.
+    if (window.__E2E__) {
+      (function(){
+          try {
+              window._testOpenSignin = function(){
+                  try {
+                      const m = document.getElementById('signin-modal');
+                      if (!m) return false;
+                      m.classList.remove('hidden');
+                      m.style.display = 'flex';
+                      m.setAttribute('aria-hidden', 'false');
+                      const u = document.getElementById('si-username'); if (u) try{ u.focus(); } catch(e){}
+                      return true;
+                  } catch (e) { return false; }
+              };
+          } catch (e) { /* ignore */ }
+      })();
+    }
     </script>
 </head>
 <body>
