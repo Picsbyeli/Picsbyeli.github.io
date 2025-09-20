@@ -5,7 +5,7 @@ const TEST_BASE = process.env.TEST_BASE || 'http://127.0.0.1:8001';
 const BACKEND_BASE = process.env.BACKEND_BASE || 'http://127.0.0.1:4000';
 
 test('sign in, answer a question, and leaderboard updates', async ({ page, request }) => {
-  const base = `${TEST_BASE}/standalone.html`;
+  const base = `${TEST_BASE}/standalone.html?e2e=1`;
   await page.goto(base);
 
   // open sign-in modal (click preference + ensure visible for determinism)

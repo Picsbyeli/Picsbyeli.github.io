@@ -56,3 +56,19 @@ npm run test:playwright -- --headed
 ```
 
 <!-- CI retrigger: 2025-09-19T12:33:00Z -->
+
+Deployment to GitHub Pages
+-------------------------
+
+This repository publishes the `standalone.html` + `assets` directory to GitHub Pages via the Actions workflow in `.github/workflows/deploy-pages.yml`.
+
+If your repository uses branch protection rules that prevent the default `GITHUB_TOKEN` from pushing to `gh-pages`, create a Personal Access Token (PAT) with `repo` scope and add it to the repository secrets as `DEPLOY_PERSONAL_TOKEN`.
+
+Once `DEPLOY_PERSONAL_TOKEN` exists, the workflow will use it automatically. The published site is available at:
+
+	- `https://<owner>.github.io/<repo>/` (for a user/org repo it may be `https://<owner>.github.io/`)
+
+For this repository the expected Pages URL is:
+
+	- `https://Picsbyeli.github.io/`
+

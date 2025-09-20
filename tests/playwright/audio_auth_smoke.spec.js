@@ -5,7 +5,7 @@ const BACKEND_BASE = process.env.BACKEND_BASE || 'http://127.0.0.1:4000';
 
 // Smoke test: audio select populated, sign-in modal opens, autofocus and localStorage set
 test('audio select populated and sign-in modal works', async ({ page }) => {
-  const base = `${TEST_BASE}/standalone.html`;
+  const base = `${TEST_BASE}/standalone.html?e2e=1`;
   await page.goto(base);
 
   // Ensure audio select is present and populated (wait briefly for client-side population)

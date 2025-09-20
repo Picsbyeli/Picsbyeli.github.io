@@ -35,9 +35,16 @@ jobs:
           set -eux
           rm -rf ./.publish
           mkdir -p ./.publish
-          # Copy the site files only
+          # Copy the site files only. Exclude large audio files to speed up deploys.
           cp ./standalone.html ./.publish/ || true
-          if [ -d ./assets ]; then cp -r ./assets ./.publish/; fi
+          if [ -d ./assets ]; then
+            mkdir -p ./.publish/assets
+            # Copy css and other assets, but skip the audio directory
+            if [ -d ./assets/css ]; then cp -r ./assets/css ./.publish/assets/; fi
+            if [ -d ./assets/image ]; then cp -r ./assets/image ./.publish/assets/; fi
+            # If you want audio published, create a separate smaller set or
+            # enable it via a workflow input/secret. Currently we skip assets/audio
+          fi
 
       - name: Deploy to GitHub Pages (via peaceiris)
         uses: peaceiris/actions-gh-pages@v3

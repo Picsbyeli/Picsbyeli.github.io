@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 const TEST_BASE = process.env.TEST_BASE || 'http://127.0.0.1:8001';
 
 test('audio smoke (deterministic): src changes, volume, and per-mode persistence', async ({ page }) => {
-  await page.goto(`${TEST_BASE}/standalone.html`);
+  await page.goto(`${TEST_BASE}/standalone.html?e2e=1`);
 
   await page.waitForSelector('#audio-track');
 
