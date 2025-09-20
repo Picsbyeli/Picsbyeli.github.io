@@ -130,6 +130,11 @@
                 <input type="range" id="audio-volume" class="volume" min="0" max="1" step="0.01" aria-label="Audio volume" title="Audio volume">
                 <label for="audio-show-queue" class="audio-queue-label" title="Show queue"><input type="checkbox" id="audio-show-queue">Queue</label>
             </div>
+            <div class="audio-url-playback" style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                <input id="audio-url-input" type="text" placeholder="Paste audio URL or YouTube link" style="flex:1;padding:6px;" aria-label="Audio URL or YouTube link" />
+                <button id="audio-play-url" class="nav-btn">Play URL</button>
+                <button id="audio-stop-url" class="nav-btn">Stop</button>
+            </div>
             <div id="audio-queue" class="audio-queue hidden" aria-hidden="true">
                 <div class="queue-header">
                         <strong class="queue-title">Queue</strong>
@@ -1023,6 +1028,71 @@
             } catch (e) {
                 console.warn('ensureAudioElementAndWiring failed', e);
             }
+        })();
+
+        // Support playing arbitrary audio URLs and YouTube links.
+        (function addUrlPlaybackSupport(){
+            try {
+                // helper to detect YouTube urls and extract id
+                function extractYouTubeId(url){
+                    try {
+                        const u = new URL(url);
+                        if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+                        if (u.hostname === 'youtu.be') return u.pathname.slice(1);
+                    } catch(e) {
+                        // fallback regex
+                        const m = url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (m) return m[1];
+                        const m2 = url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (m2) return m2[1];
+                    }
+                    return null;
+                }
+
+                window.playUrlOrYoutube = function(url){
+                    if (!url) return false;
+                    // if it's a YouTube link, create an iframe embed and mute the audio element
+                    const yt = extractYouTubeId(url);
+                    // cleanup any previous embed
+                    const existing = document.getElementById('youtube-embed-container');
+                    if (existing) existing.remove();
+
+                    if (yt) {
+                        // pause/hide audio element
+                        try { if (window.audioPlayer) { window.audioPlayer.pause(); window.audioPlayer.src = ''; } } catch(e){}
+                        const container = document.createElement('div');
+                        container.id = 'youtube-embed-container';
+                        container.style.marginTop = '8px';
+                        container.innerHTML = `<iframe id="youtube-player" width="360" height="90" src="https://www.youtube.com/embed/${yt}?autoplay=1&controls=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                        const audioControlsEl = document.getElementById('audio-controls');
+                        audioControlsEl && audioControlsEl.parentNode && audioControlsEl.parentNode.insertBefore(container, audioControlsEl.nextSibling);
+                        return true;
+                    }
+
+                    // Otherwise treat as direct audio URL
+                    try {
+                        // remove any existing youtube embed
+                        const y = document.getElementById('youtube-embed-container'); if (y) y.remove();
+                        if (window.audioPlayer) {
+                            window.setPlayerSrc(url);
+                            // try to play - may require user gesture in some browsers
+                            window.audioPlayer.play().catch(err => { console.warn('play failed for URL', err); });
+                            return true;
+                        }
+                    } catch(e) { console.warn('playUrlOrYoutube error', e); }
+                    return false;
+                };
+
+                // wire UI buttons if present
+                try {
+                    const $input = document.getElementById('audio-url-input');
+                    const $playUrl = document.getElementById('audio-play-url');
+                    const $stopUrl = document.getElementById('audio-stop-url');
+                    if ($playUrl && $input) $playUrl.addEventListener('click', () => { window.playUrlOrYoutube(($input.value||'').trim()); });
+                    if ($input) $input.addEventListener('keypress', (e) => { if (e.key === 'Enter') { window.playUrlOrYoutube(($input.value||'').trim()); } });
+                    if ($stopUrl) $stopUrl.addEventListener('click', () => {
+                        try { const y = document.getElementById('youtube-embed-container'); if (y) y.remove(); if (window.audioPlayer) { window.audioPlayer.pause(); window.audioPlayer.currentTime = 0; window.audioPlayer.src = ''; } } catch(e){}
+                    });
+                } catch(e) {}
+            } catch (e) { console.warn('addUrlPlaybackSupport failed', e); }
         })();
 
         // Retry helper: wait for a few required DOM nodes before initializing
