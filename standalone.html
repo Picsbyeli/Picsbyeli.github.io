@@ -48,32 +48,27 @@
                 <button class="nav-btn" onclick="showPage(event,'valentine')">Twenty Questions</button>
                 <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
                 <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
+                <button class="nav-btn" onclick="showPage(event,'build-quiz')">Build Quiz</button>
             </div>
             <div class="now-playing" id="now-playing" aria-live="polite">
                 <span class="now-playing-art" id="now-playing-art">🎵</span>
                 Now playing: <span id="now-playing-track">None</span>
             </div>
             <div id="user-area" class="user-area">
-                <button id="signin-btn" class="nav-btn small">Sign in</button>
+                <button id="leaderboard-btn" class="nav-btn small">Leaderboard</button>
                 <div id="user-info" class="muted-center hidden">
                     <a href="#" id="user-email-link" title="User email">User</a>
                     <div><button id="signout-btn" class="nav-btn xsmall">Sign out</button></div>
                 </div>
             </div>
             <!-- Sign-in modal (inserted here so tests can open it) -->
-            <div id="signin-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="si-title">
-                <div class="card signin-card" role="document">
-                    <h3 id="si-title">Sign in / Create account</h3>
-                    <div id="si-error" class="si-error" aria-live="polite" style="display:none;color:#b00020;margin-bottom:8px;"></div>
-                    <label for="si-username">Username</label>
-                    <input id="si-username" type="text" autocomplete="username" />
-                    <label for="si-email">Email</label>
-                    <input id="si-email" type="email" autocomplete="email" />
-                    <label for="si-password">Password</label>
-                    <input id="si-password" type="password" autocomplete="new-password" />
+            <div id="leaderboard-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="lb-title">
+                <div class="card leaderboard-card" role="document">
+                    <h3 id="lb-title">Leaderboard</h3>
+                    <div id="leaderboard-error" class="si-error message-error" aria-live="polite" hidden></div>
+                    <div id="leaderboard-list" class="mt-6 leaderboard-list">Loading...</div>
                     <div class="modal-actions">
-                        <button id="si-cancel" class="nav-btn">Cancel</button>
-                        <button id="si-submit" class="nav-btn btn-primary" onclick="(window.handleSigninSubmit||function(){})();">Submit</button>
+                        <button id="lb-close" class="nav-btn">Close</button>
                     </div>
                 </div>
             </div>
@@ -130,8 +125,8 @@
                 <input type="range" id="audio-volume" class="volume" min="0" max="1" step="0.01" aria-label="Audio volume" title="Audio volume">
                 <label for="audio-show-queue" class="audio-queue-label" title="Show queue"><input type="checkbox" id="audio-show-queue">Queue</label>
             </div>
-            <div class="audio-url-playback" style="margin-top:8px;display:flex;gap:8px;align-items:center;">
-                <input id="audio-url-input" type="text" placeholder="Paste audio URL or YouTube link" style="flex:1;padding:6px;" aria-label="Audio URL or YouTube link" />
+            <div class="audio-url-playback mt-8 inline-flex">
+                <input id="audio-url-input" type="text" class="flex-1 audio-url-input" placeholder="Paste audio URL or YouTube link" aria-label="Audio URL or YouTube link" />
                 <button id="audio-play-url" class="nav-btn">Play URL</button>
                 <button id="audio-stop-url" class="nav-btn">Stop</button>
             </div>
@@ -145,13 +140,19 @@
                 <div id="audio-queue-list"></div>
             </div>
             <!-- Playback status and progress -->
-            <div class="audio-feedback" style="margin-top:8px;display:flex;gap:8px;align-items:center;">
-                <div id="audio-status" style="min-width:110px;color:#444;">Idle</div>
-                <input id="audio-progress" class="seek" type="range" min="0" max="100" value="0" step="0.1" style="flex:1;--pos:0;" />
-                <div id="audio-time" style="min-width:110px;color:#444;text-align:right;">00:00 / 00:00</div>
+            <div class="audio-feedback mt-8 inline-flex">
+                <div id="audio-status" class="audio-status-muted">Idle</div>
+                <input id="audio-progress" class="seek flex-1" type="range" min="0" max="100" value="0" step="0.1" title="Playback position" aria-label="Playback position" />
+                <div id="audio-time" class="audio-time">00:00 / 00:00</div>
             </div>
             <!-- Inline alert area for audio URL preflight/loading/errors -->
-            <div id="audio-alert" class="audio-alert hidden" role="alert" aria-live="assertive" style="margin-top:6px;"></div>
+            <div id="audio-alert" class="audio-alert hidden" role="alert" aria-live="assertive" aria-hidden="true" tabindex="-1">
+                <span id="audio-alert-msg" class="audio-alert-msg"></span>
+                <div class="audio-alert-actions">
+                    <button id="audio-retry" type="button" class="audio-alert-btn hidden" title="Retry" aria-label="Retry audio playback">Retry</button>
+                    <button id="audio-dismiss" type="button" class="audio-alert-btn" title="Close" aria-label="Dismiss audio alert">×</button>
+                </div>
+            </div>
             <div id="youtube-api-root"></div>
         </div>
 
@@ -221,6 +222,13 @@
                 </div>
             </div>
         </div>
+
+        <section id="pool-manager" class="mt-6">
+            <h3>Pool Manager</h3>
+            <p id="pool-manager-desc">Persistent pools ensure questions don't repeat across runs. Use this to inspect and reset pools.</p>
+            <div id="pool-counts" aria-live="polite" class="mb-2">Loading pool counts…</div>
+            <button id="reset-all-pools">Reset All Pools</button>
+        </section>
 
         <!-- Riddles Game -->
         <div id="riddles-page" class="game-container hidden">
@@ -545,6 +553,23 @@
                     </table>
                 </div>
             </div>
+
+                <!-- Build Your Own Quiz Page -->
+                <div id="build-quiz-page" class="game-container hidden">
+                    <div class="game-header">
+                        <h1 class="game-title-main">🛠️ Build Your Own Quiz</h1>
+                        <p class="muted-center">Paste JSON or CSV of questions below, or drop a file. Supported JSON format: [{ question, options:[...], correct: index }]</p>
+                    </div>
+                    <div class="input-section">
+                        <textarea id="build-quiz-input" class="game-input" placeholder='Paste JSON or CSV here...' rows="8"></textarea>
+                        <div class="build-quiz-controls">
+                            <button id="build-quiz-parse" class="btn btn-primary">Parse & Preview</button>
+                            <button id="build-quiz-start" class="btn btn-secondary" disabled>Start Quiz</button>
+                            <label for="build-quiz-file" class="build-quiz-file">Upload file: <input id="build-quiz-file" type="file" accept=".json,.csv,.tsv" title="Upload quiz file"/></label>
+                        </div>
+                    </div>
+                    <div id="build-quiz-preview"></div>
+                </div>
         </div>
 
         <!-- Animal Trivia Game -->
@@ -855,20 +880,36 @@
                         difficulty: "hard"
                     },
                     {
-                        riddle: "A woman shoots her husband, then holds him
-                saveSettings();
-            });
-
-            $mode.addEventListener('change', () => {
-                setModeSelection($mode.value);
-            });
-
-            // initialize UI based on saved settings
-            if (audioSettings.modeMap && Object.keys(audioSettings.modeMap).length > 0) {
-                const currentMode = $mode.value || 'all';
-                setModeSelection(currentMode);
+                        riddle: "A woman shoots her husband, then holds him under water for five minutes, then hangs him. Afterwards they both go out to dinner together. How is this possible?",
+                        answer: "she is a photographer",
+                        acceptedAnswers: ["she is a photographer", "photographer", "she's a photographer"],
+                        hints: [
+                            "The words 'shoots', 'holds', and 'hangs' may not be literal.",
+                            "Think about common processes that involve shooting and hanging.",
+                            "It's a play on words — consider photography and developing photos."
+                        ],
+                        category: "logic",
+                        difficulty: "hard"
+                    }
+                ]
             }
+        };
 
+        (function(){
+            const $mode = document.getElementById('audio-mode');
+            if ($mode) {
+                $mode.addEventListener('change', () => { setModeSelection($mode.value); });
+                // initialize UI based on saved settings
+                try {
+                    if (window.audioSettings && window.audioSettings.modeMap && Object.keys(window.audioSettings.modeMap).length > 0) {
+                        const currentMode = $mode.value || 'all';
+                        setModeSelection(currentMode);
+                    }
+                } catch(e) {}
+            }
+        })();
+
+            (function(){
             // expose helper to global scope for game wiring
             window.playModeAudio = playModeAudio;
             window.audioControls = {
@@ -941,7 +982,7 @@
 
             // initialize queue UI
             populateQueueFromDefaults();
-        }
+        })();
 
         // Expose a safe initializer that waits for DOM nodes to exist.
         function initAudioControls() {
@@ -1144,26 +1185,45 @@
                         // Also show a more visible alert area for persistent errors or info
                         try {
                             const $alert = document.getElementById('audio-alert');
-                            if ($alert) {
-                                if (opts.error || opts.persist) {
-                                    $alert.textContent = msg || '';
-                                    $alert.classList.remove('hidden');
-                                    $alert.setAttribute('data-error', !!opts.error);
+                            const $alertMsg = document.getElementById('audio-alert-msg');
+                            const $retry = document.getElementById('audio-retry');
+                            const $dismiss = document.getElementById('audio-dismiss');
+                            if ($alert && $alertMsg) {
+                                    if (opts.error || opts.persist) {
+                                        $alertMsg.textContent = msg || '';
+                                        $alert.classList.remove('hidden');
+                                        $alert.setAttribute('data-error', !!opts.error);
+                                        $alert.setAttribute('aria-hidden', 'false');
+                                        // ensure the alert is reachable for screen readers and focus
+                                        try { $alert.focus(); } catch(e){}
+                                    // show retry button when we have an error and opts.retryCandidate is provided
+                                    if ($retry) {
+                                        if (opts.error && opts.retryCandidate) {
+                                            $retry.classList.remove('hidden');
+                                            $retry._candidate = opts.retryCandidate;
+                                        } else {
+                                            $retry.classList.add('hidden');
+                                            if ($retry._candidate) $retry._candidate = null;
+                                        }
+                                    }
+                                    if ($dismiss) { $dismiss.classList.remove('hidden'); }
                                     if (opts.autoDismiss) {
-                                        setTimeout(() => { try { $alert.classList.add('hidden'); } catch(e){} }, Number(opts.autoDismiss) || 4000);
+                                        setTimeout(() => { try { $alert.classList.add('hidden'); if ($retry) $retry.classList.add('hidden'); } catch(e){} }, Number(opts.autoDismiss) || 4000);
                                     }
                                 } else {
                                     // clear any existing non-persistent alerts
-                                    $alert.textContent = '';
+                                    $alertMsg.textContent = '';
                                     $alert.classList.add('hidden');
                                     $alert.removeAttribute('data-error');
+                                    $alert.setAttribute('aria-hidden', 'true');
+                                    if ($retry) $retry.classList.add('hidden');
                                 }
                             }
                         } catch(e){}
                     } catch(e){}
                 }
 
-                window.playUrlOrYoutube = function(url){
+                window.playUrlOrYoutube = async function(url){
                     if (!url) return false;
                     // if it's a YouTube link, create an iframe embed and mute the audio element
                     const yt = extractYouTubeId(url);
@@ -1180,16 +1240,16 @@
                         if (root) root.innerHTML = '';
                         const container = document.createElement('div');
                         container.id = 'youtube-embed-container';
-                        container.style.marginTop = '8px';
+                        container.className = 'mt-6';
                         container.innerHTML = `
                             <div id="youtube-player-placeholder"></div>
-                            <div style="margin-top:6px;display:flex;gap:8px;align-items:center;">
+                            <div class="yt-controls">
                                 <button id="yt-pause" class="nav-btn">Pause</button>
                                 <button id="yt-play" class="nav-btn">Play</button>
                                 <button id="yt-stop" class="nav-btn">Stop</button>
-                                <input id="yt-progress" class="seek" type="range" min="0" max="100" value="0" step="0.1" style="flex:1;--pos:0;" />
-                                <div id="yt-time" style="min-width:110px;color:#444;text-align:right;">00:00 / 00:00</div>
-                                <input id="yt-volume" type="range" min="0" max="1" step="0.01" value="1" style="width:90px;" title="YouTube volume" />
+                                <input id="yt-progress" class="seek flex-1" type="range" min="0" max="100" value="0" step="0.1" title="YouTube playback position" aria-label="YouTube playback position" />
+                                <div id="yt-time" class="audio-time">00:00 / 00:00</div>
+                                <input id="yt-volume" class="yt-volume" type="range" min="0" max="1" step="0.01" value="1" title="YouTube volume" />
                             </div>`;
                         root && root.appendChild(container);
 
@@ -1348,7 +1408,7 @@
                                     const ok = await tryUrl(c); // eslint-disable-line no-await-in-loop
                                     if (ok) { updateAudioStatus('Playing', { loading: false }); return true; }
                                 }
-                                updateAudioStatus('Not found', { loading: false, error: true });
+                                updateAudioStatus('Not found', { loading: false, error: true, retryCandidate: candidates[0] });
                                 return false;
                             } catch(e){ console.warn('local asset resolution failed', e); updateAudioStatus('Error', { loading: false, error: true }); return false; }
                         }
@@ -1356,7 +1416,7 @@
                         // Non-local: just try the provided url
                         // eslint-disable-next-line no-return-await
                         const ok = await tryUrl(url);
-                        if (!ok) updateAudioStatus('Unable to play URL', { loading: false, error: true });
+                        if (!ok) updateAudioStatus('Unable to play URL', { loading: false, error: true, retryCandidate: url });
                         return ok;
                     } catch(e) { console.warn('playUrlOrYoutube error', e); }
                     return false;
@@ -1442,24 +1502,17 @@
             })();
 
             // Sign-in modal helpers (very small client-only registration for UI/tests)
-            function showSignInModal() {
-                const m = document.getElementById('signin-modal');
+            // Leaderboard modal helpers
+            function showLeaderboardModal() {
+                const m = document.getElementById('leaderboard-modal');
                 if (!m) return;
-                // Make visible in multiple ways so tests that check computed visibility succeed
                 m.classList.remove('hidden');
                 m.style.display = 'flex';
                 m.setAttribute('aria-hidden', 'false');
-                // prefill if known
-                const user = JSON.parse(localStorage.getItem('burbleUser') || 'null');
-                if (user) {
-                    const u = document.getElementById('si-username'); if (u) u.value = user.username || '';
-                    const e = document.getElementById('si-email'); if (e) e.value = user.email || '';
-                }
-                // focus username for accessibility
-                try { const username = document.getElementById('si-username'); if (username) username.focus(); } catch (e) {}
+                try { renderLeaderboard(); } catch (e) {}
             }
-            function hideSignInModal() {
-                const m = document.getElementById('signin-modal');
+            function hideLeaderboardModal() {
+                const m = document.getElementById('leaderboard-modal');
                 if (!m) return;
                 m.classList.add('hidden');
                 m.style.display = '';
@@ -1481,41 +1534,54 @@
                 }
             }
 
-            // Wire up modal buttons
+            // Wire up leaderboard button & modal actions
             document.addEventListener('click', (e) => {
                 const t = e.target;
                 if (!t) return;
-                if (t.id === 'signin-btn') { showSignInModal(); }
-                if (t.id === 'si-cancel') { hideSignInModal(); }
-                if (t.id === 'si-submit') {
-                    handleSigninSubmit();
-                }
+                if (t.id === 'leaderboard-btn') { showLeaderboardModal(); }
+                if (t.id === 'lb-close') { hideLeaderboardModal(); }
                 if (t.id === 'signout-btn') { localStorage.removeItem('burbleUser'); renderUser(); }
             });
 
-            // Ensure the signin button has a direct handler attached for determinism
+            // Ensure the leaderboard button has a direct handler attached for determinism
             try {
-                const $signin = document.getElementById('signin-btn');
-                if ($signin) {
-                    $signin.addEventListener('click', (ev) => { ev.preventDefault(); showSignInModal(); });
+                const $lb = document.getElementById('leaderboard-btn');
+                if ($lb) {
+                    $lb.addEventListener('click', (ev) => { ev.preventDefault(); showLeaderboardModal(); });
                 }
             } catch (e) {}
 
-            // Also attach a direct handler to the submit button to be resilient
-            try {
-                const $siSubmit = document.getElementById('si-submit');
-                if ($siSubmit) $siSubmit.addEventListener('click', (ev) => { ev.preventDefault(); handleSigninSubmit(); });
-            } catch (e) {}
-
-            // Expose the submit handler to window so inline onclick and external tests can call it
-            try { window.handleSigninSubmit = handleSigninSubmit; } catch (e) {}
-
-            // Expose a global helper so external tools/tests can set the user reliably
+            // Reuse a localStorage-backed leaderboard. Each entry: { username, score, ts }
             try { window.saveBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } catch(e){}
-
-            // Test-only helper: directly set burbleUser in localStorage (used by E2E tests
-            // when clicks are flaky in CI). Only expose in E2E mode.
             try { if (window.__E2E__) { window._testSetBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } } catch(e){}
+
+            // Leaderboard storage helper: record a score (username, score)
+            window.recordScore = function(username, score){
+                try {
+                    if (!username) return false;
+                    const raw = localStorage.getItem('leaderboard') || '[]';
+                    const list = JSON.parse(raw);
+                    list.push({ username: String(username), score: Number(score)||0, ts: Date.now() });
+                    // keep only top 200 entries
+                    list.sort((a,b)=>b.score - a.score || a.ts - b.ts);
+                    localStorage.setItem('leaderboard', JSON.stringify(list.slice(0,200)));
+                    return true;
+                } catch(e){ return false; }
+            };
+
+            function renderLeaderboard(){
+                try {
+                    const el = document.getElementById('leaderboard-list');
+                    if (!el) return;
+                    const raw = localStorage.getItem('leaderboard') || '[]';
+                    const list = JSON.parse(raw);
+                    if (!Array.isArray(list) || list.length === 0) { el.innerHTML = '<div class="muted-center">No scores yet. Play to add your score!</div>'; return; }
+                    const rows = list.slice(0,50).map((r,i)=>`<div class="lb-row"><strong>#${i+1}</strong> <span class="lb-user">${escapeHtml(r.username)}</span> <span class="lb-score">${r.score}</span></div>`).join('');
+                    el.innerHTML = `<div class="lb-rows">${rows}</div>`;
+                } catch(e){ try { document.getElementById('leaderboard-error').style.display='block'; document.getElementById('leaderboard-error').textContent='Unable to load leaderboard'; } catch(e){} }
+            }
+
+            function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]); }
 
             function handleSigninSubmit() {
                 const username = (document.getElementById('si-username')||{}).value || '';
@@ -1531,6 +1597,51 @@
             // initialize on DOM ready
             document.addEventListener('DOMContentLoaded', () => {
                 populateAudioSelect(); renderUser();
+                try {
+                    const $retry = document.getElementById('audio-retry');
+                    const $dismiss = document.getElementById('audio-dismiss');
+                    if ($retry) {
+                        $retry.addEventListener('click', async (ev) => {
+                            try {
+                                ev && ev.preventDefault && ev.preventDefault();
+                                const candidate = $retry._candidate || null;
+                                if (!candidate) return;
+                                // disable and show busy state
+                                $retry.disabled = true;
+                                $retry.setAttribute('aria-busy', 'true');
+                                const origText = $retry.textContent;
+                                $retry.textContent = 'Retrying...';
+                                // call the playback helper and handle promise or sync return
+                                let ok = false;
+                                try {
+                                    const p = window.playUrlOrYoutube(candidate);
+                                    ok = await Promise.resolve(p);
+                                } catch (e) { ok = false; }
+                                if (ok) {
+                                    // success: hide alert
+                                    const $alert = document.getElementById('audio-alert');
+                                    if ($alert) {
+                                        $alert.classList.add('hidden');
+                                        $alert.setAttribute('aria-hidden', 'true');
+                                    }
+                                    // ensure retry button hidden
+                                    $retry.classList.add('hidden');
+                                } else {
+                                    // show error state and keep candidate
+                                    try { window.updateAudioStatus && window.updateAudioStatus('Retry failed', { error: true, retryCandidate: candidate, persist: true }); } catch(e){}
+                                }
+                                // restore
+                                $retry.textContent = origText;
+                                $retry.removeAttribute('aria-busy');
+                                $retry.disabled = false;
+                            } catch (e) {
+                                try { $retry.disabled = false; $retry.removeAttribute('aria-busy'); } catch(e){}
+                            }
+                        });
+                    }
+                    if ($dismiss) $dismiss.addEventListener('click', (ev) => { try { ev && ev.preventDefault && ev.preventDefault(); const $alert = document.getElementById('audio-alert'); if ($alert) { $alert.classList.add('hidden'); $alert.setAttribute('aria-hidden','true'); } const $r = document.getElementById('audio-retry'); if ($r) { $r.classList.add('hidden'); $r._candidate = null; } // return focus to audio play input
+                        try { const $input = document.getElementById('audio-url-input'); if ($input) $input.focus(); } catch(e){} } catch(e){} });
+                } catch(e){}
             });
 
             // Also attempt to run immediately if DOM already loaded
@@ -1578,22 +1689,359 @@
             window.hideSignInModal = function() { originalHide(); const modal = document.getElementById('signin-modal'); if (modal && modal._untrap) { modal._untrap(); modal._untrap = null; } };
         })();
 
+        // --- Persistent pool helpers & Build-Your-Own-Quiz parsing ---
+        // Lightweight shuffle (define only if not present)
+        if (typeof shuffleArray === 'undefined') {
+            function shuffleArray(arr) {
+                const a = arr.slice();
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+        }
+
+        // Save/restore simple pool state to localStorage to survive reloads
+        function savePoolsToStorage() {
+            try {
+                const payload = {
+                    riddles: (gameState.riddles && gameState.riddles.pools) || {},
+                    trivia: (gameState.trivia && gameState.trivia.pools) || {},
+                    animal: (gameState.animalTrivia && gameState.animalTrivia.pools) || {}
+                };
+                localStorage.setItem('burblePools', JSON.stringify(payload));
+            } catch (e) { /* ignore */ }
+        }
+
+        function loadPoolsFromStorage() {
+            try {
+                const raw = localStorage.getItem('burblePools');
+                if (!raw) return;
+                const p = JSON.parse(raw);
+                if (p && p.riddles && gameState.riddles) gameState.riddles.pools = p.riddles;
+                if (p && p.trivia && gameState.trivia) gameState.trivia.pools = p.trivia;
+                if (p && p.animal && gameState.animalTrivia) gameState.animalTrivia.pools = p.animal;
+            } catch (e) { /* ignore */ }
+        }
+
+        // Ensure a persistent shuffled pool exists; returns array (may be new)
+        function ensurePool(name, difficulty, allItems) {
+            try {
+                const key = `pool::${name}::${difficulty}`;
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const list = JSON.parse(raw);
+                    if (Array.isArray(list) && list.length > 0) return list;
+                }
+                const pool = shuffleArray(allItems.slice());
+                localStorage.setItem(key, JSON.stringify(pool));
+                return pool;
+            } catch (e) { return shuffleArray(allItems.slice()); }
+        }
+
+        // Draw up to count items from persistent pool; refill when exhausted
+        function drawFromPool(name, difficulty, allItems, count) {
+            const key = `pool::${name}::${difficulty}`;
+            let pool = [];
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) pool = JSON.parse(raw) || [];
+            } catch (e) { pool = []; }
+            if (!Array.isArray(pool) || pool.length === 0) pool = shuffleArray(allItems.slice());
+            const drawn = [];
+            for (let i = 0; i < count && pool.length > 0; i++) drawn.push(pool.shift());
+            // Refill pool if empty (avoid immediate repeats by excluding drawn)
+            if (pool.length === 0) pool = shuffleArray(allItems.slice().filter(it => !drawn.includes(it)));
+            try { localStorage.setItem(key, JSON.stringify(pool)); } catch (e) {}
+            return drawn;
+        }
+
+        // Custom quiz state and parsing helpers
+        window.customQuiz = window.customQuiz || { pool: null };
+        function normalizeQuestion(q) {
+            if (!q) return null;
+            const question = q.question || q.q || q.prompt || q.text || '';
+            const options = Array.isArray(q.options) ? q.options : (q.choices || []);
+            const correct = Number.isFinite(q.correct) ? q.correct : (q.answerIndex || 0);
+            return { question: String(question), options: options.slice(), correct: Number(correct) || 0 };
+        }
+        function parseQuizInput(text) {
+            text = (text || '').trim();
+            if (!text) return [];
+            // Try JSON first
+            try {
+                const parsed = JSON.parse(text);
+                if (Array.isArray(parsed)) return parsed.map(normalizeQuestion).filter(Boolean);
+            } catch (e) {}
+
+            // Normalize line endings and split
+            const rawLines = text.split(/\r?\n/).map(l => l.replace(/\uFEFF/g, '').trim());
+            const lines = rawLines.filter(Boolean);
+            if (lines.length === 0) return [];
+
+            // Detect delimiter: tab or comma
+            const delim = (lines[0].indexOf('\t') >= 0) ? '\t' : ',';
+
+            // Parse a delimited line with basic quoted-field support
+            function parseDelimitedLine(line, delimiter) {
+                const res = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') {
+                        if (inQuotes && line[i+1] === '"') { cur += '"'; i++; } else { inQuotes = !inQuotes; }
+                    } else if (ch === delimiter && !inQuotes) {
+                        res.push(cur);
+                        cur = '';
+                    } else {
+                        cur += ch;
+                    }
+                }
+                res.push(cur);
+                return res.map(s => s.trim().replace(/^"|"$/g, ''));
+            }
+
+            // If first line looks like a header (contains 'question' or 'prompt'), parse headers
+            let headerMap = null;
+            const first = lines[0].toLowerCase();
+            const firstParts = parseDelimitedLine(lines[0], delim).map(p => p.toLowerCase());
+            const headerKeywords = ['question','prompt','q','text','options','choice','choices','correct','answer','ans','right'];
+            const hasHeader = firstParts.some(p => headerKeywords.includes(p));
+            let dataLines = lines;
+            if (hasHeader) {
+                headerMap = {};
+                firstParts.forEach((h, idx) => { headerMap[h] = idx; });
+                dataLines = lines.slice(1);
+            }
+
+            const out = [];
+            for (const line of dataLines) {
+                const parts = parseDelimitedLine(line, delim);
+                if (!parts || parts.length < 2) continue;
+
+                let question = '';
+                let options = [];
+                let correct = 0;
+
+                if (headerMap) {
+                    // attempt to map by header names
+                    // question field
+                    const qKey = Object.keys(headerMap).find(k => ['question','prompt','q','text'].includes(k));
+                    if (qKey) question = parts[headerMap[qKey]] || '';
+                    // options: if there's a single 'options' column, split by pipe or semicolon; otherwise collect sequential option columns
+                    const optsKey = Object.keys(headerMap).find(k => ['options','choice','choices','opt','answers','answers_list'].includes(k));
+                    if (optsKey) {
+                        const rawOpts = parts[headerMap[optsKey]] || '';
+                        options = rawOpts.split(/\||;|\u001F/).map(s => s.trim()).filter(Boolean);
+                    } else {
+                        // collect any header columns that look like option1/option2 or start with 'opt' or 'choice'
+                        Object.keys(headerMap).forEach(k => {
+                            if (/^opt|^choice|^option|^o\d+/i.test(k) || /^a[0-9]+$/.test(k)) {
+                                const v = parts[headerMap[k]]; if (v) options.push(v.trim());
+                            }
+                        });
+                    }
+                    // correct index/value
+                    const correctKey = Object.keys(headerMap).find(k => ['correct','answer','ans','right'].includes(k));
+                    if (correctKey) {
+                        const v = (parts[headerMap[correctKey]] || '').trim();
+                        if (/^\d+$/.test(v)) correct = Number(v);
+                        else if (v) {
+                            // if value matches an option text, derive index
+                            const idx = options.findIndex(o => o.toLowerCase() === v.toLowerCase());
+                            if (idx >= 0) correct = idx;
+                        }
+                    }
+                } else {
+                    // No header: assume first col = question, middle cols = options, optionally last col numeric correct
+                    question = parts[0];
+                    const rest = parts.slice(1);
+                    if (rest.length >= 2 && /^\d+$/.test(rest[rest.length - 1].trim())) {
+                        correct = Number(rest[rest.length - 1]);
+                        options = rest.slice(0, rest.length - 1);
+                    } else {
+                        options = rest;
+                    }
+                }
+
+                // clean up options: remove duplicates while preserving order
+                const seen = new Set();
+                const cleanedOptions = [];
+                for (let o of options) {
+                    if (typeof o !== 'string') o = String(o || '');
+                    const key = o.trim();
+                    if (!key) continue;
+                    const low = key.toLowerCase();
+                    if (!seen.has(low)) { seen.add(low); cleanedOptions.push(key); }
+                }
+
+                // validate minimum options
+                if (cleanedOptions.length < 2) continue;
+                if (!isFinite(correct) || correct < 0 || correct >= cleanedOptions.length) correct = 0;
+
+                out.push(normalizeQuestion({ question: question, options: cleanedOptions, correct: correct }));
+            }
+
+            return out.filter(Boolean);
+        }
+
+        // Load any saved pools on startup
+        try { loadPoolsFromStorage(); } catch (e) {}
+
+        // Animal trivia questions (real curated question banks)
+        // Exposed as `window.animalTriviaQuestions` so other helpers can use them
+        window.animalTriviaQuestions = window.animalTriviaQuestions || {
+            easy: [
+                { question: "What mammal has the most powerful bite in the world?", options: ["Lion", "Hippopotamus", "Grizzly bear"], correct: 1 },
+                { question: "What is a male swan called?", options: ["Cob", "Gander", "Drake"], correct: 0 },
+                { question: "What is the fastest land mammal?", options: ["Cheetah", "Lion", "Greyhound"], correct: 0 },
+                { question: "Which animal's fingerprints are nearly identical to humans?", options: ["Gorilla", "Koala", "Chimpanzee"], correct: 1 },
+                { question: "What is the only mammal capable of true sustained flight?", options: ["Bat", "Flying squirrel", "Hawk"], correct: 0 },
+                { question: "How many legs do spiders have?", options: ["6", "8", "10"], correct: 1 },
+                { question: "Which animal breathes through its skin?", options: ["Frog", "Snake", "Lizard"], correct: 0 },
+                { question: "What is the largest living bird?", options: ["Eagle", "Ostrich", "Albatross"], correct: 1 },
+                { question: "Which animal is known to have the most teeth?", options: ["Shark", "Crocodile", "Snail"], correct: 2 },
+                { question: "What color is the polar bear's skin beneath its fur?", options: ["Black", "White", "Pink"], correct: 0 },
+                { question: "Which domesticated animal is known for producing mohair?", options: ["Sheep", "Angora goat", "Alpaca"], correct: 1 },
+                { question: "What is the baby of a kangaroo called?", options: ["Joey", "Calf", "Pup"], correct: 0 },
+                { question: "Which insect undergoes complete metamorphosis from caterpillar to adult?", options: ["Butterfly", "Grasshopper", "Dragonfly"], correct: 0 },
+                { question: "Which bird is known for its mimicry and ability to imitate human speech?", options: ["Sparrow", "Parrot", "Crow"], correct: 1 },
+                { question: "What is the common name for baby cows?", options: ["Calf", "Foal", "Puppy"], correct: 0 }
+            ],
+            medium: [
+                { question: "What bird has the largest wingspan?", options: ["Andean condor", "Wandering albatross", "Bald eagle"], correct: 1 },
+                { question: "How many eyes does a honeybee have?", options: ["2", "5", "8"], correct: 1 },
+                { question: "How many degrees can an owl rotate its head?", options: ["180°", "270°", "360°"], correct: 1 },
+                { question: "What is the gestation period of an elephant?", options: ["12 months", "18 months", "22 months"], correct: 2 },
+                { question: "Which animal has the longest lifespan?", options: ["Tortoise", "Whale", "Jellyfish"], correct: 1 },
+                { question: "What is the smallest mammal in the world?", options: ["Shrew", "Bat", "Mouse"], correct: 1 },
+                { question: "How many chambers does a cow's stomach have?", options: ["2", "3", "4"], correct: 2 },
+                { question: "Which animal can change its color?", options: ["Octopus", "Chameleon", "Both"], correct: 2 },
+                { question: "What is the loudest animal on Earth?", options: ["Lion", "Blue whale", "Howler monkey"], correct: 1 },
+                { question: "Which animal sleeps standing up?", options: ["Giraffe", "Horse", "Both"], correct: 2 },
+                { question: "Which animal uses echolocation to navigate?", options: ["Bat", "Owl", "Eagle"], correct: 0 },
+                { question: "What is the primary diet of a giant panda?", options: ["Bamboo", "Fruits", "Meat"], correct: 0 },
+                { question: "What marine animal is known to have a symbiotic relationship with clownfish?", options: ["Sea anemone", "Coral", "Kelp"], correct: 0 },
+                { question: "Which reptile can autotomize (lose) its tail to escape predators?", options: ["Lizard", "Turtle", "Snake"], correct: 0 },
+                { question: "What is the collective noun for a group of lions?", options: ["Pride", "Herd", "Pack"], correct: 0 }
+            ],
+            hard: [
+                { question: "What percentage of a jellyfish is water?", options: ["85%", "90%", "95%"], correct: 2 },
+                { question: "How many species of animals are there approximately?", options: ["1 million", "8.7 million", "50 million"], correct: 1 },
+                { question: "Which animal has the most complex brain relative to body size?", options: ["Dolphin", "Octopus", "Human"], correct: 1 },
+                { question: "How fast can a cheetah run?", options: ["60 mph", "70 mph", "80 mph"], correct: 1 },
+                { question: "What is the only bird that can fly backwards?", options: ["Hummingbird", "Kingfisher", "Woodpecker"], correct: 0 },
+                { question: "How many hearts does an octopus have?", options: ["1", "2", "3"], correct: 2 },
+                { question: "Which animal has the strongest bite force?", options: ["Saltwater crocodile", "Great white shark", "Hippo"], correct: 0 },
+                { question: "What is the lifespan of a mayfly?", options: ["1 hour", "1 day", "1 week"], correct: 1 },
+                { question: "Which animal can survive in space?", options: ["Tardigrade", "Cockroach", "Bacteria"], correct: 0 },
+                { question: "How many bones does a shark have?", options: ["100", "50", "0"], correct: 2 },
+                { question: "Which bird is known for its remarkable memory and use of tools?", options: ["Crow", "Sparrow", "Seagull"], correct: 0 },
+                { question: "What is the term for animals that are active during twilight?", options: ["Nocturnal", "Diurnal", "Crepuscular"], correct: 2 },
+                { question: "Which mammal has the longest migration, traveling thousands of miles each year?", options: ["Caribou", "Bat", "Elephant"], correct: 0 },
+                { question: "What is the study of animal behavior called?", options: ["Ethology", "Ornithology", "Zoology"], correct: 0 },
+                { question: "Which fish is known for its ability to generate electricity?", options: ["Electric eel", "Piranha", "Stingray"], correct: 0 }
+            ]
+        };
+
+        // Pool manager helpers (UI hooks added in DOM)
+        function computePoolCounts() {
+            const counts = { animal: {}, trivia: {}, riddles: {} };
+            try {
+                const raw = localStorage.getItem('burblePools');
+                if (!raw) return counts;
+                const p = JSON.parse(raw) || {};
+                ['animal', 'trivia', 'riddles'].forEach(name => {
+                    const pools = p[name] || {};
+                    Object.keys(pools).forEach(k => {
+                        counts[name][k] = Array.isArray(pools[k]) ? pools[k].length : 0;
+                    });
+                });
+            } catch (e) { /* ignore */ }
+            return counts;
+        }
+
+        function renderPoolCounts() {
+            try {
+                const container = document.getElementById('pool-counts');
+                if (!container) return;
+                const counts = computePoolCounts();
+                const parts = [];
+                Object.keys(counts).forEach(name => {
+                    const inner = counts[name];
+                    const sub = Object.keys(inner).map(k => `${k}: ${inner[k]}`).join(', ') || 'none';
+                    parts.push(`<strong>${name}</strong>: ${sub}`);
+                });
+                container.innerHTML = parts.join('<br>');
+            } catch (e) { /* ignore */ }
+        }
+
+        function resetAllPools() {
+            try {
+                localStorage.removeItem('burblePools');
+                const toRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (!key) continue;
+                    if (key.startsWith('pool::') || key.startsWith('burblePool::') || key.startsWith('pool:')) toRemove.push(key);
+                }
+                toRemove.forEach(k => localStorage.removeItem(k));
+                if (gameState.animalTrivia && gameState.animalTrivia.pools) gameState.animalTrivia.pools = {};
+                if (gameState.trivia && gameState.trivia.pools) gameState.trivia.pools = {};
+                if (gameState.riddles && gameState.riddles.pools) gameState.riddles.pools = {};
+                renderPoolCounts();
+            } catch (e) { console.error('resetAllPools', e); }
+        }
+
+        function initPoolManager() {
+            try {
+                const btn = document.getElementById('reset-all-pools');
+                if (btn) btn.addEventListener('click', () => {
+                    if (!confirm('Reset all persistent pools? This cannot be undone.')) return;
+                    resetAllPools();
+                    alert('All pools reset.');
+                });
+                renderPoolCounts();
+                // Wrap savePoolsToStorage to refresh counts
+                const orig = savePoolsToStorage;
+                savePoolsToStorage = function() { try { orig(); } catch (e) {} renderPoolCounts(); };
+            } catch (e) { console.error('initPoolManager', e); }
+        }
+
         // Riddles: maintain per-filter shuffled pools to avoid repeats until exhausted
         function getRiddleFromPool(category, difficulty) {
-            const key = `${category}|${difficulty}`;
-            if (!gameState.riddles.pools) gameState.riddles.pools = {};
-            if (!gameState.riddles.pools[key] || gameState.riddles.pools[key].length === 0) {
-                const pool = getRiddlesByFilter(category, difficulty);
-                gameState.riddles.pools[key] = shuffleArray(pool);
-                savePoolsToStorage();
-            }
-            const item = gameState.riddles.pools[key].shift();
-            savePoolsToStorage();
-            return item;
+            // Use persistent drawFromPool so riddles never repeat until pool exhausts
+            const all = getRiddlesByFilter(category, difficulty) || [];
+            const drawn = drawFromPool('riddles', `${category}:${difficulty}`, all, 1);
+            if (drawn && drawn.length > 0) return drawn[0];
+            // fallback
+            return all.length > 0 ? all[Math.floor(Math.random() * all.length)] : null;
         }
         function showFeedback(gameType, message, type) {
             const feedback = document.getElementById(gameType + '-feedback');
             feedback.innerHTML = `<div class="feedback ${type}">${message}</div>`;
+        }
+
+        // Ensure animal trivia banks have at least `minCount` questions per difficulty
+        function ensureAnimalBanks(minCount) {
+            try {
+                if (!window.animalTriviaQuestions) return;
+                ['easy','medium','hard'].forEach(diff => {
+                    const arr = animalTriviaQuestions[diff] || [];
+                    const missing = Math.max(0, minCount - arr.length);
+                    for (let i = 0; i < missing; i++) {
+                        const idx = arr.length + i + 1;
+                        arr.push({
+                            question: `Placeholder animal question ${idx} (${diff})`,
+                            options: ['Option A','Option B','Option C','Option D'],
+                            correct: 0
+                        });
+                    }
+                    animalTriviaQuestions[diff] = arr;
+                });
+            } catch (e) { /* ignore */ }
         }
 
         function formatTime(seconds) {
@@ -2483,39 +2931,31 @@
         function startTriviaGame() {
             const trivia = gameState.trivia;
             // Reset game state
-            animalTrivia.currentQuestion = 0;
-            animalTrivia.correctAnswers = 0;
-            animalTrivia.score = 0;
-            animalTrivia.gameActive = true;
-            animalTrivia.selectedAnswer = null;
+            trivia.currentQuestion = 0;
+            trivia.correctAnswers = 0;
+            trivia.score = 0;
+            trivia.gameActive = true;
+            trivia.selectedAnswer = null;
 
-            // Ensure persistent pools exist
-            if (!gameState.animalTrivia.pools) gameState.animalTrivia.pools = {};
-            const key = `animal|${animalTrivia.difficulty}`;
-            if (!gameState.animalTrivia.pools[key] || gameState.animalTrivia.pools[key].length === 0) {
-                const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
-                gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
-            }
-
-            // Take questions for this run (consume from pool)
-            const take = Math.min(animalTrivia.totalQuestions, gameState.animalTrivia.pools[key].length);
-            animalTrivia.currentGameQuestions = gameState.animalTrivia.pools[key].splice(0, take);
-            animalTrivia.totalQuestionsUsed = animalTrivia.currentGameQuestions.length;
+            // Use persistent rotating pool to select questions without immediate repeats
+            const allQuestions = (window.triviaQuestions && triviaQuestions[trivia.difficulty]) || [];
+            trivia.currentGameQuestions = drawFromPool('trivia', trivia.difficulty, allQuestions, trivia.totalQuestions);
+            trivia.totalQuestionsUsed = trivia.currentGameQuestions.length;
 
             // Start timer
-            startTimer('animalTrivia');
+            startTimer('trivia');
 
             // Play configured audio for Trivia
             try { if (window.playModeAudio) window.playModeAudio('trivia'); } catch (e) {}
 
             // Show first question
-            showAnimalTriviaQuestion();
+            showTriviaQuestion();
 
             // Update buttons
-            document.getElementById('animal-start').disabled = true;
-            document.getElementById('animal-submit').disabled = false;
+            document.getElementById('trivia-start').disabled = true;
+            document.getElementById('trivia-submit').disabled = false;
 
-            updateAnimalTriviaDisplay();
+            updateTriviaDisplay();
         }
 
         function showTriviaQuestion() {
@@ -2676,16 +3116,10 @@
             animalTrivia.gameActive = true;
             animalTrivia.selectedAnswer = null;
 
-            // Always clear and reshuffle the pool for a fresh game
-            if (!gameState.animalTrivia.pools) gameState.animalTrivia.pools = {};
-            const key = `animal|${animalTrivia.difficulty}`;
-            const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
-            gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
-            savePoolsToStorage();
-
-            // Take questions for this run (consume from pool)
-            const take = Math.min(animalTrivia.totalQuestions, gameState.animalTrivia.pools[key].length);
-            animalTrivia.currentGameQuestions = gameState.animalTrivia.pools[key].splice(0, take);
+            // Use rotating persistent pool to draw 15 unique questions per run
+            const allQuestions = (window.animalTriviaQuestions && animalTriviaQuestions[animalTrivia.difficulty]) || [];
+            // If fewer than requested, draw as many as available
+            animalTrivia.currentGameQuestions = drawFromPool('animal', animalTrivia.difficulty, allQuestions, animalTrivia.totalQuestions);
             animalTrivia.totalQuestionsUsed = animalTrivia.currentGameQuestions.length;
 
             // Start timer
@@ -2829,96 +3263,7 @@
             document.getElementById('animal-score').textContent = animalTrivia.score;
         }
 
-        // Add a button to reset the animal trivia pool
-        window.addEventListener('DOMContentLoaded', () => {
-            loadUserStats();
-            initRiddlesGame();
-            initBurbleGame();
-            initEmojiGame();
-            initValentineGame();
-            initTriviaGame();
-            initAnimalTriviaGame();
-            updateUserStats();
-            initAuthAndLeaderboard();
-
-            // Add reset button to animal trivia page
-            const animalPage = document.getElementById('animal-trivia-page');
-            if (animalPage && !document.getElementById('reset-animal-pool')) {
-                const resetBtn = document.createElement('button');
-                resetBtn.id = 'reset-animal-pool';
-                resetBtn.textContent = 'Reset Animal Trivia Pool';
-                resetBtn.className = 'nav-btn';
-                resetBtn.style.margin = '12px 0';
-                resetBtn.onclick = () => {
-                    if (confirm('Reset the animal trivia question pool? This will reshuffle and use all available questions.')) {
-                        if (gameState.animalTrivia && gameState.animalTrivia.pools) {
-                            const key = `animal|${gameState.animalTrivia.difficulty}`;
-                            const allQuestions = animalTriviaQuestions[gameState.animalTrivia.difficulty] || [];
-                            gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
-                            savePoolsToStorage();
-                            alert('Animal trivia pool reset! Start a new game to see changes.');
-                        }
-                    }
-                };
-                animalPage.insertBefore(resetBtn, animalPage.firstChild);
-            }
-        });
-
-        // --- Simple client-side auth & leaderboard ---
-        function sanitizeUsername(name) {
-            return name.replace(/[^a-zA-Z0-9_\- ]/g, '').trim().slice(0, 30);
-        }
-
-        function isProfane(name) {
-            if (!name) return false;
-            const blocked = ['fuck','
-            initEmojiGame();
-            initValentineGame();
-            initTriviaGame();
-            initAnimalTriviaGame();
-            updateUserStats();
-            initAuthAndLeaderboard();
-
-            // Add reset button to animal trivia page
-            const animalPage = document.getElementById('animal-trivia-page');
-            if (animalPage && !document.getElementById('reset-animal-pool')) {
-                const resetBtn = document.createElement('button');
-                resetBtn.id = 'reset-animal-pool';
-                resetBtn.textContent = 'Reset Animal Trivia Pool';
-                resetBtn.className = 'nav-btn';
-                resetBtn.style.margin = '12px 0';
-                resetBtn.onclick = () => {
-                    if (confirm('Reset the animal trivia question pool? This will reshuffle and use all available questions.')) {
-                        if (gameState.animalTrivia && gameState.animalTrivia.pools) {
-                            const key = `animal|${gameState.animalTrivia.difficulty}`;
-                            const allQuestions = animalTriviaQuestions[gameState.animalTrivia.difficulty] || [];
-                            gameState.animalTrivia.pools[key] = shuffleArray(allQuestions);
-                            savePoolsToStorage();
-                            alert('Animal trivia pool reset! Start a new game to see changes.');
-                        }
-                    }
-                };
-                animalPage.insertBefore(resetBtn, animalPage.firstChild);
-            }
-        });
-
-        // --- Simple client-side auth & leaderboard ---
-        function sanitizeUsername(name) {
-            return name.replace(/[^a-zA-Z0-9_\- ]/g, '').trim().slice(0, 30);
-        }
-
-        function isProfane(name) {
-            if (!name) return false;
-            const blocked = ['fuck','
-                    <p><strong>Hints used:</strong> ${emoji.hintsUsed}</p>
-                </div>
-            `;
-            
-            disableEmojiInputs();
-            updateEmojiDisplay();
-            try { if (window.audioControls && window.audioControls.stop) window.audioControls.stop(); } catch (e) {}
-            try { const user = JSON.parse(localStorage.getItem('burbleUser') || 'null'); if (user && user.username) recordCorrect(user.username, 0); } catch (e) {}
-        }
+        // (Removed duplicated/malformed DOMContentLoaded + auth block; the later correct initialization remains.)
 
         function handleEmojiIncorrect() {
             showFeedback('emoji', '❌ Incorrect! Try again or get a hint.', 'incorrect');
@@ -3621,8 +3966,12 @@
             initValentineGame();
             initTriviaGame();
             initAnimalTriviaGame();
+            // Ensure animal trivia banks have at least 15 items per difficulty
+            try { ensureAnimalBanks(15); } catch (e) {}
             updateUserStats();
             initAuthAndLeaderboard();
+            // init pool manager UI
+            try { initPoolManager(); } catch (e) {}
 
             // Add reset button to animal trivia page
             const animalPage = document.getElementById('animal-trivia-page');
@@ -3645,6 +3994,66 @@
                 };
                 animalPage.insertBefore(resetBtn, animalPage.firstChild);
             }
+
+            // Build-Your-Own-Quiz wiring
+            try {
+                const parseBtn = document.getElementById('build-quiz-parse');
+                const startBtn = document.getElementById('build-quiz-start');
+                const textarea = document.getElementById('build-quiz-input');
+                const fileInput = document.getElementById('build-quiz-file');
+                const preview = document.getElementById('build-quiz-preview');
+
+                function renderPreview(list) {
+                    if (!preview) return;
+                    if (!list || list.length === 0) { preview.innerHTML = '<div class="muted-center">No questions parsed.</div>'; return; }
+                    const html = list.map((q,i)=>`<div class="build-quiz-item"><strong>#${i+1}</strong> ${escapeHtml(q.question)} <div class="muted">Options: ${q.options.map(o=>escapeHtml(o)).join(' | ')}</div></div>`).join('');
+                    preview.innerHTML = `<div class="build-quiz-list">${html}</div>`;
+                }
+
+                if (parseBtn) parseBtn.addEventListener('click', () => {
+                    const text = textarea ? textarea.value : '';
+                    const parsed = parseQuizInput(text);
+                    window.customQuiz.pool = parsed;
+                    renderPreview(parsed);
+                    if (startBtn) startBtn.disabled = !(parsed && parsed.length > 0);
+                });
+
+                if (startBtn) startBtn.addEventListener('click', () => {
+                    const pool = window.customQuiz.pool || [];
+                    if (!pool || pool.length === 0) return alert('No questions to start. Please parse or upload a quiz.');
+                    // Use the same quiz engine by setting trivia.currentGameQuestions and launching
+                    gameState.trivia.currentQuestion = 0;
+                    gameState.trivia.correctAnswers = 0;
+                    gameState.trivia.score = 0;
+                    gameState.trivia.gameActive = true;
+                    gameState.trivia.selectedAnswer = null;
+                    // convert normalized questions to expected shape
+                    gameState.trivia.currentGameQuestions = pool.map(q => ({ question: q.question, options: q.options, correct: q.correct }));
+                    gameState.trivia.totalQuestionsUsed = gameState.trivia.currentGameQuestions.length;
+                    startTimer('trivia');
+                    showPage(null, 'trivia');
+                    showTriviaQuestion();
+                    document.getElementById('trivia-start').disabled = true;
+                    document.getElementById('trivia-submit').disabled = false;
+                });
+
+                if (fileInput) fileInput.addEventListener('change', (ev) => {
+                    const f = (ev.target.files && ev.target.files[0]);
+                    if (!f) return;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const txt = e.target.result;
+                            if (textarea) textarea.value = txt;
+                            const parsed = parseQuizInput(txt);
+                            window.customQuiz.pool = parsed;
+                            renderPreview(parsed);
+                            if (startBtn) startBtn.disabled = !(parsed && parsed.length > 0);
+                        } catch (e) { alert('Failed to parse file'); }
+                    };
+                    reader.readAsText(f);
+                });
+            } catch (e) { /* ignore build quiz wiring errors */ }
         });
 
         // --- Simple client-side auth & leaderboard ---
