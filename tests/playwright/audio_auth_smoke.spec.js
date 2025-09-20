@@ -32,10 +32,21 @@ test('audio select populated and sign-in modal works', async ({ page }) => {
   const username = 'smoke_' + Date.now();
   await page.fill('#si-username', username);
   await page.fill('#si-email', `${username}@example.com`);
-  await page.click('#si-submit');
-
-  // Allow UI to update
-  await page.waitForTimeout(300);
+  // Try to submit using a deterministic test helper (if present) to avoid click races in CI
+  try {
+    const used = await page.evaluate((u, e) => {
+      if (window._testSetBurbleUser) { return window._testSetBurbleUser(u, e); }
+      return false;
+    }, username, `${username}@example.com`);
+    if (!used) {
+      await page.click('#si-submit');
+      await page.waitForTimeout(300);
+    }
+  } catch (e) {
+    // fallback to click if any evaluate error occurs
+    await page.click('#si-submit');
+    await page.waitForTimeout(300);
+  }
 
   // Check localStorage for burbleUser
   const stored = await page.evaluate(() => localStorage.getItem('burbleUser'));

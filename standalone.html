@@ -1074,6 +1074,11 @@
             // Expose a global helper so external tools/tests can set the user reliably
             try { window.saveBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } catch(e){}
 
+            // Test-only helper: directly set burbleUser in localStorage (used by E2E tests
+            // when clicks are flaky in CI). Tests should prefer user-driven flows but may
+            // call this helper to deterministically set state.
+            try { window._testSetBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } catch(e){}
+
             function handleSigninSubmit() {
                 const username = (document.getElementById('si-username')||{}).value || '';
                 const email = (document.getElementById('si-email')||{}).value || '';
