@@ -150,6 +150,8 @@
                 <input id="audio-progress" class="seek" type="range" min="0" max="100" value="0" step="0.1" style="flex:1;--pos:0;" />
                 <div id="audio-time" style="min-width:110px;color:#444;text-align:right;">00:00 / 00:00</div>
             </div>
+            <!-- Inline alert area for audio URL preflight/loading/errors -->
+            <div id="audio-alert" class="audio-alert hidden" role="alert" aria-live="assertive" style="margin-top:6px;"></div>
             <div id="youtube-api-root"></div>
         </div>
 
@@ -1080,6 +1082,86 @@
 
                 // YouTube player reference (will be created when needed)
                 let __ytPlayer = null;
+                let __ytPoll = null; // polling interval for YT progress
+
+                // cached audio index for fuzzy matching of local assets
+                window._audioIndex = window._audioIndex || null;
+                async function fetchAudioIndex(){
+                    if (window._audioIndex) return window._audioIndex;
+                    try {
+                        const resp = await fetch('assets/audio/index.json');
+                        if (!resp.ok) return null;
+                        const json = await resp.json();
+                        window._audioIndex = json;
+                        return json;
+                    } catch(e){ return null; }
+                }
+
+                function normalizeName(s){
+                    try {
+                        return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'').trim();
+                    } catch(e){ return String(s||'').toLowerCase(); }
+                }
+
+                // small levenshtein distance for short strings
+                function levenshtein(a, b){
+                    a = String(a||''); b = String(b||'');
+                    if (a === b) return 0;
+                    const m = a.length, n = b.length;
+                    if (m === 0) return n; if (n === 0) return m;
+                    const v0 = new Array(n+1), v1 = new Array(n+1);
+                    for (let j=0;j<=n;j++) v0[j]=j;
+                    for (let i=0;i<m;i++){
+                        v1[0]=i+1;
+                        for (let j=0;j<n;j++){
+                            const cost = a[i]===b[j]?0:1;
+                            v1[j+1]=Math.min(v1[j]+1, v0[j+1]+1, v0[j]+cost);
+                        }
+                        for (let j=0;j<=n;j++) v0[j]=v1[j];
+                    }
+                    return v1[n];
+                }
+
+                function updateAudioStatus(msg, opts){
+                    try {
+                        opts = opts || {};
+                        const $status = document.getElementById('audio-status');
+                        if (!$status) return;
+                        $status.textContent = msg || '';
+                        let spinner = document.getElementById('audio-status-spinner');
+                        if (opts.loading) {
+                            if (!spinner) {
+                                spinner = document.createElement('span');
+                                spinner.id = 'audio-status-spinner';
+                                spinner.className = 'spinner';
+                                spinner.style.marginRight = '8px';
+                                $status.parentNode && $status.parentNode.insertBefore(spinner, $status);
+                            }
+                        } else {
+                            if (spinner) spinner.remove();
+                        }
+                        if (opts.error) $status.style.color = '#b00020'; else $status.style.color = '#444';
+                        // Also show a more visible alert area for persistent errors or info
+                        try {
+                            const $alert = document.getElementById('audio-alert');
+                            if ($alert) {
+                                if (opts.error || opts.persist) {
+                                    $alert.textContent = msg || '';
+                                    $alert.classList.remove('hidden');
+                                    $alert.setAttribute('data-error', !!opts.error);
+                                    if (opts.autoDismiss) {
+                                        setTimeout(() => { try { $alert.classList.add('hidden'); } catch(e){} }, Number(opts.autoDismiss) || 4000);
+                                    }
+                                } else {
+                                    // clear any existing non-persistent alerts
+                                    $alert.textContent = '';
+                                    $alert.classList.add('hidden');
+                                    $alert.removeAttribute('data-error');
+                                }
+                            }
+                        } catch(e){}
+                    } catch(e){}
+                }
 
                 window.playUrlOrYoutube = function(url){
                     if (!url) return false;
@@ -1099,7 +1181,16 @@
                         const container = document.createElement('div');
                         container.id = 'youtube-embed-container';
                         container.style.marginTop = '8px';
-                        container.innerHTML = `<div id="youtube-player-placeholder"></div><div style="margin-top:6px;"><button id="yt-pause" class="nav-btn">Pause</button><button id="yt-play" class="nav-btn">Play</button><button id="yt-stop" class="nav-btn">Stop</button></div>`;
+                        container.innerHTML = `
+                            <div id="youtube-player-placeholder"></div>
+                            <div style="margin-top:6px;display:flex;gap:8px;align-items:center;">
+                                <button id="yt-pause" class="nav-btn">Pause</button>
+                                <button id="yt-play" class="nav-btn">Play</button>
+                                <button id="yt-stop" class="nav-btn">Stop</button>
+                                <input id="yt-progress" class="seek" type="range" min="0" max="100" value="0" step="0.1" style="flex:1;--pos:0;" />
+                                <div id="yt-time" style="min-width:110px;color:#444;text-align:right;">00:00 / 00:00</div>
+                                <input id="yt-volume" type="range" min="0" max="1" step="0.01" value="1" style="width:90px;" title="YouTube volume" />
+                            </div>`;
                         root && root.appendChild(container);
 
                         // load YouTube IFrame API if not present
@@ -1119,13 +1210,35 @@
                                     events: {
                                         onReady: function(){ try { __ytPlayer.playVideo(); } catch(e){} },
                                         onStateChange: function(e){
-                                            // map to status UI
+                                            // map to status UI and manage polling for progress/time
                                             const $status = document.getElementById('audio-status');
-                                            if (!$status) return;
-                                            if (e.data === YT.PlayerState.PLAYING) $status.textContent = 'Playing (YouTube)';
-                                            else if (e.data === YT.PlayerState.PAUSED) $status.textContent = 'Paused (YouTube)';
-                                            else if (e.data === YT.PlayerState.BUFFERING) $status.textContent = 'Loading...';
-                                            else if (e.data === YT.PlayerState.ENDED) $status.textContent = 'Ended';
+                                            if ($status) {
+                                                if (e.data === YT.PlayerState.PLAYING) $status.textContent = 'Playing (YouTube)';
+                                                else if (e.data === YT.PlayerState.PAUSED) $status.textContent = 'Paused (YouTube)';
+                                                else if (e.data === YT.PlayerState.BUFFERING) $status.textContent = 'Loading...';
+                                                else if (e.data === YT.PlayerState.ENDED) $status.textContent = 'Ended';
+                                            }
+                                            try {
+                                                if (e.data === YT.PlayerState.PLAYING) {
+                                                    if (__ytPoll) clearInterval(__ytPoll);
+                                                    __ytPoll = setInterval(()=>{
+                                                        try {
+                                                            const $prog = document.getElementById('yt-progress');
+                                                            const $time = document.getElementById('yt-time');
+                                                            if (!__ytPlayer || !__ytPlayer.getDuration) return;
+                                                            const dur = __ytPlayer.getDuration() || 0;
+                                                            const cur = (__ytPlayer.getCurrentTime && __ytPlayer.getCurrentTime()) || 0;
+                                                            if ($prog) { $prog.value = dur ? (cur / dur) * 100 : 0; $prog.style.setProperty('--pos', (dur ? (cur/dur)*100 : 0) + '%'); }
+                                                            if ($time) {
+                                                                const fmt = (s)=>{ if (!isFinite(s)||s<=0) return '00:00'; const m=Math.floor(s/60).toString().padStart(2,'0'); const sec=Math.floor(s%60).toString().padStart(2,'0'); return `${m}:${sec}`; };
+                                                                $time.textContent = `${fmt(cur)} / ${fmt(dur)}`;
+                                                            }
+                                                        } catch(e){}
+                                                    }, 500);
+                                                } else {
+                                                    if (__ytPoll) { clearInterval(__ytPoll); __ytPoll = null; }
+                                                }
+                                            } catch(e){}
                                         }
                                     }
                                 });
@@ -1145,6 +1258,24 @@
                                 if ($pp) $pp.addEventListener('click', ()=>{ try { __ytPlayer && __ytPlayer.pauseVideo(); } catch(e){} });
                                 if ($p) $p.addEventListener('click', ()=>{ try { __ytPlayer && __ytPlayer.playVideo(); } catch(e){} });
                                 if ($st) $st.addEventListener('click', ()=>{ try { __ytPlayer && __ytPlayer.stopVideo(); const root = document.getElementById('youtube-api-root'); if (root) root.innerHTML=''; } catch(e){} });
+                                const $prog = document.getElementById('yt-progress');
+                                const $ytVol = document.getElementById('yt-volume');
+                                if ($prog) {
+                                    $prog.addEventListener('input', ()=>{
+                                        try {
+                                            if (!__ytPlayer) return;
+                                            const dur = __ytPlayer.getDuration() || 0;
+                                            const t = dur * (Number($prog.value)/100);
+                                            if (typeof __ytPlayer.seekTo === 'function') __ytPlayer.seekTo(t, true);
+                                            $prog.style.setProperty('--pos', (Number($prog.value)||0) + '%');
+                                        } catch(e){}
+                                    });
+                                }
+                                if ($ytVol) {
+                                    $ytVol.addEventListener('input', ()=>{
+                                        try { if (__ytPlayer && typeof __ytPlayer.setVolume === 'function') __ytPlayer.setVolume(Math.round(Number($ytVol.value) * 100)); } catch(e){}
+                                    });
+                                }
                             } catch(e){}
                         }, 400);
 
@@ -1177,26 +1308,56 @@
                             return false;
                         };
 
-                        // If it's a local assets path, try both encoded and unencoded variants
+                        // If it's a local assets path, try encoded/unencoded candidates and fuzzy-match via index.json
                         const isLocalAsset = url.startsWith('assets/');
                         if (isLocalAsset) {
-                            const candidates = [url];
-                            try { candidates.push(encodeURI(url)); } catch(e){}
-                            try { candidates.push(decodeURI(url)); } catch(e){}
-                            for (let c of candidates) {
-                                // normalize leading ./
-                                c = c.replace(/^\.\//, '');
-                                // try each candidate sequentially
-                                // eslint-disable-next-line no-await-in-loop
-                                const ok = await tryUrl(c);
-                                if (ok) return true;
-                            }
-                            return false;
+                            try {
+                                updateAudioStatus('Resolving local asset...', { loading: true });
+                                const idx = await fetchAudioIndex();
+                                const basename = (url.split('/').pop()||'');
+                                const want = decodeURIComponent(basename);
+                                const normWant = normalizeName(want);
+                                const candidates = [url];
+                                try { candidates.push(encodeURI(url)); } catch(e){}
+                                try { candidates.push(decodeURI(url)); } catch(e){}
+                                if (Array.isArray(idx) && idx.length > 0) {
+                                    let found = idx.find(f => f === want || f === basename || f === decodeURIComponent(basename));
+                                    if (!found) {
+                                        const normList = idx.map(f => ({ f, n: normalizeName(f) }));
+                                        const exactNorm = normList.find(o => o.n === normWant);
+                                        if (exactNorm) found = exactNorm.f;
+                                    }
+                                    if (!found) {
+                                        const normList = idx.map(f => ({ f, n: normalizeName(f) }));
+                                        const sub = normList.find(o => o.n.indexOf(normWant) !== -1 || normWant.indexOf(o.n) !== -1);
+                                        if (sub) found = sub.f;
+                                    }
+                                    if (!found) {
+                                        let best = { f: null, d: 1e9 };
+                                        idx.forEach(f => {
+                                            const d = levenshtein(normalizeName(f), normWant);
+                                            if (d < best.d) best = { f, d };
+                                        });
+                                        if (best.d <= 3) found = best.f;
+                                    }
+                                    if (found) candidates.unshift('assets/audio/' + found);
+                                }
+
+                                for (let c of candidates) {
+                                    c = c.replace(/^\.\//, '');
+                                    const ok = await tryUrl(c); // eslint-disable-line no-await-in-loop
+                                    if (ok) { updateAudioStatus('Playing', { loading: false }); return true; }
+                                }
+                                updateAudioStatus('Not found', { loading: false, error: true });
+                                return false;
+                            } catch(e){ console.warn('local asset resolution failed', e); updateAudioStatus('Error', { loading: false, error: true }); return false; }
                         }
 
                         // Non-local: just try the provided url
                         // eslint-disable-next-line no-return-await
-                        return await tryUrl(url);
+                        const ok = await tryUrl(url);
+                        if (!ok) updateAudioStatus('Unable to play URL', { loading: false, error: true });
+                        return ok;
                     } catch(e) { console.warn('playUrlOrYoutube error', e); }
                     return false;
                 };
