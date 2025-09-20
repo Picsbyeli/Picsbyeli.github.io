@@ -39,13 +39,17 @@ jobs:
           cp ./standalone.html ./.publish/ || true
           if [ -d ./assets ]; then cp -r ./assets ./.publish/; fi
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v1
+      - name: Deploy to GitHub Pages (via peaceiris)
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          path: ./.publish
-
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+          publish_dir: ./.publish
+          # Prefer the built-in GITHUB_TOKEN. If your repo has branch protections
+          # that prevent token-based pushes, create a personal access token with
+          # `repo` scope and store it as the secret `DEPLOY_PERSONAL_TOKEN`.
+          # The action will use `personal_token` if provided, otherwise GITHUB_TOKEN.
+          personal_token: ${{ secrets.DEPLOY_PERSONAL_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Purge Cloudflare cache (optional)
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ZONE_ID != '' }}
