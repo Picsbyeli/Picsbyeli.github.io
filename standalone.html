@@ -1976,9 +1976,32 @@
                 });
                 // Append last rotation timestamp if available
                 const last = localStorage.getItem('burbleLastRotation');
-                if (last) parts.push(`<em>Last rotation:</em> ${escapeHtml(String(last))}`);
+                if (last) {
+                    // show a relative time like '5m ago' and a green check if within 10 minutes
+                    const rel = formatRelativeTime(last);
+                    const recent = (Date.now() - new Date(last).getTime()) < (10 * 60 * 1000);
+                    const check = recent ? ' ✅' : '';
+                    parts.push(`<em>Last rotation:</em> ${escapeHtml(String(rel))}${check}`);
+                }
                 container.innerHTML = parts.join('<br>');
             } catch (e) { /* ignore */ }
+        }
+
+        // Format ISO timestamp to short relative (e.g., '5m ago', '2h ago')
+        function formatRelativeTime(iso) {
+            try {
+                const t = new Date(iso).getTime();
+                if (!isFinite(t)) return iso;
+                const diff = Date.now() - t;
+                const sec = Math.floor(diff / 1000);
+                if (sec < 60) return `${sec}s ago`;
+                const min = Math.floor(sec / 60);
+                if (min < 60) return `${min}m ago`;
+                const hr = Math.floor(min / 60);
+                if (hr < 24) return `${hr}h ago`;
+                const days = Math.floor(hr / 24);
+                return `${days}d ago`;
+            } catch (e) { return iso; }
         }
 
         function resetAllPools() {
@@ -2007,6 +2030,48 @@
                     alert('All pools reset.');
                 });
                 renderPoolCounts();
+                // initialize rotate-status text from last rotation
+                try {
+                    const status = document.getElementById('rotate-status');
+                    if (status) {
+                        const last = localStorage.getItem('burbleLastRotation');
+                        if (last) status.textContent = `Rotated ${formatRelativeTime(last)}`;
+                        else status.textContent = 'Never rotated';
+                    }
+                } catch (e) {}
+                // Add a manual rotate button and a rotation-status indicator to the pool manager
+                try {
+                    const pm = document.getElementById('pool-manager');
+                    if (pm && !document.getElementById('rotate-now-pools')) {
+                        const wrapper = document.createElement('div');
+                        wrapper.style.marginTop = '8px';
+                        wrapper.style.display = 'flex';
+                        wrapper.style.alignItems = 'center';
+                        wrapper.style.gap = '8px';
+
+                        const rotateBtn = document.createElement('button');
+                        rotateBtn.id = 'rotate-now-pools';
+                        rotateBtn.className = 'nav-btn';
+                        rotateBtn.textContent = 'Rotate now';
+                        rotateBtn.title = 'Immediately rotate persistent pools (will skip pools for active games)';
+                        rotateBtn.addEventListener('click', () => {
+                            if (!confirm('Rotate all persistent pools now? Pools for any active games will be skipped.')) return;
+                            try { rotatePersistentPools(); alert('Rotation complete.'); } catch (e) { alert('Rotation failed: ' + (e && e.message ? e.message : String(e))); }
+                        });
+
+                        const status = document.createElement('div');
+                        status.id = 'rotate-status';
+                        status.setAttribute('aria-live','polite');
+                        status.style.fontSize = '0.95em';
+                        status.style.color = '#333';
+                        status.textContent = '';
+
+                        wrapper.appendChild(rotateBtn);
+                        wrapper.appendChild(status);
+                        // insert after the existing reset button
+                        if (btn && btn.parentNode) btn.parentNode.insertBefore(wrapper, btn.nextSibling);
+                    }
+                } catch (e) { /* ignore UI insertion errors */ }
                 // Wrap savePoolsToStorage to refresh counts
                 const orig = savePoolsToStorage;
                 savePoolsToStorage = function() { try { orig(); } catch (e) {} renderPoolCounts(); };
@@ -2037,6 +2102,10 @@
                                 if (name === 'trivia' && gameState.trivia && gameState.trivia.gameActive) return;
                                 if (name === 'animal' && gameState.animalTrivia && gameState.animalTrivia.gameActive) return;
                                 if (name === 'riddles' && gameState.riddles && gameState.riddles.gameActive) return;
+                                // Also avoid rotating pools when other game types are active
+                                if (name === 'burble' && gameState.burble && gameState.burble.gameActive) return;
+                                if (name === 'emoji' && gameState.emoji && gameState.emoji.gameActive) return;
+                                if (name === 'valentine' && gameState.valentine && gameState.valentine.gameActive) return;
                             } catch (e) { /* ignore gameState read errors and proceed */ }
                             let allItems = [];
 
@@ -2080,6 +2149,14 @@
                     try { renderPoolCounts(); } catch (e) {}
                     // persist last rotation timestamp for UI
                     try { localStorage.setItem('burbleLastRotation', new Date().toISOString()); } catch (e) {}
+                    // update rotate-status text if present
+                    try {
+                        const status = document.getElementById('rotate-status');
+                        if (status) {
+                            const last = localStorage.getItem('burbleLastRotation');
+                            if (last) status.textContent = `Rotated ${formatRelativeTime(last)}`;
+                        }
+                    } catch (e) {}
                 } catch (e) { console.error('rotatePersistentPools', e); }
             }
 
