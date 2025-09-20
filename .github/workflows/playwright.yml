@@ -12,6 +12,7 @@ jobs:
     timeout-minutes: 20
     env:
       NODE_OPTIONS: "--experimental-vm-modules"
+      TEST_BASE: "http://127.0.0.1:8001"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,14 +79,17 @@ jobs:
           python3 -m http.server 8001 > /tmp/static.log 2>&1 &
           echo "$!" > /tmp/static.pid
           # Wait for services to respond (increase retries for flaky runners)
+          # Wait for services to be ready
           for i in {1..60}; do
-            if curl -sSf http://localhost:4000/api/leaderboard >/dev/null 2>&1 && curl -sSf http://localhost:8001/standalone.html >/dev/null 2>&1; then
+            if curl -sSf http://127.0.0.1:4000/api/leaderboard >/dev/null 2>&1 && curl -sSf http://127.0.0.1:8001/standalone.html >/dev/null 2>&1; then
               echo "services are up"; break
             fi
             sleep 2
           done
 
       - name: Run Playwright via runner script
+        env:
+          TEST_BASE: ${{ env.TEST_BASE }}
         run: node ./scripts/run-playwright-with-backend.js
 
       - name: Upload Playwright artifacts (always)
