@@ -722,73 +722,146 @@
         };
 
         // Word categories for Burble game
-        const wordCategories = {
-            Food: {
-                4: ['cake', 'taco', 'rice', 'soup', 'bean', 'fish', 'pear', 'plum'],
-                5: ['pizza', 'apple', 'salad', 'pasta', 'fruit', 'onion', 'bread', 'steak'],
-                6: ['burger', 'cheese', 'cookie', 'banana', 'orange', 'tomato', 'potato'],
-                7: ['avocado', 'chicken', 'pancake', 'almond', 'noodles', 'sausage'],
-                8: ['broccoli', 'mushroom', 'sandwich', 'blueberry', 'eggplant', 'pineapple']
-            },
-            Animals: {
-                4: ['frog', 'wolf', 'bear', 'deer', 'bird', 'fish', 'lion', 'duck'],
-                5: ['tiger', 'sheep', 'snake', 'mouse', 'panda', 'koala', 'horse'],
-                6: ['turtle', 'giraffe', 'monkey', 'beaver', 'weasel', 'rabbit'],
-                7: ['dolphin', 'penguin', 'octopus', 'raccoon', 'leopard', 'buffalo'],
-                8: ['elephant', 'hedgehog', 'flamingo', 'kangaroo', 'scorpion', 'crocodile']
-            },
-            Colors: {
-                4: ['blue', 'pink', 'gold', 'gray', 'teal', 'cyan'],
-                5: ['green', 'brown', 'black', 'white', 'amber', 'azure'],
-                6: ['purple', 'silver', 'indigo', 'maroon', 'ochre', 'orange'],
-                7: ['crimson', 'magenta', 'cerulean', 'lavender', 'turquoise'],
-                8: ['burgundy', 'periwinkle', 'sapphire', 'platinum', 'marigold']
-            },
-            Cities: {
-                4: ['rome', 'oslo', 'bali', 'lima', 'york', 'lyon', 'riga', 'kiev'],
-                5: ['tokyo', 'paris', 'miami', 'delhi', 'dubai', 'seoul', 'cairo'],
-                6: ['london', 'berlin', 'moscow', 'madrid', 'munich', 'sydney'],
-                7: ['beijing', 'chicago', 'toronto', 'atlanta', 'houston', 'phoenix'],
-                8: ['shanghai', 'istanbul', 'budapest', 'montreal', 'florence', 'helsinki']
-            },
-            Items: {
-                4: ['fork', 'lamp', 'book', 'ring', 'desk', 'mask', 'pen', 'phone', 'shoe'],
-                5: ['table', 'chair', 'clock', 'brush', 'phone', 'purse', 'scarf', 'watch'],
-                6: ['mirror', 'pillow', 'remote', 'candle', 'wallet', 'hammer', 'laptop'],
-                7: ['charger', 'suitcase', 'backpack', 'earbuds', 'cushion', 'toaster'],
-                8: ['scissors', 'notebook', 'umbrella', 'keyboard', 'television', 'bookshelf']
-            },
-            Sports: {
-                4: ['golf', 'swim', 'bike', 'surf', 'bowl', 'judo', 'dive', 'ski'],
-                5: ['chess', 'rugby', 'skate', 'climb', 'kayak', 'dance', 'jog', 'cycle'],
-                6: ['soccer', 'hockey', 'tennis', 'boxing', 'rowing', 'hiking', 'racing'],
-                7: ['archery', 'bowling', 'cricket', 'fencing', 'jogging', 'baseball'],
-                8: ['football', 'basketball', 'wrestling', 'athletics', 'marathon', 'swimming']
+            // Acquire a short-lived lock in localStorage to avoid concurrent rotations across tabs.
+            function _acquireRotationLock(ttlMs) {
+                try {
+                    const key = 'burbleRotationLock';
+                    const now = Date.now();
+                    const raw = localStorage.getItem(key);
+                    if (raw) {
+                        try {
+                            const obj = JSON.parse(raw);
+                            if (obj && obj.ts && (now - obj.ts) < (obj.ttl || ttlMs || 60000)) {
+                                // lock held
+                                return false;
+                            }
+                        } catch (e) { /* ignore parse errors and acquire lock */ }
+                    }
+                    const lock = { ts: now, ttl: ttlMs || 60000, id: Math.random().toString(36).slice(2) };
+                    localStorage.setItem(key, JSON.stringify(lock));
+                    return lock.id;
+                } catch (e) { return false; }
             }
-        };
 
-        // Comprehensive riddles database
-        const riddlesData = {
-            logic: {
-                easy: [
-                    {
-                        riddle: "What comes once in a minute, twice in a moment, but never in a thousand years?",
-                        answer: "the letter m",
-                        acceptedAnswers: ["m", "letter m", "the letter m"],
-                        hints: [
-                            "Think about the words in the riddle itself.",
-                            "Look at the letters that make up each word.",
-                            "Count the letter 'M' in 'minute', 'moment', and 'thousand years'."
-                        ],
-                        category: "logic",
-                        difficulty: "easy"
-                    },
-                    {
-                        riddle: "I'm tall when I'm young, and I'm short when I'm old. What am I?",
-                        answer: "candle",
-                        acceptedAnswers: ["candle", "a candle"],
-                        hints: [
-                            "This object changes size as it's used.",
+            function _releaseRotationLock(id) {
+                try {
+                    const key = 'burbleRotationLock';
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return true;
+                    try {
+                        const obj = JSON.parse(raw);
+                        if (!obj) { localStorage.removeItem(key); return true; }
+                        if (id && obj.id && obj.id !== id) return false; // someone else holds it
+                    } catch (e) { /* fallthrough */ }
+                    localStorage.removeItem(key);
+                    return true;
+                } catch (e) { return false; }
+            }
+
+            // Map pool name prefixes to gameState keys dynamically. If a pool name is unknown,
+            // attempt to match against existing gameState properties by common aliases.
+            function _poolNameToGameStateKey(poolName) {
+                const mapping = {
+                    'trivia': 'trivia',
+                    'animal': 'animalTrivia',
+                    'riddles': 'riddles',
+                    'burble': 'burble',
+                    'emoji': 'emoji',
+                    'valentine': 'valentine'
+                };
+                if (mapping[poolName]) return mapping[poolName];
+                // fallback: try to find any gameState property that contains the poolName
+                const keys = Object.keys(gameState || {});
+                for (let k of keys) {
+                    if (k.toLowerCase().indexOf(poolName.toLowerCase()) >= 0) return k;
+                }
+                return null;
+            }
+
+            // options: { force: boolean }
+            function rotatePersistentPools(options) {
+                options = options || {};
+                const force = !!options.force;
+                const lockId = _acquireRotationLock(60000);
+                if (!lockId && !force) {
+                    // another tab is rotating; bail out
+                    try { console.info('rotatePersistentPools: rotation locked by another tab'); } catch (e) {}
+                    return false;
+                }
+                try {
+                    const keysToRotate = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (!key) continue;
+                        if (key.startsWith('pool::')) keysToRotate.push(key);
+                    }
+
+                    keysToRotate.forEach(key => {
+                        try {
+                            const parts = key.split('::'); // ['pool', name, difficulty]
+                            const name = parts[1];
+                            const difficulty = parts[2];
+                            // Skip rotating pools for games that are currently active so we don't
+                            // disturb an in-progress session for players. If `force` is true, override.
+                            try {
+                                const gameKey = _poolNameToGameStateKey(name);
+                                if (!force && gameKey && gameState[gameKey] && gameState[gameKey].gameActive) return;
+                            } catch (e) { /* ignore gameState read errors and proceed */ }
+                            let allItems = [];
+
+                            if (name === 'trivia' && window.triviaQuestions && triviaQuestions[difficulty]) {
+                                allItems = triviaQuestions[difficulty].slice();
+                            } else if (name === 'animal' && window.animalTriviaQuestions && animalTriviaQuestions[difficulty]) {
+                                allItems = animalTriviaQuestions[difficulty].slice();
+                            } else if (name === 'riddles') {
+                                const raw = localStorage.getItem(key);
+                                if (raw) {
+                                    try { allItems = JSON.parse(raw) || []; } catch (e) { allItems = []; }
+                                }
+                            } else {
+                                // Fallback: use what's currently stored
+                                const raw = localStorage.getItem(key);
+                                if (raw) {
+                                    try { allItems = JSON.parse(raw) || []; } catch (e) { allItems = []; }
+                                }
+                            }
+
+                            // If we have a base list, reshuffle it; otherwise reshuffle the stored pool
+                            let newPool = [];
+                            if (Array.isArray(allItems) && allItems.length > 0) {
+                                newPool = shuffleArray(allItems.slice());
+                            } else {
+                                // last resort: shuffle existing stored pool
+                                const rawExisting = localStorage.getItem(key);
+                                try { newPool = rawExisting ? shuffleArray(JSON.parse(rawExisting).slice()) : []; } catch (e) { newPool = []; }
+                            }
+
+                            try { localStorage.setItem(key, JSON.stringify(newPool)); } catch (e) {}
+                        } catch (e) {
+                            /* ignore per-key errors */
+                        }
+                    });
+
+                    // Also refresh the summary snapshot used by pool-manager
+                    try { savePoolsToStorage(); } catch (e) {}
+                    try { renderPoolCounts(); } catch (e) {}
+                    // persist last rotation timestamp for UI
+                    try { localStorage.setItem('burbleLastRotation', new Date().toISOString()); } catch (e) {}
+                    // update rotate-status text if present
+                    try {
+                        const status = document.getElementById('rotate-status');
+                        if (status) {
+                            const last = localStorage.getItem('burbleLastRotation');
+                            if (last) status.textContent = `Rotated ${formatRelativeTime(last)}`;
+                        }
+                    } catch (e) {}
+                } catch (e) { console.error('rotatePersistentPools', e); }
+                finally {
+                    // release lock
+                    try { _releaseRotationLock(lockId); } catch (e) {}
+                }
+                return true;
+            }
                             "It provides light and gets shorter over time.",
                             "You light it with a match and it melts as it burns."
                         ],
@@ -2049,14 +2122,38 @@
                         wrapper.style.alignItems = 'center';
                         wrapper.style.gap = '8px';
 
+                        // Force override checkbox for admins (requires explicit confirmation)
+                        const overrideLabel = document.createElement('label');
+                        overrideLabel.style.display = 'inline-flex';
+                        overrideLabel.style.alignItems = 'center';
+                        overrideLabel.style.gap = '6px';
+                        const overrideCb = document.createElement('input');
+                        overrideCb.type = 'checkbox';
+                        overrideCb.id = 'rotate-force-override';
+                        overrideCb.title = 'Force rotate even if games are active (admin override)';
+                        const overrideText = document.createElement('span');
+                        overrideText.textContent = 'Force rotate';
+                        overrideText.style.fontSize = '0.9em';
+                        overrideLabel.appendChild(overrideCb);
+                        overrideLabel.appendChild(overrideText);
+
                         const rotateBtn = document.createElement('button');
                         rotateBtn.id = 'rotate-now-pools';
                         rotateBtn.className = 'nav-btn';
                         rotateBtn.textContent = 'Rotate now';
                         rotateBtn.title = 'Immediately rotate persistent pools (will skip pools for active games)';
                         rotateBtn.addEventListener('click', () => {
-                            if (!confirm('Rotate all persistent pools now? Pools for any active games will be skipped.')) return;
-                            try { rotatePersistentPools(); alert('Rotation complete.'); } catch (e) { alert('Rotation failed: ' + (e && e.message ? e.message : String(e))); }
+                            const force = !!(document.getElementById('rotate-force-override') && document.getElementById('rotate-force-override').checked);
+                            const warn = force ? 'Force-rotate pools now? This will override active games and may disturb players.' : 'Rotate all persistent pools now? Pools for any active games will be skipped.';
+                            if (!confirm(warn)) return;
+                            try {
+                                const ok = rotatePersistentPools({ force });
+                                if (ok && ok.then) {
+                                    ok.then(() => alert('Rotation complete.')).catch(e => alert('Rotation failed: ' + (e && e.message ? e.message : String(e))));
+                                } else {
+                                    alert('Rotation complete.');
+                                }
+                            } catch (e) { alert('Rotation failed: ' + (e && e.message ? e.message : String(e))); }
                         });
 
                         const status = document.createElement('div');
@@ -2066,6 +2163,7 @@
                         status.style.color = '#333';
                         status.textContent = '';
 
+                        wrapper.appendChild(overrideLabel);
                         wrapper.appendChild(rotateBtn);
                         wrapper.appendChild(status);
                         // insert after the existing reset button
