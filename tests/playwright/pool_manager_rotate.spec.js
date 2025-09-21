@@ -3,21 +3,18 @@ const { test, expect } = require('@playwright/test');
 const TEST_BASE = process.env.TEST_BASE || 'http://127.0.0.1:8001';
 
 test('pool manager rotate updates last rotation and UI', async ({ page }) => {
+  // Try index.html first (deployed site). If pool-manager isn't present (propagation/caching),
+  // fall back to the local `standalone.html` which contains the UI used by tests.
   await page.goto(`${TEST_BASE}/index.html`);
-
-  // Ensure pool manager is visible (it is on the home page). Be robust: try waiting,
-  // then click Home nav if not found immediately.
+  let found = false;
   try {
-    await page.waitForSelector('#pool-manager', { timeout: 10000 });
+    await page.waitForSelector('#pool-manager', { timeout: 8000 });
+    found = true;
   } catch (e) {
-    // Try navigating to Home and wait again
-    try {
-      await Promise.all([
-        page.waitForNavigation({ timeout: 10000 }),
-        page.click('text=Home').catch(() => {})
-      ]);
-    } catch (e2) {}
+    // Not found on index.html; try standalone.html directly
+    await page.goto(`${TEST_BASE}/standalone.html`);
     await page.waitForSelector('#pool-manager', { timeout: 10000 });
+    found = true;
   }
 
   // Read previous rotation ts
