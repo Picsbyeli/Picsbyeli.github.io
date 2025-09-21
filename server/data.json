@@ -62,6 +62,27 @@
       "email": "testuser_1758291480800@example.com",
       "created": 1758291480821,
       "prefs": {}
+    },
+    "testuser_1758420319667": {
+      "id": "hSuXE-CEJP_8UTxD-ihhx",
+      "username": "testuser_1758420319667",
+      "email": "testuser_1758420319667@example.com",
+      "created": 1758420320063,
+      "prefs": {}
+    },
+    "testuser_1758420462860": {
+      "id": "rkbfZd4mHct1k0KwKAIQN",
+      "username": "testuser_1758420462860",
+      "email": "testuser_1758420462860@example.com",
+      "created": 1758420462888,
+      "prefs": {}
+    },
+    "testuser_1758420514392": {
+      "id": "eWQ5wPfOZAtsNErOpmwyh",
+      "username": "testuser_1758420514392",
+      "email": "testuser_1758420514392@example.com",
+      "created": 1758420514422,
+      "prefs": {}
     }
   },
   "leaderboard": {
@@ -127,6 +148,30 @@
       "currentStreak": 1
     },
     "testuser_1758291480800": {
+      "score": 10,
+      "questionsSolved": 1,
+      "totalCorrectTime": 2,
+      "correctCount": 1,
+      "highestStreak": 1,
+      "currentStreak": 1
+    },
+    "testuser_1758420319667": {
+      "score": 10,
+      "questionsSolved": 1,
+      "totalCorrectTime": 2,
+      "correctCount": 1,
+      "highestStreak": 1,
+      "currentStreak": 1
+    },
+    "testuser_1758420462860": {
+      "score": 10,
+      "questionsSolved": 1,
+      "totalCorrectTime": 2,
+      "correctCount": 1,
+      "highestStreak": 1,
+      "currentStreak": 1
+    },
+    "testuser_1758420514392": {
       "score": 10,
       "questionsSolved": 1,
       "totalCorrectTime": 2,
