@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 const TEST_BASE = process.env.TEST_BASE || 'http://127.0.0.1:8001';
 
 test('updateAudioStatus shows alert and retry triggers playUrlOrYoutube', async ({ page }) => {
-  await page.goto(`${TEST_BASE}/standalone.html`);
+  await page.goto(`${TEST_BASE}/standalone.html?e2e=1`);
   // ensure page loaded and helper exists
   await page.waitForSelector('#audio-url-input');
 

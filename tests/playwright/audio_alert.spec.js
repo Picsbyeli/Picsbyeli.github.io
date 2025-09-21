@@ -5,7 +5,7 @@ test('audio alert retry and dismiss', async ({ page }) => {
   // Serve the static site via file:// - Playwright supports loading file URLs
   const path = require('path');
   const fs = require('fs');
-  const html = 'file://' + path.resolve(__dirname, '..', '..', 'standalone.html');
+  const html = 'file://' + path.resolve(__dirname, '..', '..', 'standalone.html') + '?e2e=1';
   await page.goto(html);
 
   // Ensure audio track select is populated

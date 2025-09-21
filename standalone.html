@@ -1417,6 +1417,30 @@
 
                     // Otherwise treat as direct audio URL. First, preflight with HEAD
                     try {
+                        // E2E-only hook: allow tests to override HEAD behavior for determinism.
+                        // Usage (from Playwright):
+                        // await page.evaluate(() => window.__E2E_setHeadResponse && window.__E2E_setHeadResponse('https://example.com/foo.mp3', 404));
+                        // The hook is minimal and only active when `window.__E2E__` is true.
+                        try {
+                            if (window.__E2E__ && !window.__E2E_setHeadResponse) {
+                                const _e2e_head_map = new Map();
+                                window.__E2E_setHeadResponse = function(url, status) { try { _e2e_head_map.set(String(url), Number(status)); return true; } catch(e) { return false; } };
+                                window.__E2E_clearHeadResponses = function() { try { _e2e_head_map.clear(); return true; } catch(e){ return false; } };
+                                // Wrap fetch locally for the tryUrl HEAD check only (do not replace global fetch)
+                                const _origFetch = window.fetch;
+                                window.__E2E__fetch_override = function(resource, init) {
+                                    try {
+                                        if (init && init.method === 'HEAD') {
+                                            const forced = _e2e_head_map.get(String(resource));
+                                            if (typeof forced === 'number') {
+                                                return Promise.resolve(new Response('', { status: forced, statusText: String(forced) }));
+                                            }
+                                        }
+                                    } catch(e){}
+                                    return _origFetch.apply(this, arguments);
+                                };
+                            }
+                        } catch(e){}
                         // remove any existing youtube embed
                         const y = document.getElementById('youtube-embed-container'); if (y) y.remove();
                         // helper to try playing a given candidate url
@@ -1425,7 +1449,8 @@
                                 // attempt a HEAD to check availability (CORS servers may reject)
                                 let ok = false;
                                 try {
-                                    const resp = await fetch(candidate, { method: 'HEAD' });
+                                    // Use the E2E fetch override when present to keep global fetch untouched
+                                    const resp = (window.__E2E__ && window.__E2E__fetch_override) ? await window.__E2E__fetch_override(candidate, { method: 'HEAD' }) : await fetch(candidate, { method: 'HEAD' });
                                     ok = resp && resp.ok;
                                 } catch(e) {
                                     // HEAD may be blocked; fall back to optimistic attempt
