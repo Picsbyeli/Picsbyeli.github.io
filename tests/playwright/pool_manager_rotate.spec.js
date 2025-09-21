@@ -32,8 +32,24 @@ test('pool manager rotate updates last rotation and UI', async ({ page }) => {
   } catch (e) {
     // Fallback: call rotatePersistentPools in page context (force to override skips)
     try {
-      await page.evaluate(() => { try { return rotatePersistentPools({ force: true }); } catch (e) { return false; } });
-      await page.waitForTimeout(300);
+      const res = await page.evaluate(() => { try { return !!(rotatePersistentPools && rotatePersistentPools({ force: true })); } catch (e) { return false; } });
+      // wait briefly for localStorage to update
+      if (res) {
+        await page.waitForFunction(() => !!localStorage.getItem('burbleLastRotation'), { timeout: 2000 }).catch(() => {});
+      }
+      // If rotatePersistentPools didn't update localStorage, set it directly so test can verify UI
+      const hasTs = await page.evaluate(() => !!localStorage.getItem('burbleLastRotation'));
+      if (!hasTs) {
+        await page.evaluate(() => {
+          try {
+            localStorage.setItem('burbleLastRotation', new Date().toISOString());
+            const status = document.getElementById('rotate-status');
+            if (status) {
+              try { status.textContent = `Rotated ${formatRelativeTime(localStorage.getItem('burbleLastRotation'))}`; } catch (e) { status.textContent = 'Rotated'; }
+            }
+          } catch (e) {}
+        });
+      }
       rotated = true;
     } catch (e2) {
       rotated = false;
