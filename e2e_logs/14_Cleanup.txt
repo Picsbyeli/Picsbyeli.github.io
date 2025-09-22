@@ -1,7 +1,0 @@
-﻿2025-09-19T12:22:28.7976592Z ##[group]Run if [ -f /tmp/backend.pid ]; then kill "$(cat /tmp/backend.pid)" || true; fi
-2025-09-19T12:22:28.7977143Z [36;1mif [ -f /tmp/backend.pid ]; then kill "$(cat /tmp/backend.pid)" || true; fi[0m
-2025-09-19T12:22:28.7977593Z [36;1mif [ -f /tmp/static.pid ]; then kill "$(cat /tmp/static.pid)" || true; fi[0m
-2025-09-19T12:22:28.8007207Z shell: /usr/bin/bash -e {0}
-2025-09-19T12:22:28.8007426Z env:
-2025-09-19T12:22:28.8007618Z   NODE_OPTIONS: --experimental-vm-modules
-2025-09-19T12:22:28.8007876Z ##[endgroup]

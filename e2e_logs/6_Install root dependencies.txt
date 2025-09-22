@@ -1,8 +1,0 @@
-﻿2025-09-19T12:22:21.2464704Z ##[group]Run npm ci --prefer-offline --no-audit --no-fund
-2025-09-19T12:22:21.2465167Z [36;1mnpm ci --prefer-offline --no-audit --no-fund[0m
-2025-09-19T12:22:21.2592395Z shell: /usr/bin/bash -e {0}
-2025-09-19T12:22:21.2592678Z env:
-2025-09-19T12:22:21.2592905Z   NODE_OPTIONS: --experimental-vm-modules
-2025-09-19T12:22:21.2593203Z ##[endgroup]
-2025-09-19T12:22:25.6445215Z 
-2025-09-19T12:22:25.6451686Z added 3 packages in 4s
