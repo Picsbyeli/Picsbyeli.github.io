@@ -2356,6 +2356,178 @@
             initTriviaGame();
             initAnimalTriviaGame();
             updateUserStats();
+
+            // Initialize pool manager UI. If the full `initPoolManager` from
+            // the standalone build is present, call it. Otherwise provide a
+            // lightweight fallback so the Reset button and pool counts work
+            // on `index.html` too (prevents a non-functional UI in deployed pages).
+            try {
+                if (typeof initPoolManager === 'function') {
+                    try { initPoolManager(); } catch (e) { /* ignore */ }
+                } else {
+                    // Fallback: compute and render simple pool counts and wire reset
+                    function computePoolCountsFallback() {
+                        const counts = { animal: {}, trivia: {}, riddles: {} };
+                        try {
+                            const raw = localStorage.getItem('burblePools');
+                            if (!raw) return counts;
+                            const p = JSON.parse(raw) || {};
+                            ['animal','trivia','riddles'].forEach(name => {
+                                const pools = p[name] || {};
+                                Object.keys(pools).forEach(k => {
+                                    counts[name][k] = Array.isArray(pools[k]) ? pools[k].length : 0;
+                                });
+                            });
+                        } catch (e) { /* ignore */ }
+                        return counts;
+                    }
+
+                    function renderPoolCountsFallback() {
+                        try {
+                            const container = document.getElementById('pool-counts');
+                            if (!container) return;
+                            const counts = computePoolCountsFallback();
+                            const parts = [];
+                            Object.keys(counts).forEach(name => {
+                                const inner = counts[name];
+                                const sub = Object.keys(inner).map(k => `${k}: ${inner[k]}`).join(', ') || 'none';
+                                parts.push(`<strong>${name}</strong>: ${sub}`);
+                            });
+                            const last = localStorage.getItem('burbleLastRotation');
+                            if (last) {
+                                let rel = last;
+                                try {
+                                    const t = new Date(last).getTime();
+                                    if (isFinite(t)) {
+                                        const diff = Date.now() - t;
+                                        const sec = Math.floor(diff/1000);
+                                        if (sec < 60) rel = `${sec}s ago`;
+                                        else if (sec < 3600) rel = `${Math.floor(sec/60)}m ago`;
+                                        else if (sec < 86400) rel = `${Math.floor(sec/3600)}h ago`;
+                                        else rel = `${Math.floor(sec/86400)}d ago`;
+                                    }
+                                } catch (e) {}
+                                parts.push(`<em>Last rotation:</em> ${String(rel)}`);
+                            }
+                            container.innerHTML = parts.join('<br>');
+                        } catch (e) { /* ignore */ }
+                    }
+
+                    // Wire reset and rotate UI
+                    try {
+                        const btn = document.getElementById('reset-all-pools');
+                        if (btn && !document.getElementById('rotate-now-pools')) {
+                            // create wrapper with override checkbox, rotate button and status
+                            const wrapper = document.createElement('div');
+                            wrapper.style.marginTop = '8px';
+                            wrapper.style.display = 'flex';
+                            wrapper.style.alignItems = 'center';
+                            wrapper.style.gap = '8px';
+
+                            const overrideLabel = document.createElement('label');
+                            overrideLabel.style.display = 'inline-flex';
+                            overrideLabel.style.alignItems = 'center';
+                            overrideLabel.style.gap = '6px';
+                            const overrideCb = document.createElement('input');
+                            overrideCb.type = 'checkbox';
+                            overrideCb.id = 'rotate-force-override';
+                            overrideCb.title = 'Force rotate even if games are active (admin override)';
+                            const overrideText = document.createElement('span');
+                            overrideText.textContent = 'Force rotate';
+                            overrideText.style.fontSize = '0.9em';
+                            overrideLabel.appendChild(overrideCb);
+                            overrideLabel.appendChild(overrideText);
+
+                            const rotateBtn = document.createElement('button');
+                            rotateBtn.id = 'rotate-now-pools';
+                            rotateBtn.className = 'nav-btn';
+                            rotateBtn.textContent = 'Rotate now';
+                            rotateBtn.title = 'Immediately rotate persistent pools (will skip pools for active games)';
+
+                            const status = document.createElement('div');
+                            status.id = 'rotate-status';
+                            status.setAttribute('aria-live','polite');
+                            status.style.fontSize = '0.95em';
+                            status.style.color = '#333';
+                            status.textContent = '';
+
+                            wrapper.appendChild(overrideLabel);
+                            wrapper.appendChild(rotateBtn);
+                            wrapper.appendChild(status);
+                            if (btn && btn.parentNode) btn.parentNode.insertBefore(wrapper, btn.nextSibling);
+
+                            // Reset button wiring
+                            btn.addEventListener('click', () => {
+                                if (!confirm('Reset all persistent pools? This cannot be undone.')) return;
+                                try {
+                                    localStorage.removeItem('burblePools');
+                                    const toRemove = [];
+                                    for (let i = 0; i < localStorage.length; i++) {
+                                        const key = localStorage.key(i);
+                                        if (!key) continue;
+                                        if (key.startsWith('pool::') || key.startsWith('burblePool::') || key.startsWith('pool:')) toRemove.push(key);
+                                    }
+                                    toRemove.forEach(k => localStorage.removeItem(k));
+                                    try { if (gameState && gameState.animalTrivia && gameState.animalTrivia.pools) gameState.animalTrivia.pools = {}; } catch (e) {}
+                                    try { if (gameState && gameState.trivia && gameState.trivia.pools) gameState.trivia.pools = {}; } catch (e) {}
+                                    try { if (gameState && gameState.riddles && gameState.riddles.pools) gameState.riddles.pools = {}; } catch (e) {}
+                                    renderPoolCountsFallback();
+                                    alert('All pools reset.');
+                                } catch (e) { console.error('resetAllPools fallback', e); }
+                            });
+
+                            // Rotate handler: try to delegate to rotatePersistentPools if available,
+                            // otherwise perform a local reshuffle of stored pool arrays and update timestamp.
+                            rotateBtn.addEventListener('click', () => {
+                                const force = !!(document.getElementById('rotate-force-override') && document.getElementById('rotate-force-override').checked);
+                                const warn = force ? 'Force-rotate pools now? This will override active games and may disturb players.' : 'Rotate all persistent pools now? Pools for any active games will be skipped.';
+                                if (!confirm(warn)) return;
+                                try {
+                                    // Prefer the full function when present
+                                    if (typeof rotatePersistentPools === 'function') {
+                                        const res = rotatePersistentPools({ force });
+                                        if (res && res.then) {
+                                            res.then(() => { alert('Rotation complete.'); try { renderPoolCountsFallback(); } catch (e) {} }).catch(e => alert('Rotation failed: ' + (e && e.message ? e.message : String(e))));
+                                        } else {
+                                            alert('Rotation complete.');
+                                            try { renderPoolCountsFallback(); } catch (e) {}
+                                        }
+                                        // update status
+                                        try { localStorage.setItem('burbleLastRotation', new Date().toISOString()); } catch (e) {}
+                                        try { status.textContent = `Rotated ${(() => { const l = localStorage.getItem('burbleLastRotation'); return l ? (function(){const t=new Date(l).getTime(); const diff=Date.now()-t; const sec=Math.floor(diff/1000); if(sec<60) return `${sec}s ago`; if(sec<3600) return `${Math.floor(sec/60)}m ago`; if(sec<86400) return `${Math.floor(sec/3600)}h ago`; return `${Math.floor(sec/86400)}d ago`; })() : 'now'; })()}`; } catch (e) {}
+                                    } else {
+                                        // local fallback: reshuffle stored pool arrays
+                                        for (let i = 0; i < localStorage.length; i++) {
+                                            const key = localStorage.key(i);
+                                            if (!key) continue;
+                                            if (!key.startsWith('pool::')) continue;
+                                            try {
+                                                const raw = localStorage.getItem(key);
+                                                if (!raw) continue;
+                                                const arr = JSON.parse(raw);
+                                                if (!Array.isArray(arr) || arr.length === 0) continue;
+                                                // simple shuffle
+                                                for (let a = arr.length - 1; a > 0; a--) {
+                                                    const b = Math.floor(Math.random() * (a + 1));
+                                                    [arr[a], arr[b]] = [arr[b], arr[a]];
+                                                }
+                                                localStorage.setItem(key, JSON.stringify(arr));
+                                            } catch (e) { /* ignore per-key errors */ }
+                                        }
+                                        try { localStorage.setItem('burbleLastRotation', new Date().toISOString()); } catch (e) {}
+                                        try { renderPoolCountsFallback(); } catch (e) {}
+                                        alert('Rotation complete (fallback).');
+                                        try { const l = localStorage.getItem('burbleLastRotation'); if (l) { const t=new Date(l).getTime(); const diff=Date.now()-t; const sec=Math.floor(diff/1000); let rel='now'; if(sec<60) rel=`${sec}s ago`; else if(sec<3600) rel=`${Math.floor(sec/60)}m ago`; else if(sec<86400) rel=`${Math.floor(sec/3600)}h ago`; else rel=`${Math.floor(sec/86400)}d ago`; status.textContent = `Rotated ${rel}`; } } catch (e) {}
+                                    }
+                                } catch (e) { alert('Rotation failed: ' + (e && e.message ? e.message : String(e))); }
+                            });
+                        }
+                    } catch (e) {}
+
+                    // initial render
+                    try { renderPoolCountsFallback(); } catch (e) {}
+                }
+            } catch (e) { /* ignore */ }
         });
     </script>
 </body>
