@@ -83,6 +83,13 @@
       "email": "testuser_1758420514392@example.com",
       "created": 1758420514422,
       "prefs": {}
+    },
+    "testuser_1758420671063": {
+      "id": "_-CXdPERvuw75IshoxGje",
+      "username": "testuser_1758420671063",
+      "email": "testuser_1758420671063@example.com",
+      "created": 1758420671081,
+      "prefs": {}
     }
   },
   "leaderboard": {
@@ -172,6 +179,14 @@
       "currentStreak": 1
     },
     "testuser_1758420514392": {
+      "score": 10,
+      "questionsSolved": 1,
+      "totalCorrectTime": 2,
+      "correctCount": 1,
+      "highestStreak": 1,
+      "currentStreak": 1
+    },
+    "testuser_1758420671063": {
       "score": 10,
       "questionsSolved": 1,
       "totalCorrectTime": 2,

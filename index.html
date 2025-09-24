@@ -2357,11 +2357,25 @@
             initAnimalTriviaGame();
             updateUserStats();
 
-            // Initialize pool manager UI. If the full `initPoolManager` from
-            // the standalone build is present, call it. Otherwise provide a
-            // lightweight fallback so the Reset button and pool counts work
-            // on `index.html` too (prevents a non-functional UI in deployed pages).
+            // Initialize pool manager UI. Only admins should see the Pool Manager.
+            // If the full `initPoolManager` from the standalone build is present,
+            // call it (but only for admins). Otherwise provide a lightweight
+            // fallback so admins on `index.html` can still reset/rotate pools.
             try {
+                // small isAdmin helper for the simplified index build
+                function isAdmin() {
+                    try {
+                        const u = JSON.parse(localStorage.getItem('burbleUser') || 'null');
+                        if (!u) return false;
+                        if (u.isAdmin) return true;
+                        const ADMIN_USERS = ['eli','elival','admin@example.com'];
+                        if (u.username && ADMIN_USERS.includes(u.username)) return true;
+                        if (u.email && ADMIN_USERS.includes(u.email)) return true;
+                    } catch (e) {}
+                    return false;
+                }
+                // If not admin, hide the pool manager section and skip initialization
+                try { if (!isAdmin()) { const pm = document.getElementById('pool-manager'); if (pm) pm.style.display = 'none'; return; } } catch (e) {}
                 if (typeof initPoolManager === 'function') {
                     try { initPoolManager(); } catch (e) { /* ignore */ }
                 } else {

@@ -837,6 +837,43 @@
                             }
 
                             try { localStorage.setItem(key, JSON.stringify(newPool)); } catch (e) {}
+
+                            // If caller forced rotation and a matching game is active, update
+                            // the in-memory currentGameQuestions so the UI reflects the change
+                            // immediately (allows admin override to affect active sessions).
+                            try {
+                                if (force) {
+                                    if (name === 'trivia' && window.gameState && gameState.trivia && gameState.trivia.gameActive) {
+                                        try {
+                                            const all = (window.triviaQuestions && triviaQuestions[difficulty]) || [];
+                                            gameState.trivia.currentGameQuestions = drawFromPool('trivia', difficulty, all, gameState.trivia.totalQuestions || gameState.trivia.totalQuestionsUsed || 10);
+                                            gameState.trivia.totalQuestionsUsed = gameState.trivia.currentGameQuestions.length;
+                                            gameState.trivia.currentQuestion = 0;
+                                            try { showTriviaQuestion(); } catch (e) {}
+                                        } catch (e) {}
+                                    }
+                                    if (name === 'animal' && window.gameState && gameState.animalTrivia && gameState.animalTrivia.gameActive) {
+                                        try {
+                                            const allA = (window.animalTriviaQuestions && animalTriviaQuestions[difficulty]) || [];
+                                            gameState.animalTrivia.currentGameQuestions = drawFromPool('animal', difficulty, allA, gameState.animalTrivia.totalQuestions || gameState.animalTrivia.totalQuestionsUsed || 15);
+                                            gameState.animalTrivia.totalQuestionsUsed = gameState.animalTrivia.currentGameQuestions.length;
+                                            gameState.animalTrivia.currentQuestion = 0;
+                                            try { showAnimalTriviaQuestion(); } catch (e) {}
+                                        } catch (e) {}
+                                    }
+                                    if (name === 'riddles' && window.gameState && gameState.riddles && gameState.riddles.gameActive) {
+                                        try {
+                                            // For riddles we draw individually using drawFromPool helper
+                                            const allR = [];
+                                            // try to source a list if possible
+                                            try { if (window.riddlesData && typeof getRiddlesByFilter === 'function') { /* keep fallback */ } } catch (e) {}
+                                            gameState.riddles.currentRiddle = null;
+                                            gameState.riddles.currentHintLevel = 0;
+                                            try { nextRiddle(); } catch (e) {}
+                                        } catch (e) {}
+                                    }
+                                }
+                            } catch (e) { /* ignore per-key UI update errors */ }
                         } catch (e) {
                             /* ignore per-key errors */
                         }
@@ -1653,6 +1690,20 @@
             try { window.saveBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } catch(e){}
             try { if (window.__E2E__) { window._testSetBurbleUser = function(username, email){ if (!username) return false; localStorage.setItem('burbleUser', JSON.stringify({ username, email })); try{ renderUser(); }catch(e){} return true; }; } } catch(e){}
 
+            // Admin helper: checks burbleUser.isAdmin or matches username/email against allowlist.
+            try { window.isAdmin = function(){
+                try{
+                    const u = JSON.parse(localStorage.getItem('burbleUser') || 'null');
+                    if (!u) return false;
+                    if (u.isAdmin) return true;
+                    // allowlist for convenience in dev/E2E. Update as needed.
+                    const ADMIN_USERS = ['eli','elival','admin@example.com'];
+                    if (u.username && ADMIN_USERS.includes(u.username)) return true;
+                    if (u.email && ADMIN_USERS.includes(u.email)) return true;
+                }catch(e){/* ignore */}
+                return false;
+            }; } catch(e){}
+
             // Leaderboard storage helper: record a score (username, score)
             window.recordScore = function(username, score){
                 try {
@@ -2121,6 +2172,16 @@
 
         function initPoolManager() {
             try {
+                // Only admins should see the Pool Manager UI. If not admin, hide the container and exit.
+                try {
+                    if (typeof isAdmin === 'function' && !isAdmin()) {
+                        const pmEl = document.getElementById('pool-manager');
+                        if (pmEl) pmEl.style.display = 'none';
+                        const resetBtn = document.getElementById('reset-all-pools');
+                        if (resetBtn) resetBtn.style.display = 'none';
+                        return;
+                    }
+                } catch (e) { /* ignore admin check errors and proceed to show by default */ }
                 const btn = document.getElementById('reset-all-pools');
                 if (btn) btn.addEventListener('click', () => {
                     if (!confirm('Reset all persistent pools? This cannot be undone.')) return;
@@ -2262,6 +2323,37 @@
                             }
 
                             try { localStorage.setItem(key, JSON.stringify(newPool)); } catch (e) {}
+
+                            // If rotation was forced, refresh in-memory active game question lists
+                            try {
+                                if (typeof force !== 'undefined' && force) {
+                                    if (name === 'trivia' && window.gameState && gameState.trivia && gameState.trivia.gameActive) {
+                                        try {
+                                            const all = (window.triviaQuestions && triviaQuestions[difficulty]) || [];
+                                            gameState.trivia.currentGameQuestions = drawFromPool('trivia', difficulty, all, gameState.trivia.totalQuestions || gameState.trivia.totalQuestionsUsed || 10);
+                                            gameState.trivia.totalQuestionsUsed = gameState.trivia.currentGameQuestions.length;
+                                            gameState.trivia.currentQuestion = 0;
+                                            try { showTriviaQuestion(); } catch (e) {}
+                                        } catch (e) {}
+                                    }
+                                    if (name === 'animal' && window.gameState && gameState.animalTrivia && gameState.animalTrivia.gameActive) {
+                                        try {
+                                            const allA = (window.animalTriviaQuestions && animalTriviaQuestions[difficulty]) || [];
+                                            gameState.animalTrivia.currentGameQuestions = drawFromPool('animal', difficulty, allA, gameState.animalTrivia.totalQuestions || gameState.animalTrivia.totalQuestionsUsed || 15);
+                                            gameState.animalTrivia.totalQuestionsUsed = gameState.animalTrivia.currentGameQuestions.length;
+                                            gameState.animalTrivia.currentQuestion = 0;
+                                            try { showAnimalTriviaQuestion(); } catch (e) {}
+                                        } catch (e) {}
+                                    }
+                                    if (name === 'riddles' && window.gameState && gameState.riddles && gameState.riddles.gameActive) {
+                                        try {
+                                            gameState.riddles.currentRiddle = null;
+                                            gameState.riddles.currentHintLevel = 0;
+                                            try { nextRiddle(); } catch (e) {}
+                                        } catch (e) {}
+                                    }
+                                }
+                            } catch (e) { /* ignore UI update errors */ }
                         } catch (e) {
                             /* ignore per-key errors */
                         }
@@ -4084,7 +4176,7 @@
             updateUserStats();
             initAuthAndLeaderboard();
             // init pool manager UI
-            try { initPoolManager(); } catch (e) {}
+            try { if (typeof isAdmin === 'function' ? isAdmin() : false) { initPoolManager(); } } catch (e) {}
 
             // Start periodic pool rotation every 30 minutes to reshuffle persistent pools
             try { schedulePoolRotation(30); } catch (e) { console.error('failed to schedule pool rotation', e); }
