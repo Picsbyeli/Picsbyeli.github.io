@@ -698,3 +698,6 @@ input[type="range"].seek::-webkit-slider-thumb {
     border-color: #fecaca;
 }
 .audio-alert.hidden { display:none; }
+
+/* hide accidental development dumps */
+#debug, .dev-dump, pre.dev-dump, .state-dump { display:none !important; }
