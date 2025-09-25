@@ -12,14 +12,14 @@ import {
   getStorage, ref, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
 
-/* ==== REPLACE with your real config ==== */
+/* ==== Your Firebase config (provided) ==== */
 const firebaseConfig = {
-  apiKey: "REPLACE",
-  authDomain: "REPLACE.firebaseapp.com",
-  projectId: "REPLACE",
-  storageBucket: "REPLACE.appspot.com",
-  messagingSenderId: "REPLACE",
-  appId: "REPLACE"
+  apiKey: "AIzaSyAsabftqBfwYKT9wZhsINZXXMcy8MX3THg",
+  authDomain: "burble-bb533.firebaseapp.com",
+  projectId: "burble-bb533",
+  storageBucket: "burble-bb533.firebasestorage.app",
+  messagingSenderId: "997224317711",
+  appId: "1:997224317711:web:80c55ebfceaf23adf4f47a"
 };
 
 export const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
