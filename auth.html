@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Burble — Auth Demo</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Auth Demo</h1>
+    <p>Use this page to test Firebase Auth registration and sign-in.</p>
+
+    <section id="auth-forms">
+      <div>
+        <h2>Register</h2>
+        <label>Email <input id="register-email" type="email"></label><br>
+        <label>Password <input id="register-password" type="password"></label><br>
+        <button id="btn-register">Register</button>
+      </div>
+
+      <div style="margin-top:18px">
+        <h2>Sign in</h2>
+        <label>Email <input id="signin-email" type="email"></label><br>
+        <label>Password <input id="signin-password" type="password"></label><br>
+        <button id="btn-signin">Sign in</button>
+      </div>
+
+      <div id="auth-status" style="margin-top:18px"></div>
+    </section>
+  </main>
+
+  <script type="module" src="/js/app.js"></script>
+  <script>
+    // Lightweight wiring: show a placeholder until app.js demo wiring is added
+    document.getElementById('btn-register').addEventListener('click', () => {
+      document.getElementById('auth-status').textContent = 'Register clicked — ensure Firebase demo wiring is added to /js/app.js';
+    });
+    document.getElementById('btn-signin').addEventListener('click', () => {
+      document.getElementById('auth-status').textContent = 'Sign-in clicked — ensure Firebase demo wiring is added to /js/app.js';
+    });
+  </script>
+</body>
+</html>
