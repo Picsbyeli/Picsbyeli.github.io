@@ -682,6 +682,67 @@ document.addEventListener('DOMContentLoaded', function(){
 
 <!-- Load Question Engine -->
         <script src="scripts/question-engine.js"></script>
+        <!-- Emergency: hide accidental debug dumps and overlays until code cleanup -->
+        <style>
+            /* Emergency hide for stray debug / state dumps injected as <pre> */
+            #debug-dump, pre#stateDump, pre#poolDump, pre.debug-dump, .debug-json {
+                display: none !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+                max-height: 0 !important;
+                overflow: hidden !important;
+            }
+            /* Hide common overlays that can block gestures */
+            #overlay, #loading, .scrim, .modal-backdrop { display: none !important; }
+        </style>
+        <script>
+            // Debug and safety helpers (disabled by default)
+            (function(){
+                const DEBUG = false;
+                function debugDump(obj){
+                    if (!DEBUG) return;
+                    let pre = document.getElementById('debug-dump');
+                    if (!pre) {
+                        pre = document.createElement('pre');
+                        pre.id = 'debug-dump';
+                        pre.className = 'debug-json';
+                        pre.style.whiteSpace = 'pre-wrap';
+                        pre.style.fontSize = '12px';
+                        pre.style.maxHeight = '40vh';
+                        pre.style.overflow = 'auto';
+                        document.body.appendChild(pre);
+                    }
+                    try { pre.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2); } catch(e) { pre.textContent = String(obj); }
+                }
+
+                let _audioUnlocked = false;
+                function ensureAudioUnlocked(){
+                    if (_audioUnlocked) return;
+                    const tryUnlock = async ()=>{
+                        try{
+                            const Ctx = window.AudioContext || window.webkitAudioContext;
+                            if (Ctx) {
+                                window._ac = window._ac || new Ctx();
+                                if (window._ac.state === 'suspended') await window._ac.resume();
+                            }
+                            // play a very quiet short sound if available to satisfy browsers
+                            try{ const a = new Audio('assets/audio/30 Second Timer With Jeopardy Thinking Music.mp3'); a.volume = 0.01; await a.play().catch(()=>{}); } catch(e) {}
+                            _audioUnlocked = true;
+                        } finally {
+                            window.removeEventListener('pointerdown', tryUnlock);
+                            window.removeEventListener('keydown', tryUnlock);
+                        }
+                    };
+                    window.addEventListener('pointerdown', tryUnlock, { once: true });
+                    window.addEventListener('keydown', tryUnlock, { once: true });
+                }
+
+                // Expose helpers globally for other scripts/tests
+                window.debugDump = debugDump;
+                window.ensureAudioUnlocked = ensureAudioUnlocked;
+                if (!window.__burbleBooted) window.__burbleBooted = false;
+            })();
+        </script>
             userStats: {
                 totalScore: 0,
                 gamesPlayed: 0,
@@ -2541,6 +2602,9 @@ document.addEventListener('DOMContentLoaded', function(){
 
         // Initialize all games when page loads
         window.addEventListener('DOMContentLoaded', () => {
+            if (window.__burbleBooted) { console.warn('Burble already booted, skipping duplicate init.'); return; }
+            window.__burbleBooted = true;
+            try { if (window.ensureAudioUnlocked) window.ensureAudioUnlocked(); } catch(e) {}
             loadUserStats();
             initRiddlesGame();
             initBurbleGame();
