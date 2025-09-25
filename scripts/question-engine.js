@@ -150,6 +150,9 @@
     _questionBank: questionBank
   };
 
+  // Convenience global alias for simple calls in console or inline scripts
+  try { if (typeof window.getQuestion !== 'function') window.getQuestion = getQuestion; } catch (e) {}
+
   // Example debug usage when loaded in a browser console:
   // console.log(QuestionEngine.getQuestion('School Trivia','Math','Easy'));
 })(window);
