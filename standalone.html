@@ -4710,5 +4710,6 @@
 
         // expose for standalone usage
         window.standaloneGetQuestion = getQuestion;
+        try { if (typeof window.getQuestion !== 'function') window.getQuestion = getQuestion; } catch (e) {}
     } catch (e) { /* ignore insertion errors */ }
 })();
