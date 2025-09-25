@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Burble - Brain Teasers & Riddles Platform</title>
     <link rel="stylesheet" href="assets/css/styles.css">
+    <script src="/questions.js"></script>
     <script>
     // Runtime flag to enable E2E-only helpers when `?e2e=1` (or `?e2e`) is present.
     try {
@@ -47,65 +48,13 @@
                 })();
             } catch (e) { /* ignore */ }
         }
-    } catch (e) {}
-
-    // If E2E mode is enabled, expose a minimal, safe hook early so tests can
-    // open the sign-in modal even if later JS fails or loads slowly.
-    if (window.__E2E__) {
-      (function(){
-          try {
-              window._testOpenSignin = function(){
-                  try {
-                      const m = document.getElementById('signin-modal');
-                      if (!m) return false;
-                      m.classList.remove('hidden');
-                      m.style.display = 'flex';
-                      m.setAttribute('aria-hidden', 'false');
-                      const u = document.getElementById('si-username'); if (u) try{ u.focus(); } catch(e){}
-                      return true;
-                  } catch (e) { return false; }
-              };
-          } catch (e) { /* ignore */ }
-      })();
-
-      // Also, poll briefly for the app-defined `drawFromPool` function and
-      // expose it on `window` as soon as it exists. This helps Playwright (and
-      // other E2E harnesses) call the real implementation without racing the
-      // app's load/initialization order.
-      (function(){
-          try {
-              var tries = 0;
-              var t = setInterval(function(){
-                  try {
-                      if (typeof drawFromPool === 'function') {
-                          // Expose only when E2E flag present OR an admin user is stored in localStorage.
-                          var expose = false;
-                          try {
-                              if (window.__E2E__) expose = true;
-                          } catch (e) {}
-                          try {
-                              var raw = localStorage.getItem('burbleUser');
-                              if (raw) {
-                                  var u = JSON.parse(raw);
-                                  if (u && u.isAdmin) expose = true;
-                              }
-                          } catch (e) {}
-                          if (expose) {
-                              try { window.drawFromPool = drawFromPool; } catch (e) {}
-                          }
-                          clearInterval(t);
-                          return;
-                      }
-                  } catch (e) {}
-                  tries++;
-                  if (tries > 200) {
-                      try { clearInterval(t); } catch(e){}
-                  }
-              }, 25);
-          } catch (e) {}
-      })();
-    }
+    } catch (e) { /* ignore */ }
     </script>
+
+    <!-- Safety stubs loaded early to prevent ReferenceError during inline script execution -->
+    <script src="scripts/safety-stubs.js"></script>
+    <script src="scripts/standalone-school-engine.js"></script>
+    <script src="scripts/standalone-school-trivia.js"></script>
 </head>
 <body>
     <div class="container">
@@ -122,6 +71,32 @@
                 <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
                 <button class="nav-btn" onclick="showPage(event,'build-quiz')">Build Quiz</button>
                 <div class="game-option nav-btn" id="schoolTriviaBtn" style="cursor:pointer">🎓 School Trivia</div>
+                                <!-- TOP BAR MUSIC PLAYER (inserted) -->
+                                <div id="topbar-player" aria-label="Site music player" style="margin-left:12px;">
+                                    <span class="tp-label">🎵 Now playing:</span>
+
+                                    <select id="tp-song" aria-label="Song list"></select>
+
+                                    <button id="tp-prev" title="Previous">⏮</button>
+                                    <button id="tp-play" title="Play/Pause">▶️</button>
+                                    <button id="tp-next" title="Next">⏭</button>
+
+                                    <button id="tp-back10" title="Back 10s">-10s</button>
+                                    <button id="tp-fwd10" title="Forward 10s">+10s</button>
+
+                                    <input id="tp-seek" type="range" min="0" max="100" value="0" aria-label="Seek">
+                                    <input id="tp-vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume">
+
+                                    <label class="tp-inline">
+                                        <input id="tp-loop-one" type="checkbox">
+                                        <span>Loop 1</span>
+                                    </label>
+
+                                    <button id="tp-add" title="Add Songs">＋</button>
+                                    <input id="tp-file" type="file" accept="audio/mpeg,audio/mp3" multiple hidden>
+
+                                    <audio id="tp-audio" preload="auto" crossorigin="anonymous"></audio>
+                                </div>
             </div>
             <div class="now-playing" id="now-playing" aria-live="polite">
                 <span class="now-playing-art" id="now-playing-art">🎵</span>
@@ -972,6 +947,31 @@
                 }
                 return true;
             }
+        // Comprehensive riddles database
+        const riddlesData = {
+            logic: {
+                easy: [
+                    {
+                        riddle: "What comes once in a minute, twice in a moment, but never in a thousand years?",
+                        answer: "the letter m",
+                        acceptedAnswers: ["m", "letter m", "the letter m"],
+                        hints: [
+                            "Think about the words in the riddle itself.",
+                            "Look at the letters that make up each word.",
+                            "Count the letter 'M' in 'minute', 'moment', and 'thousand years'."
+                        ],
+                        category: "logic",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "I'm tall when I'm young, and I'm short when I'm old. What am I?",
+                        answer: "candle",
+                        acceptedAnswers: ["candle", "a candle"],
+                        hints: [
+                            "This object changes size as it's used.",
+                            "It provides light and gets shorter over time.",
+                            "You light it with a match and it melts as it burns."
+                        ],
                         category: "logic",
                         difficulty: "easy"
                     },
@@ -1032,7 +1032,7 @@
                         hints: [
                             "These are two opposite things that happen every day.",
                             "One happens in the morning, the other in the evening.",
-                            "Think about sunrise (dawn ____) and sunset (night ____)"
+                            "Think about sunrise (dawn ____) and sunset (night ____ )"
                         ],
                         category: "logic",
                         difficulty: "medium"
@@ -1060,15 +1060,155 @@
                         difficulty: "hard"
                     },
                     {
-                        riddle: "A woman shoots her husband, then holds him under water for five minutes, then hangs him. Afterwards they both go out to dinner together. How is this possible?",
-                        answer: "she is a photographer",
-                        acceptedAnswers: ["she is a photographer", "photographer", "she's a photographer"],
-                        hints: [
-                            "The words 'shoots', 'holds', and 'hangs' may not be literal.",
-                            "Think about common processes that involve shooting and hanging.",
-                            "It's a play on words — consider photography and developing photos."
-                        ],
+                        riddle: "A woman shoots her husband, then holds him under water for five minutes, then hangs him. Afterwards they both go out to dinner together. How?",
+                        answer: "she's a photographer",
+                        acceptedAnswers: ["photographer", "she's a photographer", "photography", "developing photos"],
+                        hint: "Think about a profession that involves 'shooting', 'developing', and 'hanging'.",
                         category: "logic",
+                        difficulty: "hard"
+                    }
+                ]
+            },
+            word: {
+                easy: [
+                    {
+                        riddle: "What word becomes shorter when you add two letters to it?",
+                        answer: "short",
+                        acceptedAnswers: ["short", "the word short"],
+                        hint: "Add 'er' to the end.",
+                        category: "word",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "What 5-letter word typed in all capital letters can be read the same upside down?",
+                        answer: "swims",
+                        acceptedAnswers: ["swims"],
+                        hint: "When rotated 180 degrees, it looks the same.",
+                        category: "word",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "What word is spelled wrong in the dictionary?",
+                        answer: "wrong",
+                        acceptedAnswers: ["wrong", "the word wrong"],
+                        hint: "It's literally in the question.",
+                        category: "word",
+                        difficulty: "easy"
+                    }
+                ],
+                medium: [
+                    {
+                        riddle: "I am a word of letters three. Add two and fewer there will be. What word am I?",
+                        answer: "few",
+                        acceptedAnswers: ["few", "the word few"],
+                        hint: "Adding 'er' makes it mean 'less'.",
+                        category: "word",
+                        difficulty: "medium"
+                    },
+                    {
+                        riddle: "What English word retains the same pronunciation, even after you take away four of its five letters?",
+                        answer: "queue",
+                        acceptedAnswers: ["queue"],
+                        hint: "It sounds like a single letter.",
+                        category: "word",
+                        difficulty: "medium"
+                    }
+                ],
+                hard: [
+                    {
+                        riddle: "What seven-letter word contains dozens of letters?",
+                        answer: "mailbox",
+                        acceptedAnswers: ["mailbox", "postbox"],
+                        hint: "It contains mail, which includes letters.",
+                        category: "word",
+                        difficulty: "hard"
+                    }
+                ]
+            },
+            math: {
+                easy: [
+                    {
+                        riddle: "If you multiply this number by any other number, the answer will always be the same. What number is it?",
+                        answer: "zero",
+                        acceptedAnswers: ["0", "zero"],
+                        hint: "Anything times this equals itself.",
+                        category: "math",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "I am an odd number. Take away a letter and I become even. What number am I?",
+                        answer: "seven",
+                        acceptedAnswers: ["7", "seven"],
+                        hint: "Remove the 's' from the word.",
+                        category: "math",
+                        difficulty: "easy"
+                    }
+                ],
+                medium: [
+                    {
+                        riddle: "A man has 5 sons, and each of his sons has a sister. How many children does the man have?",
+                        answer: "6",
+                        acceptedAnswers: ["6", "six"],
+                        hint: "They all share the same sister.",
+                        category: "math",
+                        difficulty: "medium"
+                    },
+                    {
+                        riddle: "If there are three apples and you take away two, how many apples do you have?",
+                        answer: "2",
+                        acceptedAnswers: ["2", "two"],
+                        hint: "How many did YOU take?",
+                        category: "math",
+                        difficulty: "medium"
+                    }
+                ],
+                hard: [
+                    {
+                        riddle: "A father is 4 times as old as his daughter. In 6 years, he will be 3 times as old. How old are they now?",
+                        answer: "daughter is 6, father is 24",
+                        acceptedAnswers: ["6 and 24", "daughter 6 father 24", "6, 24"],
+                        hint: "Set up equations: F = 4D and F + 6 = 3(D + 6)",
+                        category: "math",
+                        difficulty: "hard"
+                    }
+                ]
+            },
+            lateral: {
+                easy: [
+                    {
+                        riddle: "A man lives in a house where all four walls face south. A bear walks by the house. What color is the bear?",
+                        answer: "white",
+                        acceptedAnswers: ["white", "polar bear"],
+                        hint: "Where is the only place this house could be?",
+                        category: "lateral",
+                        difficulty: "easy"
+                    }
+                ],
+                medium: [
+                    {
+                        riddle: "A man pushed his car to a hotel and told the owner he was bankrupt. What happened?",
+                        answer: "playing monopoly",
+                        acceptedAnswers: ["monopoly", "board game", "playing monopoly"],
+                        hint: "Think about a game with cars, hotels, and bankruptcy.",
+                        category: "lateral",
+                        difficulty: "medium"
+                    },
+                    {
+                        riddle: "Romeo and Juliet are found dead on the floor in a puddle of water. There is broken glass around them. How did they die?",
+                        answer: "they were fish",
+                        acceptedAnswers: ["fish", "they were fish", "goldfish"],
+                        hint: "They weren't human.",
+                        category: "lateral",
+                        difficulty: "medium"
+                    }
+                ],
+                hard: [
+                    {
+                        riddle: "A man calls his dog from the opposite side of a river. The dog crosses the river without getting wet, and without using a bridge or boat. How?",
+                        answer: "the river was frozen",
+                        acceptedAnswers: ["frozen", "river was frozen", "ice", "winter"],
+                        hint: "What state would the water be in?",
+                        category: "lateral",
                         difficulty: "hard"
                     }
                 ]
@@ -1090,17 +1230,17 @@
         })();
 
             (function(){
-            // expose helper to global scope for game wiring
-            window.playModeAudio = playModeAudio;
+            // expose helper to global scope for game wiring (guarded)
+            if (typeof playModeAudio === 'function') window.playModeAudio = playModeAudio;
             window.audioControls = {
-                setPlayerSrc,
-                play: () => audioPlayer.play(),
-                pause: () => audioPlayer.pause(),
-                stop: () => { audioPlayer.pause(); audioPlayer.currentTime = 0; },
+                setPlayerSrc: (typeof setPlayerSrc === 'function' ? setPlayerSrc : function(){}),
+                play: () => (window.audioPlayer ? window.audioPlayer.play() : undefined),
+                pause: () => (window.audioPlayer ? window.audioPlayer.pause() : undefined),
+                stop: () => { try { if (window.audioPlayer) { window.audioPlayer.pause(); window.audioPlayer.currentTime = 0; } } catch(e){} },
                 // queue helpers
-                getQueue: () => (audioQueue.slice()),
-                addToQueue: (src) => { if (src) { audioQueue.push(src); renderQueue(); } },
-                clearQueue: () => { audioQueue = []; currentQueueIndex = -1; renderQueue(); }
+                getQueue: () => (Array.isArray(audioQueue) ? audioQueue.slice() : []),
+                addToQueue: (src) => { if (src) { audioQueue.push(src); try { renderQueue(); } catch(e){} } },
+                clearQueue: () => { audioQueue = []; currentQueueIndex = -1; try { renderQueue(); } catch(e){} }
             };
 
             // Audio queue implementation
@@ -4714,5 +4854,7 @@
         try { if (typeof window.getQuestion !== 'function') window.getQuestion = getQuestion; } catch (e) {}
     } catch (e) { /* ignore insertion errors */ }
 })();
+</script>
 
 <script src="scripts/standalone-school-trivia.js"></script>
+<script type="module" src="/js/app.js"></script>
