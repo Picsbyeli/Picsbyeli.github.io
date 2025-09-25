@@ -25,7 +25,6 @@
                 Now playing: <span id="now-playing-track">None</span>
             </div>
             <div id="user-area" class="user-area">
-                <button id="signin-btn" class="nav-btn small">Sign in</button>
                 <div id="user-info" class="muted-center hidden">
                     <a href="#" id="user-email-link" title="User email">User</a>
                     <div><button id="signout-btn" class="nav-btn xsmall">Sign out</button></div>
@@ -140,7 +139,7 @@
             </div>
         </div>
 
-        <!-- Riddles Game -->
+            <!-- Riddles Game -->
         <div id="riddles-page" class="game-container hidden">
             <div class="game-header">
                 <h1 class="game-title-main">🧩 Brain Riddles</h1>
@@ -2544,5 +2543,150 @@
             } catch (e) { /* ignore */ }
         });
     </script>
-</body>
-</html>
+
+    <!-- 🎵 Floating Music Player (updated) -->
+    <div id="musicPlayer">
+        <div id="player-controls">
+            <button id="prevBtn">⏮️</button>
+            <button id="playBtn">▶️</button>
+            <button id="pauseBtn">⏸️</button>
+            <button id="nextBtn">⏭️</button>
+            <button id="loopBtn">🔁</button>
+        </div>
+        <div id="progress"><div class="bar" id="progressBar"></div></div>
+        <ul id="playlist"></ul>
+        <input type="file" id="fileInput" accept="audio/mp3" multiple hidden>
+        <button id="uploadBtn">+ Add Songs</button>
+        <audio id="audio" preload="auto"></audio>
+    </div>
+
+    <style>
+        /* 🎨 Floating dark panel styled to match your site */
+        #musicPlayer { position: fixed; bottom: 18px; right: 18px; width: 280px; background: #111; color: #eee; border: 1px solid #333; border-radius: 12px; padding: 10px; font-family: system-ui, sans-serif; box-shadow: 0 0 12px rgba(0,0,0,0.5); z-index: 9999; }
+        #player-controls { display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; }
+        #player-controls button { background: #222; color: #eee; border: 0; padding: 6px; border-radius: 6px; cursor: pointer; }
+        #player-controls button:hover { background: #333; }
+        #progress { height: 6px; background: #222; border-radius: 4px; margin: 6px 0; cursor: pointer; }
+        #progress .bar { height: 100%; width: 0%; background: linear-gradient(90deg, #8b5cf6, #06b6d4); border-radius: 4px; }
+        #playlist { list-style: none; padding: 0; margin: 6px 0 0 0; max-height: 120px; overflow-y: auto; font-size: 13px; }
+        #playlist li { padding: 4px; cursor: pointer; border-radius: 4px; }
+        #playlist li:hover { background: #222; }
+        #playlist li.active { background: #333; font-weight: bold; }
+        #uploadBtn { width: 100%; margin-top: 8px; padding: 6px; background: #222; color: #eee; border: 0; border-radius: 6px; cursor: pointer; }
+        #uploadBtn:hover { background: #333; }
+    </style>
+
+    <script>
+        // 📂 Default songs from repo's assets/audio folder (encodeURI used for spaces)
+        let songs = [
+            { title: "Marvel Opening Theme", src: encodeURI("assets/audio/Marvel Opening Theme.mp3") },
+            { title: "Pokémon Theme Song", src: encodeURI("assets/audio/Pokémon Theme Song.mp3") },
+            { title: "Star Wars Main Theme (Full)", src: encodeURI("assets/audio/Star Wars Main Theme (Full).mp3") }
+        ];
+
+        let currentSongIndex = 0;
+        let loopMode = true;
+
+        const audio = document.getElementById("audio");
+        const playBtn = document.getElementById("playBtn");
+        const pauseBtn = document.getElementById("pauseBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const loopBtn = document.getElementById("loopBtn");
+        const playlist = document.getElementById("playlist");
+        const progress = document.getElementById("progress");
+        const progressBar = document.getElementById("progressBar");
+        const fileInput = document.getElementById("fileInput");
+        const uploadBtn = document.getElementById("uploadBtn");
+
+        // 🟢 Save state in localStorage
+        function saveState() {
+            try {
+                localStorage.setItem("musicPlayerState", JSON.stringify({
+                    index: currentSongIndex,
+                    time: audio.currentTime,
+                    loop: loopMode,
+                    songs: songs
+                }));
+            } catch (e) { /* ignore storage errors */ }
+        }
+
+        function loadState() {
+            try {
+                const state = JSON.parse(localStorage.getItem("musicPlayerState") || "{}");
+                if (state.songs) songs = state.songs;
+                if (typeof state.index === "number") currentSongIndex = state.index;
+                if (typeof state.loop === "boolean") loopMode = state.loop;
+                return state.time || 0;
+            } catch (e) { return 0; }
+        }
+
+        function loadSong(index, autoplay=false) {
+            if (!songs || songs.length === 0) return;
+            currentSongIndex = ((index % songs.length) + songs.length) % songs.length;
+            audio.src = songs[currentSongIndex].src;
+            audio.load();
+            updatePlaylistUI();
+            if (autoplay) audio.play().catch(()=>{});
+            saveState();
+        }
+
+        function updatePlaylistUI() {
+            playlist.innerHTML = '';
+            songs.forEach((song, index) => {
+                const li = document.createElement('li');
+                li.textContent = song.title;
+                if (index === currentSongIndex) li.classList.add('active');
+                li.onclick = () => loadSong(index, true);
+                playlist.appendChild(li);
+            });
+        }
+
+        playBtn.onclick = () => audio.play().catch(()=>{});
+        pauseBtn.onclick = () => audio.pause();
+        prevBtn.onclick = () => loadSong(currentSongIndex - 1, true);
+        nextBtn.onclick = () => loadSong(currentSongIndex + 1, true);
+
+        loopBtn.onclick = () => { loopMode = !loopMode; loopBtn.textContent = loopMode ? "🔁" : "➡️"; saveState(); };
+
+        audio.onended = () => { if (loopMode) nextBtn.onclick(); };
+
+        audio.ontimeupdate = () => {
+            progressBar.style.width = (audio.currentTime / (audio.duration || 1)) * 100 + "%";
+            saveState();
+        };
+
+        progress.onclick = (e) => {
+            const pct = e.offsetX / progress.offsetWidth;
+            audio.currentTime = pct * (audio.duration || 1);
+        };
+
+        // 🔼 Add more songs via upload
+        uploadBtn.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => {
+            Array.from(e.target.files).forEach(file => {
+                const url = URL.createObjectURL(file);
+                songs.push({ title: file.name.replace(/\.mp3$/i, ''), src: url });
+            });
+            updatePlaylistUI();
+            saveState();
+        };
+
+        // 🟢 Resume from last state
+        const resumeTime = loadState();
+        updatePlaylistUI();
+        loadSong(currentSongIndex, false);
+        audio.currentTime = resumeTime;
+
+        // 🟢 Only start music when game is started
+        document.querySelectorAll("a, button").forEach((el) => {
+            if (el.textContent.match(/play|game/i)) {
+                el.addEventListener("click", () => {
+                    if (audio.paused) loadSong(currentSongIndex, true);
+                }, { once: true });
+            }
+        });
+    </script>
+
+    </body>
+    </html>
