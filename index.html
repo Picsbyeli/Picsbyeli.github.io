@@ -19,6 +19,7 @@
                 <button class="nav-btn" onclick="showPage(event,'valentine')">Twenty Questions</button>
                 <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
                 <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
+                <button class="nav-btn" onclick="showPage(event,'school-trivia')">School Trivia</button>
             </div>
             <div class="now-playing" id="now-playing" aria-live="polite">
                 <span class="now-playing-art" id="now-playing-art">🎵</span>
@@ -482,6 +483,43 @@
             <div id="animal-feedback"></div>
             <div id="animal-game-over"></div>
         </div>
+
+                <!-- School Trivia Game -->
+                <div id="school-trivia" class="game-container hidden">
+                        <div class="game-header">
+                                <h1 class="game-title-main">🏫 School Trivia</h1>
+                                <div class="selectors">
+                                        <label>Subject
+                                            <select id="school-subject">
+                                                <option>Math</option>
+                                                <option>Science</option>
+                                                <option>History</option>
+                                                <option>English</option>
+                                            </select>
+                                        </label>
+                                        <label>Difficulty
+                                            <select id="school-difficulty">
+                                                <option>Easy</option>
+                                                <option selected>Medium</option>
+                                                <option>Hard</option>
+                                                <option>Expert</option>
+                                            </select>
+                                        </label>
+                                </div>
+                        </div>
+
+                        <div class="game-info">
+                                <div class="info-card"><div class="info-label">Question</div><div class="info-value" id="school-q-count">0</div></div>
+                                <div class="info-card"><div class="info-label">Score</div><div class="info-value" id="school-score">0</div></div>
+                        </div>
+
+                        <div id="school-question" class="trivia-question">Press "New Question" to start.</div>
+                        <div class="action-buttons">
+                                <button class="btn btn-primary" id="school-new">New Question</button>
+                                <button class="btn btn-secondary" id="school-show-answer" disabled>Show Answer</button>
+                        </div>
+                        <div id="school-answer" class="muted-center"></div>
+                </div>
     </div>
 
     <script>
@@ -2693,3 +2731,39 @@
 
     <!-- Load Question Engine -->
     <script src="scripts/question-engine.js"></script>
+    <script>
+    // School Trivia wiring
+    document.addEventListener('DOMContentLoaded', () => {
+        const newBtn = document.getElementById('school-new');
+        const showBtn = document.getElementById('school-show-answer');
+        const qEl = document.getElementById('school-question');
+        const aEl = document.getElementById('school-answer');
+        const subj = document.getElementById('school-subject');
+        const diff = document.getElementById('school-difficulty');
+        const qCount = document.getElementById('school-q-count');
+
+        let lastQA = null;
+        let counter = 0;
+
+        function updateCount() { qCount.textContent = String(counter); }
+
+        newBtn.addEventListener('click', () => {
+            const s = subj.value;
+            const d = diff.value;
+            const res = (window.QuestionEngine && window.QuestionEngine.getQuestion)
+                ? window.QuestionEngine.getQuestion('School Trivia', s, d)
+                : { q: 'Question engine not loaded', a: null };
+            lastQA = res;
+            qEl.textContent = res.q || 'No question';
+            aEl.textContent = '';
+            showBtn.disabled = !res.a;
+            counter++;
+            updateCount();
+        });
+
+        showBtn.addEventListener('click', () => {
+            if (!lastQA) return;
+            aEl.textContent = lastQA.a || 'No answer available';
+        });
+    });
+    </script>
