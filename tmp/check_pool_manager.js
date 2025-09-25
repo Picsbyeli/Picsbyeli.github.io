@@ -7,8 +7,10 @@ const { chromium } = require('playwright');
     try { localStorage.setItem('burbleUser', JSON.stringify({ username: 'eli', email: 'eli@example.com', isAdmin: true })); } catch (e) {}
   });
   await page.goto('http://127.0.0.1:8002/index.html');
-  const exists = await page.$('#pool-manager');
-  if (!exists) { console.log('pool-manager: not found'); await browser.close(); return; }
+  const signin = await page.$('#signin-btn');
+  console.log('signin-btn present:', !!signin);
+  const pm = await page.$('#pool-manager');
+  if (!pm) { console.log('pool-manager: not found'); await browser.close(); return; }
   const disp = await page.$eval('#pool-manager', el => window.getComputedStyle(el).display);
   console.log('pool-manager display:', disp);
   await browser.close();

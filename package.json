@@ -24,6 +24,7 @@
     "@playwright/test": "^1.55.0"
   },
   "dependencies": {
+    "firebase": "^12.3.0",
     "jsdom": "^22.1.0"
   }
 }
