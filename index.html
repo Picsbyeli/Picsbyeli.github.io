@@ -12,250 +12,96 @@
     <script src="scripts/questions-riddles.js"></script>
     <script src="scripts/questions-emoji.js"></script>
     <script src="scripts/questions-valentine.js"></script>
-    <script src="scripts/questions-burble.js"></script>
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo" onclick="showPage(event,'home')">🧩 Burble</div>
-            <div class="nav-buttons">
-                <button class="nav-btn active" onclick="showPage(event,'home')">Home</button>
-                <button class="nav-btn" onclick="showPage(event,'riddles')">Riddles</button>
-                <button class="nav-btn" onclick="showPage(event,'burble')">Burble</button>
-                <button class="nav-btn" onclick="showPage(event,'emoji')">Emoji</button>
-                <button class="nav-btn" onclick="showPage(event,'valentine')">Twenty Questions</button>
-                <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
-                <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
-                    <button class="nav-btn" onclick="showPage(event,'school-trivia')">School Trivia</button>
-                    <!-- TOP BAR MUSIC PLAYER (inserted) -->
-                    <div id="topbar-player" aria-label="Site music player">
-                        <span class="tp-label">🎵 Now playing:</span>
-                        <select id="tp-song" aria-label="Song list"></select>
-                        <button id="tp-prev" title="Previous">⏮</button>
-                        <button id="tp-play" title="Play/Pause">▶️</button>
-                        <button id="tp-next" title="Next">⏭</button>
-                        <button id="tp-back10" title="Back 10s">-10s</button>
-                        <button id="tp-fwd10" title="Forward 10s">+10s</button>
-                        <input id="tp-seek" type="range" min="0" max="100" value="0" aria-label="Seek">
-                        <input id="tp-vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume">
-                        <label class="tp-inline">
-                            <input id="tp-loop-one" type="checkbox">
-                            <span>Loop 1</span>
-                        </label>
-                        <button id="tp-add" title="Add Songs">＋</button>
-                        <input id="tp-file" type="file" accept="audio/mpeg,audio/mp3" multiple hidden>
-                        <audio id="tp-audio" preload="auto" crossorigin="anonymous"></audio>
-                    </div>
-            </div>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>PicsByEli Games</title>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>PicsByEli Games</title>
+        <link rel="stylesheet" href="./style.css">
+        <style>
+            #debug-dump, pre#stateDump, pre#poolDump, pre.debug-dump, .debug-json, #pool-manager { display:none !important; }
+            #topbar-player .tp-label { display:none !important; }
+            .hidden { display:none !important; }
+        </style>
+    </head>
+    <body>
+        <nav>
+            <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
+            <button class="nav-btn" onclick="showPage(event,'animal')">Animal Trivia</button>
+            <button class="nav-btn" onclick="showPage(event,'riddles')">Riddles</button>
+            <button class="nav-btn" onclick="showPage(event,'puzzles')">Puzzles</button>
+            <button class="nav-btn" onclick="showPage(event,'leaderboard')">Leaderboard</button>
+            <span id="navUser">Guest</span>
+            <button id="btnAuth">Sign in</button>
+            <button id="btnSignOut" style="display:none">Sign out</button>
+        </nav>
 
-            <div id="user-area" class="user-area">
-                <!-- Right-side controls: auth chip, avatar, settings -->
-                <div id="topRightControls" style="display:flex; align-items:center; gap:10px; margin-left:auto">
-                    <span id="authChip"></span>
-                    <button id="avatarBtn" title="Profile" style="width:36px;height:36px;border-radius:50%;overflow:hidden;border:0;padding:0;cursor:pointer;background:#ffffff22">
-                        <img id="avatarImg" alt="avatar" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
-                        <span id="avatarFallback" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:#fff">👤</span>
-                    </button>
-                    <input id="avatarFile" type="file" accept="image/*" hidden>
-                    <button id="settingsBtn" title="Settings" style="width:36px;height:36px;border-radius:50%;border:0;background:#ffffff22;color:#fff;cursor:pointer">⚙️</button>
-                </div>
-                <div id="user-info" class="muted-center hidden">
-                    <a href="#" id="user-email-link" title="User email">User</a>
-                    <div><button id="signout-btn" class="nav-btn xsmall">Sign out</button></div>
-                </div>
-            </div>
-            <!-- Audio Controls -->
-            <div class="audio-controls" id="audio-controls" aria-label="Audio controls">
-                <select id="audio-mode" title="Mode" aria-label="Audio mode">
-                    <option value="all">All</option>
-                    <option value="riddles">Riddles</option>
+        <div id="trivia" class="page hidden"><h2>Trivia</h2><pre id="trivia-run"></pre></div>
+        <div id="animal" class="page hidden"><h2>Animal Trivia</h2><pre id="animal-run"></pre></div>
+        <div id="riddles" class="page hidden"><h2>Riddles</h2><pre id="riddles-run"></pre></div>
+        <div id="puzzles" class="page hidden"><h2>Puzzles</h2><pre id="puzzles-run"></pre></div>
+
+        <div id="leaderboard" class="page hidden">
+            <h2>🏆 Leaderboard</h2>
+            <label style="display:block;margin-bottom:4px">Game
+                <select id="lbGame" aria-label="Choose game leaderboard" style="margin-left:4px">
                     <option value="trivia">Trivia</option>
                     <option value="animal">Animal Trivia</option>
-                    <option value="burble">Burble</option>
-                    <option value="emoji">Emoji</option>
-                    <option value="valentine">Twenty Questions</option>
+                    <option value="riddles">Riddles</option>
+                    <option value="puzzles">Puzzles</option>
                 </select>
-
-                <select id="audio-track" title="Track" aria-label="Audio track"></select>
-
-                <button id="audio-prev" title="Previous">◀</button>
-                <button id="audio-rewind" title="Rewind 10s">-10s</button>
-                <button id="audio-play" title="Play">▶</button>
-                <button id="audio-pause" title="Pause">❚❚</button>
-                <button id="audio-forward" title="Forward 10s">+10s</button>
-                <button id="audio-next" title="Next">▶▶</button>
-
-                <input type="range" id="audio-volume" class="volume" min="0" max="1" step="0.01" aria-label="Audio volume" title="Audio volume">
-                <label for="audio-show-queue" class="audio-queue-label" title="Show queue"><input type="checkbox" id="audio-show-queue">Queue</label>
-            </div>
-
-                    <!-- Settings Modal (shared) -->
-                    <div id="settingsModal" style="display:none;position:fixed;inset:0;background:#0008;z-index:9999;align-items:center;justify-content:center">
-                        <div style="width:min(520px,92%);background:#14151f;color:#fff;border:1px solid #2b2d3a;border-radius:12px;padding:16px">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                                <h3 style="margin:0">Settings</h3>
-                                <button id="settingsClose" style="background:#ffffff22;border:0;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer">✖</button>
-                            </div>
-
-                            <label style="display:block;margin:10px 0">Language
-                                <select id="setLanguage" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
-                                    <option value="en">English</option>
-                                    <option value="es">Español (beta)</option>
-                                    <option value="fr">Français (beta)</option>
-                                </select>
-                            </label>
-
-                            <label style="display:block;margin:10px 0">Theme
-                                <select id="setTheme" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
-                                    <option value="system">System</option>
-                                    <option value="dark">Dark</option>
-                                    <option value="light">Light</option>
-                                </select>
-                            </label>
-
-                            <label style="display:block;margin:10px 0">Font size
-                                <input id="setFont" type="range" min="14" max="22" step="1" value="16" style="width:100%">
-                                <small id="setFontVal">16px</small>
-                            </label>
-
-                            <hr style="border:none;border-top:1px solid #2b2d3a;margin:12px 0">
-
-                            <!-- Help bot -->
-                            <div>
-                                <h4 style="margin:6px 0 8px">Help Assistant</h4>
-                                <div id="helpLog" style="max-height:180px;overflow:auto;background:#0f1120;border:1px solid #2b2d3a;border-radius:8px;padding:10px;margin-bottom:8px"></div>
-                                <div style="display:flex;gap:8px">
-                                    <input id="helpInput" placeholder="Ask about the site…" style="flex:1;padding:10px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
-                                    <button id="helpSend" style="background:#6a5acd;border:0;color:#fff;border-radius:8px;padding:10px 14px;cursor:pointer">Ask</button>
-                                </div>
-                                <small>Tip: Try “How do I register?”, “Where is School Trivia?”, “How do leaderboards work?”</small>
-                            </div>
-                        </div>
-                    </div>
-            <div id="audio-queue" class="audio-queue hidden" aria-hidden="true">
-                <div class="queue-header">
-                        <strong class="queue-title">Queue</strong>
-                        <div>
-                            <button id="audio-clear-queue" title="Clear queue" class="clear-queue-btn">Clear</button>
-                        </div>
-                    </div>
-                <div id="audio-queue-list"></div>
-            </div>
+            </label>
+            <button id="lbRefresh">Refresh</button>
+            <pre id="lbRows" style="margin-top:12px"></pre>
         </div>
 
-        <section id="pool-manager" class="mt-6">
-            <h3>Pool Manager</h3>
-            <p id="pool-manager-desc">Persistent pools ensure questions don't repeat across runs. Use this to inspect and reset pools.</p>
-            <div id="pool-counts" aria-live="polite" class="mb-2">Loading pool counts…</div>
-            <button id="reset-all-pools">Reset All Pools</button>
-        </section>
-
-        <!-- Home Page -->
-        <div id="home-page" class="game-container">
-            <div class="hero-section">
-                <h1 class="hero-title">Brain Teasers & Riddles</h1>
-                <p class="hero-subtitle">Challenge your mind with puzzles, riddles, and brain games</p>
-                
-                <!-- User Stats -->
-                <div class="user-stats">
-                    <div class="stat-card">
-                        <div class="stat-value" id="total-score">0</div>
-                        <div class="stat-label">Total Score</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="games-played">0</div>
-                        <div class="stat-label">Games Played</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="games-won">0</div>
-                        <div class="stat-label">Games Won</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="win-rate">0%</div>
-                        <div class="stat-label">Win Rate</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Games Grid -->
-            <div class="games-grid">
-                <div class="game-card" onclick="showPage(event,'riddles')">
-                    <div class="game-icon">🧩</div>
-                    <div class="game-title">Brain Riddles</div>
-                    <div class="game-description">Classic riddles and brain teasers across all categories</div>
-                </div>
-                
-                <div class="game-card" onclick="showPage(event,'burble')">
-                    <div class="game-icon">📚</div>
-                    <div class="game-title">Burble Word Game</div>
-                    <div class="game-description">Word guessing with feedback and hints</div>
-                </div>
-                
-                <div class="game-card" onclick="showPage(event,'emoji')">
-                    <div class="game-icon">🎨</div>
-                    <div class="game-title">Emoji Guess</div>
-                    <div class="game-description">Decode emoji combinations</div>
-                </div>
-                
-                <div class="game-card" onclick="showPage(event,'valentine')">
-                    <div class="game-icon">🎯</div>
-                    <div class="game-title">Twenty Questions</div>
-                    <div class="game-description">Yes/No question guessing game</div>
-                </div>
-                
-                <div class="game-card" onclick="showPage(event,'trivia')">
-                    <div class="game-icon">🧠</div>
-                    <div class="game-title">General Trivia</div>
-                    <div class="game-description">Test your knowledge across various topics</div>
-                </div>
-                
-                <div class="game-card" onclick="showPage(event,'animal-trivia')">
-                    <div class="game-icon">🦁</div>
-                    <div class="game-title">Animal Trivia</div>
-                    <div class="game-description">Animal-focused quiz questions</div>
-                </div>
-            </div>
-        </div>
-
-            <!-- Riddles Game -->
-        <div id="riddles-page" class="game-container hidden">
-            <div class="game-header">
-                <h1 class="game-title-main">🧩 Brain Riddles</h1>
-                
-                <div class="difficulty-selector">
-                    <span class="selector-label">Difficulty</span>
-                    <div class="selector-buttons">
-                        <button class="selector-btn" data-difficulty="easy">Easy</button>
-                        <button class="selector-btn active" data-difficulty="medium">Medium</button>
-                        <button class="selector-btn" data-difficulty="hard">Hard</button>
-                    </div>
-                </div>
-
-                <div class="category-selector">
-                    <span class="selector-label">Category</span>
-                    <div class="selector-buttons">
-                        <button class="selector-btn active" data-category="all">All Types</button>
-                        <button class="selector-btn" data-category="logic">Logic</button>
-                        <button class="selector-btn" data-category="word">Word</button>
-                        <button class="selector-btn" data-category="math">Math</button>
-                        <button class="selector-btn" data-category="lateral">Lateral Thinking</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="game-info">
-                <div class="info-card">
-                    <div class="info-label">Score</div>
-                    <div class="info-value" id="riddles-score">0</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Solved</div>
-                    <div class="info-value" id="riddles-solved">0</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Category</div>
-                    <div class="info-value" id="riddles-category">All Types</div>
+        <script src="./scripts/question-utils.js"></script>
+        <script src="./scripts/questions-trivia.js"></script>
+        <script src="./scripts/questions-animals.js"></script>
+        <script src="./scripts/questions-riddles.js"></script>
+        <script src="./scripts/questions-emoji.js"></script>
+        <script src="./scripts/questions-valentine.js"></script>
+        <script src="./scripts/questions-burble.js"></script>
+        <script type="module" src="./scripts/auth.js"></script>
+        <script type="module" src="./scripts/leaderboard.js"></script>
+        <script type="module" src="./scripts/player-extend.js"></script>
+        <script src="./scripts/app.js"></script>
+        <script>
+            function showPage(e,id){
+                document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+                const el=document.getElementById(id); if(el) el.classList.remove('hidden');
+                document.querySelectorAll('nav .nav-btn').forEach(b=>b.classList.remove('active'));
+                if(e && e.currentTarget) e.currentTarget.classList.add('active');
+            }
+            function startTriviaGame(){
+                const src=(window.triviaQuestions && window.triviaQuestions.easy)||[];
+                const run=window.getUniqueRun(src,'trivia_easy',10);
+                document.getElementById('trivia-run').textContent=run.map(q=>q.question).join('\n');
+            }
+            function startAnimalTriviaGame(){
+                const cat=(window.animalTriviaQuestions && window.animalTriviaQuestions.medium)||[];
+                const run=window.getUniqueRun(cat,'animal_medium',10);
+                document.getElementById('animal-run').textContent=run.map(q=>q.question).join('\n');
+            }
+            function startRiddlesGame(){
+                const list=(window.riddlesData && window.riddlesData.logic && window.riddlesData.logic.medium)||[];
+                const run=window.getUniqueRun(list,'riddles_logic_medium',10);
+                document.getElementById('riddles-run').textContent=run.map(r=>r.riddle).join('\n');
+            }
+            function startPuzzlesGame(){
+                const all=Object.values(window.emojiPuzzles||{}).flat();
+                const run=window.getUniqueRun(all,'puzzles_all',10);
+                document.getElementById('puzzles-run').textContent=run.map(p=>p.emoji+': '+p.answer).join('\n');
+            }
+            window.addEventListener('DOMContentLoaded',()=>{ showPage(null,'trivia'); startTriviaGame(); });
+        </script>
+    </body>
+    </html>
                 </div>
                 <div class="info-card">
                     <div class="info-label">Difficulty</div>

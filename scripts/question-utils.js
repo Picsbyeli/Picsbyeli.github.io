@@ -58,3 +58,8 @@ window.questionUtils = {
   resetPool,
   resetAllPools
 };
+
+// Backwards compatibility alias for simpler access
+if (!window.getUniqueRun) {
+  window.getUniqueRun = getUniqueRun;
+}

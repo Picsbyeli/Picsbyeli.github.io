@@ -1,0 +1,10 @@
+/* Shim stylesheet forwarding to existing assets/css/styles.css */
+@import url('assets/css/styles.css');
+
+/* New minimal layout helpers */
+nav { display:flex; gap:8px; padding:8px; background:#222; color:#fff; align-items:center; flex-wrap:wrap; }
+nav .nav-btn { background:#444; color:#fff; border:0; padding:6px 12px; border-radius:4px; cursor:pointer; }
+nav .nav-btn.active { background:#6a5acd; }
+.page { padding:16px; }
+.hidden { display:none !important; }
+#lbRows { margin-top:12px; font-family:system-ui, sans-serif; white-space:pre-wrap; }
