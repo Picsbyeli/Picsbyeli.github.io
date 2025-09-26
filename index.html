@@ -609,6 +609,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+    <!-- Player extension: drag & drop uploads -->
+    <script type="module" src="./scripts/player-extend.js"></script>
+
     const TP_TRACKS = [
         { title: "Marvel Opening Theme", url: "assets/audio/Marvel Opening Theme.mp3" },
         { title: "Pokémon Theme Song",    url: "assets/audio/Pokémon Theme Song.mp3" },
@@ -656,6 +659,21 @@ document.addEventListener('DOMContentLoaded', function(){
     audio?.addEventListener('ended', ()=>{ state.loop1 ? (audio.currentTime=0, play()) : next(); });
     audio?.addEventListener('play', ()=>{ btnPlay.textContent='⏸'; state.playing=true; save(); });
     audio?.addEventListener('pause', ()=>{ btnPlay.textContent='▶️'; state.playing=false; save(); });
+
+    // Public API for extensions (drag/drop, cloud uploads, etc)
+    window.playerApi = {
+        addTracks(tracks){
+            if(!Array.isArray(tracks) || !tracks.length) return;
+            tracks.forEach(t => { if(t && t.url && t.title){ state.tracks.push({ title: String(t.title), url: String(t.url) }); }});
+            buildSongList();
+            save();
+        },
+        getState(){ return { ...state }; },
+        playIndex(i){ load(Number(i)||0,false); play(); },
+        next, prev,
+        play(){ if(audio.paused) play(); },
+        pause(){ if(!audio.paused) pause(); }
+    };
 
         (function init(){
             if (!audio) return; // guard if DOM ids not present
