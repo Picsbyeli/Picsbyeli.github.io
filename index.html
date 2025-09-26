@@ -5,103 +5,250 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Burble - Brain Teasers & Riddles Platform</title>
     <link rel="stylesheet" href="assets/css/styles.css">
-    <!-- Question pool manager and data -->
-    <script src="scripts/question-utils.js"></script>
-    <script src="scripts/questions-trivia.js"></script>
-    <script src="scripts/questions-animals.js"></script>
-    <script src="scripts/questions-riddles.js"></script>
-    <script src="scripts/questions-emoji.js"></script>
-    <script src="scripts/questions-valentine.js"></script>
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <title>PicsByEli Games</title>
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>PicsByEli Games</title>
-        <link rel="stylesheet" href="./style.css">
-        <style>
-            #debug-dump, pre#stateDump, pre#poolDump, pre.debug-dump, .debug-json, #pool-manager { display:none !important; }
-            #topbar-player .tp-label { display:none !important; }
-            .hidden { display:none !important; }
-        </style>
-    </head>
-    <body>
-        <nav>
-            <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
-            <button class="nav-btn" onclick="showPage(event,'animal')">Animal Trivia</button>
-            <button class="nav-btn" onclick="showPage(event,'riddles')">Riddles</button>
-            <button class="nav-btn" onclick="showPage(event,'puzzles')">Puzzles</button>
-            <button class="nav-btn" onclick="showPage(event,'leaderboard')">Leaderboard</button>
-            <span id="navUser">Guest</span>
-            <button id="btnAuth">Sign in</button>
-            <button id="btnSignOut" style="display:none">Sign out</button>
-        </nav>
+    <script src="/questions.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo" onclick="showPage(event,'home')">🧩 Burble</div>
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showPage(event,'home')">Home</button>
+                <button class="nav-btn" onclick="showPage(event,'riddles')">Riddles</button>
+                <button class="nav-btn" onclick="showPage(event,'burble')">Burble</button>
+                <button class="nav-btn" onclick="showPage(event,'emoji')">Emoji</button>
+                <button class="nav-btn" onclick="showPage(event,'valentine')">Twenty Questions</button>
+                <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
+                <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
+                    <button class="nav-btn" onclick="showPage(event,'school-trivia')">School Trivia</button>
+                    <!-- TOP BAR MUSIC PLAYER (inserted) -->
+                    <div id="topbar-player" aria-label="Site music player">
+                        <span class="tp-label">🎵 Now playing:</span>
+                        <select id="tp-song" aria-label="Song list"></select>
+                        <button id="tp-prev" title="Previous">⏮</button>
+                        <button id="tp-play" title="Play/Pause">▶️</button>
+                        <button id="tp-next" title="Next">⏭</button>
+                        <button id="tp-back10" title="Back 10s">-10s</button>
+                        <button id="tp-fwd10" title="Forward 10s">+10s</button>
+                        <input id="tp-seek" type="range" min="0" max="100" value="0" aria-label="Seek">
+                        <input id="tp-vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume">
+                        <label class="tp-inline">
+                            <input id="tp-loop-one" type="checkbox">
+                            <span>Loop 1</span>
+                        </label>
+                        <button id="tp-add" title="Add Songs">＋</button>
+                        <input id="tp-file" type="file" accept="audio/mpeg,audio/mp3" multiple hidden>
+                        <audio id="tp-audio" preload="auto" crossorigin="anonymous"></audio>
+                    </div>
+            </div>
 
-        <div id="trivia" class="page hidden"><h2>Trivia</h2><pre id="trivia-run"></pre></div>
-        <div id="animal" class="page hidden"><h2>Animal Trivia</h2><pre id="animal-run"></pre></div>
-        <div id="riddles" class="page hidden"><h2>Riddles</h2><pre id="riddles-run"></pre></div>
-        <div id="puzzles" class="page hidden"><h2>Puzzles</h2><pre id="puzzles-run"></pre></div>
-
-        <div id="leaderboard" class="page hidden">
-            <h2>🏆 Leaderboard</h2>
-            <label style="display:block;margin-bottom:4px">Game
-                <select id="lbGame" aria-label="Choose game leaderboard" style="margin-left:4px">
+            <div id="user-area" class="user-area">
+                <!-- Right-side controls: auth chip, avatar, settings -->
+                <div id="topRightControls" style="display:flex; align-items:center; gap:10px; margin-left:auto">
+                    <span id="authChip"></span>
+                    <button id="avatarBtn" title="Profile" style="width:36px;height:36px;border-radius:50%;overflow:hidden;border:0;padding:0;cursor:pointer;background:#ffffff22">
+                        <img id="avatarImg" alt="avatar" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                        <span id="avatarFallback" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:#fff">👤</span>
+                    </button>
+                    <input id="avatarFile" type="file" accept="image/*" hidden>
+                    <button id="settingsBtn" title="Settings" style="width:36px;height:36px;border-radius:50%;border:0;background:#ffffff22;color:#fff;cursor:pointer">⚙️</button>
+                </div>
+                <div id="user-info" class="muted-center hidden">
+                    <a href="#" id="user-email-link" title="User email">User</a>
+                    <div><button id="signout-btn" class="nav-btn xsmall">Sign out</button></div>
+                </div>
+            </div>
+            <!-- Audio Controls -->
+            <div class="audio-controls" id="audio-controls" aria-label="Audio controls">
+                <select id="audio-mode" title="Mode" aria-label="Audio mode">
+                    <option value="all">All</option>
+                    <option value="riddles">Riddles</option>
                     <option value="trivia">Trivia</option>
                     <option value="animal">Animal Trivia</option>
-                    <option value="riddles">Riddles</option>
-                    <option value="puzzles">Puzzles</option>
+                    <option value="burble">Burble</option>
+                    <option value="emoji">Emoji</option>
+                    <option value="valentine">Twenty Questions</option>
                 </select>
-            </label>
-            <button id="lbRefresh">Refresh</button>
-            <pre id="lbRows" style="margin-top:12px"></pre>
+
+                <select id="audio-track" title="Track" aria-label="Audio track"></select>
+
+                <button id="audio-prev" title="Previous">◀</button>
+                <button id="audio-rewind" title="Rewind 10s">-10s</button>
+                <button id="audio-play" title="Play">▶</button>
+                <button id="audio-pause" title="Pause">❚❚</button>
+                <button id="audio-forward" title="Forward 10s">+10s</button>
+                <button id="audio-next" title="Next">▶▶</button>
+
+                <input type="range" id="audio-volume" class="volume" min="0" max="1" step="0.01" aria-label="Audio volume" title="Audio volume">
+                <label for="audio-show-queue" class="audio-queue-label" title="Show queue"><input type="checkbox" id="audio-show-queue">Queue</label>
+            </div>
+
+                    <!-- Settings Modal (shared) -->
+                    <div id="settingsModal" style="display:none;position:fixed;inset:0;background:#0008;z-index:9999;align-items:center;justify-content:center">
+                        <div style="width:min(520px,92%);background:#14151f;color:#fff;border:1px solid #2b2d3a;border-radius:12px;padding:16px">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                                <h3 style="margin:0">Settings</h3>
+                                <button id="settingsClose" style="background:#ffffff22;border:0;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer">✖</button>
+                            </div>
+
+                            <label style="display:block;margin:10px 0">Language
+                                <select id="setLanguage" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
+                                    <option value="en">English</option>
+                                    <option value="es">Español (beta)</option>
+                                    <option value="fr">Français (beta)</option>
+                                </select>
+                            </label>
+
+                            <label style="display:block;margin:10px 0">Theme
+                                <select id="setTheme" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
+                                    <option value="system">System</option>
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light</option>
+                                </select>
+                            </label>
+
+                            <label style="display:block;margin:10px 0">Font size
+                                <input id="setFont" type="range" min="14" max="22" step="1" value="16" style="width:100%">
+                                <small id="setFontVal">16px</small>
+                            </label>
+
+                            <hr style="border:none;border-top:1px solid #2b2d3a;margin:12px 0">
+
+                            <!-- Help bot -->
+                            <div>
+                                <h4 style="margin:6px 0 8px">Help Assistant</h4>
+                                <div id="helpLog" style="max-height:180px;overflow:auto;background:#0f1120;border:1px solid #2b2d3a;border-radius:8px;padding:10px;margin-bottom:8px"></div>
+                                <div style="display:flex;gap:8px">
+                                    <input id="helpInput" placeholder="Ask about the site…" style="flex:1;padding:10px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
+                                    <button id="helpSend" style="background:#6a5acd;border:0;color:#fff;border-radius:8px;padding:10px 14px;cursor:pointer">Ask</button>
+                                </div>
+                                <small>Tip: Try “How do I register?”, “Where is School Trivia?”, “How do leaderboards work?”</small>
+                            </div>
+                        </div>
+                    </div>
+            <div id="audio-queue" class="audio-queue hidden" aria-hidden="true">
+                <div class="queue-header">
+                        <strong class="queue-title">Queue</strong>
+                        <div>
+                            <button id="audio-clear-queue" title="Clear queue" class="clear-queue-btn">Clear</button>
+                        </div>
+                    </div>
+                <div id="audio-queue-list"></div>
+            </div>
         </div>
 
-        <script src="./scripts/question-utils.js"></script>
-        <script src="./scripts/questions-trivia.js"></script>
-        <script src="./scripts/questions-animals.js"></script>
-        <script src="./scripts/questions-riddles.js"></script>
-        <script src="./scripts/questions-emoji.js"></script>
-        <script src="./scripts/questions-valentine.js"></script>
-        <script src="./scripts/questions-burble.js"></script>
-        <script type="module" src="./scripts/auth.js"></script>
-        <script type="module" src="./scripts/leaderboard.js"></script>
-        <script type="module" src="./scripts/player-extend.js"></script>
-        <script src="./scripts/app.js"></script>
-        <script>
-            function showPage(e,id){
-                document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
-                const el=document.getElementById(id); if(el) el.classList.remove('hidden');
-                document.querySelectorAll('nav .nav-btn').forEach(b=>b.classList.remove('active'));
-                if(e && e.currentTarget) e.currentTarget.classList.add('active');
-            }
-            function startTriviaGame(){
-                const src=(window.triviaQuestions && window.triviaQuestions.easy)||[];
-                const run=window.getUniqueRun(src,'trivia_easy',10);
-                document.getElementById('trivia-run').textContent=run.map(q=>q.question).join('\n');
-            }
-            function startAnimalTriviaGame(){
-                const cat=(window.animalTriviaQuestions && window.animalTriviaQuestions.medium)||[];
-                const run=window.getUniqueRun(cat,'animal_medium',10);
-                document.getElementById('animal-run').textContent=run.map(q=>q.question).join('\n');
-            }
-            function startRiddlesGame(){
-                const list=(window.riddlesData && window.riddlesData.logic && window.riddlesData.logic.medium)||[];
-                const run=window.getUniqueRun(list,'riddles_logic_medium',10);
-                document.getElementById('riddles-run').textContent=run.map(r=>r.riddle).join('\n');
-            }
-            function startPuzzlesGame(){
-                const all=Object.values(window.emojiPuzzles||{}).flat();
-                const run=window.getUniqueRun(all,'puzzles_all',10);
-                document.getElementById('puzzles-run').textContent=run.map(p=>p.emoji+': '+p.answer).join('\n');
-            }
-            window.addEventListener('DOMContentLoaded',()=>{ showPage(null,'trivia'); startTriviaGame(); });
-        </script>
-    </body>
-    </html>
+        <section id="pool-manager" class="mt-6">
+            <h3>Pool Manager</h3>
+            <p id="pool-manager-desc">Persistent pools ensure questions don't repeat across runs. Use this to inspect and reset pools.</p>
+            <div id="pool-counts" aria-live="polite" class="mb-2">Loading pool counts…</div>
+            <button id="reset-all-pools">Reset All Pools</button>
+        </section>
+
+        <!-- Home Page -->
+        <div id="home-page" class="game-container">
+            <div class="hero-section">
+                <h1 class="hero-title">Brain Teasers & Riddles</h1>
+                <p class="hero-subtitle">Challenge your mind with puzzles, riddles, and brain games</p>
+                
+                <!-- User Stats -->
+                <div class="user-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-score">0</div>
+                        <div class="stat-label">Total Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="games-played">0</div>
+                        <div class="stat-label">Games Played</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="games-won">0</div>
+                        <div class="stat-label">Games Won</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="win-rate">0%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Games Grid -->
+            <div class="games-grid">
+                <div class="game-card" onclick="showPage(event,'riddles')">
+                    <div class="game-icon">🧩</div>
+                    <div class="game-title">Brain Riddles</div>
+                    <div class="game-description">Classic riddles and brain teasers across all categories</div>
+                </div>
+                
+                <div class="game-card" onclick="showPage(event,'burble')">
+                    <div class="game-icon">📚</div>
+                    <div class="game-title">Burble Word Game</div>
+                    <div class="game-description">Word guessing with feedback and hints</div>
+                </div>
+                
+                <div class="game-card" onclick="showPage(event,'emoji')">
+                    <div class="game-icon">🎨</div>
+                    <div class="game-title">Emoji Guess</div>
+                    <div class="game-description">Decode emoji combinations</div>
+                </div>
+                
+                <div class="game-card" onclick="showPage(event,'valentine')">
+                    <div class="game-icon">🎯</div>
+                    <div class="game-title">Twenty Questions</div>
+                    <div class="game-description">Yes/No question guessing game</div>
+                </div>
+                
+                <div class="game-card" onclick="showPage(event,'trivia')">
+                    <div class="game-icon">🧠</div>
+                    <div class="game-title">General Trivia</div>
+                    <div class="game-description">Test your knowledge across various topics</div>
+                </div>
+                
+                <div class="game-card" onclick="showPage(event,'animal-trivia')">
+                    <div class="game-icon">🦁</div>
+                    <div class="game-title">Animal Trivia</div>
+                    <div class="game-description">Animal-focused quiz questions</div>
+                </div>
+            </div>
+        </div>
+
+            <!-- Riddles Game -->
+        <div id="riddles-page" class="game-container hidden">
+            <div class="game-header">
+                <h1 class="game-title-main">🧩 Brain Riddles</h1>
+                
+                <div class="difficulty-selector">
+                    <span class="selector-label">Difficulty</span>
+                    <div class="selector-buttons">
+                        <button class="selector-btn" data-difficulty="easy">Easy</button>
+                        <button class="selector-btn active" data-difficulty="medium">Medium</button>
+                        <button class="selector-btn" data-difficulty="hard">Hard</button>
+                    </div>
+                </div>
+
+                <div class="category-selector">
+                    <span class="selector-label">Category</span>
+                    <div class="selector-buttons">
+                        <button class="selector-btn active" data-category="all">All Types</button>
+                        <button class="selector-btn" data-category="logic">Logic</button>
+                        <button class="selector-btn" data-category="word">Word</button>
+                        <button class="selector-btn" data-category="math">Math</button>
+                        <button class="selector-btn" data-category="lateral">Lateral Thinking</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-info">
+                <div class="info-card">
+                    <div class="info-label">Score</div>
+                    <div class="info-value" id="riddles-score">0</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Solved</div>
+                    <div class="info-value" id="riddles-solved">0</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Category</div>
+                    <div class="info-value" id="riddles-category">All Types</div>
                 </div>
                 <div class="info-card">
                     <div class="info-label">Difficulty</div>
@@ -678,9 +825,319 @@ document.addEventListener('DOMContentLoaded', function(){
             }
         };
 
-        // Word categories now loaded from external file
+        // Word categories for Burble game
+        const wordCategories = {
+            Food: {
+                4: ['cake', 'taco', 'rice', 'soup', 'bean', 'fish', 'pear', 'plum'],
+                5: ['pizza', 'apple', 'salad', 'pasta', 'fruit', 'onion', 'bread', 'steak'],
+                6: ['burger', 'cheese', 'cookie', 'banana', 'orange', 'tomato', 'potato'],
+                7: ['avocado', 'chicken', 'pancake', 'almond', 'noodles', 'sausage'],
+                8: ['broccoli', 'mushroom', 'sandwich', 'blueberry', 'eggplant', 'pineapple']
+            },
+            Animals: {
+                4: ['frog', 'wolf', 'bear', 'deer', 'bird', 'fish', 'lion', 'duck'],
+                5: ['tiger', 'sheep', 'snake', 'mouse', 'panda', 'koala', 'horse'],
+                6: ['turtle', 'giraffe', 'monkey', 'beaver', 'weasel', 'rabbit'],
+                7: ['dolphin', 'penguin', 'octopus', 'raccoon', 'leopard', 'buffalo'],
+                8: ['elephant', 'hedgehog', 'flamingo', 'kangaroo', 'scorpion', 'crocodile']
+            },
+            Colors: {
+                4: ['blue', 'pink', 'gold', 'gray', 'teal', 'cyan'],
+                5: ['green', 'brown', 'black', 'white', 'amber', 'azure'],
+                6: ['purple', 'silver', 'indigo', 'maroon', 'ochre', 'orange'],
+                7: ['crimson', 'magenta', 'cerulean', 'lavender', 'turquoise'],
+                8: ['burgundy', 'periwinkle', 'sapphire', 'platinum', 'marigold']
+            },
+            Cities: {
+                4: ['rome', 'oslo', 'bali', 'lima', 'york', 'lyon', 'riga', 'kiev'],
+                5: ['tokyo', 'paris', 'miami', 'delhi', 'dubai', 'seoul', 'cairo'],
+                6: ['london', 'berlin', 'moscow', 'madrid', 'munich', 'sydney'],
+                7: ['beijing', 'chicago', 'toronto', 'atlanta', 'houston', 'phoenix'],
+                8: ['shanghai', 'istanbul', 'budapest', 'montreal', 'florence', 'helsinki']
+            },
+            Items: {
+                4: ['fork', 'lamp', 'book', 'ring', 'desk', 'mask', 'pen', 'phone', 'shoe'],
+                5: ['table', 'chair', 'clock', 'brush', 'phone', 'purse', 'scarf', 'watch'],
+                6: ['mirror', 'pillow', 'remote', 'candle', 'wallet', 'hammer', 'laptop'],
+                7: ['charger', 'suitcase', 'backpack', 'earbuds', 'cushion', 'toaster'],
+                8: ['scissors', 'notebook', 'umbrella', 'keyboard', 'television', 'bookshelf']
+            },
+            Sports: {
+                4: ['golf', 'swim', 'bike', 'surf', 'bowl', 'judo', 'dive', 'ski'],
+                5: ['chess', 'rugby', 'skate', 'climb', 'kayak', 'dance', 'jog', 'cycle'],
+                6: ['soccer', 'hockey', 'tennis', 'boxing', 'rowing', 'hiking', 'racing'],
+                7: ['archery', 'bowling', 'cricket', 'fencing', 'jogging', 'baseball'],
+                8: ['football', 'basketball', 'wrestling', 'athletics', 'marathon', 'swimming']
+            }
+        };
 
-        // Riddles database now loaded from external file
+        // Comprehensive riddles database
+        const riddlesData = {
+            logic: {
+                easy: [
+                    {
+                        riddle: "What comes once in a minute, twice in a moment, but never in a thousand years?",
+                        answer: "the letter m",
+                        acceptedAnswers: ["m", "letter m", "the letter m"],
+                        hints: [
+                            "Think about the words in the riddle itself.",
+                            "Look at the letters that make up each word.",
+                            "Count the letter 'M' in 'minute', 'moment', and 'thousand years'."
+                        ],
+                        category: "logic",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "I'm tall when I'm young, and I'm short when I'm old. What am I?",
+                        answer: "candle",
+                        acceptedAnswers: ["candle", "a candle"],
+                        hints: [
+                            "This object changes size as it's used.",
+                            "It provides light and gets shorter over time.",
+                            "You light it with a match and it melts as it burns."
+                        ],
+                        category: "logic",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "What has keys but no locks, space but no room, you can enter but not go inside?",
+                        answer: "keyboard",
+                        acceptedAnswers: ["keyboard", "a keyboard", "computer keyboard"],
+                        hints: [
+                            "This is something you use with technology.",
+                            "It has an 'Enter' key and a 'Space' bar.",
+                            "You press its keys to type letters and numbers on a computer."
+                        ],
+                        category: "logic",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "What gets wet while drying?",
+                        answer: "towel",
+                        acceptedAnswers: ["towel", "a towel"],
+                        hints: [
+                            "This item is used in bathrooms.",
+                            "It absorbs moisture from something else while becoming moist itself.",
+                            "You use it after a shower to dry your body."
+                        ],
+                        category: "logic",
+                        difficulty: "easy"
+                    }
+                ],
+                medium: [
+                    {
+                        riddle: "The more you take, the more you leave behind. What am I?",
+                        answer: "footsteps",
+                        acceptedAnswers: ["footsteps", "steps", "footprints"],
+                        hints: [
+                            "This relates to movement and travel.",
+                            "Every time you do this action, you create evidence of it.",
+                            "When you walk, you take these and leave traces behind."
+                        ],
+                        category: "logic",
+                        difficulty: "medium"
+                    },
+                    {
+                        riddle: "I have cities, but no houses. I have mountains, but no trees. I have water, but no fish. What am I?",
+                        answer: "map",
+                        acceptedAnswers: ["map", "a map"],
+                        hints: [
+                            "This is a flat representation of something three-dimensional.",
+                            "It shows geographical features but not living things.",
+                            "You unfold this to find directions and plan routes."
+                        ],
+                        category: "logic",
+                        difficulty: "medium"
+                    },
+                    {
+                        riddle: "What breaks but never falls, and what falls but never breaks?",
+                        answer: "day breaks and night falls",
+                        acceptedAnswers: ["day and night", "day breaks night falls", "dawn and dusk"],
+                        hints: [
+                            "These are two opposite things that happen every day.",
+                            "One happens in the morning, the other in the evening.",
+                            "Think about sunrise (dawn ____) and sunset (night ____)"
+                        ],
+                        category: "logic",
+                        difficulty: "medium"
+                    },
+                    {
+                        riddle: "Forward I am heavy, but backward I am not. What am I?",
+                        answer: "ton",
+                        acceptedAnswers: ["ton", "the word ton"],
+                        hints: [
+                            "This is a wordplay riddle about spelling.",
+                            "Think about what this word means forward vs backward.",
+                            "The word 'TON' spelled backward is 'NOT'."
+                        ],
+                        category: "logic",
+                        difficulty: "medium"
+                    }
+                ],
+                hard: [
+                    {
+                        riddle: "A man lives on the twentieth floor of an apartment building. Every morning he takes the elevator down to the ground floor. When he comes home, he takes the elevator to the tenth floor and walks the rest of the way... except on rainy days, when he takes the elevator all the way to the twentieth floor. Why?",
+                        answer: "he is too short to reach the button",
+                        acceptedAnswers: ["he's short", "he can't reach the button", "too short", "short person", "he's too short to reach"],
+                        hint: "Think about his physical limitations and what changes on rainy days.",
+                        category: "logic",
+                        difficulty: "hard"
+                    },
+                    {
+                        riddle: "A woman shoots her husband, then holds him underwater for five minutes. Next, she hangs him. Right after, they enjoy a lovely dinner. How?",
+                        answer: "she's a photographer",
+                        acceptedAnswers: ["photographer", "she's a photographer", "photography", "developing photos"],
+                        hint: "Think about a profession that involves 'shooting', 'developing', and 'hanging'.",
+                        category: "logic",
+                        difficulty: "hard"
+                    }
+                ]
+            },
+            word: {
+                easy: [
+                    {
+                        riddle: "What word becomes shorter when you add two letters to it?",
+                        answer: "short",
+                        acceptedAnswers: ["short", "the word short"],
+                        hint: "Add 'er' to the end.",
+                        category: "word",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "What 5-letter word typed in all capital letters can be read the same upside down?",
+                        answer: "swims",
+                        acceptedAnswers: ["swims"],
+                        hint: "When rotated 180 degrees, it looks the same.",
+                        category: "word",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "What word is spelled wrong in the dictionary?",
+                        answer: "wrong",
+                        acceptedAnswers: ["wrong", "the word wrong"],
+                        hint: "It's literally in the question.",
+                        category: "word",
+                        difficulty: "easy"
+                    }
+                ],
+                medium: [
+                    {
+                        riddle: "I am a word of letters three. Add two and fewer there will be. What word am I?",
+                        answer: "few",
+                        acceptedAnswers: ["few", "the word few"],
+                        hint: "Adding 'er' makes it mean 'less'.",
+                        category: "word",
+                        difficulty: "medium"
+                    },
+                    {
+                        riddle: "What English word retains the same pronunciation, even after you take away four of its five letters?",
+                        answer: "queue",
+                        acceptedAnswers: ["queue"],
+                        hint: "It sounds like a single letter.",
+                        category: "word",
+                        difficulty: "medium"
+                    }
+                ],
+                hard: [
+                    {
+                        riddle: "What seven-letter word contains dozens of letters?",
+                        answer: "mailbox",
+                        acceptedAnswers: ["mailbox", "postbox"],
+                        hint: "It contains mail, which includes letters.",
+                        category: "word",
+                        difficulty: "hard"
+                    }
+                ]
+            },
+            math: {
+                easy: [
+                    {
+                        riddle: "If you multiply this number by any other number, the answer will always be the same. What number is it?",
+                        answer: "zero",
+                        acceptedAnswers: ["0", "zero"],
+                        hint: "Anything times this equals itself.",
+                        category: "math",
+                        difficulty: "easy"
+                    },
+                    {
+                        riddle: "I am an odd number. Take away a letter and I become even. What number am I?",
+                        answer: "seven",
+                        acceptedAnswers: ["7", "seven"],
+                        hint: "Remove the 's' from the word.",
+                        category: "math",
+                        difficulty: "easy"
+                    }
+                ],
+                medium: [
+                    {
+                        riddle: "A man has 5 sons, and each of his sons has a sister. How many children does the man have?",
+                        answer: "6",
+                        acceptedAnswers: ["6", "six"],
+                        hint: "They all share the same sister.",
+                        category: "math",
+                        difficulty: "medium"
+                    },
+                    {
+                        riddle: "If there are three apples and you take away two, how many apples do you have?",
+                        answer: "2",
+                        acceptedAnswers: ["2", "two"],
+                        hint: "How many did YOU take?",
+                        category: "math",
+                        difficulty: "medium"
+                    }
+                ],
+                hard: [
+                    {
+                        riddle: "A father is 4 times as old as his daughter. In 6 years, he will be 3 times as old. How old are they now?",
+                        answer: "daughter is 6, father is 24",
+                        acceptedAnswers: ["6 and 24", "daughter 6 father 24", "6, 24"],
+                        hint: "Set up equations: F = 4D and F + 6 = 3(D + 6)",
+                        category: "math",
+                        difficulty: "hard"
+                    }
+                ]
+            },
+            lateral: {
+                easy: [
+                    {
+                        riddle: "A man lives in a house where all four walls face south. A bear walks by the house. What color is the bear?",
+                        answer: "white",
+                        acceptedAnswers: ["white", "polar bear"],
+                        hint: "Where is the only place this house could be?",
+                        category: "lateral",
+                        difficulty: "easy"
+                    }
+                ],
+                medium: [
+                    {
+                        riddle: "A man pushed his car to a hotel and told the owner he was bankrupt. What happened?",
+                        answer: "playing monopoly",
+                        acceptedAnswers: ["monopoly", "board game", "playing monopoly"],
+                        hint: "Think about a game with cars, hotels, and bankruptcy.",
+                        category: "lateral",
+                        difficulty: "medium"
+                    },
+                    {
+                        riddle: "Romeo and Juliet are found dead on the floor in a puddle of water. There is broken glass around them. How did they die?",
+                        answer: "they were fish",
+                        acceptedAnswers: ["fish", "they were fish", "goldfish"],
+                        hint: "They weren't human.",
+                        category: "lateral",
+                        difficulty: "medium"
+                    }
+                ],
+                hard: [
+                    {
+                        riddle: "A man calls his dog from the opposite side of a river. The dog crosses the river without getting wet, and without using a bridge or boat. How?",
+                        answer: "the river was frozen",
+                        acceptedAnswers: ["frozen", "river was frozen", "ice", "winter"],
+                        hint: "What state would the water be in?",
+                        category: "lateral",
+                        difficulty: "hard"
+                    }
+                ]
+            }
+        };
 
         // Function to get all riddles for a category/difficulty combination
         function getRiddlesByFilter(category, difficulty) {
@@ -734,11 +1191,173 @@ document.addEventListener('DOMContentLoaded', function(){
             return matrix[str2.length][str1.length];
         }
 
-        // Emoji puzzles now loaded from external file
+        // Emoji puzzles
+        const emojiPuzzles = {
+            movies: [
+                { emoji: '🦁👑', answer: 'The Lion King', hint: 'Disney movie about a young lion prince' },
+                { emoji: '🐟🔍', answer: 'Finding Nemo', hint: 'Pixar movie about a lost clownfish' },
+                { emoji: '❄️👸', answer: 'Frozen', hint: 'Disney movie with "Let It Go"' },
+                { emoji: '🕷️👨', answer: 'Spider-Man', hint: 'Marvel superhero with web-slinging abilities' },
+                { emoji: '🦇👨', answer: 'Batman', hint: 'Dark Knight of Gotham City' },
+                { emoji: '🏰👸💎', answer: 'Cinderella', hint: 'Fairy tale about a glass slipper' },
+                { emoji: '🌊🚢💔', answer: 'Titanic', hint: 'Epic romance on an ill-fated ship' },
+                { emoji: '🍕🏠🐀', answer: 'Ratatouille', hint: 'Pixar movie about a cooking rat' }
+            ],
+            foods: [
+                { emoji: '🍞🥜🍇', answer: 'Peanut Butter and Jelly', hint: 'Classic sandwich combination' },
+                { emoji: '🍝🧄🌿', answer: 'Spaghetti', hint: 'Long pasta often served with sauce' },
+                { emoji: '🌮🌶️🥩', answer: 'Spicy Beef Taco', hint: 'Mexican dish with seasoned meat' },
+                { emoji: '🍕🧀🍄', answer: 'Mushroom Pizza', hint: 'Italian dish with fungus topping' },
+                { emoji: '🥗🥕🥒', answer: 'Garden Salad', hint: 'Healthy mix of vegetables' },
+                { emoji: '🍔🥓🧀', answer: 'Bacon Cheeseburger', hint: 'American fast food classic' },
+                { emoji: '🍰🍓🎂', answer: 'Strawberry Cake', hint: 'Sweet dessert with berries' },
+                { emoji: '🥪🥬🍅', answer: 'BLT Sandwich', hint: 'Bacon, lettuce, and tomato' }
+            ],
+            animals: [
+                { emoji: '🐘👂🐾', answer: 'Elephant', hint: 'Largest land mammal with big ears' },
+                { emoji: '🦒📏🌳', answer: 'Giraffe', hint: 'Tallest animal in the world' },
+                { emoji: '🐧❄️🐟', answer: 'Penguin', hint: 'Flightless bird that loves fish' },
+                { emoji: '🐨🌿🇦🇺', answer: 'Koala', hint: 'Australian marsupial that eats eucalyptus' },
+                { emoji: '🦁🗣️👑', answer: 'Lion', hint: 'King of the jungle with a mighty roar' },
+                { emoji: '🐅🟠⚫', answer: 'Tiger', hint: 'Large cat with distinctive stripes' },
+                { emoji: '🐼⚫⚪', answer: 'Panda', hint: 'Black and white bear from China' },
+                { emoji: '🦘🥊🇦🇺', answer: 'Kangaroo', hint: 'Hopping marsupial from Australia' }
+            ],
+            items: [
+                { emoji: '📱📞💬', answer: 'Smartphone', hint: 'Modern communication device' },
+                { emoji: '💻⌨️🖱️', answer: 'Computer', hint: 'Electronic device for work and entertainment' },
+                { emoji: '🔑🚪🏠', answer: 'House Key', hint: 'Metal object that opens doors' },
+                { emoji: '⌚⏰👋', answer: 'Watch', hint: 'Timepiece worn on the wrist' },
+                { emoji: '👓👁️📖', answer: 'Reading Glasses', hint: 'Eyewear for better vision' },
+                { emoji: '🎧🎵👂', answer: 'Headphones', hint: 'Audio device worn over ears' },
+                { emoji: '📷📸🖼️', answer: 'Camera', hint: 'Device for taking pictures' },
+                { emoji: '☂️☔🌧️', answer: 'Umbrella', hint: 'Protection from rain and sun' }
+            ]
+        };
 
-        // Twenty Questions answers now loaded from external file
+        // Twenty Questions answers by category
+        const valentineAnswers = {
+            movies: [
+                { answer: 'Avatar', category: 'Movies' },
+                { answer: 'Titanic', category: 'Movies' },
+                { answer: 'Star Wars', category: 'Movies' },
+                { answer: 'The Lion King', category: 'Movies' },
+                { answer: 'Jurassic Park', category: 'Movies' },
+                { answer: 'Finding Nemo', category: 'Movies' },
+                { answer: 'Frozen', category: 'Movies' },
+                { answer: 'The Avengers', category: 'Movies' }
+            ],
+            animals: [
+                { answer: 'Elephant', category: 'Animals' },
+                { answer: 'Giraffe', category: 'Animals' },
+                { answer: 'Penguin', category: 'Animals' },
+                { answer: 'Lion', category: 'Animals' },
+                { answer: 'Dolphin', category: 'Animals' },
+                { answer: 'Koala', category: 'Animals' },
+                { answer: 'Tiger', category: 'Animals' },
+                { answer: 'Kangaroo', category: 'Animals' }
+            ],
+            places: [
+                { answer: 'Paris', category: 'Places' },
+                { answer: 'Tokyo', category: 'Places' },
+                { answer: 'New York', category: 'Places' },
+                { answer: 'London', category: 'Places' },
+                { answer: 'Sydney', category: 'Places' },
+                { answer: 'Rome', category: 'Places' },
+                { answer: 'Cairo', category: 'Places' },
+                { answer: 'Dubai', category: 'Places' }
+            ],
+            objects: [
+                { answer: 'Smartphone', category: 'Objects' },
+                { answer: 'Television', category: 'Objects' },
+                { answer: 'Bicycle', category: 'Objects' },
+                { answer: 'Piano', category: 'Objects' },
+                { answer: 'Camera', category: 'Objects' },
+                { answer: 'Umbrella', category: 'Objects' },
+                { answer: 'Guitar', category: 'Objects' },
+                { answer: 'Laptop', category: 'Objects' }
+            ]
+        };
 
-        // Trivia questions now loaded from external files
+        // Trivia questions
+        const triviaQuestions = {
+            easy: [
+                { question: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"], correct: 2 },
+                { question: "What color do you get by mixing red and yellow?", options: ["Purple", "Orange", "Green", "Blue"], correct: 1 },
+                { question: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], correct: 1 },
+                { question: "How many continents are there?", options: ["Five", "Six", "Seven", "Eight"], correct: 2 },
+                { question: "What is the largest ocean in the world?", options: ["Atlantic", "Pacific", "Indian", "Arctic"], correct: 1 },
+                { question: "What is H2O commonly known as?", options: ["Salt", "Water", "Sugar", "Oil"], correct: 1 },
+                { question: "How many sides does a triangle have?", options: ["Two", "Three", "Four", "Five"], correct: 1 },
+                { question: "What is the tallest mammal in the world?", options: ["Elephant", "Giraffe", "Horse", "Rhino"], correct: 1 },
+                { question: "Which Disney movie features the song 'Let It Go'?", options: ["Moana", "Frozen", "Tangled", "Brave"], correct: 1 },
+                { question: "What do bees produce?", options: ["Milk", "Honey", "Cheese", "Butter"], correct: 1 }
+            ],
+            medium: [
+                { question: "What is the smallest country in the world?", options: ["Monaco", "Vatican City", "San Marino", "Liechtenstein"], correct: 1 },
+                { question: "Which element has the chemical symbol 'Au'?", options: ["Silver", "Gold", "Aluminum", "Argon"], correct: 1 },
+                { question: "Who painted the Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Monet"], correct: 2 },
+                { question: "What is the longest river in the world?", options: ["Amazon", "Nile", "Yangtze", "Mississippi"], correct: 1 },
+                { question: "Which organ in the human body produces insulin?", options: ["Liver", "Pancreas", "Kidney", "Heart"], correct: 1 },
+                { question: "What is the currency of Japan?", options: ["Won", "Yuan", "Yen", "Rupee"], correct: 2 },
+                { question: "Which planet is closest to the sun?", options: ["Venus", "Mercury", "Earth", "Mars"], correct: 1 },
+                { question: "What is the square root of 144?", options: ["10", "11", "12", "13"], correct: 2 },
+                { question: "Which country is known as the Land of the Rising Sun?", options: ["China", "Japan", "Korea", "Thailand"], correct: 1 },
+                { question: "What gas makes up about 78% of Earth's atmosphere?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Argon"], correct: 1 }
+            ],
+            hard: [
+                { question: "What is the hardest natural substance on Earth?", options: ["Gold", "Iron", "Diamond", "Platinum"], correct: 2 },
+                { question: "Which scientist developed the theory of relativity?", options: ["Newton", "Einstein", "Hawking", "Curie"], correct: 1 },
+                { question: "What is the smallest unit of matter?", options: ["Molecule", "Atom", "Neutron", "Electron"], correct: 1 },
+                { question: "Which empire was ruled by Julius Caesar?", options: ["Greek", "Roman", "Byzantine", "Ottoman"], correct: 1 },
+                { question: "What is the most abundant gas in the universe?", options: ["Oxygen", "Nitrogen", "Hydrogen", "Helium"], correct: 2 },
+                { question: "Which bone is the longest in the human body?", options: ["Tibia", "Humerus", "Radius", "Femur"], correct: 3 },
+                { question: "What is the capital of Australia?", options: ["Sydney", "Melbourne", "Canberra", "Perth"], correct: 2 },
+                { question: "Which blood type is known as the universal donor?", options: ["A", "B", "AB", "O"], correct: 3 },
+                { question: "What is the study of earthquakes called?", options: ["Geology", "Seismology", "Meteorology", "Oceanography"], correct: 1 },
+                { question: "Which vitamin is produced when skin is exposed to sunlight?", options: ["Vitamin A", "Vitamin C", "Vitamin D", "Vitamin K"], correct: 2 }
+            ]
+        };
+
+        // Animal trivia questions
+        const animalTriviaQuestions = {
+            easy: [
+                { question: "What mammal has the most powerful bite in the world?", options: ["Lion", "Hippopotamus", "Grizzly bear"], correct: 1 },
+                { question: "What is a male swan called?", options: ["Cob", "Gander", "Drake"], correct: 0 },
+                { question: "What is the fastest land mammal?", options: ["Cheetah", "Lion", "Greyhound"], correct: 0 },
+                { question: "Which animal's fingerprints are nearly identical to humans?", options: ["Gorilla", "Koala", "Chimpanzee"], correct: 1 },
+                { question: "What is the only mammal capable of true sustained flight?", options: ["Bat", "Flying squirrel", "Hawk"], correct: 0 },
+                { question: "How many legs do spiders have?", options: ["6", "8", "10"], correct: 1 },
+                { question: "Which animal breathes through its skin?", options: ["Frog", "Snake", "Lizard"], correct: 0 },
+                { question: "What is the largest living bird?", options: ["Eagle", "Ostrich", "Albatross"], correct: 1 },
+                { question: "Which animal is known to have the most teeth?", options: ["Shark", "Crocodile", "Snail"], correct: 2 },
+                { question: "What color is the polar bear's skin beneath its fur?", options: ["Black", "White", "Pink"], correct: 0 }
+            ],
+            medium: [
+                { question: "What bird has the largest wingspan?", options: ["Andean condor", "Wandering albatross", "Bald eagle"], correct: 1 },
+                { question: "How many eyes does a honeybee have?", options: ["2", "5", "8"], correct: 1 },
+                { question: "How many degrees can an owl rotate its head?", options: ["180°", "270°", "360°"], correct: 1 },
+                { question: "What is the gestation period of an elephant?", options: ["12 months", "18 months", "22 months"], correct: 2 },
+                { question: "Which animal has the longest lifespan?", options: ["Tortoise", "Whale", "Jellyfish"], correct: 2 },
+                { question: "What is the smallest mammal in the world?", options: ["Shrew", "Bat", "Mouse"], correct: 1 },
+                { question: "How many chambers does a cow's stomach have?", options: ["2", "3", "4"], correct: 2 },
+                { question: "Which animal can change its color?", options: ["Octopus", "Chameleon", "Both"], correct: 2 },
+                { question: "What is the loudest animal on Earth?", options: ["Lion", "Blue whale", "Howler monkey"], correct: 1 },
+                { question: "Which animal sleeps standing up?", options: ["Giraffe", "Horse", "Both"], correct: 2 }
+            ],
+            hard: [
+                { question: "What percentage of a jellyfish is water?", options: ["85%", "90%", "95%"], correct: 2 },
+                { question: "How many species of animals are there approximately?", options: ["1 million", "8.7 million", "50 million"], correct: 1 },
+                { question: "Which animal has the most complex brain relative to body size?", options: ["Dolphin", "Octopus", "Human"], correct: 1 },
+                { question: "How fast can a cheetah run?", options: ["60 mph", "70 mph", "80 mph"], correct: 1 },
+                { question: "What is the only bird that can fly backwards?", options: ["Hummingbird", "Kingfisher", "Woodpecker"], correct: 0 },
+                { question: "How many hearts does an octopus have?", options: ["1", "2", "3"], correct: 2 },
+                { question: "Which animal has the strongest bite force?", options: ["Saltwater crocodile", "Great white shark", "Hippo"], correct: 0 },
+                { question: "What is the lifespan of a mayfly?", options: ["1 hour", "1 day", "1 week"], correct: 1 },
+                { question: "Which animal can survive in space?", options: ["Tardigrade", "Cockroach", "Bacteria"], correct: 0 },
+                { question: "How many bones does a shark have?", options: ["100", "50", "0"], correct: 2 }
+            ]
+        };
 
         // Navigation functions
         function showPage(evt, pageName) {
@@ -916,15 +1535,8 @@ document.addEventListener('DOMContentLoaded', function(){
                 showFeedback('riddles', 'No riddles available for this category/difficulty combination.', 'error');
                 return;
             }
-            // Select riddle using pool manager to avoid repeats
-            let newRiddle;
-            if (window.questionUtils) {
-                const poolKey = `riddles_${riddles.category}_${riddles.difficulty}`;
-                const riddleRun = window.questionUtils.getUniqueRun(availableRiddles, poolKey, 1);
-                newRiddle = riddleRun.length > 0 ? riddleRun[0] : null;
-            } else {
-                newRiddle = getRiddleFromPool(riddles.category, riddles.difficulty);
-            }
+            // Select riddle from a shuffled per-filter pool to avoid repeats until pool exhausted
+            let newRiddle = getRiddleFromPool(riddles.category, riddles.difficulty);
             if (!newRiddle) {
                 // Fallback to random selection
                 newRiddle = availableRiddles[Math.floor(Math.random() * availableRiddles.length)];
@@ -1136,22 +1748,12 @@ document.addEventListener('DOMContentLoaded', function(){
             burble.hintsUsed = 0;
             burble.gameActive = true;
             
-            // Select word using pool manager to avoid repeats
+            // Select random word
             const category = wordCategories[burble.category];
             const lengths = Object.keys(category);
-            if (window.questionUtils) {
-                // Get all words from all lengths for this category
-                const allWords = [];
-                lengths.forEach(len => allWords.push(...category[len]));
-                const poolKey = `burble_${burble.category}`;
-                const wordRun = window.questionUtils.getUniqueRun(allWords, poolKey, 1);
-                burble.currentWord = wordRun.length > 0 ? wordRun[0] : allWords[0];
-            } else {
-                // Fallback to random selection
-                const randomLength = lengths[Math.floor(Math.random() * lengths.length)];
-                const words = category[randomLength];
-                burble.currentWord = words[Math.floor(Math.random() * words.length)];
-            }
+            const randomLength = lengths[Math.floor(Math.random() * lengths.length)];
+            const words = category[randomLength];
+            burble.currentWord = words[Math.floor(Math.random() * words.length)];
             
             // Start timer
             startTimer('burble');
@@ -1353,15 +1955,8 @@ document.addEventListener('DOMContentLoaded', function(){
                 return;
             }
             
-            // Select puzzle using pool manager to avoid repeats
-            if (window.questionUtils) {
-                const poolKey = `emoji_${emoji.category}`;
-                const puzzleRun = window.questionUtils.getUniqueRun(availablePuzzles, poolKey, 1);
-                emoji.currentPuzzle = puzzleRun.length > 0 ? puzzleRun[0] : availablePuzzles[0];
-            } else {
-                // Fallback to random selection
-                emoji.currentPuzzle = availablePuzzles[Math.floor(Math.random() * availablePuzzles.length)];
-            }
+            // Select random puzzle
+            emoji.currentPuzzle = availablePuzzles[Math.floor(Math.random() * availablePuzzles.length)];
             emoji.gameActive = true;
             emoji.hintsUsed = 0;
             
@@ -1521,16 +2116,9 @@ document.addEventListener('DOMContentLoaded', function(){
             valentine.score = 0;
             setValentineQuestions();
             
-            // Select answer using pool manager to avoid repeats
+            // Select random answer
             const categoryAnswers = valentineAnswers[valentine.category];
-            if (window.questionUtils) {
-                const poolKey = `valentine_${valentine.category}`;
-                const answerRun = window.questionUtils.getUniqueRun(categoryAnswers, poolKey, 1);
-                valentine.currentAnswer = answerRun.length > 0 ? answerRun[0].answer : categoryAnswers[0].answer;
-            } else {
-                // Fallback to random selection
-                valentine.currentAnswer = categoryAnswers[Math.floor(Math.random() * categoryAnswers.length)].answer;
-            }
+            valentine.currentAnswer = categoryAnswers[Math.floor(Math.random() * categoryAnswers.length)].answer;
             
             // Enable inputs
             document.getElementById('valentine-question').disabled = false;
@@ -1737,11 +2325,9 @@ document.addEventListener('DOMContentLoaded', function(){
             
             // Start timer
             startTimer('trivia');
-            // Prepare a fixed-length run of 15 questions for this difficulty using pool manager
+            // Prepare a fixed-length run of 15 questions for this difficulty
             const allQuestions = triviaQuestions[trivia.difficulty] || [];
-            trivia.run = window.questionUtils 
-                ? window.questionUtils.getUniqueRun(allQuestions, `trivia_${trivia.difficulty}`, trivia.totalQuestions)
-                : buildRunRepeatable(allQuestions, trivia.totalQuestions);
+            trivia.run = buildRunRepeatable(allQuestions, trivia.totalQuestions);
 
             // Show first question
             showTriviaQuestion();
@@ -1902,11 +2488,9 @@ document.addEventListener('DOMContentLoaded', function(){
             
             // Start timer
             startTimer('animalTrivia');
-            // Prepare a fixed-length run of 15 questions for this difficulty using pool manager
+            // Prepare a fixed-length run of 15 questions for this difficulty
             const allQuestions = animalTriviaQuestions[animalTrivia.difficulty] || [];
-            animalTrivia.run = window.questionUtils 
-                ? window.questionUtils.getUniqueRun(allQuestions, `animal_trivia_${animalTrivia.difficulty}`, animalTrivia.totalQuestions)
-                : buildRunRepeatable(allQuestions, animalTrivia.totalQuestions);
+            animalTrivia.run = buildRunRepeatable(allQuestions, animalTrivia.totalQuestions);
 
             // Show first question
             showAnimalTriviaQuestion();
