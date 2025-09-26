@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Burble - Brain Teasers & Riddles Platform</title>
     <link rel="stylesheet" href="assets/css/styles.css">
-    <script src="/questions.js"></script>
     <script>
     // Runtime flag to enable E2E-only helpers when `?e2e=1` (or `?e2e`) is present.
     try {
@@ -48,26 +47,64 @@
                 })();
             } catch (e) { /* ignore */ }
         }
-    } catch (e) { /* ignore */ }
-    </script>
+    } catch (e) {}
 
-    <!-- Safety stubs loaded early to prevent ReferenceError during inline script execution -->
-    <script src="scripts/safety-stubs.js"></script>
-    <script src="scripts/standalone-school-engine.js"></script>
-    <script src="scripts/standalone-school-trivia.js"></script>
-    <!-- Emergency: hide accidental debug dumps and overlays until code cleanup -->
-    <style>
-        #debug-dump, pre#stateDump, pre#poolDump, pre.debug-dump, .debug-json { display:none !important; visibility:hidden !important; pointer-events:none !important; max-height:0 !important; overflow:hidden !important; }
-        #overlay, #loading, .scrim, .modal-backdrop { display:none !important; }
-    </style>
-    <script>
-        (function(){
-            const DEBUG = false;
-            function debugDump(obj){ if (!DEBUG) return; let pre = document.getElementById('debug-dump'); if (!pre){ pre = document.createElement('pre'); pre.id='debug-dump'; pre.className='debug-json'; pre.style.whiteSpace='pre-wrap'; pre.style.fontSize='12px'; pre.style.maxHeight='40vh'; pre.style.overflow='auto'; document.body.appendChild(pre);} try{ pre.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2); } catch(e){ pre.textContent = String(obj); } }
-            let _audioUnlocked = false;
-            function ensureAudioUnlocked(){ if (_audioUnlocked) return; const tryUnlock = async ()=>{ try{ const Ctx = window.AudioContext || window.webkitAudioContext; if (Ctx) { window._ac = window._ac || new Ctx(); if (window._ac.state === 'suspended') await window._ac.resume(); } try{ const a = new Audio('assets/audio/30 Second Timer With Jeopardy Thinking Music.mp3'); a.volume = 0.01; await a.play().catch(()=>{}); } catch(e){} _audioUnlocked = true; } finally { window.removeEventListener('pointerdown', tryUnlock); window.removeEventListener('keydown', tryUnlock); } }; window.addEventListener('pointerdown', tryUnlock, { once: true }); window.addEventListener('keydown', tryUnlock, { once: true }); }
-            window.debugDump = debugDump; window.ensureAudioUnlocked = ensureAudioUnlocked; if (!window.__burbleBooted) window.__burbleBooted = false;
-        })();
+    // If E2E mode is enabled, expose a minimal, safe hook early so tests can
+    // open the sign-in modal even if later JS fails or loads slowly.
+    if (window.__E2E__) {
+      (function(){
+          try {
+              window._testOpenSignin = function(){
+                  try {
+                      const m = document.getElementById('signin-modal');
+                      if (!m) return false;
+                      m.classList.remove('hidden');
+                      m.style.display = 'flex';
+                      m.setAttribute('aria-hidden', 'false');
+                      const u = document.getElementById('si-username'); if (u) try{ u.focus(); } catch(e){}
+                      return true;
+                  } catch (e) { return false; }
+              };
+          } catch (e) { /* ignore */ }
+      })();
+
+      // Also, poll briefly for the app-defined `drawFromPool` function and
+      // expose it on `window` as soon as it exists. This helps Playwright (and
+      // other E2E harnesses) call the real implementation without racing the
+      // app's load/initialization order.
+      (function(){
+          try {
+              var tries = 0;
+              var t = setInterval(function(){
+                  try {
+                      if (typeof drawFromPool === 'function') {
+                          // Expose only when E2E flag present OR an admin user is stored in localStorage.
+                          var expose = false;
+                          try {
+                              if (window.__E2E__) expose = true;
+                          } catch (e) {}
+                          try {
+                              var raw = localStorage.getItem('burbleUser');
+                              if (raw) {
+                                  var u = JSON.parse(raw);
+                                  if (u && u.isAdmin) expose = true;
+                              }
+                          } catch (e) {}
+                          if (expose) {
+                              try { window.drawFromPool = drawFromPool; } catch (e) {}
+                          }
+                          clearInterval(t);
+                          return;
+                      }
+                  } catch (e) {}
+                  tries++;
+                  if (tries > 200) {
+                      try { clearInterval(t); } catch(e){}
+                  }
+              }, 25);
+          } catch (e) {}
+      })();
+    }
     </script>
 </head>
 <body>
@@ -84,50 +121,13 @@
                 <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
                 <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
                 <button class="nav-btn" onclick="showPage(event,'build-quiz')">Build Quiz</button>
-                <div class="game-option nav-btn" id="schoolTriviaBtn" style="cursor:pointer">🎓 School Trivia</div>
-                                <!-- TOP BAR MUSIC PLAYER (inserted) -->
-                                <div id="topbar-player" aria-label="Site music player" style="margin-left:12px;">
-                                    <span class="tp-label">🎵 Now playing:</span>
-
-                                    <select id="tp-song" aria-label="Song list"></select>
-
-                                    <button id="tp-prev" title="Previous">⏮</button>
-                                    <button id="tp-play" title="Play/Pause">▶️</button>
-                                    <button id="tp-next" title="Next">⏭</button>
-
-                                    <button id="tp-back10" title="Back 10s">-10s</button>
-                                    <button id="tp-fwd10" title="Forward 10s">+10s</button>
-
-                                    <input id="tp-seek" type="range" min="0" max="100" value="0" aria-label="Seek">
-                                    <input id="tp-vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume">
-
-                                    <label class="tp-inline">
-                                        <input id="tp-loop-one" type="checkbox">
-                                        <span>Loop 1</span>
-                                    </label>
-
-                                    <button id="tp-add" title="Add Songs">＋</button>
-                                    <input id="tp-file" type="file" accept="audio/mpeg,audio/mp3" multiple hidden>
-
-                                    <audio id="tp-audio" preload="auto" crossorigin="anonymous"></audio>
-                                </div>
             </div>
             <div class="now-playing" id="now-playing" aria-live="polite">
                 <span class="now-playing-art" id="now-playing-art">🎵</span>
                 Now playing: <span id="now-playing-track">None</span>
             </div>
             <div id="user-area" class="user-area">
-                                <!-- Right-side controls: auth chip, avatar, settings -->
-                                <div id="topRightControls" style="display:flex; align-items:center; gap:10px; margin-left:auto">
-                                    <span id="authChip"></span>
-                                    <button id="avatarBtn" title="Profile" style="width:36px;height:36px;border-radius:50%;overflow:hidden;border:0;padding:0;cursor:pointer;background:#ffffff22">
-                                        <img id="avatarImg" alt="avatar" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
-                                        <span id="avatarFallback" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:#fff">👤</span>
-                                    </button>
-                                    <input id="avatarFile" type="file" accept="image/*" hidden>
-                                    <button id="settingsBtn" title="Settings" style="width:36px;height:36px;border-radius:50%;border:0;background:#ffffff22;color:#fff;cursor:pointer">⚙️</button>
-                                </div>
-                                <button id="leaderboard-btn" class="nav-btn small">Leaderboard</button>
+                <button id="leaderboard-btn" class="nav-btn small">Leaderboard</button>
                 <div id="user-info" class="muted-center hidden">
                     <a href="#" id="user-email-link" title="User email">User</a>
                     <div><button id="signout-btn" class="nav-btn xsmall">Sign out</button></div>
@@ -971,31 +971,6 @@
                 }
                 return true;
             }
-        // Comprehensive riddles database
-        const riddlesData = {
-            logic: {
-                easy: [
-                    {
-                        riddle: "What comes once in a minute, twice in a moment, but never in a thousand years?",
-                        answer: "the letter m",
-                        acceptedAnswers: ["m", "letter m", "the letter m"],
-                        hints: [
-                            "Think about the words in the riddle itself.",
-                            "Look at the letters that make up each word.",
-                            "Count the letter 'M' in 'minute', 'moment', and 'thousand years'."
-                        ],
-                        category: "logic",
-                        difficulty: "easy"
-                    },
-                    {
-                        riddle: "I'm tall when I'm young, and I'm short when I'm old. What am I?",
-                        answer: "candle",
-                        acceptedAnswers: ["candle", "a candle"],
-                        hints: [
-                            "This object changes size as it's used.",
-                            "It provides light and gets shorter over time.",
-                            "You light it with a match and it melts as it burns."
-                        ],
                         category: "logic",
                         difficulty: "easy"
                     },
@@ -1056,7 +1031,7 @@
                         hints: [
                             "These are two opposite things that happen every day.",
                             "One happens in the morning, the other in the evening.",
-                            "Think about sunrise (dawn ____) and sunset (night ____ )"
+                            "Think about sunrise (dawn ____) and sunset (night ____)"
                         ],
                         category: "logic",
                         difficulty: "medium"
@@ -1084,155 +1059,15 @@
                         difficulty: "hard"
                     },
                     {
-                        riddle: "A woman shoots her husband, then holds him under water for five minutes, then hangs him. Afterwards they both go out to dinner together. How?",
-                        answer: "she's a photographer",
-                        acceptedAnswers: ["photographer", "she's a photographer", "photography", "developing photos"],
-                        hint: "Think about a profession that involves 'shooting', 'developing', and 'hanging'.",
+                        riddle: "A woman shoots her husband, then holds him under water for five minutes, then hangs him. Afterwards they both go out to dinner together. How is this possible?",
+                        answer: "she is a photographer",
+                        acceptedAnswers: ["she is a photographer", "photographer", "she's a photographer"],
+                        hints: [
+                            "The words 'shoots', 'holds', and 'hangs' may not be literal.",
+                            "Think about common processes that involve shooting and hanging.",
+                            "It's a play on words — consider photography and developing photos."
+                        ],
                         category: "logic",
-                        difficulty: "hard"
-                    }
-                ]
-            },
-            word: {
-                easy: [
-                    {
-                        riddle: "What word becomes shorter when you add two letters to it?",
-                        answer: "short",
-                        acceptedAnswers: ["short", "the word short"],
-                        hint: "Add 'er' to the end.",
-                        category: "word",
-                        difficulty: "easy"
-                    },
-                    {
-                        riddle: "What 5-letter word typed in all capital letters can be read the same upside down?",
-                        answer: "swims",
-                        acceptedAnswers: ["swims"],
-                        hint: "When rotated 180 degrees, it looks the same.",
-                        category: "word",
-                        difficulty: "easy"
-                    },
-                    {
-                        riddle: "What word is spelled wrong in the dictionary?",
-                        answer: "wrong",
-                        acceptedAnswers: ["wrong", "the word wrong"],
-                        hint: "It's literally in the question.",
-                        category: "word",
-                        difficulty: "easy"
-                    }
-                ],
-                medium: [
-                    {
-                        riddle: "I am a word of letters three. Add two and fewer there will be. What word am I?",
-                        answer: "few",
-                        acceptedAnswers: ["few", "the word few"],
-                        hint: "Adding 'er' makes it mean 'less'.",
-                        category: "word",
-                        difficulty: "medium"
-                    },
-                    {
-                        riddle: "What English word retains the same pronunciation, even after you take away four of its five letters?",
-                        answer: "queue",
-                        acceptedAnswers: ["queue"],
-                        hint: "It sounds like a single letter.",
-                        category: "word",
-                        difficulty: "medium"
-                    }
-                ],
-                hard: [
-                    {
-                        riddle: "What seven-letter word contains dozens of letters?",
-                        answer: "mailbox",
-                        acceptedAnswers: ["mailbox", "postbox"],
-                        hint: "It contains mail, which includes letters.",
-                        category: "word",
-                        difficulty: "hard"
-                    }
-                ]
-            },
-            math: {
-                easy: [
-                    {
-                        riddle: "If you multiply this number by any other number, the answer will always be the same. What number is it?",
-                        answer: "zero",
-                        acceptedAnswers: ["0", "zero"],
-                        hint: "Anything times this equals itself.",
-                        category: "math",
-                        difficulty: "easy"
-                    },
-                    {
-                        riddle: "I am an odd number. Take away a letter and I become even. What number am I?",
-                        answer: "seven",
-                        acceptedAnswers: ["7", "seven"],
-                        hint: "Remove the 's' from the word.",
-                        category: "math",
-                        difficulty: "easy"
-                    }
-                ],
-                medium: [
-                    {
-                        riddle: "A man has 5 sons, and each of his sons has a sister. How many children does the man have?",
-                        answer: "6",
-                        acceptedAnswers: ["6", "six"],
-                        hint: "They all share the same sister.",
-                        category: "math",
-                        difficulty: "medium"
-                    },
-                    {
-                        riddle: "If there are three apples and you take away two, how many apples do you have?",
-                        answer: "2",
-                        acceptedAnswers: ["2", "two"],
-                        hint: "How many did YOU take?",
-                        category: "math",
-                        difficulty: "medium"
-                    }
-                ],
-                hard: [
-                    {
-                        riddle: "A father is 4 times as old as his daughter. In 6 years, he will be 3 times as old. How old are they now?",
-                        answer: "daughter is 6, father is 24",
-                        acceptedAnswers: ["6 and 24", "daughter 6 father 24", "6, 24"],
-                        hint: "Set up equations: F = 4D and F + 6 = 3(D + 6)",
-                        category: "math",
-                        difficulty: "hard"
-                    }
-                ]
-            },
-            lateral: {
-                easy: [
-                    {
-                        riddle: "A man lives in a house where all four walls face south. A bear walks by the house. What color is the bear?",
-                        answer: "white",
-                        acceptedAnswers: ["white", "polar bear"],
-                        hint: "Where is the only place this house could be?",
-                        category: "lateral",
-                        difficulty: "easy"
-                    }
-                ],
-                medium: [
-                    {
-                        riddle: "A man pushed his car to a hotel and told the owner he was bankrupt. What happened?",
-                        answer: "playing monopoly",
-                        acceptedAnswers: ["monopoly", "board game", "playing monopoly"],
-                        hint: "Think about a game with cars, hotels, and bankruptcy.",
-                        category: "lateral",
-                        difficulty: "medium"
-                    },
-                    {
-                        riddle: "Romeo and Juliet are found dead on the floor in a puddle of water. There is broken glass around them. How did they die?",
-                        answer: "they were fish",
-                        acceptedAnswers: ["fish", "they were fish", "goldfish"],
-                        hint: "They weren't human.",
-                        category: "lateral",
-                        difficulty: "medium"
-                    }
-                ],
-                hard: [
-                    {
-                        riddle: "A man calls his dog from the opposite side of a river. The dog crosses the river without getting wet, and without using a bridge or boat. How?",
-                        answer: "the river was frozen",
-                        acceptedAnswers: ["frozen", "river was frozen", "ice", "winter"],
-                        hint: "What state would the water be in?",
-                        category: "lateral",
                         difficulty: "hard"
                     }
                 ]
@@ -1254,17 +1089,17 @@
         })();
 
             (function(){
-            // expose helper to global scope for game wiring (guarded)
-            if (typeof playModeAudio === 'function') window.playModeAudio = playModeAudio;
+            // expose helper to global scope for game wiring
+            window.playModeAudio = playModeAudio;
             window.audioControls = {
-                setPlayerSrc: (typeof setPlayerSrc === 'function' ? setPlayerSrc : function(){}),
-                play: () => (window.audioPlayer ? window.audioPlayer.play() : undefined),
-                pause: () => (window.audioPlayer ? window.audioPlayer.pause() : undefined),
-                stop: () => { try { if (window.audioPlayer) { window.audioPlayer.pause(); window.audioPlayer.currentTime = 0; } } catch(e){} },
+                setPlayerSrc,
+                play: () => audioPlayer.play(),
+                pause: () => audioPlayer.pause(),
+                stop: () => { audioPlayer.pause(); audioPlayer.currentTime = 0; },
                 // queue helpers
-                getQueue: () => (Array.isArray(audioQueue) ? audioQueue.slice() : []),
-                addToQueue: (src) => { if (src) { audioQueue.push(src); try { renderQueue(); } catch(e){} } },
-                clearQueue: () => { audioQueue = []; currentQueueIndex = -1; try { renderQueue(); } catch(e){} }
+                getQueue: () => (audioQueue.slice()),
+                addToQueue: (src) => { if (src) { audioQueue.push(src); renderQueue(); } },
+                clearQueue: () => { audioQueue = []; currentQueueIndex = -1; renderQueue(); }
             };
 
             // Audio queue implementation
@@ -4435,9 +4270,6 @@
 
         // Add a button to reset the animal trivia pool
         window.addEventListener('DOMContentLoaded', () => {
-            if (window.__burbleBooted) { console.warn('Burble already booted, skipping duplicate init.'); return; }
-            window.__burbleBooted = true;
-            try { if (window.ensureAudioUnlocked) window.ensureAudioUnlocked(); } catch(e) {}
             loadUserStats();
             initRiddlesGame();
             initBurbleGame();
@@ -4745,186 +4577,3 @@
             document.getElementById('leaderboard-details').classList.toggle('hidden', tab !== 'details');
             document.querySelectorAll('#leaderboard-page .selector-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
         }
-
-// -----------------------------
-// School Trivia (standalone copy)
-// -----------------------------
-(function(){
-    try {
-        const questionBank = {
-            "School Trivia": {
-                Math: {
-                    Easy: [
-                        { q: "What is 2 + 2?", a: "4" },
-                        { q: "How many sides does a square have?", a: "4" },
-                        { q: "What is 10 - 3?", a: "7" },
-                        { q: "What number comes after 19?", a: "20" },
-                        { q: "What is 5 + 6?", a: "11" },
-                        { q: "How many legs does a triangle have?", a: "Trick! None. It has sides." },
-                        { q: "How many minutes are in an hour?", a: "60" },
-                        { q: "What is half of 20?", a: "10" },
-                        { q: "What shape is a stop sign?", a: "Octagon" },
-                        { q: "What is 3 + 4 + 5?", a: "12" }
-                    ],
-                    Medium: [
-                        { q: "What is 12 × 12?", a: "144" },
-                        { q: "What is 144 ÷ 12?", a: "12" },
-                        { q: "What is 25% of 200?", a: "50" },
-                        { q: "Simplify: (3x + 5x)", a: "8x" },
-                        { q: "What is the area of a rectangle with length 10 and width 4?", a: "40" },
-                        { q: "What is the value of π (approx, 2 decimals)?", a: "3.14" },
-                        { q: "What is 2⁵?", a: "32" },
-                        { q: "What is the square root of 81?", a: "9" },
-                        { q: "Convert 0.75 to a fraction.", a: "3/4" },
-                        { q: "Solve: 2x + 6 = 14", a: "x = 4" }
-                    ],
-                    Hard: [
-                        { q: "What is the slope of y = 3x + 7?", a: "3" },
-                        { q: "Solve: x² - 16 = 0", a: "x = 4 or -4" },
-                        { q: "What is the quadratic formula?", a: "x = [-b ± √(b²-4ac)] / 2a" },
-                        { q: "Derivative of sin(x)?", a: "cos(x)" },
-                        { q: "What is the integral of 2x?", a: "x² + C" },
-                        { q: "Simplify: (x+2)(x+3)", a: "x² + 5x + 6" },
-                        { q: "What is the distance formula?", a: "√[(x₂-x₁)² + (y₂-y₁)²]" },
-                        { q: "What is log₁₀(1000)?", a: "3" },
-                        { q: "Factor: x² - 9", a: "(x-3)(x+3)" },
-                        { q: "What is 7! ?", a: "5040" }
-                    ],
-                    Expert: [
-                        { q: "State Euler’s identity.", a: "e^(iπ) + 1 = 0" },
-                        { q: "What is a group in abstract algebra?", a: "A set with an associative operation, identity, and inverses." },
-                        { q: "Define a vector space.", a: "A set with vector addition and scalar multiplication." },
-                        { q: "What is a derivative in real analysis?", a: "The limit of the difference quotient." },
-                        { q: "What is the determinant of a 2x2 matrix [[a,b],[c,d]]?", a: "ad - bc" },
-                        { q: "What is Taylor series expansion of e^x?", a: "1 + x + x²/2! + x³/3! + …" },
-                        { q: "Define eigenvalue.", a: "λ such that Av = λv for some nonzero v." },
-                        { q: "What is the Riemann Hypothesis?", a: "That all nontrivial zeros of the zeta function have real part 1/2." },
-                        { q: "What is Lebesgue integral?", a: "An integral defined using measure theory." },
-                        { q: "What is Fourier transform used for?", a: "Decomposing functions into frequencies." }
-                    ]
-                },
-                Science: {
-                    Easy: [
-                        { q: "What planet do we live on?", a: "Earth" },
-                        { q: "What gas do humans breathe in?", a: "Oxygen" },
-                        { q: "What gas do humans breathe out?", a: "Carbon dioxide" },
-                        { q: "What star is at the center of our solar system?", a: "The Sun" },
-                        { q: "What do bees make?", a: "Honey" },
-                        { q: "What is H₂O commonly called?", a: "Water" },
-                        { q: "How many legs does an insect have?", a: "6" },
-                        { q: "What force pulls objects to the ground?", a: "Gravity" },
-                        { q: "What is the largest planet in our solar system?", a: "Jupiter" },
-                        { q: "What organ pumps blood in our body?", a: "Heart" }
-                    ],
-                    Medium: [
-                        { q: "What planet is known as the Red Planet?", a: "Mars" },
-                        { q: "What is the chemical symbol for gold?", a: "Au" },
-                        { q: "What part of the cell contains DNA?", a: "Nucleus" },
-                        { q: "What gas makes up most of Earth’s atmosphere?", a: "Nitrogen" },
-                        { q: "What is the powerhouse of the cell?", a: "Mitochondria" },
-                        { q: "At what temperature does water boil (Celsius)?", a: "100°C" },
-                        { q: "What is the process of plants making food using sunlight?", a: "Photosynthesis" },
-                        { q: "What simple machine is a seesaw?", a: "Lever" },
-                        { q: "What gas do plants release during photosynthesis?", a: "Oxygen" },
-                        { q: "How many bones in the adult human body?", a: "206" }
-                    ],
-                    Hard: [
-                        { q: "What is Newton’s second law of motion?", a: "Force = mass × acceleration (F=ma)" },
-                        { q: "What is the acceleration due to gravity on Earth (m/s²)?", a: "9.8" },
-                        { q: "What is DNA’s shape called?", a: "Double helix" },
-                        { q: "Who proposed the theory of relativity?", a: "Albert Einstein" },
-                        { q: "What particle has negative charge?", a: "Electron" },
-                        { q: "What blood type is universal donor?", a: "O negative" },
-                        { q: "What is the periodic table number for Carbon?", a: "6" },
-                        { q: "What type of bond shares electrons?", a: "Covalent bond" },
-                        { q: "What organelle makes proteins?", a: "Ribosome" },
-                        { q: "What planet has the most moons?", a: "Saturn" }
-                    ],
-                    Expert: [
-                        { q: "What is entropy?", a: "A measure of disorder in a system" },
-                        { q: "Define Heisenberg’s uncertainty principle.", a: "You cannot simultaneously know position and momentum exactly." },
-                        { q: "What is Schrödinger’s equation used for?", a: "Describing quantum systems." },
-                        { q: "What is CRISPR?", a: "A gene-editing technology." },
-                        { q: "What is the Higgs boson?", a: "A particle giving mass via Higgs field." },
-                        { q: "Define thermodynamics’ 2nd law.", a: "Entropy of an isolated system never decreases." },
-                        { q: "What is a black hole singularity?", a: "A point of infinite density." },
-                        { q: "What is the speed of light in vacuum (m/s)?", a: "3 × 10⁸ m/s" },
-                        { q: "What is an isotope?", a: "Atoms of same element with different neutrons." },
-                        { q: "What is plate tectonics?", a: "Theory Earth’s plates move causing earthquakes and volcanoes." }
-                    ]
-                },
-                History: { Easy: [], Medium: [], Hard: [], Expert: [] },
-                English: { Easy: [], Medium: [], Hard: [], Expert: [] }
-            }
-        };
-
-        const usedQuestions = {};
-
-        function getQuestion(category, subject, difficulty) {
-            try {
-                const key = `${category}-${subject}-${difficulty}`;
-                if (!usedQuestions[key]) usedQuestions[key] = [];
-                const pool = (questionBank[category] && questionBank[category][subject] && questionBank[category][subject][difficulty]) || [];
-                const remaining = pool.filter(q => !usedQuestions[key].includes(q.q));
-                if (remaining.length === 0) {
-                    usedQuestions[key] = [];
-                    return { q: 'All questions used! Restarting.', a: null };
-                }
-                const picked = remaining[Math.floor(Math.random() * remaining.length)];
-                usedQuestions[key].push(picked.q);
-                return picked;
-            } catch (e) { return { q: 'Error fetching question', a: null }; }
-        }
-
-        // expose for standalone usage
-        window.standaloneGetQuestion = getQuestion;
-        try { if (typeof window.getQuestion !== 'function') window.getQuestion = getQuestion; } catch (e) {}
-    } catch (e) { /* ignore insertion errors */ }
-})();
-</script>
-
-<script src="scripts/standalone-school-trivia.js"></script>
-<script type="module" src="/js/app.js"></script>
-<!-- Settings Modal (shared) -->
-<div id="settingsModal" style="display:none;position:fixed;inset:0;background:#0008;z-index:9999;align-items:center;justify-content:center">
-    <div style="width:min(520px,92%);background:#14151f;color:#fff;border:1px solid #2b2d3a;border-radius:12px;padding:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <h3 style="margin:0">Settings</h3>
-            <button id="settingsClose" style="background:#ffffff22;border:0;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer">✖</button>
-        </div>
-
-        <label style="display:block;margin:10px 0">Language
-            <select id="setLanguage" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
-                <option value="en">English</option>
-                <option value="es">Español (beta)</option>
-                <option value="fr">Français (beta)</option>
-            </select>
-        </label>
-
-        <label style="display:block;margin:10px 0">Theme
-            <select id="setTheme" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
-                <option value="system">System</option>
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-            </select>
-        </label>
-
-        <label style="display:block;margin:10px 0">Font size
-            <input id="setFont" type="range" min="14" max="22" step="1" value="16" style="width:100%">
-            <small id="setFontVal">16px</small>
-        </label>
-
-        <hr style="border:none;border-top:1px solid #2b2d3a;margin:12px 0">
-
-        <!-- Help bot -->
-        <div>
-            <h4 style="margin:6px 0 8px">Help Assistant</h4>
-            <div id="helpLog" style="max-height:180px;overflow:auto;background:#0f1120;border:1px solid #2b2d3a;border-radius:8px;padding:10px;margin-bottom:8px"></div>
-            <div style="display:flex;gap:8px">
-                <input id="helpInput" placeholder="Ask about the site…" style="flex:1;padding:10px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
-                <button id="helpSend" style="background:#6a5acd;border:0;color:#fff;border-radius:8px;padding:10px 14px;cursor:pointer">Ask</button>
-            </div>
-            <small>Tip: Try “How do I register?”, “Where is School Trivia?”, “How do leaderboards work?”</small>
-        </div>
-    </div>
-</div>
