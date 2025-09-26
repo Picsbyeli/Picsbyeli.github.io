@@ -698,3 +698,25 @@ input[type="range"].seek::-webkit-slider-thumb {
     border-color: #fecaca;
 }
 .audio-alert.hidden { display:none; }
+
+/* Safety rules to hide debug content and prevent accidental display */
+pre, .debug-json, #debug-dump, pre#stateDump, pre#poolDump, pre.debug-dump {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Hide any stray script tags or JSON data that might leak into DOM */
+script[type="application/json"], 
+.question-data, 
+.json-data,
+[data-questions],
+.trivia-data,
+.riddle-data,
+.emoji-data {
+    display: none !important;
+    visibility: hidden !important;
+}
