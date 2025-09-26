@@ -20,6 +20,7 @@
                 <button class="nav-btn" onclick="showPage(event,'valentine')">Twenty Questions</button>
                 <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
                 <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
+<<<<<<< HEAD
                     <button class="nav-btn" onclick="showPage(event,'school-trivia')">School Trivia</button>
                     <!-- TOP BAR MUSIC PLAYER (inserted) -->
                     <div id="topbar-player" aria-label="Site music player">
@@ -53,6 +54,48 @@
                     <input id="avatarFile" type="file" accept="image/*" hidden>
                     <button id="settingsBtn" title="Settings" style="width:36px;height:36px;border-radius:50%;border:0;background:#ffffff22;color:#fff;cursor:pointer">⚙️</button>
                 </div>
+=======
+                <button class="nav-btn" onclick="showPage(event,'school-trivia')">School Trivia</button>
+                                <!-- TOP BAR MUSIC PLAYER (inserted) -->
+                                <div id="topbar-player" aria-label="Site music player">
+                                    <span class="tp-label">🎵 Now playing:</span>
+
+                                    <select id="tp-song" aria-label="Song list"></select>
+
+                                    <button id="tp-prev" title="Previous">⏮</button>
+                                    <button id="tp-play" title="Play/Pause">▶️</button>
+                                    <button id="tp-next" title="Next">⏭</button>
+
+                                    <button id="tp-back10" title="Back 10s">-10s</button>
+                                    <button id="tp-fwd10" title="Forward 10s">+10s</button>
+
+                                    <input id="tp-seek" type="range" min="0" max="100" value="0" aria-label="Seek">
+                                    <input id="tp-vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume">
+
+                                    <label class="tp-inline">
+                                        <input id="tp-loop-one" type="checkbox">
+                                        <span>Loop 1</span>
+                                    </label>
+
+                                    <button id="tp-add" title="Add Songs">＋</button>
+                                    <input id="tp-file" type="file" accept="audio/mpeg,audio/mp3" multiple hidden>
+
+                                    <audio id="tp-audio" preload="auto" crossorigin="anonymous"></audio>
+                                </div>
+            </div>
+            
+            <div id="user-area" class="user-area">
+                                <!-- Right-side controls: auth chip, avatar, settings -->
+                                <div id="topRightControls" style="display:flex; align-items:center; gap:10px; margin-left:auto">
+                                    <span id="authChip"></span>
+                                    <button id="avatarBtn" title="Profile" style="width:36px;height:36px;border-radius:50%;overflow:hidden;border:0;padding:0;cursor:pointer;background:#ffffff22">
+                                        <img id="avatarImg" alt="avatar" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                                        <span id="avatarFallback" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:#fff">👤</span>
+                                    </button>
+                                    <input id="avatarFile" type="file" accept="image/*" hidden>
+                                    <button id="settingsBtn" title="Settings" style="width:36px;height:36px;border-radius:50%;border:0;background:#ffffff22;color:#fff;cursor:pointer">⚙️</button>
+                                </div>
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
                 <div id="user-info" class="muted-center hidden">
                     <a href="#" id="user-email-link" title="User email">User</a>
                     <div><button id="signout-btn" class="nav-btn xsmall">Sign out</button></div>
@@ -82,6 +125,7 @@
                 <input type="range" id="audio-volume" class="volume" min="0" max="1" step="0.01" aria-label="Audio volume" title="Audio volume">
                 <label for="audio-show-queue" class="audio-queue-label" title="Show queue"><input type="checkbox" id="audio-show-queue">Queue</label>
             </div>
+<<<<<<< HEAD
 
                     <!-- Settings Modal (shared) -->
                     <div id="settingsModal" style="display:none;position:fixed;inset:0;background:#0008;z-index:9999;align-items:center;justify-content:center">
@@ -126,6 +170,8 @@
                             </div>
                         </div>
                     </div>
+=======
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
             <div id="audio-queue" class="audio-queue hidden" aria-hidden="true">
                 <div class="queue-header">
                         <strong class="queue-title">Queue</strong>
@@ -477,7 +523,11 @@
             <div class="game-info">
                 <div class="info-card">
                     <div class="info-label">Question</div>
+<<<<<<< HEAD
                     <div class="info-value" id="trivia-question-num">0/15</div>
+=======
+                    <div class="info-value" id="trivia-question-num">0/10</div>
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
                 </div>
                 <div class="info-card">
                     <div class="info-label">Correct</div>
@@ -554,6 +604,7 @@
             <div id="animal-feedback"></div>
             <div id="animal-game-over"></div>
         </div>
+<<<<<<< HEAD
         
         <!-- School Trivia Game -->
         <div id="school-trivia-page" class="game-container hidden">
@@ -595,6 +646,92 @@
 
     <!-- App bootstrap, player styles, and shared game state -->
     <!-- TOP BAR MUSIC PLAYER STYLE -->
+=======
+
+                <!-- School Trivia Game -->
+                <div id="school-trivia" class="game-container hidden">
+                        <div class="game-header">
+                                <h1 class="game-title-main">🏫 School Trivia</h1>
+                                <div class="selectors">
+                                        <label>Subject
+                                            <select id="school-subject">
+                                                <option>Math</option>
+                                                <option>Science</option>
+                                                <option>History</option>
+                                                <option>English</option>
+                                            </select>
+                                        </label>
+                                        <label>Difficulty
+                                            <select id="school-difficulty">
+                                                <option>Easy</option>
+                                                <option selected>Medium</option>
+                                                <option>Hard</option>
+                                                <option>Expert</option>
+                                            </select>
+                                        </label>
+                                </div>
+                        </div>
+
+                        <div class="game-info">
+                                <div class="info-card"><div class="info-label">Question</div><div class="info-value" id="school-q-count">0</div></div>
+                                <div class="info-card"><div class="info-label">Score</div><div class="info-value" id="school-score">0</div></div>
+                        </div>
+
+                        <div id="school-question" class="trivia-question">Press "New Question" to start.</div>
+                        <div class="action-buttons">
+                                <button class="btn btn-primary" id="school-new">New Question</button>
+                                <button class="btn btn-secondary" id="school-show-answer" disabled>Show Answer</button>
+                        </div>
+                        <div id="school-answer" class="muted-center"></div>
+                </div>
+    </div>
+
+        <!-- Settings Modal (shared) -->
+        <div id="settingsModal" style="display:none;position:fixed;inset:0;background:#0008;z-index:9999;align-items:center;justify-content:center">
+            <div style="width:min(520px,92%);background:#14151f;color:#fff;border:1px solid #2b2d3a;border-radius:12px;padding:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <h3 style="margin:0">Settings</h3>
+                    <button id="settingsClose" style="background:#ffffff22;border:0;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer">✖</button>
+                </div>
+
+                <label style="display:block;margin:10px 0">Language
+                    <select id="setLanguage" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
+                        <option value="en">English</option>
+                        <option value="es">Español (beta)</option>
+                        <option value="fr">Français (beta)</option>
+                    </select>
+                </label>
+
+                <label style="display:block;margin:10px 0">Theme
+                    <select id="setTheme" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
+                        <option value="system">System</option>
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </label>
+
+                <label style="display:block;margin:10px 0">Font size
+                    <input id="setFont" type="range" min="14" max="22" step="1" value="16" style="width:100%">
+                    <small id="setFontVal">16px</small>
+                </label>
+
+                <hr style="border:none;border-top:1px solid #2b2d3a;margin:12px 0">
+
+                <!-- Help bot -->
+                <div>
+                    <h4 style="margin:6px 0 8px">Help Assistant</h4>
+                    <div id="helpLog" style="max-height:180px;overflow:auto;background:#0f1120;border:1px solid #2b2d3a;border-radius:8px;padding:10px;margin-bottom:8px"></div>
+                    <div style="display:flex;gap:8px">
+                        <input id="helpInput" placeholder="Ask about the site…" style="flex:1;padding:10px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
+                        <button id="helpSend" style="background:#6a5acd;border:0;color:#fff;border-radius:8px;padding:10px 14px;cursor:pointer">Ask</button>
+                    </div>
+                    <small>Tip: Try “How do I register?”, “Where is School Trivia?”, “How do leaderboards work?”</small>
+                </div>
+            </div>
+        </div>
+
+    <!-- TOP BAR MUSIC PLAYER STYLE & LOGIC -->
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
 <style>
     /* --- Top Bar Player (tuned for purple header) --- */
     #topbar-player { margin-left: auto; display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
@@ -609,9 +746,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+<<<<<<< HEAD
     <!-- Player extension: drag & drop uploads -->
     <script type="module" src="./scripts/player-extend.js"></script>
 
+=======
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
     const TP_TRACKS = [
         { title: "Marvel Opening Theme", url: "assets/audio/Marvel Opening Theme.mp3" },
         { title: "Pokémon Theme Song",    url: "assets/audio/Pokémon Theme Song.mp3" },
@@ -660,6 +800,7 @@ document.addEventListener('DOMContentLoaded', function(){
     audio?.addEventListener('play', ()=>{ btnPlay.textContent='⏸'; state.playing=true; save(); });
     audio?.addEventListener('pause', ()=>{ btnPlay.textContent='▶️'; state.playing=false; save(); });
 
+<<<<<<< HEAD
     // Public API for extensions (drag/drop, cloud uploads, etc)
     window.playerApi = {
         addTracks(tracks){
@@ -675,6 +816,8 @@ document.addEventListener('DOMContentLoaded', function(){
         pause(){ if(!audio.paused) pause(); }
     };
 
+=======
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
         (function init(){
             if (!audio) return; // guard if DOM ids not present
             audio.volume = Number(state.v) || 0.8;
@@ -685,8 +828,13 @@ document.addEventListener('DOMContentLoaded', function(){
     });
     </script>
 
+<<<<<<< HEAD
     <!-- Load Question Engine -->
     <!-- (removed duplicate question-engine.js include; kept single include near end) -->
+=======
+<!-- Load Question Engine -->
+        <script src="scripts/question-engine.js"></script>
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
         <!-- Emergency: hide accidental debug dumps and overlays until code cleanup -->
         <style>
             /* Emergency hide for stray debug / state dumps injected as <pre> */
@@ -699,8 +847,11 @@ document.addEventListener('DOMContentLoaded', function(){
             }
             /* Hide common overlays that can block gestures */
             #overlay, #loading, .scrim, .modal-backdrop { display: none !important; }
+<<<<<<< HEAD
             /* Hide legacy audio controls to keep a single compact player */
             #audio-controls, #audio-queue { display: none !important; }
+=======
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
         </style>
         <script>
             // Debug and safety helpers (disabled by default)
@@ -750,9 +901,12 @@ document.addEventListener('DOMContentLoaded', function(){
                 if (!window.__burbleBooted) window.__burbleBooted = false;
             })();
         </script>
+<<<<<<< HEAD
         <script>
         // Global game state used by all games
         const gameState = {
+=======
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
             userStats: {
                 totalScore: 0,
                 gamesPlayed: 0,
@@ -2827,6 +2981,12 @@ document.addEventListener('DOMContentLoaded', function(){
     <!-- Firebase + shared logic -->
     <script type="module" src="/js/app.js"></script>
 
+<<<<<<< HEAD
+=======
+    </body>
+    </html>
+
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
     <!-- Load Question Engine -->
     <script src="scripts/question-engine.js"></script>
     <script>
@@ -2864,4 +3024,8 @@ document.addEventListener('DOMContentLoaded', function(){
             aEl.textContent = lastQA.a || 'No answer available';
         });
     });
+<<<<<<< HEAD
     </script>
+=======
+    </script>
+>>>>>>> 83311e1 (UI: compact topbar audio (hide label, right-align), remove duplicate Now Playing; Quizzes: enforce 15-question runs for Trivia and Animals with repeatable shuffle)
