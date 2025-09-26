@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Burble - Brain Teasers & Riddles Platform</title>
     <link rel="stylesheet" href="assets/css/styles.css">
-    <script src="/questions.js"></script>
 </head>
 <body>
     <div class="container">
@@ -20,49 +19,12 @@
                 <button class="nav-btn" onclick="showPage(event,'valentine')">Twenty Questions</button>
                 <button class="nav-btn" onclick="showPage(event,'trivia')">Trivia</button>
                 <button class="nav-btn" onclick="showPage(event,'animal-trivia')">Animals</button>
-                <button class="nav-btn" onclick="showPage(event,'school-trivia')">School Trivia</button>
-                                <!-- TOP BAR MUSIC PLAYER (inserted) -->
-                                <div id="topbar-player" aria-label="Site music player" style="margin-left:12px;">
-                                    <span class="tp-label">🎵 Now playing:</span>
-
-                                    <select id="tp-song" aria-label="Song list"></select>
-
-                                    <button id="tp-prev" title="Previous">⏮</button>
-                                    <button id="tp-play" title="Play/Pause">▶️</button>
-                                    <button id="tp-next" title="Next">⏭</button>
-
-                                    <button id="tp-back10" title="Back 10s">-10s</button>
-                                    <button id="tp-fwd10" title="Forward 10s">+10s</button>
-
-                                    <input id="tp-seek" type="range" min="0" max="100" value="0" aria-label="Seek">
-                                    <input id="tp-vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume">
-
-                                    <label class="tp-inline">
-                                        <input id="tp-loop-one" type="checkbox">
-                                        <span>Loop 1</span>
-                                    </label>
-
-                                    <button id="tp-add" title="Add Songs">＋</button>
-                                    <input id="tp-file" type="file" accept="audio/mpeg,audio/mp3" multiple hidden>
-
-                                    <audio id="tp-audio" preload="auto" crossorigin="anonymous"></audio>
-                                </div>
             </div>
             <div class="now-playing" id="now-playing" aria-live="polite">
                 <span class="now-playing-art" id="now-playing-art">🎵</span>
                 Now playing: <span id="now-playing-track">None</span>
             </div>
             <div id="user-area" class="user-area">
-                                <!-- Right-side controls: auth chip, avatar, settings -->
-                                <div id="topRightControls" style="display:flex; align-items:center; gap:10px; margin-left:auto">
-                                    <span id="authChip"></span>
-                                    <button id="avatarBtn" title="Profile" style="width:36px;height:36px;border-radius:50%;overflow:hidden;border:0;padding:0;cursor:pointer;background:#ffffff22">
-                                        <img id="avatarImg" alt="avatar" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
-                                        <span id="avatarFallback" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:#fff">👤</span>
-                                    </button>
-                                    <input id="avatarFile" type="file" accept="image/*" hidden>
-                                    <button id="settingsBtn" title="Settings" style="width:36px;height:36px;border-radius:50%;border:0;background:#ffffff22;color:#fff;cursor:pointer">⚙️</button>
-                                </div>
                 <div id="user-info" class="muted-center hidden">
                     <a href="#" id="user-email-link" title="User email">User</a>
                     <div><button id="signout-btn" class="nav-btn xsmall">Sign out</button></div>
@@ -520,229 +482,12 @@
             <div id="animal-feedback"></div>
             <div id="animal-game-over"></div>
         </div>
-
-                <!-- School Trivia Game -->
-                <div id="school-trivia" class="game-container hidden">
-                        <div class="game-header">
-                                <h1 class="game-title-main">🏫 School Trivia</h1>
-                                <div class="selectors">
-                                        <label>Subject
-                                            <select id="school-subject">
-                                                <option>Math</option>
-                                                <option>Science</option>
-                                                <option>History</option>
-                                                <option>English</option>
-                                            </select>
-                                        </label>
-                                        <label>Difficulty
-                                            <select id="school-difficulty">
-                                                <option>Easy</option>
-                                                <option selected>Medium</option>
-                                                <option>Hard</option>
-                                                <option>Expert</option>
-                                            </select>
-                                        </label>
-                                </div>
-                        </div>
-
-                        <div class="game-info">
-                                <div class="info-card"><div class="info-label">Question</div><div class="info-value" id="school-q-count">0</div></div>
-                                <div class="info-card"><div class="info-label">Score</div><div class="info-value" id="school-score">0</div></div>
-                        </div>
-
-                        <div id="school-question" class="trivia-question">Press "New Question" to start.</div>
-                        <div class="action-buttons">
-                                <button class="btn btn-primary" id="school-new">New Question</button>
-                                <button class="btn btn-secondary" id="school-show-answer" disabled>Show Answer</button>
-                        </div>
-                        <div id="school-answer" class="muted-center"></div>
-                </div>
     </div>
 
-        <!-- Settings Modal (shared) -->
-        <div id="settingsModal" style="display:none;position:fixed;inset:0;background:#0008;z-index:9999;align-items:center;justify-content:center">
-            <div style="width:min(520px,92%);background:#14151f;color:#fff;border:1px solid #2b2d3a;border-radius:12px;padding:16px">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <h3 style="margin:0">Settings</h3>
-                    <button id="settingsClose" style="background:#ffffff22;border:0;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer">✖</button>
-                </div>
-
-                <label style="display:block;margin:10px 0">Language
-                    <select id="setLanguage" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
-                        <option value="en">English</option>
-                        <option value="es">Español (beta)</option>
-                        <option value="fr">Français (beta)</option>
-                    </select>
-                </label>
-
-                <label style="display:block;margin:10px 0">Theme
-                    <select id="setTheme" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
-                        <option value="system">System</option>
-                        <option value="dark">Dark</option>
-                        <option value="light">Light</option>
-                    </select>
-                </label>
-
-                <label style="display:block;margin:10px 0">Font size
-                    <input id="setFont" type="range" min="14" max="22" step="1" value="16" style="width:100%">
-                    <small id="setFontVal">16px</small>
-                </label>
-
-                <hr style="border:none;border-top:1px solid #2b2d3a;margin:12px 0">
-
-                <!-- Help bot -->
-                <div>
-                    <h4 style="margin:6px 0 8px">Help Assistant</h4>
-                    <div id="helpLog" style="max-height:180px;overflow:auto;background:#0f1120;border:1px solid #2b2d3a;border-radius:8px;padding:10px;margin-bottom:8px"></div>
-                    <div style="display:flex;gap:8px">
-                        <input id="helpInput" placeholder="Ask about the site…" style="flex:1;padding:10px;border-radius:8px;border:1px solid #2b2d3a;background:#0f1120;color:#fff">
-                        <button id="helpSend" style="background:#6a5acd;border:0;color:#fff;border-radius:8px;padding:10px 14px;cursor:pointer">Ask</button>
-                    </div>
-                    <small>Tip: Try “How do I register?”, “Where is School Trivia?”, “How do leaderboards work?”</small>
-                </div>
-            </div>
-        </div>
-
     <script>
-
-<!-- TOP BAR MUSIC PLAYER STYLE & LOGIC -->
-<style>
-    /* --- Top Bar Player (tuned for purple header) --- */
-    #topbar-player { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: transparent; color: #fff; }
-    #topbar-player .tp-label { opacity: .9; font-weight: 600; }
-    #topbar-player select, #topbar-player button, #topbar-player input[type="range"] { accent-color: #6a5acd; }
-    #topbar-player select { background: #fff; color: #111; border: 0; border-radius: 8px; padding: 4px 8px; max-width: 220px; }
-    #topbar-player button { background: rgba(255,255,255,.15); color:#fff; border:0; padding: 6px 8px; border-radius: 8px; cursor: pointer; line-height: 1; }
-    #topbar-player button:hover { background: rgba(255,255,255,.25); }
-    #topbar-player input[type="range"]#tp-seek { width: 160px; height: 6px; border-radius: 6px; background: rgba(255,255,255,.25); }
-    #topbar-player input[type="range"]#tp-vol { width: 80px; height: 6px; border-radius: 6px; background: rgba(255,255,255,.25); }
-    #topbar-player .tp-inline { display:flex; align-items:center; gap:4px; font-size: 12px; opacity: .9; }
-    @media (max-width: 820px) { #topbar-player .tp-label { display:none; } #topbar-player select { max-width: 160px; } #topbar-player input[type="range"]#tp-seek { width: 120px; } }
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-    const TP_TRACKS = [
-        { title: "Marvel Opening Theme", url: "assets/audio/Marvel Opening Theme.mp3" },
-        { title: "Pokémon Theme Song",    url: "assets/audio/Pokémon Theme Song.mp3" },
-        { title: "Star Wars Main Theme",  url: "assets/audio/Star Wars Main Theme (Full).mp3" }
-    ];
-
-    const $ = (id) => document.getElementById(id);
-    const audio = $('tp-audio');
-    const songSel = $('tp-song');
-    const btnPrev = $('tp-prev');
-    const btnPlay = $('tp-play');
-    const btnNext = $('tp-next');
-    const btnBack = $('tp-back10');
-    const btnFwd  = $('tp-fwd10');
-    const seek    = $('tp-seek');
-    const vol     = $('tp-vol');
-    const loopOne = $('tp-loop-one');
-    const btnAdd  = $('tp-add');
-    const fileInp = $('tp-file');
-
-    const LS_KEY = 'topbarPlayer.v1';
-    let state = { i: 0, t: 0, v: 0.8, loop1: false, tracks: TP_TRACKS.slice() };
-    try { const saved = JSON.parse(localStorage.getItem(LS_KEY) || '{}'); state = { ...state, ...saved, tracks: (saved.tracks?.length ? saved.tracks : state.tracks) }; } catch {}
-    const save = () => localStorage.setItem(LS_KEY, JSON.stringify(state));
-
-    function buildSongList(){ songSel.innerHTML=''; state.tracks.forEach((t, idx)=>{ const opt=document.createElement('option'); opt.value=idx; opt.textContent=t.title; songSel.appendChild(opt); }); songSel.value=String(state.i); }
-    function load(idx, resumeTime=false){ if(idx<0) idx=state.tracks.length-1; if(idx>=state.tracks.length) idx=0; state.i=idx; audio.src = state.tracks[state.i].url; audio.load(); if(resumeTime) audio.currentTime=Number(state.t)||0; else state.t=0; buildSongList(); save(); }
-    function play(){ audio.play().then(()=>{ state.playing = true; btnPlay.textContent='⏸'; save(); }).catch(()=>{ btnPlay.textContent='▶️'; }); }
-    function pause(){ audio.pause(); state.playing=false; btnPlay.textContent='▶️'; save(); }
-    function next(){ load(state.i+1,false); play(); }
-    function prev(){ load(state.i-1,false); play(); }
-
-    btnPlay?.addEventListener('click', ()=> audio.paused ? play() : pause());
-    btnNext?.addEventListener('click', next);
-    btnPrev?.addEventListener('click', prev);
-    btnBack?.addEventListener('click', ()=>{ audio.currentTime = Math.max(0, audio.currentTime - 10); });
-    btnFwd?.addEventListener('click', ()=>{ audio.currentTime = Math.min(audio.duration||0, audio.currentTime + 10); });
-    songSel?.addEventListener('change', ()=>{ load(Number(songSel.value), false); play(); });
-    vol?.addEventListener('input', e=>{ audio.volume = Number(e.target.value); state.v = audio.volume; save(); });
-    seek?.addEventListener('input', e=>{ const pct = Number(e.target.value)/100; audio.currentTime = pct * (audio.duration||0); });
-    loopOne?.addEventListener('change', ()=>{ state.loop1 = loopOne.checked; save(); });
-    btnAdd?.addEventListener('click', ()=> fileInp.click());
-    fileInp?.addEventListener('change', (e)=>{ Array.from(e.target.files||[]).forEach(f=>{ const url = URL.createObjectURL(f); state.tracks.push({ title: f.name.replace(/\.(mp3|mpeg)$/i,''), url }); }); buildSongList(); save(); });
-    audio?.addEventListener('timeupdate', ()=>{ if(!audio.duration) return; seek.value = String((audio.currentTime / audio.duration) * 100); state.t = audio.currentTime; save(); });
-    audio?.addEventListener('ended', ()=>{ state.loop1 ? (audio.currentTime=0, play()) : next(); });
-    audio?.addEventListener('play', ()=>{ btnPlay.textContent='⏸'; state.playing=true; save(); });
-    audio?.addEventListener('pause', ()=>{ btnPlay.textContent='▶️'; state.playing=false; save(); });
-
-        (function init(){
-            if (!audio) return; // guard if DOM ids not present
-            audio.volume = Number(state.v) || 0.8;
-            if (vol) vol.value = String(audio.volume);
-            if (loopOne) loopOne.checked = !!state.loop1;
-            buildSongList(); load(Number(state.i) || 0, true); if(state.playing) play(); const kick = ()=>{ if(audio.paused) play(); window.removeEventListener('click', kick, true); }; window.addEventListener('click', kick, true);
-        })();
-    });
-    </script>
-
-<!-- Load Question Engine -->
-        <script src="scripts/question-engine.js"></script>
-        <!-- Emergency: hide accidental debug dumps and overlays until code cleanup -->
-        <style>
-            /* Emergency hide for stray debug / state dumps injected as <pre> */
-            #debug-dump, pre#stateDump, pre#poolDump, pre.debug-dump, .debug-json {
-                display: none !important;
-                visibility: hidden !important;
-                pointer-events: none !important;
-                max-height: 0 !important;
-                overflow: hidden !important;
-            }
-            /* Hide common overlays that can block gestures */
-            #overlay, #loading, .scrim, .modal-backdrop { display: none !important; }
-        </style>
-        <script>
-            // Debug and safety helpers (disabled by default)
-            (function(){
-                const DEBUG = false;
-                function debugDump(obj){
-                    if (!DEBUG) return;
-                    let pre = document.getElementById('debug-dump');
-                    if (!pre) {
-                        pre = document.createElement('pre');
-                        pre.id = 'debug-dump';
-                        pre.className = 'debug-json';
-                        pre.style.whiteSpace = 'pre-wrap';
-                        pre.style.fontSize = '12px';
-                        pre.style.maxHeight = '40vh';
-                        pre.style.overflow = 'auto';
-                        document.body.appendChild(pre);
-                    }
-                    try { pre.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2); } catch(e) { pre.textContent = String(obj); }
-                }
-
-                let _audioUnlocked = false;
-                function ensureAudioUnlocked(){
-                    if (_audioUnlocked) return;
-                    const tryUnlock = async ()=>{
-                        try{
-                            const Ctx = window.AudioContext || window.webkitAudioContext;
-                            if (Ctx) {
-                                window._ac = window._ac || new Ctx();
-                                if (window._ac.state === 'suspended') await window._ac.resume();
-                            }
-                            // play a very quiet short sound if available to satisfy browsers
-                            try{ const a = new Audio('assets/audio/30 Second Timer With Jeopardy Thinking Music.mp3'); a.volume = 0.01; await a.play().catch(()=>{}); } catch(e) {}
-                            _audioUnlocked = true;
-                        } finally {
-                            window.removeEventListener('pointerdown', tryUnlock);
-                            window.removeEventListener('keydown', tryUnlock);
-                        }
-                    };
-                    window.addEventListener('pointerdown', tryUnlock, { once: true });
-                    window.addEventListener('keydown', tryUnlock, { once: true });
-                }
-
-                // Expose helpers globally for other scripts/tests
-                window.debugDump = debugDump;
-                window.ensureAudioUnlocked = ensureAudioUnlocked;
-                if (!window.__burbleBooted) window.__burbleBooted = false;
-            })();
-        </script>
+        // Global game state
+        const gameState = {
+            currentPage: 'home',
             userStats: {
                 totalScore: 0,
                 gamesPlayed: 0,
@@ -2602,9 +2347,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
         // Initialize all games when page loads
         window.addEventListener('DOMContentLoaded', () => {
-            if (window.__burbleBooted) { console.warn('Burble already booted, skipping duplicate init.'); return; }
-            window.__burbleBooted = true;
-            try { if (window.ensureAudioUnlocked) window.ensureAudioUnlocked(); } catch(e) {}
             loadUserStats();
             initRiddlesGame();
             initBurbleGame();
@@ -2802,49 +2544,149 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     </script>
 
-    
+    <!-- 🎵 Floating Music Player (updated) -->
+    <div id="musicPlayer">
+        <div id="player-controls">
+            <button id="prevBtn">⏮️</button>
+            <button id="playBtn">▶️</button>
+            <button id="pauseBtn">⏸️</button>
+            <button id="nextBtn">⏭️</button>
+            <button id="loopBtn">🔁</button>
+        </div>
+        <div id="progress"><div class="bar" id="progressBar"></div></div>
+        <ul id="playlist"></ul>
+        <input type="file" id="fileInput" accept="audio/mp3" multiple hidden>
+        <button id="uploadBtn">+ Add Songs</button>
+        <audio id="audio" preload="auto"></audio>
+    </div>
 
-    <!-- Firebase + shared logic -->
-    <script type="module" src="/js/app.js"></script>
+    <style>
+        /* 🎨 Floating dark panel styled to match your site */
+        #musicPlayer { position: fixed; bottom: 18px; right: 18px; width: 280px; background: #111; color: #eee; border: 1px solid #333; border-radius: 12px; padding: 10px; font-family: system-ui, sans-serif; box-shadow: 0 0 12px rgba(0,0,0,0.5); z-index: 9999; }
+        #player-controls { display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; }
+        #player-controls button { background: #222; color: #eee; border: 0; padding: 6px; border-radius: 6px; cursor: pointer; }
+        #player-controls button:hover { background: #333; }
+        #progress { height: 6px; background: #222; border-radius: 4px; margin: 6px 0; cursor: pointer; }
+        #progress .bar { height: 100%; width: 0%; background: linear-gradient(90deg, #8b5cf6, #06b6d4); border-radius: 4px; }
+        #playlist { list-style: none; padding: 0; margin: 6px 0 0 0; max-height: 120px; overflow-y: auto; font-size: 13px; }
+        #playlist li { padding: 4px; cursor: pointer; border-radius: 4px; }
+        #playlist li:hover { background: #222; }
+        #playlist li.active { background: #333; font-weight: bold; }
+        #uploadBtn { width: 100%; margin-top: 8px; padding: 6px; background: #222; color: #eee; border: 0; border-radius: 6px; cursor: pointer; }
+        #uploadBtn:hover { background: #333; }
+    </style>
+
+    <script>
+        // 📂 Default songs from repo's assets/audio folder (encodeURI used for spaces)
+        let songs = [
+            { title: "Marvel Opening Theme", src: encodeURI("assets/audio/Marvel Opening Theme.mp3") },
+            { title: "Pokémon Theme Song", src: encodeURI("assets/audio/Pokémon Theme Song.mp3") },
+            { title: "Star Wars Main Theme (Full)", src: encodeURI("assets/audio/Star Wars Main Theme (Full).mp3") }
+        ];
+
+        let currentSongIndex = 0;
+        let loopMode = true;
+
+        const audio = document.getElementById("audio");
+        const playBtn = document.getElementById("playBtn");
+        const pauseBtn = document.getElementById("pauseBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const loopBtn = document.getElementById("loopBtn");
+        const playlist = document.getElementById("playlist");
+        const progress = document.getElementById("progress");
+        const progressBar = document.getElementById("progressBar");
+        const fileInput = document.getElementById("fileInput");
+        const uploadBtn = document.getElementById("uploadBtn");
+
+        // 🟢 Save state in localStorage
+        function saveState() {
+            try {
+                localStorage.setItem("musicPlayerState", JSON.stringify({
+                    index: currentSongIndex,
+                    time: audio.currentTime,
+                    loop: loopMode,
+                    songs: songs
+                }));
+            } catch (e) { /* ignore storage errors */ }
+        }
+
+        function loadState() {
+            try {
+                const state = JSON.parse(localStorage.getItem("musicPlayerState") || "{}");
+                if (state.songs) songs = state.songs;
+                if (typeof state.index === "number") currentSongIndex = state.index;
+                if (typeof state.loop === "boolean") loopMode = state.loop;
+                return state.time || 0;
+            } catch (e) { return 0; }
+        }
+
+        function loadSong(index, autoplay=false) {
+            if (!songs || songs.length === 0) return;
+            currentSongIndex = ((index % songs.length) + songs.length) % songs.length;
+            audio.src = songs[currentSongIndex].src;
+            audio.load();
+            updatePlaylistUI();
+            if (autoplay) audio.play().catch(()=>{});
+            saveState();
+        }
+
+        function updatePlaylistUI() {
+            playlist.innerHTML = '';
+            songs.forEach((song, index) => {
+                const li = document.createElement('li');
+                li.textContent = song.title;
+                if (index === currentSongIndex) li.classList.add('active');
+                li.onclick = () => loadSong(index, true);
+                playlist.appendChild(li);
+            });
+        }
+
+        playBtn.onclick = () => audio.play().catch(()=>{});
+        pauseBtn.onclick = () => audio.pause();
+        prevBtn.onclick = () => loadSong(currentSongIndex - 1, true);
+        nextBtn.onclick = () => loadSong(currentSongIndex + 1, true);
+
+        loopBtn.onclick = () => { loopMode = !loopMode; loopBtn.textContent = loopMode ? "🔁" : "➡️"; saveState(); };
+
+        audio.onended = () => { if (loopMode) nextBtn.onclick(); };
+
+        audio.ontimeupdate = () => {
+            progressBar.style.width = (audio.currentTime / (audio.duration || 1)) * 100 + "%";
+            saveState();
+        };
+
+        progress.onclick = (e) => {
+            const pct = e.offsetX / progress.offsetWidth;
+            audio.currentTime = pct * (audio.duration || 1);
+        };
+
+        // 🔼 Add more songs via upload
+        uploadBtn.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => {
+            Array.from(e.target.files).forEach(file => {
+                const url = URL.createObjectURL(file);
+                songs.push({ title: file.name.replace(/\.mp3$/i, ''), src: url });
+            });
+            updatePlaylistUI();
+            saveState();
+        };
+
+        // 🟢 Resume from last state
+        const resumeTime = loadState();
+        updatePlaylistUI();
+        loadSong(currentSongIndex, false);
+        audio.currentTime = resumeTime;
+
+        // 🟢 Only start music when game is started
+        document.querySelectorAll("a, button").forEach((el) => {
+            if (el.textContent.match(/play|game/i)) {
+                el.addEventListener("click", () => {
+                    if (audio.paused) loadSong(currentSongIndex, true);
+                }, { once: true });
+            }
+        });
+    </script>
 
     </body>
     </html>
-
-    <!-- Load Question Engine -->
-    <script src="scripts/question-engine.js"></script>
-    <script>
-    // School Trivia wiring
-    document.addEventListener('DOMContentLoaded', () => {
-        const newBtn = document.getElementById('school-new');
-        const showBtn = document.getElementById('school-show-answer');
-        const qEl = document.getElementById('school-question');
-        const aEl = document.getElementById('school-answer');
-        const subj = document.getElementById('school-subject');
-        const diff = document.getElementById('school-difficulty');
-        const qCount = document.getElementById('school-q-count');
-
-        let lastQA = null;
-        let counter = 0;
-
-        function updateCount() { qCount.textContent = String(counter); }
-
-        newBtn.addEventListener('click', () => {
-            const s = subj.value;
-            const d = diff.value;
-            const res = (window.QuestionEngine && window.QuestionEngine.getQuestion)
-                ? window.QuestionEngine.getQuestion('School Trivia', s, d)
-                : { q: 'Question engine not loaded', a: null };
-            lastQA = res;
-            qEl.textContent = res.q || 'No question';
-            aEl.textContent = '';
-            showBtn.disabled = !res.a;
-            counter++;
-            updateCount();
-        });
-
-        showBtn.addEventListener('click', () => {
-            if (!lastQA) return;
-            aEl.textContent = lastQA.a || 'No answer available';
-        });
-    });
-    </script>
