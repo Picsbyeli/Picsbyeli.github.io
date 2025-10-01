@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import LoginGate from './components/LoginGate.jsx';
 import MusicPlayer from './components/MusicPlayer.jsx';
-import ChessGame from './games/ChessGame.jsx';
+import OnlineChess from './games/OnlineChess.jsx';
 import Connect4 from './games/Connect4.jsx';
 import Imposter from './games/Imposter.jsx';
 import Riddles from './games/Riddles.jsx';
@@ -57,7 +57,7 @@ export default function App(){
         <MusicPlayer />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/chess" element={<ChessGame />} />
+          <Route path="/chess" element={<OnlineChess />} />
           <Route path="/connect4" element={<Connect4 />} />
           <Route path="/imposter" element={<Imposter />} />
           <Route path="/riddles" element={<Riddles />} />
