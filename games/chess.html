@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chess - E.Vol Games</title>
+  <script src="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/www/js/chessboard-1.0.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/www/css/chessboard-1.0.0.min.css">
+  <style>
+    body {
+      background: linear-gradient(to bottom, #6a11cb, #2575fc);
+      font-family: 'Inter', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    #board {
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-btn">← Back to Home</a>
+  
+  <div class="game-container">
+    <h1>🎮 Chess</h1>
+    <p>Play chess with visual board. Guest mode enabled!</p>
+    
+    <div id="board" style="width: 400px; margin: 0 auto;"></div>
+    
+    <div style="margin-top: 20px;">
+      <button onclick="board.start()">New Game</button>
+      <button onclick="board.flip()">Flip Board</button>
+    </div>
+    
+    <div id="game-status" style="margin-top: 15px;">
+      Ready to play! Make your move.
+    </div>
+  </div>
+
+  <script>
+    // Initialize chess board
+    const board = Chessboard("board", {
+      draggable: true,
+      position: 'start',
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onSnapEnd: onSnapEnd
+    });
+
+    // Simple chess rules (you can expand this)
+    function onDragStart(source, piece, position, orientation) {
+      // Allow moves for demo
+      return true;
+    }
+
+    function onDrop(source, target) {
+      // Basic move validation would go here
+      // For now, allow all moves for demo
+      document.getElementById('game-status').innerHTML = `Moved from ${source} to ${target}`;
+      return 'snapback'; // Remove this to allow all moves
+    }
+
+    function onSnapEnd() {
+      // Move completed
+    }
+
+    // Guest user support
+    const guestUser = {
+      uid: "guest-" + Math.random().toString(36).slice(2),
+      displayName: "Guest Player"
+    };
+    localStorage.setItem("guestUser", JSON.stringify(guestUser));
+  </script>
+</body>
+</html>

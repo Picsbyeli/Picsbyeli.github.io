@@ -16,6 +16,22 @@ document.querySelectorAll('[data-view]').forEach(btn => {
 // footer year
 document.getElementById('year').textContent = new Date().getFullYear();
 
+// ---------- Guest user support ----------
+let user = null;
+
+// Create guest user if no auth
+function initGuestMode() {
+  user = {
+    uid: "guest-" + Math.random().toString(36).slice(2),
+    displayName: "Guest Player"
+  };
+  localStorage.setItem("guestUser", JSON.stringify(user));
+  console.log("[Guest Mode] Playing as:", user.displayName);
+}
+
+// Initialize guest mode on load
+initGuestMode();
+
 // ---------- music ----------
 const musicToggle = document.getElementById('musicToggle');
 const musicPanel = document.getElementById('musicPanel');

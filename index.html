@@ -7,26 +7,24 @@
   <link href="./styles.css" rel="stylesheet" />
 </head>
 <body>
+  <!-- ✅ Simple top audio player -->
+  <div id="audio-player" class="audio-bar">
+    <input type="file" id="audio-upload" accept="audio/*" hidden />
+    <button onclick="document.getElementById('audio-upload').click()">Upload</button>
+    <button onclick="prevTrack()">⏮</button>
+    <button onclick="togglePlay()">▶️ / ⏸</button>
+    <button onclick="nextTrack()">⏭</button>
+    <span id="now-playing">Now Playing: None</span>
+  </div>
+
   <header class="topbar">
     <div class="brand">🎮 E.Vol</div>
     <nav class="nav">
       <button data-view="home">Home</button>
-      <button data-view="imposter">Imposter</button>
-      <button data-view="chess">Chess</button>
-      <button data-view="connect4">Connect 4</button>
+      <button onclick="window.location.href='games/imposter.html'">Imposter</button>
+      <button onclick="window.location.href='games/chess.html'">Chess</button>
+      <button onclick="window.location.href='games/connect4.html'">Connect 4</button>
     </nav>
-    <!-- Music control (collapsible) -->
-    <div class="music">
-      <button id="musicToggle" title="Toggle Player">🎵</button>
-      <div id="musicPanel" class="music-panel hidden">
-        <div class="music-row">
-          <input id="musicInput" placeholder="Paste Spotify/YouTube/Apple link, or direct .mp3 URL" />
-          <button id="addTrack">Add</button>
-          <button id="clearTracks" class="ghost">Clear</button>
-        </div>
-        <div id="musicList" class="music-list"></div>
-      </div>
-    </div>
   </header>
 
   <main id="views">
@@ -142,6 +140,9 @@
 
   <!-- Socket.IO client -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-cxZkYqQm9Lqk7SfhJ8SdPlgTT6mCw4NSwQ1g0e1Qm3kJZ0mZ2uO9W+7m1b+3yK2M" crossorigin="anonymous"></script>
+
+  <!-- Audio player -->
+  <script src="js/audio.js"></script>
 
   <!-- App scripts -->
   <script type="module" src="./main.js"></script>
