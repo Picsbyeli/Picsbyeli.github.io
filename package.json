@@ -4,6 +4,9 @@
   "description": "riddles and trivia",
   "main": "index.js",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:unit": "node test/drawFromPool.test.js",
     "test:playwright": "npx playwright test tests/playwright --reporter=list",
@@ -21,9 +24,17 @@
   },
   "homepage": "https://github.com/Picsbyeli/Picsbyeli.github.io#readme",
   "devDependencies": {
-    "@playwright/test": "^1.55.0"
+    "@playwright/test": "^1.55.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.4.0"
   },
   "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "chess.js": "^1.0.0",
+    "react-chessboard": "^4.4.3",
+    "firebase": "^10.13.1",
     "jsdom": "^22.1.0"
   }
 }

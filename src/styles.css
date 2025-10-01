@@ -1,0 +1,12 @@
+body { background: linear-gradient(to bottom right, #2b2d42, #1a1c2c); color:#f8f9fa; font-family: 'Inter', system-ui, sans-serif; margin:0; }
+#root { min-height:100vh; }
+button { background:#6c63ff; color:#fff; border:none; border-radius:10px; padding:10px 18px; font-weight:600; cursor:pointer; transition:background .2s; }
+button:hover { background:#5146d9; }
+.card { background:rgba(255,255,255,0.08); border-radius:16px; padding:20px; margin:10px; box-shadow:0 4px 15px rgba(0,0,0,0.4); transition:transform .2s; }
+.card:hover { transform: translateY(-3px); }
+.game-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap:16px; padding:20px; }
+.login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; text-align:center; gap:1rem; }
+.login-actions { display:flex; gap:1rem; }
+.home-header { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; padding:1rem; }
+.music-player { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+iframe { border:0; }
