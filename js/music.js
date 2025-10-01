@@ -8,7 +8,7 @@ let currentEmbed = null;
 // API Configuration (you'll need to add your actual API keys)
 const SPOTIFY_CLIENT_ID = "836517f7831341f3a342af90f5c1390e"; // Spotify client ID
 const SPOTIFY_CLIENT_SECRET = "07f314daeaad4525bbad0cbe3901487a"; // Spotify client secret
-const YOUTUBE_API_KEY = "YOUR_YOUTUBE_API_KEY"; // Replace with your YouTube API key
+const YOUTUBE_API_KEY = "AIzaSyAtTsnqvnVajLBFyP69xqcD2EJC7h9nV1Q"; // YouTube API key
 
 // Initialize playlists
 function loadPlaylists() {
@@ -82,21 +82,19 @@ async function searchMusic() {
     console.warn("Spotify search failed:", err);
   }
 
-  // YouTube Search (requires API key)
+  // YouTube Search
   try {
-    if (YOUTUBE_API_KEY !== "YOUR_YOUTUBE_API_KEY") {
-      const ytRes = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(query + " music")}&key=${YOUTUBE_API_KEY}`
-      );
-      if (ytRes.ok) {
-        const ytData = await ytRes.json();
-        results.push(...ytData.items.map(v => ({
-          name: v.snippet.title.replace(/[^\w\s-]/g, '').substring(0, 50),
-          url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
-          type: "youtube",
-          platform: "📺 YouTube"
-        })));
-      }
+    const ytRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(query + " music")}&key=${YOUTUBE_API_KEY}`
+    );
+    if (ytRes.ok) {
+      const ytData = await ytRes.json();
+      results.push(...ytData.items.map(v => ({
+        name: v.snippet.title.replace(/[^\w\s-]/g, '').substring(0, 50),
+        url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
+        type: "youtube",
+        platform: "📺 YouTube"
+      })));
     }
   } catch (err) {
     console.warn("YouTube search failed:", err);
@@ -140,11 +138,7 @@ function loginSpotify() {
 }
 
 function loginYouTube() {
-  if (YOUTUBE_API_KEY === "YOUR_YOUTUBE_API_KEY") {
-    alert("Please configure your YouTube API key in music.js to enable YouTube search!");
-    return;
-  }
-  alert("YouTube search is enabled! Use the search box above.");
+  alert("YouTube search is enabled! Use the search box above to find YouTube videos.");
 }
 
 // Check for OAuth callbacks
