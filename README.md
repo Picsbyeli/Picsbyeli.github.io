@@ -97,3 +97,30 @@ Notes:
 - The workflow will install `ffmpeg` on the Ubuntu runner to compress audio; compression adds time and compute cost to the run.
 - Consider compressing and hosting audio once (e.g., in `gh-pages` or a Releases asset) and referencing remote URLs for faster subsequent publishes.
 
+
+## Online Chess (React)
+
+The basic local-only chess component has been replaced by `OnlineChess` (`src/games/OnlineChess.jsx`). It supports:
+
+- Creating a new game (server assigns a game ID & color) when a backend is available
+- Joining an existing game by ID
+- Real-time move synchronization via `socket.io-client`
+- Automatic fallback to local hot-seat play (two players sharing the screen) when `VITE_CHESS_SERVER_URL` is not configured
+- Board orientation based on your assigned color and simple status indicators
+
+Configure a backend by setting an environment variable in a `.env` file at project root:
+
+```
+VITE_CHESS_SERVER_URL=https://your-chess-backend.example.com
+```
+
+Minimal backend event contract (socket.io):
+
+```
+Client -> createGame                // server emits 'gameCreated' { gameId, color }
+Client -> joinGame { gameId }       // server emits 'gameJoined' { success, gameId, color, fen? }
+Client -> move { gameId, move }     // server broadcasts 'move' { gameId, move, fen }
+```
+
+If you do not have a backend yet, you can still use the component for local play; moves remain in-browser only.
+
