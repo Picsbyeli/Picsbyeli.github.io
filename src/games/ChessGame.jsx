@@ -1,21 +1,34 @@
 import React, { useState } from 'react';
+import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
-import Chessboard from 'chessboardjsx';
 
-export default function ChessGame(){
-  const [game] = useState(new Chess());
-  const [fen, setFen] = useState('start');
+export default function ChessGame() {
+  const [game, setGame] = useState(new Chess());
 
-  function onDrop({ sourceSquare, targetSquare }){
-    const move = game.move({ from: sourceSquare, to: targetSquare, promotion: 'q' });
-    if(move === null) return;
-    setFen(game.fen());
+  function makeMove(move){
+    const next = new Chess(game.fen());
+    const result = next.move(move);
+    if(result){
+      setGame(next);
+    }
   }
 
   return (
-    <div style={{ textAlign:'center', padding:'20px' }}>
-      <h2>♟ Chess</h2>
-      <Chessboard width={480} position={fen} onDrop={onDrop} transitionDuration={200} />
+    <div style={styles.container}>
+      <h2>♟️ Chess</h2>
+      <Chessboard
+        position={game.fen()}
+        onPieceDrop={(sourceSquare, targetSquare) => {
+          makeMove({ from: sourceSquare, to: targetSquare, promotion: 'q' });
+        }}
+      />
     </div>
   );
 }
+
+const styles = {
+  container: {
+    padding: '20px',
+    textAlign: 'center'
+  }
+};
