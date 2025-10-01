@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Redirecting…</title>
+  <meta name="robots" content="noindex" />
+  <script>
+    // Store the original path (after the base) so the SPA router can restore it.
+    (function(){
+      var full = window.location.pathname + window.location.search + window.location.hash;
+      // Remove leading repo base if user refreshed within it already
+      var cleaned = full.replace(/\/E\.vol\//,'/');
+      sessionStorage.redirect = cleaned;
+      window.location.replace('/E.vol/');
+    })();
+  </script>
+  <style>
+    body{font-family:system-ui,Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#111;color:#eee}
+  </style>
+</head>
+<body>
+  <noscript>This site requires JavaScript to handle client-side routing.</noscript>
+</body>
+</html>
