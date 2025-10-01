@@ -6,7 +6,8 @@ let currentIndex = 0;
 let currentEmbed = null;
 
 // API Configuration (you'll need to add your actual API keys)
-const SPOTIFY_CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID"; // Replace with your Spotify client ID
+const SPOTIFY_CLIENT_ID = "836517f7831341f3a342af90f5c1390e"; // Spotify client ID
+const SPOTIFY_CLIENT_SECRET = "07f314daeaad4525bbad0cbe3901487a"; // Spotify client secret
 const YOUTUBE_API_KEY = "YOUR_YOUTUBE_API_KEY"; // Replace with your YouTube API key
 
 // Initialize playlists
@@ -134,11 +135,6 @@ function addSearchResult(url, type, name) {
 function loginSpotify() {
   const redirectUri = encodeURIComponent(window.location.origin);
   const scope = encodeURIComponent("user-read-private user-read-email playlist-read-private");
-  
-  if (SPOTIFY_CLIENT_ID === "YOUR_SPOTIFY_CLIENT_ID") {
-    alert("Please configure your Spotify Client ID in music.js to enable Spotify integration!");
-    return;
-  }
   
   window.location.href = `https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
 }
