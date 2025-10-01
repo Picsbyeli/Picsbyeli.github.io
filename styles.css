@@ -12,15 +12,24 @@ body {
 
 .audio-bar {
   background: rgba(255,255,255,0.1);
-  padding: 10px;
+  padding: 15px;
   border-radius: 12px;
   margin: 15px auto;
-  width: 80%;
+  width: 90%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 15px;
   color: white;
+  flex-wrap: wrap;
+  backdrop-filter: blur(10px);
+}
+
+.audio-bar > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .audio-bar button {
@@ -31,10 +40,70 @@ body {
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.3s;
+  white-space: nowrap;
 }
 
 .audio-bar button:hover {
   background: rgba(255,255,255,0.3);
+}
+
+.audio-bar select, .audio-bar input[type="text"] {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  min-width: 120px;
+}
+
+.audio-bar select option {
+  background: #2a2a2a;
+  color: white;
+}
+
+.audio-bar input[type="text"]::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+.audio-bar label {
+  color: rgba(255,255,255,0.9);
+  font-size: 14px;
+}
+
+#embed-container {
+  margin: 10px auto;
+  text-align: center;
+  max-width: 90%;
+}
+
+#embed-container iframe {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+#now-playing {
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .audio-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .audio-bar > div {
+    justify-content: center;
+  }
+  
+  .audio-bar input[type="text"] {
+    min-width: 200px;
+  }
 }
 
 .topbar{position:sticky;top:0;display:flex;align-items:center;gap:.75rem;justify-content:space-between;padding:.6rem 1rem;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.2);z-index:20}

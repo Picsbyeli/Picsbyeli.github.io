@@ -7,15 +7,30 @@
   <link href="./styles.css" rel="stylesheet" />
 </head>
 <body>
-  <!-- ✅ Simple top audio player -->
+  <!-- ✅ Advanced Audio Player -->
   <div id="audio-player" class="audio-bar">
-    <input type="file" id="audio-upload" accept="audio/*" hidden />
-    <button onclick="document.getElementById('audio-upload').click()">Upload</button>
-    <button onclick="prevTrack()">⏮</button>
-    <button onclick="togglePlay()">▶️ / ⏸</button>
-    <button onclick="nextTrack()">⏭</button>
+    <div>
+      <label for="playlist-select">Playlist:</label>
+      <select id="playlist-select"></select>
+      <button onclick="createPlaylist()">➕ New Playlist</button>
+    </div>
+
+    <input type="file" id="audio-upload" accept="audio/*" hidden multiple />
+    <button onclick="document.getElementById('audio-upload').click()">Upload Songs</button>
+
+    <input type="text" id="link-input" placeholder="Paste YouTube/Spotify/Apple Music URL" />
+    <button onclick="addLink()">Add Link</button>
+
+    <div>
+      <button onclick="prevTrack()">⏮</button>
+      <button onclick="togglePlay()">▶️ / ⏸</button>
+      <button onclick="nextTrack()">⏭</button>
+    </div>
+
     <span id="now-playing">Now Playing: None</span>
   </div>
+
+  <div id="embed-container"></div>
 
   <header class="topbar">
     <div class="brand">🎮 E.Vol</div>
