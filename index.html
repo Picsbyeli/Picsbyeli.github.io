@@ -4,20 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>E.Vol · Games Hub</title>
-  <script>
-    // If coming from 404 redirect, restore intended SPA route before bundle loads
-    (function(){
-      var target = sessionStorage.getItem('redirect');
-      if(target){
-        sessionStorage.removeItem('redirect');
-        if(target !== location.pathname + location.search + location.hash){
-          // Replace current history entry so back button isn't polluted
-          var newUrl = (window.location.origin + '/E.vol' + target).replace(/\/E\.vol\/+/,'/E.vol/');
-          window.history.replaceState({}, '', newUrl);
-        }
-      }
-    })();
-  </script>
   <link rel="stylesheet" href="./assets/css/styles.css" />
   <style>
     .topbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;padding:.65rem .9rem;background:rgba(255,255,255,.08);border-radius:18px;margin:1rem auto;max-width:1150px}
@@ -68,5 +54,14 @@
   </div>
   <script type="module" src="./js/app.js"></script>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script>
+    (function(){
+      const redirect = sessionStorage.redirect;
+      if(redirect && redirect !== location.pathname){
+        delete sessionStorage.redirect;
+        history.replaceState(null,null,redirect);
+      }
+    })();
+  </script>
 </body>
 </html>
