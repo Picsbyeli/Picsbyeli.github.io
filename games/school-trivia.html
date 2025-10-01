@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>School Trivia - E.Vol Games</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #6a11cb, #2575fc);
+      font-family: 'Inter', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .subject-selector {
+      margin: 20px 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .subject-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .subject-btn:hover { background: rgba(255,255,255,0.3); }
+    .subject-btn.active { background: rgba(255,255,255,0.4); }
+    .question-card {
+      background: rgba(255,255,255,0.15);
+      padding: 30px;
+      margin: 20px 0;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      text-align: left;
+    }
+    .question-text {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .answer-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .answer-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-align: left;
+      font-size: 16px;
+    }
+    .answer-btn:hover { background: rgba(255,255,255,0.3); }
+    .correct { background: rgba(34, 197, 94, 0.4) !important; }
+    .wrong { background: rgba(239, 68, 68, 0.4) !important; }
+    .btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 14px;
+    }
+    .btn:hover { background: rgba(255,255,255,0.3); }
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #059669);
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .score {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .explanation {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-style: italic;
+    }
+    .subject-icon {
+      font-size: 24px;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-btn">← Back to Home</a>
+  
+  <div class="game-container">
+    <h1>🎓 School Trivia</h1>
+    <p>Test your knowledge across different school subjects!</p>
+    
+    <div class="subject-selector">
+      <button class="subject-btn active" onclick="setSubject('math')">
+        <span class="subject-icon">📐</span>Math
+      </button>
+      <button class="subject-btn" onclick="setSubject('science')">
+        <span class="subject-icon">🔬</span>Science
+      </button>
+      <button class="subject-btn" onclick="setSubject('history')">
+        <span class="subject-icon">📚</span>History
+      </button>
+      <button class="subject-btn" onclick="setSubject('geography')">
+        <span class="subject-icon">🌍</span>Geography
+      </button>
+      <button class="subject-btn" onclick="setSubject('english')">
+        <span class="subject-icon">📝</span>English
+      </button>
+      <button class="subject-btn" onclick="setSubject('mixed')">
+        <span class="subject-icon">🎯</span>Mixed
+      </button>
+    </div>
+    
+    <div class="score">Score: <span id="score">0</span> / <span id="total">0</span></div>
+    
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    
+    <div id="question-container" class="question-card">
+      <div class="question-text">Ready to test your school knowledge?</div>
+      <div style="text-align: center;">
+        <button class="btn" onclick="startQuiz()">Start Quiz</button>
+      </div>
+    </div>
+    
+    <div style="text-align: center;">
+      <button class="btn" onclick="newQuiz()">🔄 New Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    const triviaQuestions = {
+      math: [
+        {
+          question: "What is 15 × 8?",
+          options: ["110", "120", "125", "130"],
+          correct: 1,
+          explanation: "15 × 8 = 120. You can solve this by breaking it down: 15 × 8 = (10 × 8) + (5 × 8) = 80 + 40 = 120."
+        },
+        {
+          question: "What is the formula for the area of a circle?",
+          options: ["πr²", "2πr", "πd", "r²"],
+          correct: 0,
+          explanation: "The area of a circle is πr², where r is the radius and π ≈ 3.14159."
+        },
+        {
+          question: "What is 25% of 80?",
+          options: ["15", "20", "25", "30"],
+          correct: 1,
+          explanation: "25% of 80 = 0.25 × 80 = 20. You can also think of it as 1/4 of 80."
+        },
+        {
+          question: "In a right triangle, what is the relationship between the sides?",
+          options: ["a + b = c", "a² + b² = c²", "a × b = c", "a² - b² = c²"],
+          correct: 1,
+          explanation: "The Pythagorean theorem states that a² + b² = c², where c is the hypotenuse."
+        },
+        {
+          question: "What is the value of π (pi) rounded to 2 decimal places?",
+          options: ["3.14", "3.16", "3.12", "3.18"],
+          correct: 0,
+          explanation: "π (pi) is approximately 3.14159, which rounds to 3.14 when rounded to 2 decimal places."
+        }
+      ],
+      science: [
+        {
+          question: "What is the chemical symbol for gold?",
+          options: ["Go", "Gd", "Au", "Ag"],
+          correct: 2,
+          explanation: "Gold's chemical symbol is Au, from the Latin word 'aurum' meaning gold."
+        },
+        {
+          question: "How many chambers does a human heart have?",
+          options: ["2", "3", "4", "5"],
+          correct: 2,
+          explanation: "The human heart has 4 chambers: 2 atria (upper chambers) and 2 ventricles (lower chambers)."
+        },
+        {
+          question: "What gas do plants absorb during photosynthesis?",
+          options: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"],
+          correct: 2,
+          explanation: "Plants absorb carbon dioxide (CO₂) from the air and convert it into glucose using sunlight and water."
+        },
+        {
+          question: "What is the hardest natural substance on Earth?",
+          options: ["Gold", "Iron", "Diamond", "Quartz"],
+          correct: 2,
+          explanation: "Diamond is the hardest natural substance, ranking 10 on the Mohs hardness scale."
+        },
+        {
+          question: "Which planet is closest to the Sun?",
+          options: ["Venus", "Earth", "Mercury", "Mars"],
+          correct: 2,
+          explanation: "Mercury is the closest planet to the Sun, with an average distance of about 36 million miles."
+        }
+      ],
+      history: [
+        {
+          question: "In which year did World War II end?",
+          options: ["1944", "1945", "1946", "1947"],
+          correct: 1,
+          explanation: "World War II ended in 1945, with Germany surrendering in May and Japan surrendering in September."
+        },
+        {
+          question: "Who was the first President of the United States?",
+          options: ["Thomas Jefferson", "John Adams", "George Washington", "Benjamin Franklin"],
+          correct: 2,
+          explanation: "George Washington was the first President of the United States, serving from 1789 to 1797."
+        },
+        {
+          question: "Which ancient wonder of the world was located in Egypt?",
+          options: ["Hanging Gardens", "Colossus of Rhodes", "Great Pyramid of Giza", "Lighthouse of Alexandria"],
+          correct: 2,
+          explanation: "The Great Pyramid of Giza is the only ancient wonder still standing today and was built around 2580 BC."
+        },
+        {
+          question: "In which year did the Berlin Wall fall?",
+          options: ["1987", "1988", "1989", "1990"],
+          correct: 2,
+          explanation: "The Berlin Wall fell on November 9, 1989, marking a key moment in the end of the Cold War."
+        },
+        {
+          question: "Who wrote the Declaration of Independence?",
+          options: ["George Washington", "Benjamin Franklin", "John Adams", "Thomas Jefferson"],
+          correct: 3,
+          explanation: "Thomas Jefferson was the primary author of the Declaration of Independence, adopted on July 4, 1776."
+        }
+      ],
+      geography: [
+        {
+          question: "What is the largest continent by area?",
+          options: ["Africa", "Asia", "North America", "Europe"],
+          correct: 1,
+          explanation: "Asia is the largest continent, covering about 30% of Earth's total land area."
+        },
+        {
+          question: "Which river is the longest in the world?",
+          options: ["Amazon", "Nile", "Mississippi", "Yangtze"],
+          correct: 1,
+          explanation: "The Nile River is the longest river in the world at approximately 4,135 miles (6,650 km)."
+        },
+        {
+          question: "What is the capital of Australia?",
+          options: ["Sydney", "Melbourne", "Canberra", "Brisbane"],
+          correct: 2,
+          explanation: "Canberra is the capital of Australia, though Sydney and Melbourne are larger cities."
+        },
+        {
+          question: "Which mountain range contains Mount Everest?",
+          options: ["Andes", "Rockies", "Alps", "Himalayas"],
+          correct: 3,
+          explanation: "Mount Everest is located in the Himalayas on the border between Nepal and Tibet."
+        },
+        {
+          question: "How many countries are there in Africa?",
+          options: ["52", "54", "56", "58"],
+          correct: 1,
+          explanation: "There are 54 recognized sovereign countries in Africa according to the United Nations."
+        }
+      ],
+      english: [
+        {
+          question: "What is a group of words that contains a subject and predicate?",
+          options: ["Phrase", "Clause", "Fragment", "Word"],
+          correct: 1,
+          explanation: "A clause is a group of words containing both a subject and a predicate (verb)."
+        },
+        {
+          question: "Who wrote 'Romeo and Juliet'?",
+          options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
+          correct: 1,
+          explanation: "William Shakespeare wrote 'Romeo and Juliet' around 1594-1596."
+        },
+        {
+          question: "What is the plural of 'goose'?",
+          options: ["Gooses", "Geese", "Goose", "Goosies"],
+          correct: 1,
+          explanation: "'Geese' is the irregular plural form of 'goose'."
+        },
+        {
+          question: "What part of speech describes an action?",
+          options: ["Noun", "Adjective", "Verb", "Adverb"],
+          correct: 2,
+          explanation: "A verb is a word that describes an action, state, or occurrence."
+        },
+        {
+          question: "What is a metaphor?",
+          options: ["A direct comparison using 'like' or 'as'", "A comparison without using 'like' or 'as'", "An exaggeration", "A sound effect"],
+          correct: 1,
+          explanation: "A metaphor is a figure of speech that makes a comparison between two things without using 'like' or 'as'."
+        }
+      ]
+    };
+
+    let currentSubject = 'math';
+    let currentQuestion = 0;
+    let score = 0;
+    let quizStarted = false;
+    let currentQuestions = [];
+
+    function setSubject(subject) {
+      currentSubject = subject;
+      
+      // Update button styles
+      document.querySelectorAll('.subject-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      if (quizStarted) {
+        newQuiz();
+      }
+    }
+
+    function startQuiz() {
+      quizStarted = true;
+      currentQuestion = 0;
+      score = 0;
+      
+      if (currentSubject === 'mixed') {
+        // Mix questions from all subjects
+        currentQuestions = [];
+        Object.keys(triviaQuestions).forEach(subject => {
+          const subjectQuestions = triviaQuestions[subject].slice(0, 2);
+          currentQuestions.push(...subjectQuestions);
+        });
+        shuffleArray(currentQuestions);
+        currentQuestions = currentQuestions.slice(0, 10);
+      } else {
+        currentQuestions = [...triviaQuestions[currentSubject]];
+        shuffleArray(currentQuestions);
+      }
+      
+      updateScore();
+      updateProgress();
+      showQuestion();
+    }
+
+    function showQuestion() {
+      if (currentQuestion >= currentQuestions.length) {
+        endQuiz();
+        return;
+      }
+
+      const question = currentQuestions[currentQuestion];
+      const optionsHtml = question.options.map((option, index) => 
+        `<button class="answer-btn" onclick="selectAnswer(${index})">${option}</button>`
+      ).join('');
+      
+      document.getElementById('question-container').innerHTML = `
+        <div class="question-text">${question.question}</div>
+        <div class="answer-options">${optionsHtml}</div>
+      `;
+    }
+
+    function selectAnswer(selectedIndex) {
+      const question = currentQuestions[currentQuestion];
+      const correct = selectedIndex === question.correct;
+      const buttons = document.querySelectorAll('.answer-btn');
+      
+      // Disable all buttons and show results
+      buttons.forEach((btn, index) => {
+        btn.disabled = true;
+        if (index === question.correct) {
+          btn.classList.add('correct');
+        } else if (index === selectedIndex && !correct) {
+          btn.classList.add('wrong');
+        }
+      });
+      
+      if (correct) {
+        score++;
+        updateScore();
+      }
+      
+      // Show explanation
+      const explanationHtml = `
+        <div class="explanation">
+          <strong>Explanation:</strong> ${question.explanation}
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+          <button class="btn ${correct ? 'correct' : 'wrong'}" onclick="nextQuestion()">
+            ${currentQuestion + 1 >= currentQuestions.length ? 'Finish Quiz' : 'Next Question'} →
+          </button>
+        </div>
+      `;
+      
+      document.getElementById('question-container').innerHTML += explanationHtml;
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      updateProgress();
+      showQuestion();
+    }
+
+    function endQuiz() {
+      const percentage = Math.round((score / currentQuestions.length) * 100);
+      let grade, message;
+      
+      if (percentage >= 90) {
+        grade = "A+";
+        message = "Outstanding! You're a scholar! 🏆";
+      } else if (percentage >= 80) {
+        grade = "A";
+        message = "Excellent work! You really know your stuff! 🌟";
+      } else if (percentage >= 70) {
+        grade = "B";
+        message = "Good job! You have solid knowledge! 👍";
+      } else if (percentage >= 60) {
+        grade = "C";
+        message = "Not bad! Keep studying and you'll improve! 📚";
+      } else if (percentage >= 50) {
+        grade = "D";
+        message = "You're getting there! More practice needed! 💪";
+      } else {
+        grade = "F";
+        message = "Keep learning! Everyone starts somewhere! 🌱";
+      }
+
+      document.getElementById('question-container').innerHTML = `
+        <div class="question-text">Quiz Complete! 🎉</div>
+        <div style="text-align: center; margin: 30px 0;">
+          <div style="font-size: 48px; font-weight: bold; color: #10b981;">${grade}</div>
+          <div style="font-size: 24px; margin: 15px 0;">${score} / ${currentQuestions.length} (${percentage}%)</div>
+          <div style="font-size: 18px; margin: 15px 0;">${message}</div>
+          <div style="margin: 20px 0;">
+            Subject: <strong>${currentSubject === 'mixed' ? 'Mixed Subjects' : currentSubject.charAt(0).toUpperCase() + currentSubject.slice(1)}</strong>
+          </div>
+        </div>
+        <div style="text-align: center;">
+          <button class="btn" onclick="startQuiz()">Take Quiz Again</button>
+          <button class="btn" onclick="newQuiz()">Choose Different Subject</button>
+        </div>
+      `;
+    }
+
+    function newQuiz() {
+      quizStarted = false;
+      currentQuestion = 0;
+      score = 0;
+      updateScore();
+      updateProgress();
+      
+      document.getElementById('question-container').innerHTML = `
+        <div class="question-text">Ready to test your school knowledge?</div>
+        <div style="text-align: center;">
+          <button class="btn" onclick="startQuiz()">Start Quiz</button>
+        </div>
+      `;
+    }
+
+    function updateScore() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('total').textContent = currentQuestions.length || 5;
+    }
+
+    function updateProgress() {
+      const progress = currentQuestions.length > 0 ? (currentQuestion / currentQuestions.length) * 100 : 0;
+      document.getElementById('progress-fill').style.width = progress + '%';
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // Guest user support
+    const guestUser = {
+      uid: "guest-" + Math.random().toString(36).slice(2),
+      displayName: "Guest Player"
+    };
+    localStorage.setItem("guestUser", JSON.stringify(guestUser));
+  </script>
+</body>
+</html>

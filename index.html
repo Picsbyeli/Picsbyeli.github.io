@@ -7,27 +7,44 @@
   <link href="./styles.css" rel="stylesheet" />
 </head>
 <body>
-  <!-- ✅ Advanced Audio Player -->
+  <!-- ✅ Advanced Audio Player with Search -->
   <div id="audio-player" class="audio-bar">
-    <div>
+    <!-- Music Search -->
+    <div class="music-search-row">
+      <input type="text" id="music-search" placeholder="Search songs, artists, albums..." />
+      <button onclick="searchMusic()">🔍</button>
+      <div id="search-results" class="search-results hidden"></div>
+    </div>
+
+    <!-- Auth Logins -->
+    <div class="auth-row">
+      <button onclick="loginSpotify()" class="auth-btn">🎵 Login Spotify</button>
+      <button onclick="loginYouTube()" class="auth-btn">📺 Login YouTube</button>
+    </div>
+
+    <!-- Playlist Management -->
+    <div class="playlist-row">
       <label for="playlist-select">Playlist:</label>
       <select id="playlist-select"></select>
       <button onclick="createPlaylist()">➕ New Playlist</button>
     </div>
 
-    <input type="file" id="audio-upload" accept="audio/*" hidden multiple />
-    <button onclick="document.getElementById('audio-upload').click()">Upload Songs</button>
+    <!-- File Upload & Link Input -->
+    <div class="input-row">
+      <input type="file" id="audio-upload" accept="audio/*" hidden multiple />
+      <button onclick="document.getElementById('audio-upload').click()">Upload Songs</button>
 
-    <input type="text" id="link-input" placeholder="Paste YouTube/Spotify/Apple Music URL" />
-    <button onclick="addLink()">Add Link</button>
+      <input type="text" id="link-input" placeholder="Paste YouTube/Spotify/Apple Music URL" />
+      <button onclick="addLink()">Add Link</button>
+    </div>
 
-    <div>
+    <!-- Playback Controls -->
+    <div class="controls-row">
       <button onclick="prevTrack()">⏮</button>
       <button onclick="togglePlay()">▶️ / ⏸</button>
       <button onclick="nextTrack()">⏭</button>
+      <span id="now-playing">Now Playing: None</span>
     </div>
-
-    <span id="now-playing">Now Playing: None</span>
   </div>
 
   <div id="embed-container"></div>
@@ -45,13 +62,58 @@
   <main id="views">
     <!-- HOME -->
     <section id="view-home" class="view active">
-      <h1>Welcome to E.Vol</h1>
-      <p>Pick a game above and start playing. Guest play is enabled — no sign-in required.</p>
-      <ul class="cards">
-        <li><button data-view="imposter" class="card">🕵️ Imposter (multiplayer or vs bots)</button></li>
-        <li><button data-view="chess" class="card">♟️ Chess (multiplayer or vs bot)</button></li>
-        <li><button data-view="connect4" class="card">🔴 Connect 4 (multiplayer or vs bot)</button></li>
-      </ul>
+      <h1>Welcome to E.Vol Games</h1>
+      <p>Choose from our collection of brain teasers, multiplayer games, and puzzles. Guest play enabled — no sign-in required!</p>
+      
+      <div class="game-grid">
+        <div class="game-card">
+          <h3>🧩 Brain Riddles</h3>
+          <p>Solve classic riddles and brain teasers.</p>
+          <a href="games/riddles.html" class="play-btn">Play Now →</a>
+        </div>
+
+        <div class="game-card">
+          <h3>🤔 Trivia</h3>
+          <p>Test your knowledge with multiple choice trivia.</p>
+          <a href="games/trivia.html" class="play-btn">Play Now →</a>
+        </div>
+
+        <div class="game-card">
+          <h3>😂 Emoji Guess</h3>
+          <p>Decode emoji puzzles and phrases.</p>
+          <a href="games/emoji.html" class="play-btn">Play Now →</a>
+        </div>
+
+        <div class="game-card">
+          <h3>🔤 Word Game</h3>
+          <p>Guess the hidden word with clues.</p>
+          <a href="games/word.html" class="play-btn">Play Now →</a>
+        </div>
+
+        <div class="game-card">
+          <h3>♟️ Chess</h3>
+          <p>Play chess against others or vs AI.</p>
+          <a href="games/chess.html" class="play-btn">Play Now →</a>
+        </div>
+
+        <div class="game-card">
+          <h3>⭕ Connect 4</h3>
+          <p>Classic connect four online or vs bots.</p>
+          <a href="games/connect4.html" class="play-btn">Play Now →</a>
+        </div>
+
+        <div class="game-card">
+          <h3>�️ Imposter</h3>
+          <p>Chameleon-style multiplayer game.</p>
+          <a href="games/imposter.html" class="play-btn">Play Now →</a>
+        </div>
+
+        <div class="game-card">
+          <h3>🎓 School Trivia</h3>
+          <p>Educational trivia for students.</p>
+          <a href="games/school-trivia.html" class="play-btn">Play Now →</a>
+        </div>
+      </div>
     </section>
 
     <!-- IMPOSTER -->
@@ -157,7 +219,7 @@
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-cxZkYqQm9Lqk7SfhJ8SdPlgTT6mCw4NSwQ1g0e1Qm3kJZ0mZ2uO9W+7m1b+3yK2M" crossorigin="anonymous"></script>
 
   <!-- Audio player -->
-  <script src="js/audio.js"></script>
+  <script src="js/music.js"></script>
 
   <!-- App scripts -->
   <script type="module" src="./main.js"></script>
