@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chess vs Bot</title>
+
+  <!-- Chessboard.js styles (board UI) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #181b22;
+      --text: #e8e8ea;
+      --accent: #6ee7b7;
+      --subtle: #9aa1ad;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg); color: var(--text);
+      display: grid; place-items: center; min-height: 100vh; padding: 20px;
+    }
+    .wrap {
+      width: min(1100px, 95vw);
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+      align-items: start;
+    }
+    #board {
+      width: 100%;
+      max-width: 720px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .side {
+      background: var(--panel);
+      border: 1px solid #222733;
+      border-radius: 14px;
+      padding: 16px;
+      position: sticky;
+      top: 16px;
+    }
+    .row { display: flex; gap: 10px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+    .row label { color: var(--subtle); font-size: 14px; }
+    select, button, input[type="number"] {
+      background: #12161f; color: var(--text);
+      border: 1px solid #262b38; border-radius: 10px;
+      padding: 8px 10px; font-size: 14px;
+    }
+    button { cursor: pointer; }
+    button.primary { background: var(--accent); color: #0b1220; border: none; font-weight: 700; }
+    .log {
+      height: 220px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #0d1117; border: 1px solid #1f2430; border-radius: 10px; padding: 10px; font-size: 13px;
+    }
+    .score { font-variant-numeric: tabular-nums; }
+    .hint {
+      color: var(--subtle); font-size: 12px; margin-top: 6px;
+    }
+    .bad { color: #ff8383 }
+    .good { color: #7ef7b2 }
+    @media (max-width: 940px) {
+      .wrap { grid-template-columns: 1fr; }
+      .side { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="board"></div>
+
+    <aside class="side">
+      <h2 style="margin-top:0">Play vs Bot</h2>
+
+      <div class="row">
+        <label for="color">Your side</label>
+        <select id="color">
+          <option value="white" selected>White</option>
+          <option value="black">Black</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty" title="Bot thinking depth & randomness">
+          <option value="1">Easy (depth 1, noisy)</option>
+          <option value="2" selected>Medium (depth 2)</option>
+          <option value="3">Hard (depth 3)</option>
+          <option value="4">Expert (depth 4)</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <button id="newgame" class="primary">New Game</button>
+        <button id="undo">Undo</button>
+        <button id="flip">Flip Board</button>
+      </div>
+
+      <div class="row">
+        <label>Bot move delay (ms)</label>
+        <input id="delay" type="number" min="0" step="50" value="350" style="width:100px">
+      </div>
+
+      <div class="row">
+        <div>Score: <span id="score" class="score">0.00</span> (positive = White)</div>
+      </div>
+
+      <div class="row" style="flex-direction:column; align-items:stretch">
+        <label>Move log</label>
+        <div id="log" class="log"></div>
+        <div class="hint">Tip: <b>Expert</b> thinks deeper (slower). <b>Easy</b> plays fast & makes mistakes on purpose.</div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Dependencies: chess.js (rules) and chessboard.js (UI) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js" integrity="sha512-0tlmHkDkHKnz2fK28qSEmKQb8lOQ7P0GdXTbDG0v3G3u4U/pxFwf7H0aL3iF1+UQ3wW/k3C0nJ8o6wFqNEvYhQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js" integrity="sha512-2N8dVYbqZ4Kx3kz2rLrJ+06E5K8x7HImq/x1rV8QtvO4Q5H7HkzV5Cq7D2E3+H7O3Qm1fyd1w3qfZfV3kZ0Ybw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script>
+    // --- Game state ---
+    const game = new Chess();
+    const logEl = document.getElementById('log');
+    const scoreEl = document.getElementById('score');
+    const delayEl = document.getElementById('delay');
+
+    let board = null;
+    let humanColor = 'w';
+    let moveHistory = []; // for undo
+    let thinking = false;
+
+    // --- Board UI ---
+    function initBoard() {
+      board = Chessboard('board', {
+        position: 'start',
+        draggable: true,
+        pieceTheme: 'https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/img/chesspieces/wikipedia/{piece}.png',
+        onDragStart: (source, piece) => {
+          if (thinking) return false;
+          if (game.game_over()) return false;
+          // Only allow dragging your own pieces
+          if ((humanColor === 'w' && piece.search(/^b/) !== -1) ||
+              (humanColor === 'b' && piece.search(/^w/) !== -1)) return false;
+        },
+        onDrop: (source, target) => {
+          const move = game.move({from: source, to: target, promotion: 'q'});
+          if (!move) return 'snapback';
+          pushMove(move);
+          board.position(game.fen());
+          scheduleBotMove();
+        },
+        onSnapEnd: () => board.position(game.fen())
+      });
+    }
+
+    // --- Controls ---
+    document.getElementById('newgame').onclick = () => startNew();
+    document.getElementById('undo').onclick = () => undoMove();
+    document.getElementById('flip').onclick = () => board.flip();
+    document.getElementById('color').onchange = (e) => {
+      humanColor = e.target.value === 'white' ? 'w' : 'b';
+      startNew();
+    };
+
+    function startNew() {
+      game.reset();
+      moveHistory = [];
+      board.start();
+      logEl.innerHTML = '';
+      scoreEl.textContent = '0.00';
+      // If bot is White, let it move first
+      if (humanColor === 'b') scheduleBotMove(true);
+    }
+
+    function pushMove(move) {
+      moveHistory.push(move);
+      logEl.innerHTML += (game.turn() === 'w' ? '' : '') + move.san + ' ';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function undoMove() {
+      if (thinking) return;
+      // Undo two half-moves (player + bot) when possible
+      game.undo();
+      game.undo();
+      moveHistory = game.history({ verbose: true });
+      board.position(game.fen());
+      updateEval();
+      logEl.innerHTML = game.history().join(' ');
+    }
+
+    // --- Bot: Negamax with alpha-beta and piece-square tables ---
+    const PST = {
+      // piece-square tables (middlegame-ish), white perspective
+      p: [
+        0, 0, 0, 0, 0, 0, 0, 0,
+        5,10,10,-20,-20,10,10, 5,
+        5,-5,-10, 0, 0,-10,-5, 5,
+        0, 0, 0,20,20, 0, 0, 0,
+        5, 5,10,25,25,10, 5, 5,
+        10,10,20,30,30,20,10,10,
+        50,50,50,50,50,50,50,50,
+        0, 0, 0, 0, 0, 0, 0, 0 ],
+      n: [
+        -50,-40,-30,-30,-30,-30,-40,-50,
+        -40,-20,  0,  0,  0,  0,-20,-40,
+        -30,  0, 10, 15, 15, 10,  0,-30,
+        -30,  5, 15, 20, 20, 15,  5,-30,
+        -30,  0, 15, 20, 20, 15,  0,-30,
+        -30,  5, 10, 15, 15, 10,  5,-30,
+        -40,-20,  0,  5,  5,  0,-20,-40,
+        -50,-40,-30,-30,-30,-30,-40,-50 ],
+      b: [
+        -20,-10,-10,-10,-10,-10,-10,-20,
+        -10,  5,  0,  0,  0,  0,  5,-10,
+        -10, 10, 10, 10, 10, 10, 10,-10,
+        -10,  0, 10, 10, 10, 10,  0,-10,
+        -10,  5,  5, 10, 10,  5,  5,-10,
+        -10,  0,  5, 10, 10,  5,  0,-10,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -20,-10,-10,-10,-10,-10,-10,-20 ],
+      r: [
+         0,  0,  5, 10, 10,  5,  0,  0,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+         5, 10, 10, 10, 10, 10, 10,  5,
+         0,  0,  0,  0,  0,  0,  0,  0 ],
+      q: [
+        -20,-10,-10, -5, -5,-10,-10,-20,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -10,  0,  5,  5,  5,  5,  0,-10,
+         -5,  0,  5,  5,  5,  5,  0, -5,
+          0,  0,  5,  5,  5,  5,  0, -5,
+        -10,  5,  5,  5,  5,  5,  0,-10,
+        -10,  0,  5,  0,  0,  0,  0,-10,
+        -20,-10,-10, -5, -5,-10,-10,-20 ],
+      k: [
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -20,-30,-30,-40,-40,-30,-30,-20,
+        -10,-20,-20,-20,-20,-20,-20,-10,
+         20, 20,  0,  0,  0,  0, 20, 20,
+         20, 30, 10,  0,  0, 10, 30, 20 ],
+    };
+    const VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+
+    function evaluateBoard(chess) {
+      if (chess.isCheckmate()) return chess.turn() === 'w' ? -999999 : 999999;
+      if (chess.isDraw()) return 0;
+
+      let score = 0;
+      const board = chess.board();
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = board[r][c];
+          if (!piece) continue;
+          const type = piece.type;            // p,n,b,r,q,k
+          const color = piece.color;          // w/b
+          const idx = color === 'w' ? r*8 + c : (7-r)*8 + (7-c); // mirror PST for black
+          const pst = PST[type][idx] || 0;
+          const val = VALUES[type] + pst;
+          score += (color === 'w' ? val : -val);
+        }
+      }
+      return score;
+    }
+
+    function orderMoves(chess) {
+      // basic move ordering: captures first
+      return chess.moves({ verbose: true }).sort((a, b) => {
+        const ac = a.flags.includes('c') ? 1 : 0;
+        const bc = b.flags.includes('c') ? 1 : 0;
+        if (ac !== bc) return bc - ac;
+        // MVV/LVA-ish
+        const av = (VALUES[a.captured] || 0) - (VALUES[a.piece] || 0);
+        const bv = (VALUES[b.captured] || 0) - (VALUES[b.piece] || 0);
+        return bv - av;
+      });
+    }
+
+    function negamax(chess, depth, alpha, beta, color) {
+      if (depth === 0 || chess.game_over()) {
+        return color * evaluateBoard(chess);
+      }
+      let maxEval = -Infinity;
+      const moves = orderMoves(chess);
+      for (const m of moves) {
+        chess.move(m);
+        const evalScore = -negamax(chess, depth - 1, -beta, -alpha, -color);
+        chess.undo();
+        if (evalScore > maxEval) maxEval = evalScore;
+        if (evalScore > alpha) alpha = evalScore;
+        if (alpha >= beta) break; // alpha-beta cut
+      }
+      return maxEval;
+    }
+
+    function bestMove(chess, maxDepth, randomness = 0) {
+      let best = null;
+      let bestScore = -Infinity;
+      const moves = orderMoves(chess);
+      for (const m of moves) {
+        chess.move(m);
+        const score = -negamax(chess, maxDepth - 1, -Infinity, Infinity, -1);
+        chess.undo();
+
+        // Randomness adds small noise (only for Easy)
+        const noisy = score + (Math.random() * 2 - 1) * randomness;
+
+        if (noisy > bestScore) {
+          bestScore = noisy;
+          best = m;
+        }
+      }
+      return { move: best, score: bestScore };
+    }
+
+    function difficultySettings() {
+      const level = parseInt(document.getElementById('difficulty').value, 10);
+      switch (level) {
+        case 1: return { depth: 1, randomness: 60 };   // Easy: very noisy
+        case 2: return { depth: 2, randomness: 10 };   // Medium
+        case 3: return { depth: 3, randomness: 0 };    // Hard
+        case 4: return { depth: 4, randomness: 0 };    // Expert (slowest)
+        default: return { depth: 2, randomness: 10 };
+      }
+    }
+
+    function updateEval() {
+      const evalCp = evaluateBoard(game) / 100;
+      scoreEl.textContent = evalCp.toFixed(2);
+    }
+
+    async function scheduleBotMove(first = false) {
+      if (game.game_over()) { announceResult(); return; }
+
+      thinking = true;
+      const { depth, randomness } = difficultySettings();
+
+      // Wait a bit (UI feels nicer)
+      const ms = Math.max(0, parseInt(delayEl.value, 10) || 0);
+      await new Promise(r => setTimeout(r, first ? ms + 250 : ms));
+
+      // If it's not the bot's turn, bail (e.g., undo pressed)
+      if ((humanColor === 'w' && game.turn() !== 'b') ||
+          (humanColor === 'b' && game.turn() !== 'w')) {
+        thinking = false; return;
+      }
+
+      const { move, score } = bestMove(game, depth, randomness);
+      if (!move) { thinking = false; announceResult(); return; }
+      game.move(move);
+      pushMove(move);
+      board.position(game.fen());
+      updateEval();
+
+      thinking = false;
+      if (game.game_over()) announceResult();
+    }
+
+    function announceResult() {
+      let msg = '';
+      if (game.isCheckmate()) {
+        msg = (game.turn() === 'w' ? 'Black' : 'White') + ' wins by checkmate.';
+      } else if (game.isDraw()) {
+        msg = 'Draw.';
+      } else {
+        msg = 'Game over.';
+      }
+      const cls = game.isCheckmate()
+        ? ((game.turn() === 'w') ? 'good' : 'bad') : '';
+      logEl.innerHTML += `<br><span class="${cls}">${msg}</span>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // Boot
+    initBoard();
+    startNew();
+  </script>
+</body>
+</html>
