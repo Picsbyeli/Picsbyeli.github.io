@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Word Association - E.Vol Games</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #6a11cb, #2575fc);
+      font-family: 'Inter', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .word-card {
+      background: rgba(255,255,255,0.15);
+      padding: 30px;
+      margin: 20px 0;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .word-display {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 20px 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .definition-box {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 8px;
+      margin: 15px 0;
+      text-align: left;
+    }
+    .game-mode {
+      margin: 20px 0;
+    }
+    .game-mode button {
+      margin: 5px;
+      padding: 8px 16px;
+    }
+    .game-mode .active {
+      background: rgba(255,255,255,0.4);
+    }
+    .answer-input {
+      padding: 15px 20px;
+      border: none;
+      border-radius: 8px;
+      margin: 10px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      width: 300px;
+      font-size: 16px;
+    }
+    .answer-input::placeholder { color: rgba(255,255,255,0.7); }
+    .btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 14px;
+    }
+    .btn:hover { background: rgba(255,255,255,0.3); }
+    .correct { background: rgba(34, 197, 94, 0.4) !important; }
+    .wrong { background: rgba(239, 68, 68, 0.4) !important; }
+    .score {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .timer {
+      font-size: 24px;
+      font-weight: bold;
+      color: #fbbf24;
+      margin: 15px 0;
+    }
+    .chain-display {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .chain-word {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 5px 10px;
+      margin: 2px;
+      border-radius: 15px;
+      font-size: 14px;
+    }
+    .synonym-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .synonym-btn {
+      padding: 15px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-btn">← Back to Home</a>
+  
+  <div class="game-container">
+    <h1>🔤 Word Association</h1>
+    <p>Challenge your vocabulary with synonyms, antonyms, and word chains!</p>
+    
+    <div class="game-mode">
+      <strong>Game Mode:</strong>
+      <button class="btn active" onclick="setMode('synonyms')">Synonyms</button>
+      <button class="btn" onclick="setMode('antonyms')">Antonyms</button>
+      <button class="btn" onclick="setMode('chain')">Word Chain</button>
+      <button class="btn" onclick="setMode('definition')">Definitions</button>
+    </div>
+    
+    <div class="score">Score: <span id="score">0</span> / <span id="total">0</span></div>
+    <div id="timer" class="timer" style="display:none;">Time: <span id="time">30</span>s</div>
+    
+    <div id="word-container" class="word-card">
+      <div class="word-display" id="word-display">READY?</div>
+      <div id="content-area">
+        <div id="buttons">
+          <button class="btn" onclick="startGame()">Start Game</button>
+        </div>
+      </div>
+    </div>
+    
+    <div>
+      <button class="btn" onclick="showHint()" id="hint-btn" style="display:none;">💡 Hint</button>
+      <button class="btn" onclick="skipWord()" id="skip-btn" style="display:none;">⏭ Skip</button>
+      <button class="btn" onclick="newGame()">🔄 New Game</button>
+    </div>
+  </div>
+
+  <script>
+    const wordData = {
+      synonyms: [
+        { word: "HAPPY", options: ["Joyful", "Sad", "Angry", "Excited"], correct: 0, definition: "Feeling pleasure and contentment" },
+        { word: "FAST", options: ["Slow", "Quick", "Heavy", "Light"], correct: 1, definition: "Moving at high speed" },
+        { word: "BIG", options: ["Tiny", "Large", "Round", "Square"], correct: 1, definition: "Of great size or extent" },
+        { word: "SMART", options: ["Foolish", "Intelligent", "Lazy", "Tired"], correct: 1, definition: "Having intelligence" },
+        { word: "COLD", options: ["Hot", "Chilly", "Warm", "Mild"], correct: 1, definition: "Having a low temperature" },
+        { word: "BRAVE", options: ["Cowardly", "Fearful", "Courageous", "Weak"], correct: 2, definition: "Showing courage" },
+        { word: "DIFFICULT", options: ["Easy", "Hard", "Simple", "Clear"], correct: 1, definition: "Requiring effort to accomplish" },
+        { word: "BEAUTIFUL", options: ["Ugly", "Pretty", "Plain", "Boring"], correct: 1, definition: "Pleasing to look at" }
+      ],
+      antonyms: [
+        { word: "HOT", options: ["Warm", "Cold", "Cool", "Mild"], correct: 1, definition: "Having high temperature" },
+        { word: "LOUD", options: ["Noisy", "Quiet", "Sound", "Music"], correct: 1, definition: "Making much noise" },
+        { word: "LIGHT", options: ["Bright", "Heavy", "White", "Clear"], correct: 1, definition: "Having little weight" },
+        { word: "FULL", options: ["Complete", "Empty", "Whole", "Total"], correct: 1, definition: "Containing all that can be held" },
+        { word: "RICH", options: ["Wealthy", "Poor", "Money", "Gold"], correct: 1, definition: "Having wealth" },
+        { word: "NEW", options: ["Fresh", "Old", "Clean", "Shiny"], correct: 1, definition: "Recently made or created" },
+        { word: "EARLY", options: ["Soon", "Late", "Quick", "Fast"], correct: 1, definition: "Happening before the usual time" },
+        { word: "HIGH", options: ["Tall", "Low", "Up", "Sky"], correct: 1, definition: "Located far above ground" }
+      ],
+      definitions: [
+        { word: "SERENDIPITY", definition: "The occurrence of events by chance in a happy way", hint: "Pleasant surprise" },
+        { word: "EPHEMERAL", definition: "Lasting for a very short time", hint: "Temporary, fleeting" },
+        { word: "UBIQUITOUS", definition: "Present, appearing, or found everywhere", hint: "Everywhere at once" },
+        { word: "MELLIFLUOUS", definition: "Sweet or musical; pleasant to hear", hint: "Honey-like sound" },
+        { word: "PETRICHOR", definition: "The pleasant smell of earth after rain", hint: "Post-rain earth scent" },
+        { word: "WANDERLUST", definition: "A strong desire to travel", hint: "Travel bug" },
+        { word: "NOSTALGIA", definition: "Sentimental longing for the past", hint: "Missing old times" },
+        { word: "ELOQUENT", definition: "Fluent and persuasive in speaking", hint: "Well-spoken" }
+      ]
+    };
+
+    const chainWords = [
+      ["FIRE", "RED", "ROSE", "GARDEN", "GREEN", "GRASS", "FIELD", "MOUSE", "CHEESE", "YELLOW"],
+      ["BOOK", "PAGE", "TURN", "CORNER", "STREET", "LIGHT", "BRIGHT", "SUN", "HOT", "PEPPER"],
+      ["WATER", "BLUE", "SKY", "HIGH", "MOUNTAIN", "TOP", "HAT", "HEAD", "HAIR", "LONG"],
+      ["APPLE", "TREE", "BRANCH", "BIRD", "FLY", "PLANE", "PAPER", "WHITE", "SNOW", "COLD"]
+    ];
+
+    let currentMode = 'synonyms';
+    let currentWord = 0;
+    let score = 0;
+    let gameStarted = false;
+    let timeLeft = 30;
+    let timer = null;
+    let currentWords = [];
+    let currentChain = [];
+    let chainIndex = 0;
+
+    function setMode(mode) {
+      currentMode = mode;
+      
+      // Update button styles
+      document.querySelectorAll('.game-mode .btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      if (gameStarted) {
+        newGame();
+      }
+    }
+
+    function startGame() {
+      gameStarted = true;
+      currentWord = 0;
+      score = 0;
+      
+      if (currentMode === 'chain') {
+        currentChain = chainWords[Math.floor(Math.random() * chainWords.length)];
+        chainIndex = 0;
+        startChainMode();
+      } else if (currentMode === 'definition') {
+        currentWords = [...wordData.definitions];
+        shuffleArray(currentWords);
+        startTimedMode();
+      } else {
+        currentWords = [...wordData[currentMode]];
+        shuffleArray(currentWords);
+        showWord();
+      }
+      
+      updateScore();
+    }
+
+    function startChainMode() {
+      document.getElementById('word-display').textContent = "WORD CHAIN";
+      document.getElementById('content-area').innerHTML = `
+        <div class="definition-box">
+          <strong>Goal:</strong> Type words that connect! Each word should relate to the previous one.
+          <br><strong>Example:</strong> FIRE → RED → ROSE → GARDEN
+        </div>
+        <div class="chain-display" id="chain-display">
+          <div class="chain-word">${currentChain[0]}</div>
+        </div>
+        <input type="text" id="chain-input" class="answer-input" placeholder="Type next related word...">
+        <button class="btn" onclick="submitChainWord()">Submit Word</button>
+        <div style="margin-top: 15px;">
+          <strong>Target:</strong> Connect ${currentChain.length} words!
+        </div>
+      `;
+      chainIndex = 1;
+      document.getElementById('chain-input').focus();
+    }
+
+    function startTimedMode() {
+      timeLeft = 30;
+      document.getElementById('timer').style.display = 'block';
+      timer = setInterval(updateTimer, 1000);
+      showDefinitionWord();
+    }
+
+    function showWord() {
+      if (currentWord >= currentWords.length) {
+        endGame();
+        return;
+      }
+
+      const word = currentWords[currentWord];
+      document.getElementById('word-display').textContent = word.word;
+      
+      if (currentMode === 'synonyms' || currentMode === 'antonyms') {
+        const optionsHtml = word.options.map((option, index) => 
+          `<button class="btn synonym-btn" onclick="selectOption(${index})">${option}</button>`
+        ).join('');
+        
+        document.getElementById('content-area').innerHTML = `
+          <div class="definition-box">
+            <strong>Definition:</strong> ${word.definition}
+          </div>
+          <div>Choose the ${currentMode === 'synonyms' ? 'synonym' : 'antonym'}:</div>
+          <div class="synonym-options">${optionsHtml}</div>
+        `;
+      }
+      
+      document.getElementById('hint-btn').style.display = 'none';
+      document.getElementById('skip-btn').style.display = 'inline-block';
+    }
+
+    function showDefinitionWord() {
+      if (currentWord >= currentWords.length || timeLeft <= 0) {
+        endGame();
+        return;
+      }
+
+      const word = currentWords[currentWord];
+      document.getElementById('word-display').textContent = word.definition.toUpperCase();
+      document.getElementById('content-area').innerHTML = `
+        <div style="margin: 20px 0;">What word matches this definition?</div>
+        <input type="text" id="def-input" class="answer-input" placeholder="Type your answer...">
+        <button class="btn" onclick="checkDefinitionAnswer()">Submit</button>
+      `;
+      document.getElementById('def-input').focus();
+      document.getElementById('hint-btn').style.display = 'inline-block';
+      document.getElementById('skip-btn').style.display = 'inline-block';
+    }
+
+    function selectOption(index) {
+      const word = currentWords[currentWord];
+      const correct = index === word.correct;
+      
+      if (correct) {
+        score++;
+        updateScore();
+        document.getElementById('content-area').innerHTML = `
+          <div class="correct">✅ Correct! "${word.options[index]}" is a ${currentMode.slice(0, -1)} of "${word.word}"</div>
+          <button class="btn correct" onclick="nextWord()">Next Word →</button>
+        `;
+      } else {
+        document.getElementById('content-area').innerHTML = `
+          <div class="wrong">❌ Wrong! The correct ${currentMode.slice(0, -1)} was "${word.options[word.correct]}"</div>
+          <button class="btn wrong" onclick="nextWord()">Next Word →</button>
+        `;
+      }
+      
+      document.getElementById('skip-btn').style.display = 'none';
+    }
+
+    function submitChainWord() {
+      const input = document.getElementById('chain-input');
+      const userWord = input.value.trim().toUpperCase();
+      
+      if (userWord === currentChain[chainIndex]) {
+        const chainDisplay = document.getElementById('chain-display');
+        chainDisplay.innerHTML += `<div class="chain-word">${userWord}</div>`;
+        chainIndex++;
+        
+        if (chainIndex >= currentChain.length) {
+          score = chainIndex;
+          updateScore();
+          endChainGame();
+          return;
+        }
+        
+        input.value = '';
+        input.placeholder = 'Next word...';
+      } else {
+        input.style.background = 'rgba(239, 68, 68, 0.4)';
+        setTimeout(() => {
+          input.style.background = 'rgba(255,255,255,0.2)';
+        }, 1000);
+      }
+    }
+
+    function checkDefinitionAnswer() {
+      const userAnswer = document.getElementById('def-input').value.toLowerCase().trim();
+      const correctAnswer = currentWords[currentWord].word.toLowerCase();
+      
+      if (userAnswer === correctAnswer) {
+        score++;
+        updateScore();
+        document.getElementById('content-area').innerHTML = `
+          <div class="correct">✅ Correct! The word was "${correctAnswer.toUpperCase()}"</div>
+          <button class="btn correct" onclick="nextDefinitionWord()">Next Definition →</button>
+        `;
+      } else {
+        document.getElementById('content-area').innerHTML = `
+          <div class="wrong">❌ Wrong! The correct word was "${correctAnswer.toUpperCase()}"</div>
+          <button class="btn wrong" onclick="nextDefinitionWord()">Next Definition →</button>
+        `;
+      }
+      
+      document.getElementById('hint-btn').style.display = 'none';
+      document.getElementById('skip-btn').style.display = 'none';
+    }
+
+    function showHint() {
+      if (currentMode === 'definition') {
+        const hint = currentWords[currentWord].hint;
+        document.getElementById('content-area').innerHTML += `
+          <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin: 10px 0;">
+            💡 <strong>Hint:</strong> ${hint}
+          </div>
+        `;
+      }
+      document.getElementById('hint-btn').style.display = 'none';
+    }
+
+    function skipWord() {
+      if (currentMode === 'definition') {
+        nextDefinitionWord();
+      } else {
+        nextWord();
+      }
+    }
+
+    function nextWord() {
+      currentWord++;
+      showWord();
+    }
+
+    function nextDefinitionWord() {
+      currentWord++;
+      showDefinitionWord();
+    }
+
+    function endChainGame() {
+      document.getElementById('word-display').textContent = "CHAIN COMPLETE! 🎉";
+      document.getElementById('content-area').innerHTML = `
+        <div style="margin: 20px 0;">
+          Congratulations! You completed the word chain:<br>
+          <strong>${currentChain.join(' → ')}</strong>
+        </div>
+        <button class="btn" onclick="startGame()">Try Another Chain</button>
+      `;
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      document.getElementById('time').textContent = timeLeft;
+      
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        endGame();
+      }
+    }
+
+    function endGame() {
+      if (timer) clearInterval(timer);
+      document.getElementById('timer').style.display = 'none';
+      
+      let total = currentMode === 'chain' ? currentChain.length : currentWords.length;
+      if (currentMode === 'definition') total = Math.min(total, currentWord + 1);
+      
+      const percentage = Math.round((score / total) * 100);
+      let message = `🎊 Game Over! You scored ${score} out of ${total} (${percentage}%)`;
+      
+      if (percentage >= 90) message += " Excellent vocabulary! 🏆";
+      else if (percentage >= 80) message += " Great word skills! 🌟";
+      else if (percentage >= 70) message += " Good job! 👍";
+      else if (percentage >= 60) message += " Not bad, keep learning! 😊";
+      else message += " Practice makes perfect! 📚";
+
+      document.getElementById('word-display').textContent = "GAME OVER";
+      document.getElementById('content-area').innerHTML = `
+        <div style="margin: 20px 0;">${message}</div>
+        <button class="btn" onclick="startGame()">Play Again</button>
+      `;
+      
+      document.getElementById('hint-btn').style.display = 'none';
+      document.getElementById('skip-btn').style.display = 'none';
+    }
+
+    function newGame() {
+      if (timer) clearInterval(timer);
+      document.getElementById('timer').style.display = 'none';
+      gameStarted = false;
+      document.getElementById('word-display').textContent = "READY?";
+      document.getElementById('content-area').innerHTML = '<div id="buttons"><button class="btn" onclick="startGame()">Start Game</button></div>';
+      document.getElementById('hint-btn').style.display = 'none';
+      document.getElementById('skip-btn').style.display = 'none';
+      updateScore();
+    }
+
+    function updateScore() {
+      document.getElementById('score').textContent = score;
+      let total = currentMode === 'chain' ? (currentChain.length || 10) : (currentWords.length || 8);
+      document.getElementById('total').textContent = total;
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // Enter key support
+    document.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        if (document.getElementById('chain-input') && document.activeElement === document.getElementById('chain-input')) {
+          submitChainWord();
+        } else if (document.getElementById('def-input') && document.activeElement === document.getElementById('def-input')) {
+          checkDefinitionAnswer();
+        }
+      }
+    });
+
+    // Guest user support
+    const guestUser = {
+      uid: "guest-" + Math.random().toString(36).slice(2),
+      displayName: "Guest Player"
+    };
+    localStorage.setItem("guestUser", JSON.stringify(guestUser));
+  </script>
+</body>
+</html>

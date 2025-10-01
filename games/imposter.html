@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Imposter - E.Vol Games</title>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #6a11cb, #2575fc);
+      font-family: 'Inter', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .lobby-controls {
+      margin: 20px 0;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .lobby-controls input, .lobby-controls button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      cursor: pointer;
+    }
+    .lobby-controls input {
+      background: rgba(255,255,255,0.3);
+    }
+    .lobby-controls input::placeholder {
+      color: rgba(255,255,255,0.7);
+    }
+    #log {
+      background: rgba(0,0,0,0.3);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      height: 200px;
+      overflow-y: auto;
+      text-align: left;
+    }
+    .status {
+      margin: 15px 0;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .word-display {
+      background: rgba(255,255,255,0.2);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-btn">← Back to Home</a>
+  
+  <div class="game-container">
+    <h1>🕵️ Imposter Game</h1>
+    <p>Find the imposter! Real-time multiplayer with your DigitalOcean server.</p>
+    
+    <div class="lobby-controls">
+      <button onclick="createLobby()">Create Lobby</button>
+      <input type="text" id="lobbyInput" placeholder="Enter Lobby ID" />
+      <button onclick="joinLobby()">Join Lobby</button>
+      <button onclick="playOffline()">Play Offline</button>
+    </div>
+    
+    <div class="status" id="status">Welcome! Create or join a lobby to start.</div>
+    
+    <div id="word-display" class="word-display hidden">
+      Secret Word: <span id="secret-word"></span>
+    </div>
+    
+    <div id="log"></div>
+    
+    <div id="game-controls" class="hidden">
+      <input type="text" id="clueInput" placeholder="Enter your clue..." />
+      <button onclick="sendClue()">Send Clue</button>
+    </div>
+  </div>
+
+  <script>
+    let socket;
+    let currentLobby = null;
+    let isHost = false;
+    let secretWord = null;
+    
+    // Words for the game
+    const words = ["Pizza", "Dog", "Car", "Computer", "Football", "Banana", "School", "Ocean", "Camera", "Guitar", "Book", "Phone", "Coffee", "House", "Tree"];
+
+    // Initialize socket connection
+    function initSocket() {
+      socket = io("http://165.227.124.255:3000"); // your DO server
+      
+      socket.on("connect", () => {
+        log("Connected to server!");
+      });
+      
+      socket.on("disconnect", () => {
+        log("Disconnected from server.");
+      });
+      
+      socket.on("message", (msg) => {
+        log("📨 " + msg);
+      });
+      
+      socket.on("lobbyUpdate", (data) => {
+        log(`Lobby updated: ${data.players} players`);
+      });
+    }
+
+    function createLobby() {
+      const lobbyId = generateLobbyCode();
+      currentLobby = lobbyId;
+      isHost = true;
+      
+      // Pick random word
+      secretWord = words[Math.floor(Math.random() * words.length)];
+      
+      if (socket && socket.connected) {
+        socket.emit("joinLobby", lobbyId);
+        log(`🎮 Created lobby: ${lobbyId}`);
+        document.getElementById("status").textContent = `Lobby: ${lobbyId} (You are host)`;
+        showWord();
+      } else {
+        log("⚠️ Not connected to server. Starting offline mode.");
+        playOffline();
+      }
+    }
+
+    function joinLobby() {
+      const lobbyId = document.getElementById("lobbyInput").value.trim().toUpperCase();
+      if (!lobbyId) {
+        alert("Please enter a lobby ID");
+        return;
+      }
+      
+      currentLobby = lobbyId;
+      isHost = false;
+      
+      if (socket && socket.connected) {
+        socket.emit("joinLobby", lobbyId);
+        log(`🚪 Joining lobby: ${lobbyId}`);
+        document.getElementById("status").textContent = `Joined lobby: ${lobbyId}`;
+        document.getElementById("game-controls").classList.remove("hidden");
+      } else {
+        log("⚠️ Not connected to server. Try offline mode instead.");
+      }
+    }
+
+    function playOffline() {
+      secretWord = words[Math.floor(Math.random() * words.length)];
+      currentLobby = "OFFLINE";
+      isHost = true;
+      
+      log("🤖 Playing offline with bots!");
+      document.getElementById("status").textContent = "Offline Mode - vs Bots";
+      showWord();
+      simulateBots();
+    }
+
+    function sendClue() {
+      const clue = document.getElementById("clueInput").value.trim();
+      if (!clue) return;
+      
+      if (socket && socket.connected && currentLobby) {
+        socket.emit("sendMessage", { 
+          lobbyId: currentLobby, 
+          msg: JSON.stringify({ type: 'imposter:clue', text: clue }) 
+        });
+      }
+      
+      log(`💡 Your clue: "${clue}"`);
+      document.getElementById("clueInput").value = "";
+    }
+
+    function showWord() {
+      if (isHost && secretWord) {
+        document.getElementById("secret-word").textContent = secretWord;
+        document.getElementById("word-display").classList.remove("hidden");
+        document.getElementById("game-controls").classList.remove("hidden");
+      }
+    }
+
+    function simulateBots() {
+      const botClues = ["Something common", "You see it often", "Very useful", "Everyone knows this"];
+      botClues.forEach((clue, i) => {
+        setTimeout(() => {
+          log(`🤖 Bot${i+1}: "${clue}"`);
+        }, (i + 1) * 2000);
+      });
+    }
+
+    function generateLobbyCode() {
+      return Math.random().toString(36).substring(2, 7).toUpperCase();
+    }
+
+    function log(message) {
+      const logEl = document.getElementById("log");
+      logEl.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // Guest user support
+    const guestUser = {
+      uid: "guest-" + Math.random().toString(36).slice(2),
+      displayName: "Guest Player"
+    };
+    localStorage.setItem("guestUser", JSON.stringify(guestUser));
+
+    // Initialize
+    initSocket();
+  </script>
+</body>
+</html>

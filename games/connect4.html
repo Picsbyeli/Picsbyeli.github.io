@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Connect 4 - E.Vol Games</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #6a11cb, #2575fc);
+      font-family: 'Inter', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    #grid { 
+      display: grid; 
+      grid-template-columns: repeat(7, 60px); 
+      gap: 5px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .cell { 
+      width: 60px; 
+      height: 60px; 
+      border: 2px solid #333; 
+      border-radius: 50%; 
+      background: #eee; 
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .cell:hover { background: #ddd; }
+    .cell.red { background: #ef4444; }
+    .cell.yellow { background: #f59e0b; }
+    .status {
+      margin: 20px 0;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .controls button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-btn">← Back to Home</a>
+  
+  <div class="game-container">
+    <h1>🔴 Connect 4</h1>
+    <p>Drop discs to get 4 in a row! Guest mode enabled.</p>
+    
+    <div class="status" id="status">Red's Turn</div>
+    <div id="grid"></div>
+    
+    <div class="controls">
+      <button onclick="resetGame()">New Game</button>
+      <button onclick="playVsBot()">Play vs Bot</button>
+    </div>
+  </div>
+
+  <script src="connect4.js"></script>
+  
+  <script>
+    // Guest user support
+    const guestUser = {
+      uid: "guest-" + Math.random().toString(36).slice(2),
+      displayName: "Guest Player"
+    };
+    localStorage.setItem("guestUser", JSON.stringify(guestUser));
+  </script>
+</body>
+</html>

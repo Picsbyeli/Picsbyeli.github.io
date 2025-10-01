@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trivia Quiz - E.Vol Games</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #6a11cb, #2575fc);
+      font-family: 'Inter', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .question-card {
+      background: rgba(255,255,255,0.15);
+      padding: 25px;
+      margin: 20px 0;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .question-text {
+      font-size: 18px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .options {
+      display: grid;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .option {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-align: left;
+    }
+    .option:hover { background: rgba(255,255,255,0.3); }
+    .option.correct { background: rgba(34, 197, 94, 0.4) !important; }
+    .option.wrong { background: rgba(239, 68, 68, 0.4) !important; }
+    .option.disabled { cursor: not-allowed; opacity: 0.6; }
+    .score {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .progress {
+      background: rgba(255,255,255,0.2);
+      height: 8px;
+      border-radius: 4px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    .progress-bar {
+      background: linear-gradient(90deg, #10b981, #3b82f6);
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+    .btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover { background: rgba(255,255,255,0.3); }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-btn">← Back to Home</a>
+  
+  <div class="game-container">
+    <h1>🤔 Trivia Quiz</h1>
+    <p>Test your general knowledge with these challenging questions!</p>
+    
+    <div class="score">Score: <span id="score">0</span> / <span id="total">0</span></div>
+    <div class="progress">
+      <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+    </div>
+    
+    <div id="question-container" class="question-card">
+      <div class="question-text" id="question-text">Ready to test your knowledge?</div>
+      <div id="options" class="options"></div>
+      <div id="explanation" style="margin-top: 15px; display: none;"></div>
+    </div>
+    
+    <div>
+      <button class="btn" onclick="startQuiz()" id="start-btn">Start Quiz</button>
+      <button class="btn" onclick="nextQuestion()" id="next-btn" style="display:none;">Next Question →</button>
+      <button class="btn" onclick="newQuiz()">🔄 New Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    const triviaQuestions = [
+      {
+        question: "What is the capital of Australia?",
+        options: ["Sydney", "Melbourne", "Canberra", "Perth"],
+        correct: 2,
+        explanation: "Canberra is the capital of Australia, not Sydney which is the largest city."
+      },
+      {
+        question: "Which planet is closest to the Sun?",
+        options: ["Venus", "Mercury", "Earth", "Mars"],
+        correct: 1,
+        explanation: "Mercury is the smallest planet and the one closest to the Sun."
+      },
+      {
+        question: "Who painted the famous artwork 'The Starry Night'?",
+        options: ["Pablo Picasso", "Leonardo da Vinci", "Vincent van Gogh", "Claude Monet"],
+        correct: 2,
+        explanation: "Vincent van Gogh painted 'The Starry Night' in 1889 while in an asylum."
+      },
+      {
+        question: "What is the largest ocean on Earth?",
+        options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+        correct: 3,
+        explanation: "The Pacific Ocean covers about 46% of Earth's water surface."
+      },
+      {
+        question: "In which year did World War II end?",
+        options: ["1944", "1945", "1946", "1947"],
+        correct: 1,
+        explanation: "World War II ended in 1945 with the surrender of Japan in September."
+      },
+      {
+        question: "What is the chemical symbol for gold?",
+        options: ["Go", "Gd", "Au", "Ag"],
+        correct: 2,
+        explanation: "Au comes from the Latin word 'aurum' meaning gold."
+      },
+      {
+        question: "Which is the longest river in the world?",
+        options: ["Amazon River", "Nile River", "Yangtze River", "Mississippi River"],
+        correct: 1,
+        explanation: "The Nile River is approximately 6,650 km long, making it the longest river."
+      },
+      {
+        question: "Who wrote the novel '1984'?",
+        options: ["Aldous Huxley", "George Orwell", "Ray Bradbury", "H.G. Wells"],
+        correct: 1,
+        explanation: "George Orwell wrote '1984', published in 1949."
+      },
+      {
+        question: "What is the smallest country in the world?",
+        options: ["Monaco", "San Marino", "Vatican City", "Liechtenstein"],
+        correct: 2,
+        explanation: "Vatican City is the smallest country with an area of just 0.17 square miles."
+      },
+      {
+        question: "Which element has the atomic number 1?",
+        options: ["Helium", "Hydrogen", "Lithium", "Carbon"],
+        correct: 1,
+        explanation: "Hydrogen has one proton, giving it the atomic number 1."
+      },
+      {
+        question: "In what year was the first iPhone released?",
+        options: ["2006", "2007", "2008", "2009"],
+        correct: 1,
+        explanation: "The first iPhone was released by Apple in June 2007."
+      },
+      {
+        question: "What is the hardest natural substance on Earth?",
+        options: ["Quartz", "Diamond", "Ruby", "Sapphire"],
+        correct: 1,
+        explanation: "Diamond is the hardest natural substance, rating 10 on the Mohs scale."
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let quizStarted = false;
+    let answered = false;
+
+    function startQuiz() {
+      quizStarted = true;
+      currentQuestion = 0;
+      score = 0;
+      answered = false;
+      updateScore();
+      showQuestion();
+      document.getElementById('start-btn').style.display = 'none';
+    }
+
+    function showQuestion() {
+      if (currentQuestion >= triviaQuestions.length) {
+        endQuiz();
+        return;
+      }
+
+      answered = false;
+      const question = triviaQuestions[currentQuestion];
+      document.getElementById('question-text').textContent = `Question ${currentQuestion + 1}: ${question.question}`;
+      document.getElementById('explanation').style.display = 'none';
+      document.getElementById('next-btn').style.display = 'none';
+
+      const optionsContainer = document.getElementById('options');
+      optionsContainer.innerHTML = '';
+
+      question.options.forEach((option, index) => {
+        const button = document.createElement('button');
+        button.className = 'option';
+        button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+        button.onclick = () => selectAnswer(index);
+        optionsContainer.appendChild(button);
+      });
+
+      updateProgress();
+    }
+
+    function selectAnswer(selectedIndex) {
+      if (answered) return;
+      
+      answered = true;
+      const question = triviaQuestions[currentQuestion];
+      const options = document.querySelectorAll('.option');
+      
+      options.forEach((option, index) => {
+        option.classList.add('disabled');
+        if (index === question.correct) {
+          option.classList.add('correct');
+        } else if (index === selectedIndex && index !== question.correct) {
+          option.classList.add('wrong');
+        }
+      });
+
+      if (selectedIndex === question.correct) {
+        score++;
+        updateScore();
+      }
+
+      // Show explanation
+      document.getElementById('explanation').innerHTML = `
+        <strong>${selectedIndex === question.correct ? '✅ Correct!' : '❌ Incorrect!'}</strong><br>
+        ${question.explanation}
+      `;
+      document.getElementById('explanation').style.display = 'block';
+      document.getElementById('next-btn').style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      showQuestion();
+    }
+
+    function endQuiz() {
+      const percentage = Math.round((score / triviaQuestions.length) * 100);
+      let message = `🎊 Quiz Complete! You scored ${score} out of ${triviaQuestions.length} (${percentage}%).`;
+      
+      if (percentage >= 90) message += " Outstanding! You're a trivia master! 🏆";
+      else if (percentage >= 80) message += " Excellent work! 🌟";
+      else if (percentage >= 70) message += " Great job! 👍";
+      else if (percentage >= 60) message += " Good effort! 📚";
+      else if (percentage >= 50) message += " Not bad, keep learning! 💪";
+      else message += " Keep studying and try again! 📖";
+
+      document.getElementById('question-text').innerHTML = message;
+      document.getElementById('options').innerHTML = '';
+      document.getElementById('explanation').style.display = 'none';
+      document.getElementById('next-btn').style.display = 'none';
+      document.getElementById('start-btn').style.display = 'inline-block';
+      document.getElementById('start-btn').textContent = 'Play Again';
+    }
+
+    function newQuiz() {
+      // Shuffle questions for variety
+      for (let i = triviaQuestions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [triviaQuestions[i], triviaQuestions[j]] = [triviaQuestions[j], triviaQuestions[i]];
+      }
+      startQuiz();
+    }
+
+    function updateScore() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('total').textContent = triviaQuestions.length;
+    }
+
+    function updateProgress() {
+      const progress = ((currentQuestion + 1) / triviaQuestions.length) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+    }
+
+    // Guest user support
+    const guestUser = {
+      uid: "guest-" + Math.random().toString(36).slice(2),
+      displayName: "Guest Player"
+    };
+    localStorage.setItem("guestUser", JSON.stringify(guestUser));
+  </script>
+</body>
+</html>

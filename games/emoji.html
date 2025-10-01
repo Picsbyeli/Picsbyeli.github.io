@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Emoji Guess - E.Vol Games</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #6a11cb, #2575fc);
+      font-family: 'Inter', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .emoji-card {
+      background: rgba(255,255,255,0.15);
+      padding: 30px;
+      margin: 20px 0;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .emoji-display {
+      font-size: 64px;
+      margin: 20px 0;
+      line-height: 1.2;
+    }
+    .category {
+      background: rgba(255,255,255,0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      margin: 10px 0;
+      display: inline-block;
+    }
+    .answer-section {
+      margin: 20px 0;
+    }
+    .answer-input {
+      padding: 15px 20px;
+      border: none;
+      border-radius: 8px;
+      margin: 10px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      width: 250px;
+      font-size: 16px;
+    }
+    .answer-input::placeholder { color: rgba(255,255,255,0.7); }
+    .btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 14px;
+    }
+    .btn:hover { background: rgba(255,255,255,0.3); }
+    .correct { background: rgba(34, 197, 94, 0.4) !important; }
+    .wrong { background: rgba(239, 68, 68, 0.4) !important; }
+    .score {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .hint {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-style: italic;
+    }
+    .difficulty {
+      margin: 20px 0;
+    }
+    .difficulty button {
+      margin: 5px;
+      padding: 8px 16px;
+    }
+    .difficulty .active {
+      background: rgba(255,255,255,0.4);
+    }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-btn">← Back to Home</a>
+  
+  <div class="game-container">
+    <h1>😂 Emoji Guess</h1>
+    <p>Decode the emoji puzzles to reveal movies, phrases, and more!</p>
+    
+    <div class="difficulty">
+      <strong>Difficulty:</strong>
+      <button class="btn active" onclick="setDifficulty('easy')">Easy</button>
+      <button class="btn" onclick="setDifficulty('medium')">Medium</button>
+      <button class="btn" onclick="setDifficulty('hard')">Hard</button>
+    </div>
+    
+    <div class="score">Score: <span id="score">0</span> / <span id="total">0</span></div>
+    
+    <div id="emoji-container" class="emoji-card">
+      <div class="category" id="category">Movie</div>
+      <div class="emoji-display" id="emoji-display">🎬</div>
+      <div class="answer-section">
+        <input type="text" id="answer-input" class="answer-input" placeholder="Your guess..." style="display:none;">
+        <div id="buttons">
+          <button class="btn" onclick="startGame()">Start Game</button>
+        </div>
+        <div id="hint" class="hint" style="display:none;"></div>
+      </div>
+    </div>
+    
+    <div>
+      <button class="btn" onclick="showHint()" id="hint-btn" style="display:none;">💡 Show Hint</button>
+      <button class="btn" onclick="skipPuzzle()" id="skip-btn" style="display:none;">⏭ Skip</button>
+      <button class="btn" onclick="newGame()">🔄 New Game</button>
+    </div>
+  </div>
+
+  <script>
+    const emojiPuzzles = {
+      easy: [
+        { emojis: "🍕", answer: "pizza", category: "Food", hint: "Italian dish with toppings" },
+        { emojis: "🐱", answer: "cat", category: "Animal", hint: "Domestic feline pet" },
+        { emojis: "☀️", answer: "sun", category: "Nature", hint: "Star that lights our day" },
+        { emojis: "🚗", answer: "car", category: "Transport", hint: "Vehicle with four wheels" },
+        { emojis: "📱", answer: "phone", category: "Technology", hint: "Device for calling people" },
+        { emojis: "🏠", answer: "house", category: "Building", hint: "Place where you live" },
+        { emojis: "⚽", answer: "football", category: "Sport", hint: "Ball game played with feet" },
+        { emojis: "🌙", answer: "moon", category: "Nature", hint: "Celestial body seen at night" }
+      ],
+      medium: [
+        { emojis: "🦸‍♂️🕷️", answer: "spiderman", category: "Movie", hint: "Marvel superhero who swings on webs" },
+        { emojis: "👑🦁", answer: "lion king", category: "Movie", hint: "Disney movie about a young lion prince" },
+        { emojis: "🧊❄️👸", answer: "frozen", category: "Movie", hint: "Disney movie: 'Let it go!'" },
+        { emojis: "🍎📱", answer: "apple", category: "Brand", hint: "Tech company with fruit logo" },
+        { emojis: "☕⭐", answer: "starbucks", category: "Brand", hint: "Coffee chain with green logo" },
+        { emojis: "🌮🔔", answer: "taco bell", category: "Brand", hint: "Fast food chain serving Mexican food" },
+        { emojis: "🏃‍♂️💨", answer: "running", category: "Activity", hint: "Fast way of moving on foot" },
+        { emojis: "🎵🎤", answer: "singing", category: "Activity", hint: "Making music with your voice" }
+      ],
+      hard: [
+        { emojis: "🌪️🏠🐕", answer: "wizard of oz", category: "Movie", hint: "Dorothy and Toto get swept away" },
+        { emojis: "🐠🔍", answer: "finding nemo", category: "Movie", hint: "Pixar movie about a lost clownfish" },
+        { emojis: "🏴‍☠️🚢💰", answer: "pirates of the caribbean", category: "Movie", hint: "Johnny Depp as Captain Jack Sparrow" },
+        { emojis: "🕐💰🔫", answer: "time is money", category: "Phrase", hint: "Popular saying about efficiency" },
+        { emojis: "🐌🏃‍♂️", answer: "slow and steady wins the race", category: "Phrase", hint: "Tortoise and hare moral" },
+        { emojis: "🌧️☔🐱🐶", answer: "raining cats and dogs", category: "Phrase", hint: "Expression for heavy rain" },
+        { emojis: "🧠⚡💡", answer: "brainstorm", category: "Activity", hint: "Generating creative ideas together" },
+        { emojis: "🌍🔥", answer: "global warming", category: "Concept", hint: "Climate change phenomenon" }
+      ]
+    };
+
+    let currentDifficulty = 'easy';
+    let currentPuzzle = 0;
+    let score = 0;
+    let gameStarted = false;
+    let hintsUsed = 0;
+    let currentPuzzles = [];
+
+    function setDifficulty(difficulty) {
+      currentDifficulty = difficulty;
+      
+      // Update button styles
+      document.querySelectorAll('.difficulty .btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      if (gameStarted) {
+        newGame();
+      }
+    }
+
+    function startGame() {
+      gameStarted = true;
+      currentPuzzle = 0;
+      score = 0;
+      hintsUsed = 0;
+      currentPuzzles = [...emojiPuzzles[currentDifficulty]];
+      
+      // Shuffle puzzles
+      for (let i = currentPuzzles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [currentPuzzles[i], currentPuzzles[j]] = [currentPuzzles[j], currentPuzzles[i]];
+      }
+      
+      updateScore();
+      showPuzzle();
+    }
+
+    function showPuzzle() {
+      if (currentPuzzle >= currentPuzzles.length) {
+        endGame();
+        return;
+      }
+
+      const puzzle = currentPuzzles[currentPuzzle];
+      document.getElementById('category').textContent = puzzle.category;
+      document.getElementById('emoji-display').textContent = puzzle.emojis;
+      document.getElementById('answer-input').style.display = 'block';
+      document.getElementById('answer-input').value = '';
+      document.getElementById('answer-input').focus();
+      document.getElementById('hint').style.display = 'none';
+      document.getElementById('hint-btn').style.display = 'inline-block';
+      document.getElementById('skip-btn').style.display = 'inline-block';
+      
+      document.getElementById('buttons').innerHTML = '<button class="btn" onclick="checkAnswer()">Submit Guess</button>';
+    }
+
+    function checkAnswer() {
+      const userAnswer = document.getElementById('answer-input').value.toLowerCase().trim();
+      const correctAnswer = currentPuzzles[currentPuzzle].answer.toLowerCase();
+      
+      if (userAnswer === correctAnswer) {
+        score++;
+        updateScore();
+        document.getElementById('emoji-display').innerHTML = `🎉<br>${currentPuzzles[currentPuzzle].emojis}`;
+        document.getElementById('buttons').innerHTML = `
+          <div class="correct">✅ Correct! The answer was "${correctAnswer}".</div>
+          <button class="btn correct" onclick="nextPuzzle()">Next Puzzle →</button>
+        `;
+      } else {
+        document.getElementById('emoji-display').innerHTML = `❌<br>${currentPuzzles[currentPuzzle].emojis}`;
+        document.getElementById('buttons').innerHTML = `
+          <div class="wrong">❌ Wrong! The correct answer was "${correctAnswer}".</div>
+          <button class="btn wrong" onclick="nextPuzzle()">Next Puzzle →</button>
+        `;
+      }
+      
+      document.getElementById('answer-input').style.display = 'none';
+      document.getElementById('hint-btn').style.display = 'none';
+      document.getElementById('skip-btn').style.display = 'none';
+    }
+
+    function showHint() {
+      document.getElementById('hint').innerHTML = `💡 <strong>Hint:</strong> ${currentPuzzles[currentPuzzle].hint}`;
+      document.getElementById('hint').style.display = 'block';
+      document.getElementById('hint-btn').style.display = 'none';
+      hintsUsed++;
+    }
+
+    function skipPuzzle() {
+      document.getElementById('emoji-display').innerHTML = `⏭<br>${currentPuzzles[currentPuzzle].emojis}`;
+      document.getElementById('buttons').innerHTML = `
+        <div>⏭ Skipped! The answer was "${currentPuzzles[currentPuzzle].answer}".</div>
+        <button class="btn" onclick="nextPuzzle()">Next Puzzle →</button>
+      `;
+      document.getElementById('answer-input').style.display = 'none';
+      document.getElementById('hint-btn').style.display = 'none';
+      document.getElementById('skip-btn').style.display = 'none';
+    }
+
+    function nextPuzzle() {
+      currentPuzzle++;
+      showPuzzle();
+    }
+
+    function endGame() {
+      const percentage = Math.round((score / currentPuzzles.length) * 100);
+      let message = `🎊 Game Complete! You scored ${score} out of ${currentPuzzles.length} (${percentage}%) on ${currentDifficulty} difficulty.`;
+      
+      if (percentage >= 90) message += " Amazing! You're an emoji expert! 🏆";
+      else if (percentage >= 80) message += " Excellent work! 🌟";
+      else if (percentage >= 70) message += " Great job! 👍";
+      else if (percentage >= 60) message += " Good effort! 😊";
+      else if (percentage >= 50) message += " Not bad, keep practicing! 💪";
+      else message += " Keep trying, you'll improve! 📚";
+
+      if (hintsUsed > 0) message += ` You used ${hintsUsed} hint${hintsUsed > 1 ? 's' : ''}.`;
+
+      document.getElementById('emoji-display').innerHTML = '🎉';
+      document.getElementById('category').textContent = 'Results';
+      document.getElementById('buttons').innerHTML = `
+        <div style="margin: 20px 0;">${message}</div>
+        <button class="btn" onclick="startGame()">Play Again</button>
+      `;
+      document.getElementById('hint-btn').style.display = 'none';
+      document.getElementById('skip-btn').style.display = 'none';
+    }
+
+    function newGame() {
+      startGame();
+    }
+
+    function updateScore() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('total').textContent = currentPuzzles.length;
+    }
+
+    // Enter key support
+    document.getElementById('answer-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        checkAnswer();
+      }
+    });
+
+    // Guest user support
+    const guestUser = {
+      uid: "guest-" + Math.random().toString(36).slice(2),
+      displayName: "Guest Player"
+    };
+    localStorage.setItem("guestUser", JSON.stringify(guestUser));
+  </script>
+</body>
+</html>
