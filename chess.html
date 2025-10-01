@@ -116,7 +116,10 @@
     </aside>
   </div>
 
-  <!-- Dependencies: chess.js (rules) and chessboard.js (UI) -->
+  <!-- Dependency order matters:
+    1. chess.js (engine / move legality)
+    2. chessboard.js (UI board that expects window.Chess to exist if used together)
+    Then our custom script which references both. -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js" integrity="sha512-0tlmHkDkHKnz2fK28qSEmKQb8lOQ7P0GdXTbDG0v3G3u4U/pxFwf7H0aL3iF1+UQ3wW/k3C0nJ8o6wFqNEvYhQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js" integrity="sha512-2N8dVYbqZ4Kx3kz2rLrJ+06E5K8x7HImq/x1rV8QtvO4Q5H7HkzV5Cq7D2E3+H7O3Qm1fyd1w3qfZfV3kZ0Ybw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
@@ -381,9 +384,11 @@
       logEl.scrollTop = logEl.scrollHeight;
     }
 
-    // Boot
-    initBoard();
-    startNew();
+    // Boot only after window load to guarantee stylesheet & images (pieceTheme) are ready
+    window.addEventListener('load', () => {
+      initBoard();
+      startNew();
+    });
   </script>
 </body>
 </html>
