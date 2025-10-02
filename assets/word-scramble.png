@@ -1,0 +1,21 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad6" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ea580c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#grad6)" rx="20"/>
+  
+  <!-- Scrambled letters -->
+  <text x="60" y="80" font-family="Arial, sans-serif" font-size="24" fill="white" font-weight="bold">A</text>
+  <text x="120" y="80" font-family="Arial, sans-serif" font-size="24" fill="white" font-weight="bold">T</text>
+  <text x="80" y="110" font-family="Arial, sans-serif" font-size="24" fill="white" font-weight="bold">C</text>
+  <text x="140" y="110" font-family="Arial, sans-serif" font-size="24" fill="white" font-weight="bold">E</text>
+  <text x="100" y="140" font-family="Arial, sans-serif" font-size="24" fill="white" font-weight="bold">R</text>
+  
+  <!-- Shuffle arrows -->
+  <text x="100" y="60" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle">🔀</text>
+  
+  <text x="100" y="180" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle" font-weight="bold">SCRAMBLE</text>
+</svg>

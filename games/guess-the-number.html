@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Number</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #9333ea 0%, #ec4899 50%, #dc2626 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        
+        .game-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 32px;
+            max-width: 448px;
+            width: 100%;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+        
+        .message-card {
+            background: linear-gradient(90deg, #ddd6fe 0%, #fce7f3 100%);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .message-text {
+            text-align: center;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .attempts-text {
+            text-align: center;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+        
+        .input-section {
+            margin-bottom: 24px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .guess-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            transition: border-color 0.3s;
+        }
+        
+        .guess-input:focus {
+            outline: none;
+            border-color: #9333ea;
+        }
+        
+        .guess-btn {
+            background: linear-gradient(90deg, #9333ea 0%, #ec4899 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .guess-btn:hover {
+            background: linear-gradient(90deg, #7c3aed 0%, #db2777 100%);
+        }
+        
+        .play-again-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 24px;
+        }
+        
+        .play-again-btn:hover {
+            background: linear-gradient(90deg, #059669 0%, #047857 100%);
+        }
+        
+        .history-card {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 192px;
+            overflow-y: auto;
+        }
+        
+        .history-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        
+        .history-guess {
+            color: #6b7280;
+        }
+        
+        .history-hint {
+            color: #6b7280;
+        }
+        
+        .back-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-btn">← Back to Hub</a>
+    
+    <div class="game-card">
+        <h1 class="title">🎲 Guess the Number</h1>
+        <p class="subtitle">Between 1 and 100</p>
+        
+        <div class="message-card">
+            <p id="messageText" class="message-text">I've picked a number between 1 and 100. Can you guess it?</p>
+            <p id="attemptsText" class="attempts-text">Attempts: 0</p>
+        </div>
+        
+        <div id="inputSection" class="input-section">
+            <div class="input-group">
+                <input 
+                    type="number" 
+                    id="guessInput" 
+                    class="guess-input"
+                    placeholder="Enter your guess"
+                    min="1" 
+                    max="100"
+                    autofocus
+                />
+                <button id="guessBtn" class="guess-btn">Guess</button>
+            </div>
+        </div>
+        
+        <button id="playAgainBtn" class="play-again-btn hidden">
+            🔄 Play Again
+        </button>
+        
+        <div id="historyCard" class="history-card hidden">
+            <h3 class="history-title">Your Guesses:</h3>
+            <div id="historyList" class="history-list"></div>
+        </div>
+    </div>
+    
+    <script>
+        let target = 0;
+        let guess = '';
+        let attempts = 0;
+        let message = '';
+        let gameOver = false;
+        let history = [];
+        
+        function init() {
+            startNewGame();
+            setupEventListeners();
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('guessInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !gameOver) {
+                    handleGuess();
+                }
+            });
+            
+            document.getElementById('guessBtn').onclick = handleGuess;
+            document.getElementById('playAgainBtn').onclick = startNewGame;
+        }
+        
+        function startNewGame() {
+            target = Math.floor(Math.random() * 100) + 1;
+            guess = '';
+            attempts = 0;
+            message = "I've picked a number between 1 and 100. Can you guess it?";
+            gameOver = false;
+            history = [];
+            
+            updateDisplay();
+        }
+        
+        function handleGuess() {
+            const input = document.getElementById('guessInput');
+            const num = parseInt(input.value);
+            
+            if (isNaN(num) || num < 1 || num > 100) {
+                message = 'Please enter a valid number between 1 and 100!';
+                updateDisplay();
+                return;
+            }
+            
+            attempts++;
+            
+            if (num === target) {
+                message = `🎉 Congratulations! You guessed it in ${attempts} ${attempts === 1 ? 'attempt' : 'attempts'}!`;
+                gameOver = true;
+                history.push({ guess: num, hint: '✓ Correct!' });
+            } else if (num < target) {
+                message = '📈 Too low! Try a higher number.';
+                history.push({ guess: num, hint: '📈 Too low' });
+            } else {
+                message = '📉 Too high! Try a lower number.';
+                history.push({ guess: num, hint: '📉 Too high' });
+            }
+            
+            input.value = '';
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            document.getElementById('messageText').textContent = message;
+            document.getElementById('attemptsText').textContent = `Attempts: ${attempts}`;
+            
+            // Show/hide UI elements based on game state
+            document.getElementById('inputSection').classList.toggle('hidden', gameOver);
+            document.getElementById('playAgainBtn').classList.toggle('hidden', !gameOver);
+            document.getElementById('historyCard').classList.toggle('hidden', history.length === 0);
+            
+            // Update history display
+            if (history.length > 0) {
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+                
+                history.forEach((item, idx) => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'history-item';
+                    itemEl.innerHTML = `
+                        <span class="history-guess">#${idx + 1}: ${item.guess}</span>
+                        <span class="history-hint">${item.hint}</span>
+                    `;
+                    historyList.appendChild(itemEl);
+                });
+            }
+        }
+        
+        init();
+    </script>
+</body>
+</html>

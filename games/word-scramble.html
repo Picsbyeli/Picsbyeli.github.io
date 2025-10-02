@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Scramble</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #9333ea 0%, #ec4899 50%, #f97316 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        
+        .game-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 32px;
+            max-width: 448px;
+            width: 100%;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+            color: #9333ea;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+        
+        .score-card {
+            background: linear-gradient(90deg, #ddd6fe 0%, #fce7f3 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .scramble-card {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .scramble-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .shuffle-icon {
+            color: #9333ea;
+            width: 24px;
+            height: 24px;
+        }
+        
+        .scramble-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .scrambled-word {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #9333ea;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        
+        .word-info {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .input-section {
+            margin-bottom: 24px;
+        }
+        
+        .guess-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ddd6fe;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            transition: border-color 0.3s;
+        }
+        
+        .guess-input:focus {
+            outline: none;
+            border-color: #9333ea;
+        }
+        
+        .message-card {
+            margin-bottom: 24px;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .message-correct {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .message-incorrect {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .btn {
+            flex: 1;
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-purple {
+            background: #9333ea;
+            color: white;
+        }
+        
+        .btn-purple:hover {
+            background: #7c3aed;
+        }
+        
+        .btn-gray {
+            background: #d1d5db;
+            color: #374151;
+        }
+        
+        .btn-gray:hover {
+            background: #9ca3af;
+        }
+        
+        .btn-pink {
+            background: #ec4899;
+            color: white;
+        }
+        
+        .btn-pink:hover {
+            background: #db2777;
+        }
+        
+        .btn-full {
+            width: 100%;
+        }
+        
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .back-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-btn">← Back to Hub</a>
+    
+    <div class="game-card">
+        <h1 class="title">Word Scramble</h1>
+        <p class="subtitle">Unscramble the letters!</p>
+        
+        <div class="score-card">
+            <div class="score-row">
+                <span>Score: <span id="score">0</span></span>
+                <span>Attempts: <span id="attempts">0</span></span>
+            </div>
+        </div>
+        
+        <div class="scramble-card">
+            <div class="scramble-header">
+                <div class="shuffle-icon">🔀</div>
+                <span class="scramble-label">Scrambled Word</span>
+            </div>
+            <div id="scrambledWord" class="scrambled-word">LOADING...</div>
+            <div id="wordInfo" class="word-info">8 letters</div>
+        </div>
+        
+        <div class="input-section">
+            <input 
+                type="text" 
+                id="guessInput" 
+                class="guess-input"
+                placeholder="Type your guess..."
+            />
+        </div>
+        
+        <div id="messageCard" class="message-card hidden">
+            <span id="messageText"></span>
+        </div>
+        
+        <div class="button-row">
+            <button id="checkBtn" class="btn btn-purple">
+                <span class="icon">✓</span>
+                Check
+            </button>
+            <button id="skipBtn" class="btn btn-gray">
+                <span class="icon">✗</span>
+                Skip
+            </button>
+        </div>
+        
+        <button id="newWordBtn" class="btn btn-pink btn-full">
+            <span class="icon">🔀</span>
+            New Word
+        </button>
+    </div>
+    
+    <script>
+        const words = [
+            'javascript', 'python', 'computer', 'keyboard', 'elephant', 
+            'mountain', 'sunshine', 'chocolate', 'bicycle', 'rainbow',
+            'butterfly', 'telescope', 'adventure', 'champion', 'dinosaur',
+            'programming', 'algorithm', 'function', 'variable', 'internet'
+        ];
+        
+        let currentWord = '';
+        let scrambledWord = '';
+        let guess = '';
+        let message = '';
+        let score = 0;
+        let attempts = 0;
+        
+        function init() {
+            setupEventListeners();
+            newWord();
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('guessInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkGuess();
+                }
+            });
+            
+            document.getElementById('checkBtn').onclick = checkGuess;
+            document.getElementById('skipBtn').onclick = handleSkip;
+            document.getElementById('newWordBtn').onclick = newWord;
+        }
+        
+        function scrambleWordFunc(word) {
+            const arr = word.split('');
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr.join('');
+        }
+        
+        function newWord() {
+            const word = words[Math.floor(Math.random() * words.length)];
+            let scrambled = scrambleWordFunc(word);
+            
+            while (scrambled === word && word.length > 1) {
+                scrambled = scrambleWordFunc(word);
+            }
+            
+            currentWord = word;
+            scrambledWord = scrambled;
+            guess = '';
+            message = '';
+            
+            updateDisplay();
+            document.getElementById('guessInput').value = '';
+            document.getElementById('guessInput').focus();
+        }
+        
+        function checkGuess() {
+            const input = document.getElementById('guessInput');
+            guess = input.value.trim().toLowerCase();
+            
+            if (!guess) return;
+            
+            if (guess === currentWord) {
+                message = 'Correct! 🎉';
+                score++;
+                showMessage(message, 'correct');
+                setTimeout(() => newWord(), 1500);
+            } else {
+                message = 'Try again! ❌';
+                attempts++;
+                showMessage(message, 'incorrect');
+            }
+            
+            updateDisplay();
+        }
+        
+        function handleSkip() {
+            message = `The word was: ${currentWord}`;
+            attempts++;
+            showMessage(message, 'incorrect');
+            setTimeout(() => newWord(), 2000);
+            updateDisplay();
+        }
+        
+        function showMessage(text, type) {
+            const messageCard = document.getElementById('messageCard');
+            const messageText = document.getElementById('messageText');
+            
+            messageText.textContent = text;
+            messageCard.classList.remove('hidden', 'message-correct', 'message-incorrect');
+            messageCard.classList.add(`message-${type}`);
+            
+            setTimeout(() => {
+                messageCard.classList.add('hidden');
+            }, type === 'correct' ? 1500 : 2000);
+        }
+        
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('attempts').textContent = attempts;
+            document.getElementById('scrambledWord').textContent = scrambledWord.toUpperCase();
+            document.getElementById('wordInfo').textContent = `${currentWord.length} letters`;
+        }
+        
+        init();
+    </script>
+</body>
+</html>

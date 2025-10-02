@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Timer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-area {
+            flex: 1;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            transition: background-color 0.3s;
+        }
+        
+        .bg-blue { background: #3b82f6; }
+        .bg-red { background: #dc2626; }
+        .bg-green { background: #16a34a; }
+        .bg-yellow { background: #eab308; }
+        .bg-purple { background: #9333ea; }
+        .bg-pink { background: #ec4899; }
+        .bg-indigo { background: #6366f1; }
+        .bg-gray { background: #374151; }
+        
+        .content {
+            text-align: center;
+            color: white;
+        }
+        
+        .icon {
+            width: 96px;
+            height: 96px;
+            margin: 0 auto 24px;
+            font-size: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        .icon-bounce {
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+        
+        .instruction {
+            font-size: 1.25rem;
+        }
+        
+        .wait-text {
+            font-size: 3.75rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        .wait-instruction {
+            font-size: 1.25rem;
+            margin-top: 16px;
+        }
+        
+        .click-text {
+            font-size: 4.375rem;
+            font-weight: bold;
+        }
+        
+        .result-time {
+            font-size: 3.75rem;
+            font-weight: bold;
+        }
+        
+        .result-label {
+            font-size: 1.875rem;
+            margin-top: 16px;
+        }
+        
+        .result-instruction {
+            font-size: 1.25rem;
+            margin-top: 16px;
+        }
+        
+        .leaderboard {
+            background: #1f2937;
+            color: white;
+            padding: 32px;
+        }
+        
+        .leaderboard-container {
+            max-width: 512px;
+            margin: 0 auto;
+        }
+        
+        .name-input {
+            padding: 8px 16px;
+            background: #374151;
+            color: white;
+            border-radius: 8px;
+            border: 1px solid #4b5563;
+            margin-bottom: 16px;
+        }
+        
+        .name-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .leaderboard-title {
+            font-size: 1.875rem;
+            font-weight: bold;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .trophy-icon {
+            color: #fbbf24;
+        }
+        
+        .leaderboard-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .entry-gold {
+            background: linear-gradient(90deg, #d97706 0%, #b45309 100%);
+        }
+        
+        .entry-normal {
+            background: #374151;
+        }
+        
+        .entry-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .entry-rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            width: 32px;
+        }
+        
+        .entry-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .entry-title {
+            background: #7c3aed;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        
+        .entry-time {
+            font-size: 1.5rem;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .back-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-btn">← Back to Hub</a>
+    
+    <div id="gameArea" class="game-area bg-blue" onclick="handleClick()">
+        <div class="content">
+            <div id="waitingState">
+                <div class="icon icon-pulse">⏰</div>
+                <h1 class="title">Reaction Time Tester</h1>
+                <p class="instruction">Click anywhere to start!</p>
+            </div>
+            
+            <div id="readyState" class="hidden">
+                <div class="wait-text">WAIT...</div>
+                <p class="wait-instruction">Get ready for the color change</p>
+            </div>
+            
+            <div id="goState" class="hidden">
+                <div class="icon icon-bounce">⚡</div>
+                <div class="click-text">CLICK NOW!</div>
+            </div>
+            
+            <div id="resultState" class="hidden">
+                <div class="icon">🏆</div>
+                <div id="resultTime" class="result-time">0ms</div>
+                <div id="resultLabel" class="result-label">Very Fast! 🔥</div>
+                <p class="result-instruction">Click to try again</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="leaderboard">
+        <div class="leaderboard-container">
+            <div class="name-input-container">
+                <input 
+                    type="text" 
+                    id="userNameInput" 
+                    class="name-input"
+                    placeholder="Your name"
+                    maxlength="20"
+                    value="You"
+                />
+            </div>
+            
+            <h2 class="leaderboard-title">
+                <span class="trophy-icon">🏆</span>
+                Leaderboard
+            </h2>
+            
+            <div id="leaderboardEntries"></div>
+        </div>
+    </div>
+    
+    <script>
+        let state = 'waiting'; // waiting, ready, go, result
+        let reactionTime = null;
+        let leaderboard = [
+            { name: 'Alex', time: 234, title: 'Sigma 67er' },
+            { name: 'Jordan', time: 267 },
+            { name: 'Casey', time: 289 },
+            { name: 'Morgan', time: 312 },
+            { name: 'Riley', time: 345 }
+        ];
+        let bgColor = 'bg-blue';
+        let userName = 'You';
+        let startTime = null;
+        let timeout = null;
+        
+        const colors = [
+            'bg-red', 'bg-green', 'bg-yellow', 
+            'bg-purple', 'bg-pink', 'bg-indigo'
+        ];
+        
+        function init() {
+            updateDisplay();
+            updateLeaderboard();
+            
+            document.getElementById('userNameInput').addEventListener('input', (e) => {
+                userName = e.target.value || 'You';
+            });
+        }
+        
+        function getSpeedLabel(time) {
+            if (time < 200) return 'Lightning Fast! ⚡';
+            if (time < 250) return 'Very Fast! 🔥';
+            if (time < 300) return 'Fast! 👍';
+            if (time < 400) return 'Average 😐';
+            return 'Slow... 🐌';
+        }
+        
+        function startTest() {
+            state = 'ready';
+            bgColor = 'bg-red';
+            updateDisplay();
+            
+            const delay = Math.random() * 3000 + 2000; // 2-5 seconds
+            
+            timeout = setTimeout(() => {
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                bgColor = randomColor;
+                state = 'go';
+                startTime = Date.now();
+                updateDisplay();
+            }, delay);
+        }
+        
+        function handleClick() {
+            if (state === 'waiting') {
+                startTest();
+            } else if (state === 'ready') {
+                // Too early!
+                clearTimeout(timeout);
+                state = 'waiting';
+                bgColor = 'bg-blue';
+                updateDisplay();
+                alert('Too early! Wait for the color change!');
+            } else if (state === 'go') {
+                const time = Date.now() - startTime;
+                reactionTime = time;
+                state = 'result';
+                bgColor = 'bg-gray';
+                updateDisplay();
+                
+                // Update leaderboard
+                const newEntry = { name: userName, time, title: '' };
+                const newLeaderboard = [...leaderboard, newEntry]
+                    .sort((a, b) => a.time - b.time)
+                    .slice(0, 5);
+                
+                // Assign title to first place
+                if (newLeaderboard[0]) {
+                    newLeaderboard[0].title = 'Sigma 67er';
+                }
+                
+                leaderboard = newLeaderboard;
+                updateLeaderboard();
+            } else if (state === 'result') {
+                reactionTime = null;
+                state = 'waiting';
+                bgColor = 'bg-blue';
+                updateDisplay();
+            }
+        }
+        
+        function updateDisplay() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.className = `game-area ${bgColor}`;
+            
+            // Hide all states
+            document.getElementById('waitingState').classList.add('hidden');
+            document.getElementById('readyState').classList.add('hidden');
+            document.getElementById('goState').classList.add('hidden');
+            document.getElementById('resultState').classList.add('hidden');
+            
+            // Show current state
+            if (state === 'waiting') {
+                document.getElementById('waitingState').classList.remove('hidden');
+            } else if (state === 'ready') {
+                document.getElementById('readyState').classList.remove('hidden');
+            } else if (state === 'go') {
+                document.getElementById('goState').classList.remove('hidden');
+            } else if (state === 'result') {
+                document.getElementById('resultState').classList.remove('hidden');
+                document.getElementById('resultTime').textContent = `${reactionTime}ms`;
+                document.getElementById('resultLabel').textContent = getSpeedLabel(reactionTime);
+            }
+        }
+        
+        function updateLeaderboard() {
+            const entriesEl = document.getElementById('leaderboardEntries');
+            entriesEl.innerHTML = '';
+            
+            leaderboard.forEach((entry, index) => {
+                const entryEl = document.createElement('div');
+                entryEl.className = `leaderboard-entry ${index === 0 ? 'entry-gold' : 'entry-normal'}`;
+                
+                entryEl.innerHTML = `
+                    <div class="entry-info">
+                        <span class="entry-rank">#${index + 1}</span>
+                        <span class="entry-name">${entry.name}</span>
+                        ${entry.title ? `<span class="entry-title">${entry.title}</span>` : ''}
+                    </div>
+                    <span class="entry-time">${entry.time}ms</span>
+                `;
+                
+                entriesEl.appendChild(entryEl);
+            });
+        }
+        
+        // Add hidden class to CSS
+        const style = document.createElement('style');
+        style.textContent = '.hidden { display: none !important; }';
+        document.head.appendChild(style);
+        
+        init();
+    </script>
+</body>
+</html>

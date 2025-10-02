@@ -1,0 +1,15 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9333ea;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#grad3)" rx="20"/>
+  
+  <!-- Dice and question mark -->
+  <text x="100" y="90" font-family="Arial, sans-serif" font-size="50" fill="white" text-anchor="middle">🎲</text>
+  <text x="100" y="140" font-family="Arial, sans-serif" font-size="30" fill="white" text-anchor="middle">?</text>
+  
+  <text x="100" y="170" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle" font-weight="bold">GUESS</text>
+</svg>
