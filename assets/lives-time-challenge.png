@@ -1,0 +1,56 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9a56;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6b95;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" fill="url(#gradient1)" rx="20"/>
+  
+  <!-- Timer circle -->
+  <circle cx="100" cy="70" r="25" fill="none" stroke="white" stroke-width="4" opacity="0.9"/>
+  <circle cx="100" cy="70" r="25" fill="none" stroke="url(#gradient2)" stroke-width="4" 
+          stroke-dasharray="70" stroke-dashoffset="20" opacity="0.8"/>
+  
+  <!-- Timer text -->
+  <text x="100" y="75" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle">30</text>
+  
+  <!-- Lives hearts -->
+  <g transform="translate(100,110)">
+    <text x="-15" y="0" font-size="16" fill="#ff4757">❤️</text>
+    <text x="0" y="0" font-size="16" fill="#ff4757">❤️</text>
+    <text x="15" y="0" font-size="16" fill="#5f27cd">🖤</text>
+  </g>
+  
+  <!-- Challenge elements -->
+  <g transform="translate(100,140)">
+    <!-- Math symbols -->
+    <text x="-25" y="0" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">2+3</text>
+    <text x="10" y="0" font-family="Arial, sans-serif" font-size="16" fill="white">=?</text>
+    
+    <!-- Memory sequence -->
+    <rect x="-30" y="15" width="12" height="12" fill="#e74c3c" rx="2"/>
+    <rect x="-15" y="15" width="12" height="12" fill="#3498db" rx="2"/>
+    <rect x="0" y="15" width="12" height="12" fill="#2ecc71" rx="2"/>
+    <rect x="15" y="15" width="12" height="12" fill="#f39c12" rx="2"/>
+  </g>
+  
+  <!-- Lightning bolt for challenge -->
+  <g transform="translate(50,130)" opacity="0.7">
+    <path d="M0,0 L8,0 L3,10 L6,10 L0,20 L5,10 L2,10 Z" fill="#ffeb3b"/>
+  </g>
+  
+  <g transform="translate(145,125)" opacity="0.7">
+    <path d="M0,0 L8,0 L3,10 L6,10 L0,20 L5,10 L2,10 Z" fill="#ffeb3b"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="100" y="25" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="white" text-anchor="middle">LIVES & TIME</text>
+  <text x="100" y="195" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle" opacity="0.8">Challenge</text>
+</svg>
