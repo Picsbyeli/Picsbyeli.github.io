@@ -1,3 +1,13 @@
+// Helper function to safely add event listeners
+function safeAddListener(id, event, handler) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.addEventListener(event, handler);
+  } else {
+    console.warn(`Element with id '${id}' not found`);
+  }
+}
+
 // ---------- simple view switcher (no SPA routing) ----------
 const views = {
   home: document.getElementById('view-home'),
@@ -6,15 +16,22 @@ const views = {
   connect4: document.getElementById('view-connect4'),
 };
 function show(view) {
-  Object.values(views).forEach(v => v.classList.remove('active'));
-  (views[view] || views.home).classList.add('active');
+  Object.values(views).forEach(v => v && v.classList.remove('active'));
+  const targetView = views[view] || views.home;
+  if (targetView) targetView.classList.add('active');
 }
-document.querySelectorAll('[data-view]').forEach(btn => {
-  btn.addEventListener('click', () => show(btn.dataset.view));
-});
 
-// footer year
-document.getElementById('year').textContent = new Date().getFullYear();
+// Wait for DOM to be ready before setting up event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  // View switcher buttons
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => show(btn.dataset.view));
+  });
+
+  // footer year
+  const yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+});
 
 // ---------- Guest user support ----------
 let user = null;
@@ -41,12 +58,19 @@ const clearTracksBtn = document.getElementById('clearTracks');
 const musicList = document.getElementById('musicList');
 const LS_KEY = 'evol-playlist';
 
-musicToggle.addEventListener('click', () => musicPanel.classList.toggle('hidden'));
-addTrackBtn.addEventListener('click', addTrack);
-clearTracksBtn.addEventListener('click', () => {
-  localStorage.removeItem(LS_KEY);
-  renderPlaylist([]);
-});
+// Add null checks for music elements
+if (musicToggle && musicPanel) {
+  musicToggle.addEventListener('click', () => musicPanel.classList.toggle('hidden'));
+}
+if (addTrackBtn) {
+  addTrackBtn.addEventListener('click', addTrack);
+}
+if (clearTracksBtn) {
+  clearTracksBtn.addEventListener('click', () => {
+    localStorage.removeItem(LS_KEY);
+    renderPlaylist([]);
+  });
+}
 function loadPlaylist(){ try{ return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }catch{ return [] } }
 function savePlaylist(list){ localStorage.setItem(LS_KEY, JSON.stringify(list)); }
 function addTrack(){
@@ -106,7 +130,7 @@ let IMP_LOBBY = null;
 let IMP_PLAYERS = [];
 let IMP_WORD = null;
 
-document.getElementById('impCreate').addEventListener('click', () => {
+safeAddListener('impCreate', 'click', () => {
   const lobbyId = randomCode();
   IMP_LOBBY = lobbyId;
   impLobbyIdEl.textContent = lobbyId;
@@ -119,7 +143,7 @@ document.getElementById('impCreate').addEventListener('click', () => {
   impWordText.textContent = IMP_WORD;
 });
 
-document.getElementById('impJoin').addEventListener('click', () => {
+safeAddListener('impJoin', 'click', () => {
   const id = document.getElementById('impJoinInput').value.trim().toUpperCase();
   if(!id) return;
   IMP_LOBBY = id;
@@ -129,8 +153,8 @@ document.getElementById('impJoin').addEventListener('click', () => {
   // joiners do NOT see the word (host shares clues only)
 });
 
-document.getElementById('impBotEasy').addEventListener('click', () => quickBotImposter('easy'));
-document.getElementById('impBotMedium').addEventListener('click', () => quickBotImposter('medium'));
+safeAddListener('impBotEasy', 'click', () => quickBotImposter('easy'));
+safeAddListener('impBotMedium', 'click', () => quickBotImposter('medium'));
 
 function quickBotImposter(level){
   // simple bot: sends 3 vague clues and votes randomly
@@ -168,7 +192,7 @@ function quickBotImposter(level){
   });
 }
 
-document.getElementById('impClueBtn').addEventListener('click', () => {
+safeAddListener('impClueBtn', 'click', () => {
   if(!IMP_LOBBY) return alert('Create or join a lobby first.');
   const clue = document.getElementById('impClue').value.trim();
   if(!clue) return;
@@ -198,35 +222,41 @@ socket.on('message', (payload) => {
 
 // ---------- CHESS (text-move demo) ----------
 const chessLobbyId = document.getElementById('chessLobbyId');
-document.getElementById('chessCreate').addEventListener('click', () => {
+safeAddListener('chessCreate', 'click', () => {
   const id = randomCode();
-  chessLobbyId.textContent = id;
+  if (chessLobbyId) chessLobbyId.textContent = id;
   socket.emit('joinLobby', id);
 });
-document.getElementById('chessJoin').addEventListener('click', () => {
-  const id = document.getElementById('chessJoinInput').value.trim().toUpperCase();
+safeAddListener('chessJoin', 'click', () => {
+  const id = document.getElementById('chessJoinInput')?.value.trim().toUpperCase();
   if(!id) return;
-  chessLobbyId.textContent = id;
+  if (chessLobbyId) chessLobbyId.textContent = id;
   socket.emit('joinLobby', id);
 });
-document.getElementById('chessBotEasy').addEventListener('click', () => {
-  chessLobbyId.textContent = 'BOT-EASY';
+safeAddListener('chessBotEasy', 'click', () => {
+  if (chessLobbyId) chessLobbyId.textContent = 'BOT-EASY';
   addChessMove('Bot plays e7->e5');
 });
-document.getElementById('chessBotMedium').addEventListener('click', () => {
-  chessLobbyId.textContent = 'BOT-MED';
+safeAddListener('chessBotMedium', 'click', () => {
+  if (chessLobbyId) chessLobbyId.textContent = 'BOT-MED';
   addChessMove('Bot plays d7->d5');
 });
-document.getElementById('chessMoveBtn').addEventListener('click', () => {
-  const id = chessLobbyId.textContent;
+safeAddListener('chessMoveBtn', 'click', () => {
+  const id = chessLobbyId?.textContent;
   if(!id || id === '—') return alert('Create or join a lobby first.');
-  const mv = document.getElementById('chessMove').value.trim();
+  const mv = document.getElementById('chessMove')?.value.trim();
   if(!mv) return;
   socket.emit('sendMessage', { lobbyId: id, msg: JSON.stringify({ type:'chess:move', text: mv }) });
   addChessMove('You: ' + mv);
-  document.getElementById('chessMove').value = '';
+  const moveEl = document.getElementById('chessMove');
+  if (moveEl) moveEl.value = '';
 });
-function addChessMove(t){ const li=document.createElement('li'); li.textContent=t; document.getElementById('chessMoves').appendChild(li); }
+function addChessMove(t){ 
+  const li=document.createElement('li'); 
+  li.textContent=t; 
+  const movesEl = document.getElementById('chessMoves');
+  if (movesEl) movesEl.appendChild(li); 
+}
 socket.on('message', (payload) => {
   try{
     const m = JSON.parse(payload.split(': ').slice(1).join(': '));
@@ -260,36 +290,36 @@ function dropC4(col, color, emit){
   }
   drawC4();
   C4_TURN = (C4_TURN==='red')?'yellow':'red';
-  c4Status.textContent = `Turn: ${C4_TURN}`;
-  if(emit && c4LobbyId.textContent !== '—'){
+  if (c4Status) c4Status.textContent = `Turn: ${C4_TURN}`;
+  if(emit && c4LobbyId?.textContent !== '—'){
     socket.emit('sendMessage', { lobbyId: c4LobbyId.textContent, msg: JSON.stringify({ type:'c4:move', col }) });
   }
 }
-document.getElementById('c4Create').addEventListener('click', () => {
+safeAddListener('c4Create', 'click', () => {
   const id = randomCode();
-  c4LobbyId.textContent = id;
+  if (c4LobbyId) c4LobbyId.textContent = id;
   socket.emit('joinLobby', id);
   resetC4();
 });
-document.getElementById('c4Join').addEventListener('click', () => {
-  const id = document.getElementById('c4JoinInput').value.trim().toUpperCase();
+safeAddListener('c4Join', 'click', () => {
+  const id = document.getElementById('c4JoinInput')?.value.trim().toUpperCase();
   if(!id) return;
-  c4LobbyId.textContent = id;
+  if (c4LobbyId) c4LobbyId.textContent = id;
   socket.emit('joinLobby', id);
   resetC4();
 });
-document.getElementById('c4BotEasy').addEventListener('click', ()=> {
-  c4LobbyId.textContent = 'BOT-EASY';
+safeAddListener('c4BotEasy', 'click', () => {
+  if (c4LobbyId) c4LobbyId.textContent = 'BOT-EASY';
   resetC4();
 });
-document.getElementById('c4BotMedium').addEventListener('click', ()=> {
-  c4LobbyId.textContent = 'BOT-MED';
+safeAddListener('c4BotMedium', 'click', () => {
+  if (c4LobbyId) c4LobbyId.textContent = 'BOT-MED';
   resetC4();
 });
 function resetC4(){
   C4_BOARD = Array.from({length:6},()=>Array(7).fill(null));
   C4_TURN = 'red';
-  c4Status.textContent = 'Turn: red';
+  if (c4Status) c4Status.textContent = 'Turn: red';
   drawC4();
 }
 socket.on('message', (payload) => {
