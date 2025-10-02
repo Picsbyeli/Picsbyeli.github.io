@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lights Out</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #7c3aed 50%, #1e1b4b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: #c4b5fd;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .moves {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .moves-count {
+            color: #c4b5fd;
+        }
+
+        .new-game-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .new-game-btn:hover {
+            background: #6d28d9;
+            transform: translateY(-2px);
+        }
+
+        .win-message {
+            margin-bottom: 30px;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .trophy-icon {
+            font-size: 2rem;
+            color: #fbbf24;
+        }
+
+        .win-text {
+            color: white;
+        }
+
+        .win-title {
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .win-subtitle {
+            color: #bbf7d0;
+        }
+
+        .game-grid {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .light {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .light:hover {
+            transform: scale(1.05);
+        }
+
+        .light:active {
+            transform: scale(0.95);
+        }
+
+        .light.on {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+
+        .light.off {
+            background: #374151;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .light.on::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%);
+            border-radius: 10px;
+        }
+
+        .strategy-tip {
+            margin-top: 30px;
+            text-align: center;
+            color: #c4b5fd;
+            font-size: 0.9rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .light {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .grid {
+                gap: 8px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .light {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .grid {
+                gap: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Hub</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Lights Out</h1>
+            <p class="subtitle">
+                Click lights to toggle them and their neighbors. Turn all lights off to win!
+            </p>
+        </div>
+
+        <div class="game-container">
+            <div class="game-header">
+                <div class="moves">
+                    Moves: <span class="moves-count" id="moves">0</span>
+                </div>
+                <button class="new-game-btn" onclick="initializeGrid()">
+                    🔄 New Game
+                </button>
+            </div>
+
+            <div id="win-message" class="win-message hidden">
+                <div class="trophy-icon">🏆</div>
+                <div>
+                    <div class="win-text">
+                        <div class="win-title">You Won!</div>
+                        <div class="win-subtitle">Completed in <span id="final-moves">0</span> moves</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-grid">
+                <div class="grid" id="grid">
+                    <!-- Grid will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="strategy-tip">
+            <p>Strategy tip: Each light can only be in two states. Work systematically!</p>
+        </div>
+    </div>
+
+    <script>
+        const GRID_SIZE = 5;
+        let grid = [];
+        let moves = 0;
+        let won = false;
+
+        const movesElement = document.getElementById('moves');
+        const winMessage = document.getElementById('win-message');
+        const finalMovesElement = document.getElementById('final-moves');
+        const gridElement = document.getElementById('grid');
+
+        // Initialize a random grid
+        function initializeGrid() {
+            grid = Array(GRID_SIZE).fill(null).map(() => 
+                Array(GRID_SIZE).fill(false)
+            );
+            
+            // Make random clicks to create a solvable puzzle
+            const randomClicks = Math.floor(Math.random() * 10) + 15;
+            for (let i = 0; i < randomClicks; i++) {
+                const row = Math.floor(Math.random() * GRID_SIZE);
+                const col = Math.floor(Math.random() * GRID_SIZE);
+                toggleLight(row, col, false); // Don't count these as moves
+            }
+            
+            moves = 0;
+            won = false;
+            updateDisplay();
+            renderGrid();
+        }
+
+        // Toggle a light and its neighbors
+        function toggleLight(row, col, countMove = true) {
+            if (won) return;
+
+            const directions = [
+                [0, 0],   // center
+                [-1, 0],  // up
+                [1, 0],   // down
+                [0, -1],  // left
+                [0, 1]    // right
+            ];
+
+            directions.forEach(([dr, dc]) => {
+                const newRow = row + dr;
+                const newCol = col + dc;
+                
+                if (newRow >= 0 && newRow < GRID_SIZE && 
+                    newCol >= 0 && newCol < GRID_SIZE) {
+                    grid[newRow][newCol] = !grid[newRow][newCol];
+                }
+            });
+
+            if (countMove) {
+                moves++;
+                updateDisplay();
+                checkWin();
+            }
+        }
+
+        // Handle click on a light
+        function handleClick(row, col) {
+            toggleLight(row, col);
+            renderGrid();
+        }
+
+        // Check if all lights are off
+        function checkWin() {
+            const allOff = grid.every(row => row.every(cell => !cell));
+            if (allOff) {
+                won = true;
+                winMessage.classList.remove('hidden');
+                finalMovesElement.textContent = moves;
+            }
+        }
+
+        // Render the grid
+        function renderGrid() {
+            gridElement.innerHTML = '';
+            
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    const light = document.createElement('button');
+                    light.className = `light ${grid[row][col] ? 'on' : 'off'}`;
+                    light.onclick = () => handleClick(row, col);
+                    light.disabled = won;
+                    gridElement.appendChild(light);
+                }
+            }
+        }
+
+        // Update display
+        function updateDisplay() {
+            movesElement.textContent = moves;
+            
+            if (won) {
+                winMessage.classList.remove('hidden');
+            } else {
+                winMessage.classList.add('hidden');
+            }
+        }
+
+        // Initialize the game
+        initializeGrid();
+    </script>
+</body>
+</html>

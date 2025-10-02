@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔨 Whack-a-Mole</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .score {
+            color: #3b82f6;
+        }
+
+        .time {
+            color: #10b981;
+        }
+
+        .time.warning {
+            color: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .speed-warning {
+            background: #f97316;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .hole {
+            aspect-ratio: 1;
+            border-radius: 15px;
+            border: 4px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .hole.empty {
+            background: #10b981;
+            border-color: #059669;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .hole.empty:hover {
+            background: #059669;
+        }
+
+        .hole.mole {
+            background: #f59e0b;
+            border-color: #d97706;
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .hole.bomb {
+            background: #ef4444;
+            border-color: #dc2626;
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+            animation: pulse 1s infinite;
+        }
+
+        .game-btn {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            color: white;
+        }
+
+        .start-btn:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
+            transform: scale(1.05);
+        }
+
+        .end-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .end-btn:hover {
+            background: #dc2626;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        .instructions p {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .hole {
+                font-size: 3rem;
+            }
+            
+            .stats {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Hub</button>
+    
+    <div class="container">
+        <h1>🔨 Whack-a-Mole</h1>
+        
+        <div class="stats">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="time" id="time-display">Time: <span id="time">30</span>s</div>
+        </div>
+
+        <div id="speed-warning" class="speed-warning" style="display: none;">
+            ⚡ SPEED INCREASING! ⚡
+        </div>
+
+        <div class="game-grid">
+            <div class="hole empty" data-index="0" onclick="handleClick(0)">
+                <div class="entity">🕳️</div>
+            </div>
+            <div class="hole empty" data-index="1" onclick="handleClick(1)">
+                <div class="entity">🕳️</div>
+            </div>
+            <div class="hole empty" data-index="2" onclick="handleClick(2)">
+                <div class="entity">🕳️</div>
+            </div>
+            <div class="hole empty" data-index="3" onclick="handleClick(3)">
+                <div class="entity">🕳️</div>
+            </div>
+            <div class="hole empty" data-index="4" onclick="handleClick(4)">
+                <div class="entity">🕳️</div>
+            </div>
+            <div class="hole empty" data-index="5" onclick="handleClick(5)">
+                <div class="entity">🕳️</div>
+            </div>
+            <div class="hole empty" data-index="6" onclick="handleClick(6)">
+                <div class="entity">🕳️</div>
+            </div>
+            <div class="hole empty" data-index="7" onclick="handleClick(7)">
+                <div class="entity">🕳️</div>
+            </div>
+            <div class="hole empty" data-index="8" onclick="handleClick(8)">
+                <div class="entity">🕳️</div>
+            </div>
+        </div>
+
+        <button id="game-button" class="game-btn start-btn" onclick="toggleGame()">
+            Start Game
+        </button>
+
+        <div class="instructions">
+            <p>🐹 Mole: +1 point, +2 seconds</p>
+            <p>💣 Bomb: -5 seconds</p>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let timeLeft = 30;
+        let gameActive = false;
+        let moles = Array(9).fill({ type: 'empty' });
+        let difficulty = 1000;
+        let showSpeedWarning = false;
+        let intervalRef = null;
+        let timerRef = null;
+        let lastDifficultyScore = 0;
+
+        const scoreElement = document.getElementById('score');
+        const timeElement = document.getElementById('time');
+        const timeDisplay = document.getElementById('time-display');
+        const speedWarning = document.getElementById('speed-warning');
+        const gameButton = document.getElementById('game-button');
+
+        function startGame() {
+            score = 0;
+            timeLeft = 30;
+            gameActive = true;
+            difficulty = 1000;
+            showSpeedWarning = false;
+            lastDifficultyScore = 0;
+            
+            updateDisplay();
+            gameButton.textContent = 'End Game';
+            gameButton.className = 'game-btn end-btn';
+            
+            // Start timer
+            timerRef = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+            
+            // Start spawning entities
+            spawnEntity();
+        }
+
+        function endGame() {
+            gameActive = false;
+            moles = Array(9).fill({ type: 'empty' });
+            
+            if (intervalRef) clearTimeout(intervalRef);
+            if (timerRef) clearInterval(timerRef);
+            
+            updateDisplay();
+            renderMoles();
+            
+            gameButton.textContent = score > 0 ? `Play Again (Final Score: ${score})` : 'Start Game';
+            gameButton.className = 'game-btn start-btn';
+            speedWarning.style.display = 'none';
+        }
+
+        function spawnEntity() {
+            if (!gameActive) return;
+            
+            const randomIndex = Math.floor(Math.random() * 9);
+            const isBomb = Math.random() < 0.2; // 20% chance of bomb
+            
+            moles[randomIndex] = { type: isBomb ? 'bomb' : 'mole' };
+            renderMoles();
+            
+            // Hide entity after some time
+            setTimeout(() => {
+                if (moles[randomIndex].type !== 'empty') {
+                    moles[randomIndex] = { type: 'empty' };
+                    renderMoles();
+                }
+            }, difficulty * 0.7);
+            
+            // Schedule next spawn
+            intervalRef = setTimeout(spawnEntity, difficulty);
+        }
+
+        function handleClick(index) {
+            if (!gameActive || moles[index].type === 'empty') return;
+
+            if (moles[index].type === 'mole') {
+                score++;
+                timeLeft += 2;
+                moles[index] = { type: 'empty' };
+                
+                // Check for difficulty increase
+                const nextMilestone = Math.floor(lastDifficultyScore / 5) * 5 + 5;
+                if (score >= nextMilestone) {
+                    speedWarning.style.display = 'block';
+                    setTimeout(() => {
+                        speedWarning.style.display = 'none';
+                    }, 2000);
+                    
+                    difficulty = Math.max(400, difficulty - 100);
+                    lastDifficultyScore = score;
+                }
+                
+            } else if (moles[index].type === 'bomb') {
+                timeLeft = Math.max(0, timeLeft - 5);
+                moles[index] = { type: 'empty' };
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                    return;
+                }
+            }
+            
+            updateDisplay();
+            renderMoles();
+        }
+
+        function renderMoles() {
+            const holes = document.querySelectorAll('.hole');
+            holes.forEach((hole, index) => {
+                const entity = moles[index];
+                const entityDiv = hole.querySelector('.entity');
+                
+                hole.className = 'hole';
+                
+                if (entity.type === 'mole') {
+                    hole.classList.add('mole');
+                    entityDiv.textContent = '🐹';
+                } else if (entity.type === 'bomb') {
+                    hole.classList.add('bomb');
+                    entityDiv.textContent = '💣';
+                } else {
+                    hole.classList.add('empty');
+                    entityDiv.textContent = '🕳️';
+                }
+            });
+        }
+
+        function updateDisplay() {
+            scoreElement.textContent = score;
+            timeElement.textContent = timeLeft;
+            
+            if (timeLeft <= 10) {
+                timeDisplay.classList.add('warning');
+            } else {
+                timeDisplay.classList.remove('warning');
+            }
+        }
+
+        function toggleGame() {
+            if (gameActive) {
+                endGame();
+            } else {
+                startGame();
+            }
+        }
+
+        // Initialize display
+        updateDisplay();
+        renderMoles();
+    </script>
+</body>
+</html>

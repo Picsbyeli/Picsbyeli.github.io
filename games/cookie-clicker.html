@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍪 Cookie Clicker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 50%, #f59e0b 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #92400e;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #b45309;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .click-area {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .cookie-count {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #f59e0b;
+            margin-bottom: 10px;
+        }
+
+        .cookies-label {
+            color: #6b7280;
+            font-size: 1.2rem;
+        }
+
+        .rate-info {
+            color: #6b7280;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .cookie-button {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            cursor: pointer;
+            font-size: 5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .cookie-button:hover {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(245, 158, 11, 0.6);
+        }
+
+        .cookie-button:active {
+            transform: scale(0.95);
+        }
+
+        .click-particle {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            pointer-events: none;
+            animation: floatUp 0.6s ease-out forwards;
+            z-index: 10;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        .upgrades {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        .upgrades h2 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upgrade-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .upgrade {
+            width: 100%;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            background: none;
+            font-size: 1rem;
+        }
+
+        .upgrade.available {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #333;
+        }
+
+        .upgrade.available:hover {
+            background: #fde68a;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .upgrade.purchased {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .upgrade.unavailable {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+            color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .upgrade-content {
+            display: flex;
+            align-items: start;
+            gap: 15px;
+        }
+
+        .upgrade-icon {
+            font-size: 1.5rem;
+            margin-top: 5px;
+        }
+
+        .upgrade-details {
+            flex: 1;
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: between;
+            align-items: start;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .upgrade-cost {
+            font-weight: bold;
+            color: #f59e0b;
+            text-align: right;
+            margin-left: auto;
+        }
+
+        .tip {
+            margin-top: 30px;
+            padding: 20px;
+            background: #dbeafe;
+            border: 2px solid #3b82f6;
+            border-radius: 15px;
+        }
+
+        .tip p {
+            color: #1e40af;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .progress-section {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        .progress-section h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 20px;
+        }
+
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            text-align: center;
+        }
+
+        .progress-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f59e0b;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .game-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .cookie-button {
+                width: 150px;
+                height: 150px;
+                font-size: 4rem;
+            }
+            
+            .cookie-count {
+                font-size: 3rem;
+            }
+            
+            .progress-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Hub</button>
+    
+    <div class="container">
+        <h1>🍪 Cookie Clicker</h1>
+        <p class="subtitle">Click the cookie to earn points!</p>
+
+        <div class="game-grid">
+            <!-- Click Area -->
+            <div class="click-area">
+                <div class="stats">
+                    <div class="cookie-count" id="cookie-count">0</div>
+                    <div class="cookies-label">cookies</div>
+                    <div class="rate-info">
+                        <span id="click-power">1</span> per click • <span id="auto-rate">0</span>/sec
+                    </div>
+                </div>
+
+                <button class="cookie-button" id="cookie-button" onclick="handleClick(event)">
+                    🍪
+                </button>
+            </div>
+
+            <!-- Upgrades -->
+            <div class="upgrades">
+                <h2>
+                    ⭐ Upgrades
+                </h2>
+                <div class="upgrade-list" id="upgrade-list">
+                    <!-- Upgrades will be populated by JavaScript -->
+                </div>
+
+                <div class="tip" id="tip" style="display: none;">
+                    <p>💡 <strong>Tip:</strong> Keep clicking to earn your first upgrade!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="progress-section">
+            <h3>Your Progress</h3>
+            <div class="progress-grid">
+                <div class="progress-stat">
+                    <div class="stat-value" id="total-cookies">0</div>
+                    <div class="stat-label">Total Cookies</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="stat-value" id="click-power-display">1x</div>
+                    <div class="stat-label">Click Power</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="stat-value" id="auto-production">/s</div>
+                    <div class="stat-label">Auto Production</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cookies = 0;
+        let clickPower = 1;
+        let autoClickers = 0;
+        let clickParticles = [];
+
+        const upgrades = [
+            { 
+                id: 1, 
+                name: 'Double Click', 
+                cost: 10, 
+                effect: () => { clickPower *= 2; },
+                description: 'Double your click power',
+                icon: '⚡',
+                purchased: false,
+                singlePurchase: true
+            },
+            { 
+                id: 2, 
+                name: 'Auto Clicker', 
+                cost: 50, 
+                effect: () => { autoClickers += 1; },
+                description: '+1 cookie per second',
+                icon: '📈',
+                purchased: false,
+                singlePurchase: false
+            },
+            { 
+                id: 3, 
+                name: 'Mega Click', 
+                cost: 100, 
+                effect: () => { clickPower *= 3; },
+                description: 'Triple your click power',
+                icon: '⭐',
+                purchased: false,
+                singlePurchase: true
+            },
+            { 
+                id: 4, 
+                name: 'Super Auto Clicker', 
+                cost: 250, 
+                effect: () => { autoClickers += 5; },
+                description: '+5 cookies per second',
+                icon: '🚀',
+                purchased: false,
+                singlePurchase: false
+            }
+        ];
+
+        // Auto clicker interval
+        setInterval(() => {
+            if (autoClickers > 0) {
+                cookies += autoClickers;
+                updateDisplay();
+            }
+        }, 1000);
+
+        // Particle cleanup
+        setInterval(() => {
+            const particles = document.querySelectorAll('.click-particle');
+            if (particles.length > 10) {
+                particles[0].remove();
+            }
+        }, 100);
+
+        function handleClick(event) {
+            cookies += clickPower;
+            
+            // Create click particle
+            const rect = event.currentTarget.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            const particle = document.createElement('div');
+            particle.className = 'click-particle';
+            particle.textContent = `+${clickPower}`;
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            
+            event.currentTarget.appendChild(particle);
+            
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.remove();
+                }
+            }, 600);
+            
+            updateDisplay();
+        }
+
+        function buyUpgrade(upgradeId) {
+            const upgrade = upgrades.find(u => u.id === upgradeId);
+            if (!upgrade) return;
+            
+            if (cookies >= upgrade.cost) {
+                cookies -= upgrade.cost;
+                upgrade.effect();
+                
+                if (upgrade.singlePurchase) {
+                    upgrade.purchased = true;
+                } else {
+                    upgrade.cost = Math.floor(upgrade.cost * 1.5); // Increase cost
+                }
+                
+                updateDisplay();
+                renderUpgrades();
+            }
+        }
+
+        function renderUpgrades() {
+            const upgradeList = document.getElementById('upgrade-list');
+            upgradeList.innerHTML = '';
+            
+            upgrades.forEach(upgrade => {
+                const canAfford = cookies >= upgrade.cost;
+                const isPurchased = upgrade.purchased && upgrade.singlePurchase;
+                
+                const upgradeDiv = document.createElement('button');
+                upgradeDiv.className = 'upgrade';
+                
+                if (isPurchased) {
+                    upgradeDiv.classList.add('purchased');
+                } else if (canAfford) {
+                    upgradeDiv.classList.add('available');
+                } else {
+                    upgradeDiv.classList.add('unavailable');
+                }
+                
+                upgradeDiv.onclick = () => buyUpgrade(upgrade.id);
+                upgradeDiv.disabled = isPurchased || !canAfford;
+                
+                upgradeDiv.innerHTML = `
+                    <div class="upgrade-content">
+                        <div class="upgrade-icon">${upgrade.icon}</div>
+                        <div class="upgrade-details">
+                            <div class="upgrade-header">
+                                <div class="upgrade-name">
+                                    ${upgrade.name}${isPurchased ? ' ✓' : ''}
+                                </div>
+                                <div class="upgrade-cost">
+                                    ${isPurchased ? 'Owned' : `${upgrade.cost} 🍪`}
+                                </div>
+                            </div>
+                            <div class="upgrade-description">${upgrade.description}</div>
+                        </div>
+                    </div>
+                `;
+                
+                upgradeList.appendChild(upgradeDiv);
+            });
+        }
+
+        function updateDisplay() {
+            document.getElementById('cookie-count').textContent = Math.floor(cookies);
+            document.getElementById('total-cookies').textContent = Math.floor(cookies);
+            document.getElementById('click-power').textContent = clickPower;
+            document.getElementById('click-power-display').textContent = clickPower + 'x';
+            document.getElementById('auto-rate').textContent = autoClickers;
+            document.getElementById('auto-production').textContent = autoClickers + '/s';
+            
+            // Show/hide tip
+            const tip = document.getElementById('tip');
+            if (cookies < 10) {
+                tip.style.display = 'block';
+            } else {
+                tip.style.display = 'none';
+            }
+        }
+
+        // Initialize
+        updateDisplay();
+        renderUpgrades();
+    </script>
+</body>
+</html>
