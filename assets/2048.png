@@ -1,0 +1,47 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#grad3)" rx="20"/>
+  
+  <!-- 2048 grid -->
+  <rect x="50" y="50" width="100" height="100" fill="#bbada0" rx="5"/>
+  
+  <!-- Grid cells -->
+  <rect x="55" y="55" width="20" height="20" fill="#eee4da" rx="2"/>
+  <rect x="80" y="55" width="20" height="20" fill="#ede0c8" rx="2"/>
+  <rect x="105" y="55" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  <rect x="130" y="55" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  
+  <rect x="55" y="80" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  <rect x="80" y="80" width="20" height="20" fill="#f2b179" rx="2"/>
+  <rect x="105" y="80" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  <rect x="130" y="80" width="20" height="20" fill="#f59563" rx="2"/>
+  
+  <rect x="55" y="105" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  <rect x="80" y="105" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  <rect x="105" y="105" width="20" height="20" fill="#edcf72" rx="2"/>
+  <rect x="130" y="105" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  
+  <rect x="55" y="130" width="20" height="20" fill="#edc22e" rx="2"/>
+  <rect x="80" y="130" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  <rect x="105" y="130" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  <rect x="130" y="130" width="20" height="20" fill="#cdc1b4" rx="2"/>
+  
+  <!-- Numbers -->
+  <text x="65" y="69" font-family="Arial, sans-serif" font-size="10" fill="#776e65" text-anchor="middle" font-weight="bold">2</text>
+  <text x="90" y="69" font-family="Arial, sans-serif" font-size="10" fill="#776e65" text-anchor="middle" font-weight="bold">4</text>
+  
+  <text x="90" y="94" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle" font-weight="bold">8</text>
+  <text x="140" y="94" font-family="Arial, sans-serif" font-size="9" fill="white" text-anchor="middle" font-weight="bold">16</text>
+  
+  <text x="115" y="119" font-family="Arial, sans-serif" font-size="8" fill="white" text-anchor="middle" font-weight="bold">128</text>
+  
+  <text x="65" y="144" font-family="Arial, sans-serif" font-size="7" fill="white" text-anchor="middle" font-weight="bold">2048</text>
+  
+  <!-- Title -->
+  <text x="100" y="180" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" font-weight="bold">2048</text>
+</svg>
