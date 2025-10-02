@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Helicopter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-container {
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        canvas {
+            border: 3px solid white;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .game-info {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            min-height: 30px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .back-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            canvas {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+            }
+            
+            .controls {
+                font-size: 1rem;
+            }
+            
+            .stats {
+                font-size: 1.1rem;
+            }
+        }
+
+        .best-score {
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🚁 Flappy Helicopter</h1>
+        
+        <div class="controls">
+            Click, Spacebar, or Arrow Up to fly • Avoid the pipes!
+        </div>
+
+        <div class="stats">
+            <div>Score: <span id="score">0</span></div>
+            <div class="best-score">Best: <span id="bestScore">0</span></div>
+        </div>
+
+        <div class="game-info" id="gameInfo">Click to start flying!</div>
+
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+        <div class="buttons">
+            <button class="start-btn" onclick="startGame()">Start Game</button>
+            <button onclick="resetGame()">Reset</button>
+            <button class="back-btn" onclick="window.location.href='../index.html'">Back to Hub</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const bestScoreElement = document.getElementById('bestScore');
+        const gameInfoElement = document.getElementById('gameInfo');
+
+        // Game state
+        let gameState = 'menu'; // 'menu', 'playing', 'gameOver'
+        let animationId;
+
+        // Game variables
+        let game = {
+            score: 0,
+            bestScore: parseInt(localStorage.getItem('flappyHelicopterBest') || '0'),
+            time: 0
+        };
+
+        // Helicopter
+        const helicopter = {
+            x: 100,
+            y: 200,
+            width: 40,
+            height: 30,
+            velocityY: 0,
+            gravity: 0.4,
+            thrust: -8,
+            rotorAngle: 0,
+            angle: 0
+        };
+
+        // Pipes
+        let pipes = [];
+        const pipeWidth = 60;
+        const pipeGap = 120;
+        let pipeSpawnTimer = 0;
+
+        // Particles for effects
+        let particles = [];
+
+        // Background elements
+        let clouds = [];
+
+        // Input handling
+        let isThrusting = false;
+
+        function initializeClouds() {
+            clouds = [];
+            for (let i = 0; i < 5; i++) {
+                clouds.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * 100 + 20,
+                    size: 20 + Math.random() * 30,
+                    speed: 0.2 + Math.random() * 0.3
+                });
+            }
+        }
+
+        function handleInput() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (gameState === 'menu') {
+                        startGame();
+                    } else if (gameState === 'playing') {
+                        thrust();
+                    } else if (gameState === 'gameOver') {
+                        resetGame();
+                    }
+                }
+            });
+
+            canvas.addEventListener('click', () => {
+                if (gameState === 'menu') {
+                    startGame();
+                } else if (gameState === 'playing') {
+                    thrust();
+                } else if (gameState === 'gameOver') {
+                    resetGame();
+                }
+            });
+
+            canvas.addEventListener('mousedown', () => {
+                isThrusting = true;
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isThrusting = false;
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                isThrusting = false;
+            });
+        }
+
+        function thrust() {
+            if (gameState === 'playing') {
+                helicopter.velocityY = helicopter.thrust;
+                createThrustParticles();
+            }
+        }
+
+        function updateHelicopter() {
+            // Apply gravity
+            helicopter.velocityY += helicopter.gravity;
+            helicopter.y += helicopter.velocityY;
+
+            // Update rotor animation
+            helicopter.rotorAngle += 0.5;
+
+            // Update helicopter angle based on velocity
+            helicopter.angle = Math.max(-0.5, Math.min(0.5, helicopter.velocityY * 0.1));
+
+            // Check boundaries
+            if (helicopter.y <= 0) {
+                helicopter.y = 0;
+                helicopter.velocityY = 0;
+            }
+            
+            if (helicopter.y + helicopter.height >= canvas.height) {
+                gameOver();
+            }
+        }
+
+        function spawnPipe() {
+            const minHeight = 50;
+            const maxHeight = canvas.height - pipeGap - minHeight;
+            const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
+            
+            pipes.push({
+                x: canvas.width,
+                topHeight: topHeight,
+                bottomY: topHeight + pipeGap,
+                bottomHeight: canvas.height - (topHeight + pipeGap),
+                passed: false
+            });
+        }
+
+        function updatePipes() {
+            // Spawn new pipes
+            pipeSpawnTimer++;
+            if (pipeSpawnTimer >= 90) { // Every 1.5 seconds at 60fps
+                spawnPipe();
+                pipeSpawnTimer = 0;
+            }
+
+            // Update existing pipes
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const pipe = pipes[i];
+                pipe.x -= 2;
+
+                // Check for scoring
+                if (!pipe.passed && pipe.x + pipeWidth < helicopter.x) {
+                    pipe.passed = true;
+                    game.score++;
+                    createScoreParticles();
+                }
+
+                // Remove pipes that are off screen
+                if (pipe.x + pipeWidth < 0) {
+                    pipes.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision
+                if (checkPipeCollision(pipe)) {
+                    gameOver();
+                    return;
+                }
+            }
+        }
+
+        function checkPipeCollision(pipe) {
+            // Check if helicopter overlaps with pipe
+            if (helicopter.x + helicopter.width > pipe.x && 
+                helicopter.x < pipe.x + pipeWidth) {
+                
+                // Check top pipe collision
+                if (helicopter.y < pipe.topHeight) {
+                    return true;
+                }
+                
+                // Check bottom pipe collision
+                if (helicopter.y + helicopter.height > pipe.bottomY) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function updateClouds() {
+            clouds.forEach(cloud => {
+                cloud.x -= cloud.speed;
+                if (cloud.x + cloud.size < 0) {
+                    cloud.x = canvas.width;
+                    cloud.y = Math.random() * 100 + 20;
+                }
+            });
+        }
+
+        function createThrustParticles() {
+            for (let i = 0; i < 3; i++) {
+                particles.push({
+                    x: helicopter.x - 5,
+                    y: helicopter.y + helicopter.height - 5 + Math.random() * 10,
+                    velocityX: -2 - Math.random() * 2,
+                    velocityY: (Math.random() - 0.5) * 2,
+                    life: 20,
+                    maxLife: 20,
+                    color: '#ff6b6b',
+                    size: 3 + Math.random() * 2
+                });
+            }
+        }
+
+        function createScoreParticles() {
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    x: helicopter.x + helicopter.width / 2,
+                    y: helicopter.y + helicopter.height / 2,
+                    velocityX: (Math.random() - 0.5) * 4,
+                    velocityY: -2 - Math.random() * 2,
+                    life: 30,
+                    maxLife: 30,
+                    color: '#ffd700',
+                    size: 4 + Math.random() * 3
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                particle.x += particle.velocityX;
+                particle.y += particle.velocityY;
+                particle.life--;
+
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawBackground() {
+            // Sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F6FF');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawClouds() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            clouds.forEach(cloud => {
+                ctx.beginPath();
+                ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
+                ctx.arc(cloud.x + cloud.size * 0.6, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
+                ctx.arc(cloud.x + cloud.size * 1.2, cloud.y, cloud.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawHelicopter() {
+            ctx.save();
+            ctx.translate(helicopter.x + helicopter.width / 2, helicopter.y + helicopter.height / 2);
+            ctx.rotate(helicopter.angle);
+
+            // Helicopter body
+            ctx.fillStyle = '#2ecc71';
+            ctx.fillRect(-helicopter.width / 2, -helicopter.height / 2, helicopter.width, helicopter.height);
+
+            // Cockpit
+            ctx.fillStyle = '#3498db';
+            ctx.fillRect(-helicopter.width / 2 + 5, -helicopter.height / 2 + 3, 20, 15);
+
+            // Tail
+            ctx.fillStyle = '#27ae60';
+            ctx.fillRect(helicopter.width / 2 - 10, -3, 15, 6);
+
+            // Main rotor
+            ctx.save();
+            ctx.rotate(helicopter.rotorAngle);
+            ctx.strokeStyle = '#34495e';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-25, 0);
+            ctx.lineTo(25, 0);
+            ctx.stroke();
+            ctx.restore();
+
+            // Tail rotor
+            ctx.save();
+            ctx.translate(helicopter.width / 2 + 8, -8);
+            ctx.rotate(helicopter.rotorAngle * 2);
+            ctx.strokeStyle = '#34495e';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-8, 0);
+            ctx.lineTo(8, 0);
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.restore();
+        }
+
+        function drawPipes() {
+            pipes.forEach(pipe => {
+                // Pipe colors
+                const pipeColor = '#2c3e50';
+                const pipeHighlight = '#34495e';
+
+                // Top pipe
+                ctx.fillStyle = pipeColor;
+                ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+                
+                // Top pipe highlight
+                ctx.fillStyle = pipeHighlight;
+                ctx.fillRect(pipe.x, 0, 8, pipe.topHeight);
+                
+                // Top pipe cap
+                ctx.fillStyle = pipeColor;
+                ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
+
+                // Bottom pipe
+                ctx.fillStyle = pipeColor;
+                ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, pipe.bottomHeight);
+                
+                // Bottom pipe highlight
+                ctx.fillStyle = pipeHighlight;
+                ctx.fillRect(pipe.x, pipe.bottomY, 8, pipe.bottomHeight);
+                
+                // Bottom pipe cap
+                ctx.fillStyle = pipeColor;
+                ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
+            });
+        }
+
+        function drawParticles() {
+            particles.forEach(particle => {
+                ctx.save();
+                ctx.globalAlpha = particle.life / particle.maxLife;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function draw() {
+            drawBackground();
+            drawClouds();
+            drawPipes();
+            drawHelicopter();
+            drawParticles();
+
+            // Draw score on canvas
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(10, 10, 100, 30);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText(`Score: ${game.score}`, 20, 30);
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing') {
+                game.time++;
+                updateHelicopter();
+                updatePipes();
+                updateParticles();
+            }
+            
+            updateClouds();
+            draw();
+            updateUI();
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateUI() {
+            scoreElement.textContent = game.score;
+            bestScoreElement.textContent = game.bestScore;
+
+            if (gameState === 'menu') {
+                gameInfoElement.textContent = 'Click to start flying!';
+            } else if (gameState === 'playing') {
+                gameInfoElement.textContent = 'Keep flying and avoid the pipes!';
+            } else if (gameState === 'gameOver') {
+                gameInfoElement.textContent = `Crashed! Score: ${game.score} - Click to restart`;
+            }
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            game.score = 0;
+            game.time = 0;
+            helicopter.y = 200;
+            helicopter.velocityY = 0;
+            helicopter.angle = 0;
+            pipes.length = 0;
+            particles.length = 0;
+            pipeSpawnTimer = 0;
+            
+            if (!animationId) {
+                gameLoop();
+            }
+        }
+
+        function gameOver() {
+            gameState = 'gameOver';
+            
+            // Update best score
+            if (game.score > game.bestScore) {
+                game.bestScore = game.score;
+                localStorage.setItem('flappyHelicopterBest', game.bestScore.toString());
+            }
+            
+            // Create explosion effect
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: helicopter.x + helicopter.width / 2,
+                    y: helicopter.y + helicopter.height / 2,
+                    velocityX: (Math.random() - 0.5) * 8,
+                    velocityY: (Math.random() - 0.5) * 8,
+                    life: 60,
+                    maxLife: 60,
+                    color: '#ff6b6b',
+                    size: 3 + Math.random() * 5
+                });
+            }
+        }
+
+        function resetGame() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            gameState = 'menu';
+            game.score = 0;
+            game.time = 0;
+            helicopter.y = 200;
+            helicopter.velocityY = 0;
+            helicopter.angle = 0;
+            pipes.length = 0;
+            particles.length = 0;
+            pipeSpawnTimer = 0;
+            
+            gameLoop();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.style.width = Math.min(window.innerWidth - 40, 600) + 'px';
+            canvas.style.height = (Math.min(window.innerWidth - 40, 600) * 0.67) + 'px';
+        });
+
+        // Initialize game
+        window.addEventListener('load', () => {
+            canvas.style.width = Math.min(window.innerWidth - 40, 600) + 'px';
+            canvas.style.height = (Math.min(window.innerWidth - 40, 600) * 0.67) + 'px';
+            initializeClouds();
+            handleInput();
+            resetGame();
+        });
+
+        // Initialize immediately
+        initializeClouds();
+        handleInput();
+        resetGame();
+    </script>
+</body>
+</html>

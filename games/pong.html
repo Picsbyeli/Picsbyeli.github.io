@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        canvas {
+            border: 3px solid white;
+            border-radius: 10px;
+            background: #000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .score {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .game-info {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .power-up-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .power-up-indicator.active {
+            display: block;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .back-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            canvas {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+            }
+            
+            .controls {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🏓 Pong</h1>
+        
+        <div class="controls">
+            Use Arrow Keys or WASD to move your paddle
+        </div>
+
+        <div class="score" id="score">You: 0 | AI: 0</div>
+
+        <div class="game-info" id="gameInfo">Press SPACE to start</div>
+
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+        <div class="power-up-indicator" id="powerUpIndicator">
+            Power-up Active!
+        </div>
+
+        <div class="buttons">
+            <button onclick="startGame()">Start Game</button>
+            <button onclick="resetGame()">Reset</button>
+            <button class="back-btn" onclick="window.location.href='../index.html'">Back to Hub</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const gameInfoElement = document.getElementById('gameInfo');
+        const powerUpIndicator = document.getElementById('powerUpIndicator');
+
+        // Game state
+        let gameState = 'menu'; // 'menu', 'playing', 'paused'
+        let animationId;
+
+        // Game objects
+        const game = {
+            width: canvas.width,
+            height: canvas.height,
+            playerScore: 0,
+            aiScore: 0
+        };
+
+        const ball = {
+            x: game.width / 2,
+            y: game.height / 2,
+            radius: 8,
+            velocityX: 5,
+            velocityY: 3,
+            speed: 5
+        };
+
+        const playerPaddle = {
+            x: 10,
+            y: game.height / 2 - 50,
+            width: 15,
+            height: 100,
+            speed: 8,
+            powerUp: null,
+            powerUpTime: 0
+        };
+
+        const aiPaddle = {
+            x: game.width - 25,
+            y: game.height / 2 - 50,
+            width: 15,
+            height: 100,
+            speed: 6
+        };
+
+        const powerUps = [];
+        let lastPowerUpSpawn = 0;
+
+        // Input handling
+        const keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+                if (gameState === 'menu') {
+                    startGame();
+                } else if (gameState === 'playing') {
+                    pauseGame();
+                } else if (gameState === 'paused') {
+                    resumeGame();
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // Power-up types
+        const powerUpTypes = [
+            {
+                name: 'Big Paddle',
+                color: '#00ff00',
+                effect: () => {
+                    playerPaddle.height = 150;
+                    playerPaddle.powerUp = 'big';
+                    playerPaddle.powerUpTime = 300; // 5 seconds at 60fps
+                }
+            },
+            {
+                name: 'Fast Paddle',
+                color: '#ffff00',
+                effect: () => {
+                    playerPaddle.speed = 12;
+                    playerPaddle.powerUp = 'fast';
+                    playerPaddle.powerUpTime = 300;
+                }
+            },
+            {
+                name: 'Slow Ball',
+                color: '#00ffff',
+                effect: () => {
+                    ball.speed = 3;
+                    ball.velocityX = ball.velocityX > 0 ? 3 : -3;
+                    ball.velocityY = ball.velocityY > 0 ? 2 : -2;
+                    playerPaddle.powerUp = 'slowball';
+                    playerPaddle.powerUpTime = 300;
+                }
+            }
+        ];
+
+        function updatePaddles() {
+            // Player paddle movement
+            if (keys['arrowup'] || keys['w']) {
+                playerPaddle.y = Math.max(0, playerPaddle.y - playerPaddle.speed);
+            }
+            if (keys['arrowdown'] || keys['s']) {
+                playerPaddle.y = Math.min(game.height - playerPaddle.height, playerPaddle.y + playerPaddle.speed);
+            }
+
+            // AI paddle movement (improved AI)
+            const aiCenter = aiPaddle.y + aiPaddle.height / 2;
+            const ballCenter = ball.y;
+            const aiSpeed = aiPaddle.speed;
+
+            // Predict where ball will be
+            let predictedY = ball.y;
+            if (ball.velocityX > 0) { // Ball moving towards AI
+                const timeToReach = (aiPaddle.x - ball.x) / ball.velocityX;
+                predictedY = ball.y + ball.velocityY * timeToReach;
+            }
+
+            // Add some randomness to make AI beatable
+            if (Math.random() < 0.1) {
+                predictedY += (Math.random() - 0.5) * 100;
+            }
+
+            if (aiCenter < predictedY - 10) {
+                aiPaddle.y = Math.min(game.height - aiPaddle.height, aiPaddle.y + aiSpeed);
+            } else if (aiCenter > predictedY + 10) {
+                aiPaddle.y = Math.max(0, aiPaddle.y - aiSpeed);
+            }
+
+            // Update power-up timer
+            if (playerPaddle.powerUpTime > 0) {
+                playerPaddle.powerUpTime--;
+                if (playerPaddle.powerUpTime === 0) {
+                    // Reset power-up effects
+                    playerPaddle.height = 100;
+                    playerPaddle.speed = 8;
+                    ball.speed = 5;
+                    playerPaddle.powerUp = null;
+                    powerUpIndicator.classList.remove('active');
+                }
+            }
+        }
+
+        function updateBall() {
+            ball.x += ball.velocityX;
+            ball.y += ball.velocityY;
+
+            // Bounce off top and bottom walls
+            if (ball.y - ball.radius <= 0 || ball.y + ball.radius >= game.height) {
+                ball.velocityY = -ball.velocityY;
+            }
+
+            // Check paddle collisions
+            // Player paddle collision
+            if (ball.x - ball.radius <= playerPaddle.x + playerPaddle.width &&
+                ball.y >= playerPaddle.y &&
+                ball.y <= playerPaddle.y + playerPaddle.height &&
+                ball.velocityX < 0) {
+                
+                ball.velocityX = -ball.velocityX;
+                
+                // Add angle based on where ball hits paddle
+                const hitPos = (ball.y - playerPaddle.y) / playerPaddle.height;
+                ball.velocityY = (hitPos - 0.5) * 10;
+                
+                // Increase speed slightly
+                if (ball.speed < 10) {
+                    ball.speed += 0.2;
+                    ball.velocityX = ball.velocityX > 0 ? ball.speed : -ball.speed;
+                }
+            }
+
+            // AI paddle collision
+            if (ball.x + ball.radius >= aiPaddle.x &&
+                ball.y >= aiPaddle.y &&
+                ball.y <= aiPaddle.y + aiPaddle.height &&
+                ball.velocityX > 0) {
+                
+                ball.velocityX = -ball.velocityX;
+                
+                // Add angle based on where ball hits paddle
+                const hitPos = (ball.y - aiPaddle.y) / aiPaddle.height;
+                ball.velocityY = (hitPos - 0.5) * 10;
+                
+                // Increase speed slightly
+                if (ball.speed < 10) {
+                    ball.speed += 0.2;
+                    ball.velocityX = ball.velocityX > 0 ? ball.speed : -ball.speed;
+                }
+            }
+
+            // Check for scoring
+            if (ball.x < 0) {
+                game.aiScore++;
+                resetBall();
+            } else if (ball.x > game.width) {
+                game.playerScore++;
+                resetBall();
+            }
+        }
+
+        function spawnPowerUp() {
+            const currentTime = Date.now();
+            if (currentTime - lastPowerUpSpawn > 10000 && Math.random() < 0.01) { // 1% chance every frame, min 10s between spawns
+                const powerUpType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+                powerUps.push({
+                    x: Math.random() * (game.width - 40) + 20,
+                    y: Math.random() * (game.height - 40) + 20,
+                    width: 30,
+                    height: 30,
+                    type: powerUpType,
+                    age: 0
+                });
+                lastPowerUpSpawn = currentTime;
+            }
+        }
+
+        function updatePowerUps() {
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const powerUp = powerUps[i];
+                powerUp.age++;
+
+                // Remove old power-ups
+                if (powerUp.age > 600) { // 10 seconds at 60fps
+                    powerUps.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with player paddle
+                if (ball.x + ball.radius >= powerUp.x &&
+                    ball.x - ball.radius <= powerUp.x + powerUp.width &&
+                    ball.y + ball.radius >= powerUp.y &&
+                    ball.y - ball.radius <= powerUp.y + powerUp.height) {
+                    
+                    // Activate power-up
+                    powerUp.type.effect();
+                    powerUpIndicator.textContent = powerUp.type.name + ' Active!';
+                    powerUpIndicator.classList.add('active');
+                    
+                    powerUps.splice(i, 1);
+                }
+            }
+        }
+
+        function resetBall() {
+            ball.x = game.width / 2;
+            ball.y = game.height / 2;
+            ball.speed = 5;
+            ball.velocityX = Math.random() > 0.5 ? ball.speed : -ball.speed;
+            ball.velocityY = (Math.random() - 0.5) * 6;
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, game.width, game.height);
+
+            // Draw center line
+            ctx.setLineDash([5, 15]);
+            ctx.beginPath();
+            ctx.moveTo(game.width / 2, 0);
+            ctx.lineTo(game.width / 2, game.height);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw paddles
+            ctx.fillStyle = playerPaddle.powerUp ? '#00ff00' : '#fff';
+            ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(aiPaddle.x, aiPaddle.y, aiPaddle.width, aiPaddle.height);
+
+            // Draw ball
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw power-ups
+            powerUps.forEach(powerUp => {
+                ctx.fillStyle = powerUp.type.color;
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                
+                // Draw power-up symbol
+                ctx.fillStyle = '#000';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('⚡', powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2 + 7);
+            });
+
+            // Draw scores on canvas
+            ctx.fillStyle = '#fff';
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(game.playerScore, game.width / 4, 50);
+            ctx.fillText(game.aiScore, 3 * game.width / 4, 50);
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing') {
+                updatePaddles();
+                updateBall();
+                spawnPowerUp();
+                updatePowerUps();
+            }
+            
+            draw();
+            updateUI();
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateUI() {
+            scoreElement.textContent = `You: ${game.playerScore} | AI: ${game.aiScore}`;
+            
+            if (gameState === 'menu') {
+                gameInfoElement.textContent = 'Press SPACE to start';
+            } else if (gameState === 'paused') {
+                gameInfoElement.textContent = 'Game Paused - Press SPACE to resume';
+            } else if (game.playerScore >= 10 || game.aiScore >= 10) {
+                const winner = game.playerScore >= 10 ? 'You Win!' : 'AI Wins!';
+                gameInfoElement.textContent = winner + ' - Press Reset to play again';
+                gameState = 'menu';
+            } else {
+                gameInfoElement.textContent = 'First to 10 wins!';
+            }
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            resetGame();
+            if (!animationId) {
+                gameLoop();
+            }
+        }
+
+        function pauseGame() {
+            gameState = 'paused';
+        }
+
+        function resumeGame() {
+            gameState = 'playing';
+        }
+
+        function resetGame() {
+            game.playerScore = 0;
+            game.aiScore = 0;
+            playerPaddle.y = game.height / 2 - 50;
+            aiPaddle.y = game.height / 2 - 50;
+            playerPaddle.height = 100;
+            playerPaddle.speed = 8;
+            playerPaddle.powerUp = null;
+            playerPaddle.powerUpTime = 0;
+            powerUps.length = 0;
+            powerUpIndicator.classList.remove('active');
+            resetBall();
+        }
+
+        // Initialize game
+        resetGame();
+        gameLoop();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const rect = canvas.getBoundingClientRect();
+            canvas.style.width = Math.min(window.innerWidth - 40, 800) + 'px';
+            canvas.style.height = (Math.min(window.innerWidth - 40, 800) * 0.5) + 'px';
+        });
+
+        // Initial resize
+        window.addEventListener('load', () => {
+            const rect = canvas.getBoundingClientRect();
+            canvas.style.width = Math.min(window.innerWidth - 40, 800) + 'px';
+            canvas.style.height = (Math.min(window.innerWidth - 40, 800) * 0.5) + 'px';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counting Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-container {
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .game-info {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        canvas {
+            border: 3px solid white;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 40%, #98FB98 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-section input {
+            padding: 12px 20px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 25px;
+            text-align: center;
+            margin: 0 10px;
+            width: 100px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .input-section input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .feedback {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            min-height: 30px;
+        }
+
+        .correct {
+            color: #00ff00;
+        }
+
+        .incorrect {
+            color: #ff6b6b;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .back-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+
+        .difficulty-selector {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-selector select {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            canvas {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+            }
+            
+            .stats {
+                font-size: 1rem;
+            }
+            
+            .input-section input {
+                width: 80px;
+                font-size: 1.1rem;
+                margin: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔢 Counting Game</h1>
+        
+        <div class="game-info" id="gameInfo">Count the falling objects and enter your answer!</div>
+
+        <div class="difficulty-selector">
+            <label for="difficulty">Difficulty: </label>
+            <select id="difficulty">
+                <option value="easy">Easy (1-10 objects)</option>
+                <option value="medium">Medium (1-20 objects)</option>
+                <option value="hard">Hard (1-30 objects)</option>
+            </select>
+        </div>
+
+        <div class="stats">
+            <div>Score: <span id="score">0</span></div>
+            <div>Round: <span id="round">1</span></div>
+            <div>Streak: <span id="streak">0</span></div>
+        </div>
+
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+        <div class="input-section">
+            <label for="answerInput">Your Answer: </label>
+            <input type="number" id="answerInput" min="0" max="50" placeholder="?">
+            <button onclick="submitAnswer()">Submit</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="buttons">
+            <button class="start-btn" onclick="startGame()">Start Game</button>
+            <button onclick="nextRound()">Next Round</button>
+            <button onclick="resetGame()">Reset</button>
+            <button class="back-btn" onclick="window.location.href='../index.html'">Back to Hub</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const roundElement = document.getElementById('round');
+        const streakElement = document.getElementById('streak');
+        const gameInfoElement = document.getElementById('gameInfo');
+        const feedbackElement = document.getElementById('feedback');
+        const answerInput = document.getElementById('answerInput');
+        const difficultySelect = document.getElementById('difficulty');
+
+        // Game state
+        let gameState = 'waiting'; // 'waiting', 'falling', 'answering', 'finished'
+        let animationId;
+        let game = {
+            score: 0,
+            round: 1,
+            streak: 0,
+            correctAnswer: 0,
+            difficulty: 'easy'
+        };
+
+        // Falling objects
+        let fallingObjects = [];
+        let objectColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'];
+        let objectEmojis = ['🍎', '🌟', '🎈', '🍭', '🎯', '💎', '🍓', '🏀', '🎨', '🌈'];
+
+        function initializeGame() {
+            updateUI();
+            drawBackground();
+        }
+
+        function getDifficultySettings() {
+            const settings = {
+                easy: { min: 1, max: 10, speed: 1 },
+                medium: { min: 1, max: 20, speed: 1.5 },
+                hard: { min: 1, max: 30, speed: 2 }
+            };
+            return settings[game.difficulty] || settings.easy;
+        }
+
+        function createFallingObjects() {
+            fallingObjects = [];
+            const settings = getDifficultySettings();
+            const objectCount = Math.floor(Math.random() * (settings.max - settings.min + 1)) + settings.min;
+            game.correctAnswer = objectCount;
+
+            // Create objects with random positions and properties
+            for (let i = 0; i < objectCount; i++) {
+                const object = {
+                    x: Math.random() * (canvas.width - 40) + 20,
+                    y: -50 - Math.random() * 200, // Start above canvas
+                    size: 25 + Math.random() * 15,
+                    color: objectColors[Math.floor(Math.random() * objectColors.length)],
+                    emoji: objectEmojis[Math.floor(Math.random() * objectEmojis.length)],
+                    speed: settings.speed + Math.random() * 0.5,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.1
+                };
+                fallingObjects.push(object);
+            }
+        }
+
+        function updateFallingObjects() {
+            let allObjectsFallen = true;
+
+            fallingObjects.forEach(object => {
+                object.y += object.speed;
+                object.rotation += object.rotationSpeed;
+
+                if (object.y < canvas.height + 50) {
+                    allObjectsFallen = false;
+                }
+            });
+
+            // Check if all objects have fallen off screen
+            if (allObjectsFallen && fallingObjects.length > 0) {
+                gameState = 'answering';
+                gameInfoElement.textContent = 'How many objects did you count?';
+                answerInput.focus();
+            }
+        }
+
+        function drawBackground() {
+            // Sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.4, '#E0F6FF');
+            gradient.addColorStop(1, '#98FB98');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw clouds
+            drawClouds();
+        }
+
+        function drawClouds() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            
+            // Cloud 1
+            drawCloud(100, 50, 40);
+            
+            // Cloud 2
+            drawCloud(400, 80, 35);
+            
+            // Cloud 3
+            drawCloud(250, 40, 30);
+        }
+
+        function drawCloud(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.6, y, size * 0.8, 0, Math.PI * 2);
+            ctx.arc(x + size * 1.2, y, size, 0, Math.PI * 2);
+            ctx.arc(x + size * 1.8, y, size * 0.8, 0, Math.PI * 2);
+            ctx.arc(x + size * 2.4, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawFallingObjects() {
+            fallingObjects.forEach(object => {
+                ctx.save();
+                ctx.translate(object.x, object.y);
+                ctx.rotate(object.rotation);
+
+                // Draw shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(-object.size/2 + 2, -object.size/2 + 2, object.size, object.size);
+
+                // Draw object background
+                ctx.fillStyle = object.color;
+                ctx.fillRect(-object.size/2, -object.size/2, object.size, object.size);
+
+                // Draw emoji
+                ctx.font = `${object.size * 0.8}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(object.emoji, 0, 0);
+
+                ctx.restore();
+            });
+        }
+
+        function draw() {
+            drawBackground();
+            
+            if (gameState === 'falling') {
+                drawFallingObjects();
+            }
+            
+            // Draw round info
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(10, canvas.height - 40, 200, 30);
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Round ${game.round} - Count the objects!`, 20, canvas.height - 20);
+        }
+
+        function gameLoop() {
+            if (gameState === 'falling') {
+                updateFallingObjects();
+            }
+            
+            draw();
+            
+            if (gameState === 'falling') {
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function startGame() {
+            game.difficulty = difficultySelect.value;
+            gameState = 'falling';
+            gameInfoElement.textContent = 'Watch carefully and count the objects!';
+            feedbackElement.textContent = '';
+            answerInput.value = '';
+            
+            createFallingObjects();
+            gameLoop();
+        }
+
+        function submitAnswer() {
+            if (gameState !== 'answering') return;
+
+            const userAnswer = parseInt(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedbackElement.textContent = 'Please enter a valid number!';
+                feedbackElement.className = 'feedback incorrect';
+                return;
+            }
+
+            if (userAnswer === game.correctAnswer) {
+                // Correct answer
+                const points = Math.max(10 - Math.abs(userAnswer - game.correctAnswer), 1);
+                game.score += points * (game.streak + 1);
+                game.streak++;
+                
+                feedbackElement.textContent = `Correct! You counted ${game.correctAnswer} objects. +${points * (game.streak + 1)} points!`;
+                feedbackElement.className = 'feedback correct';
+            } else {
+                // Incorrect answer
+                game.streak = 0;
+                feedbackElement.textContent = `Incorrect. There were ${game.correctAnswer} objects, you said ${userAnswer}.`;
+                feedbackElement.className = 'feedback incorrect';
+            }
+
+            gameState = 'finished';
+            updateUI();
+        }
+
+        function nextRound() {
+            if (gameState === 'finished' || gameState === 'waiting') {
+                game.round++;
+                startGame();
+            }
+        }
+
+        function resetGame() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            game = {
+                score: 0,
+                round: 1,
+                streak: 0,
+                correctAnswer: 0,
+                difficulty: 'easy'
+            };
+            
+            gameState = 'waiting';
+            fallingObjects = [];
+            answerInput.value = '';
+            feedbackElement.textContent = '';
+            feedbackElement.className = 'feedback';
+            gameInfoElement.textContent = 'Count the falling objects and enter your answer!';
+            
+            updateUI();
+            draw();
+        }
+
+        function updateUI() {
+            scoreElement.textContent = game.score;
+            roundElement.textContent = game.round;
+            streakElement.textContent = game.streak;
+        }
+
+        // Event listeners
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitAnswer();
+            }
+        });
+
+        difficultySelect.addEventListener('change', (e) => {
+            if (gameState === 'waiting') {
+                game.difficulty = e.target.value;
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.style.width = Math.min(window.innerWidth - 40, 600) + 'px';
+            canvas.style.height = (Math.min(window.innerWidth - 40, 600) * 0.67) + 'px';
+        });
+
+        // Initialize game
+        window.addEventListener('load', () => {
+            canvas.style.width = Math.min(window.innerWidth - 40, 600) + 'px';
+            canvas.style.height = (Math.min(window.innerWidth - 40, 600) * 0.67) + 'px';
+            initializeGame();
+        });
+
+        initializeGame();
+    </script>
+</body>
+</html>

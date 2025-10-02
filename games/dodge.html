@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodge Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-container {
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        canvas {
+            border: 3px solid white;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .game-info {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            min-height: 30px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .back-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+
+        .lives {
+            color: #ff6b6b;
+            font-size: 1.3rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            canvas {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+            }
+            
+            .controls {
+                font-size: 1rem;
+            }
+            
+            .stats {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🏃 Dodge Game</h1>
+        
+        <div class="controls">
+            Use Arrow Keys or WASD to move • Avoid red blocks • Collect yellow coins
+        </div>
+
+        <div class="stats">
+            <div>Score: <span id="score">0</span></div>
+            <div>Coins: <span id="coins">0</span></div>
+            <div class="lives">Lives: <span id="lives">3</span></div>
+        </div>
+
+        <div class="game-info" id="gameInfo">Press Start to begin!</div>
+
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+        <div class="buttons">
+            <button class="start-btn" onclick="startGame()">Start Game</button>
+            <button onclick="pauseGame()">Pause</button>
+            <button onclick="resetGame()">Reset</button>
+            <button class="back-btn" onclick="window.location.href='../index.html'">Back to Hub</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const coinsElement = document.getElementById('coins');
+        const livesElement = document.getElementById('lives');
+        const gameInfoElement = document.getElementById('gameInfo');
+
+        // Game state
+        let gameState = 'menu'; // 'menu', 'playing', 'paused', 'gameOver'
+        let animationId;
+
+        // Game variables
+        let game = {
+            score: 0,
+            coins: 0,
+            lives: 3,
+            speed: 2,
+            time: 0
+        };
+
+        // Player
+        const player = {
+            x: 300,
+            y: 350,
+            width: 30,
+            height: 30,
+            speed: 5,
+            color: '#4ecdc4'
+        };
+
+        // Game objects
+        let fallingBlocks = [];
+        let coins = [];
+        let particles = [];
+
+        // Input handling
+        const keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+                if (gameState === 'menu' || gameState === 'gameOver') {
+                    startGame();
+                } else if (gameState === 'playing') {
+                    pauseGame();
+                } else if (gameState === 'paused') {
+                    resumeGame();
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        function updatePlayer() {
+            // Move player based on input
+            if (keys['arrowleft'] || keys['a']) {
+                player.x = Math.max(0, player.x - player.speed);
+            }
+            if (keys['arrowright'] || keys['d']) {
+                player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+            }
+            if (keys['arrowup'] || keys['w']) {
+                player.y = Math.max(0, player.y - player.speed);
+            }
+            if (keys['arrowdown'] || keys['s']) {
+                player.y = Math.min(canvas.height - player.height, player.y + player.speed);
+            }
+        }
+
+        function spawnFallingBlock() {
+            if (Math.random() < 0.02 + game.time * 0.0001) {
+                fallingBlocks.push({
+                    x: Math.random() * (canvas.width - 40),
+                    y: -40,
+                    width: 30 + Math.random() * 20,
+                    height: 30 + Math.random() * 20,
+                    speed: game.speed + Math.random() * 2,
+                    color: `hsl(${Math.random() * 60}, 80%, 50%)` // Red-orange spectrum
+                });
+            }
+        }
+
+        function spawnCoin() {
+            if (Math.random() < 0.015) {
+                coins.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    width: 20,
+                    height: 20,
+                    speed: 2 + Math.random(),
+                    rotation: 0,
+                    rotationSpeed: 0.1 + Math.random() * 0.1
+                });
+            }
+        }
+
+        function updateFallingBlocks() {
+            for (let i = fallingBlocks.length - 1; i >= 0; i--) {
+                const block = fallingBlocks[i];
+                block.y += block.speed;
+
+                // Remove blocks that have fallen off screen
+                if (block.y > canvas.height) {
+                    fallingBlocks.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with player
+                if (checkCollision(player, block)) {
+                    // Create explosion particles
+                    createExplosion(player.x + player.width / 2, player.y + player.height / 2, '#ff6b6b');
+                    
+                    game.lives--;
+                    fallingBlocks.splice(i, 1);
+                    
+                    if (game.lives <= 0) {
+                        gameOver();
+                        return;
+                    }
+                    
+                    // Brief invincibility
+                    setTimeout(() => {
+                        player.color = '#4ecdc4';
+                    }, 1000);
+                    player.color = '#ff6b6b';
+                }
+            }
+        }
+
+        function updateCoins() {
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                coin.y += coin.speed;
+                coin.rotation += coin.rotationSpeed;
+
+                // Remove coins that have fallen off screen
+                if (coin.y > canvas.height) {
+                    coins.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with player
+                if (checkCollision(player, coin)) {
+                    // Create collection particles
+                    createExplosion(coin.x + coin.width / 2, coin.y + coin.height / 2, '#ffd700');
+                    
+                    game.coins++;
+                    game.score += 10;
+                    coins.splice(i, 1);
+                }
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                particle.x += particle.velocityX;
+                particle.y += particle.velocityY;
+                particle.life--;
+                particle.alpha = particle.life / particle.maxLife;
+
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    velocityX: (Math.random() - 0.5) * 8,
+                    velocityY: (Math.random() - 0.5) * 8,
+                    life: 30,
+                    maxLife: 30,
+                    color: color,
+                    alpha: 1,
+                    size: 3 + Math.random() * 3
+                });
+            }
+        }
+
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        function drawPlayer() {
+            // Draw shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(player.x + 2, player.y + 2, player.width, player.height);
+
+            // Draw player
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // Draw face
+            ctx.fillStyle = 'white';
+            ctx.fillRect(player.x + 8, player.y + 8, 6, 6);
+            ctx.fillRect(player.x + 16, player.y + 8, 6, 6);
+            ctx.fillRect(player.x + 10, player.y + 18, 10, 4);
+        }
+
+        function drawFallingBlocks() {
+            fallingBlocks.forEach(block => {
+                // Draw shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(block.x + 2, block.y + 2, block.width, block.height);
+
+                // Draw block
+                ctx.fillStyle = block.color;
+                ctx.fillRect(block.x, block.y, block.width, block.height);
+                
+                // Draw highlight
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillRect(block.x, block.y, block.width, 4);
+            });
+        }
+
+        function drawCoins() {
+            coins.forEach(coin => {
+                ctx.save();
+                ctx.translate(coin.x + coin.width / 2, coin.y + coin.height / 2);
+                ctx.rotate(coin.rotation);
+
+                // Draw shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.beginPath();
+                ctx.arc(2, 2, coin.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw coin
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(0, 0, coin.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw coin details
+                ctx.fillStyle = '#ffed4e';
+                ctx.beginPath();
+                ctx.arc(0, 0, coin.width / 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            });
+        }
+
+        function drawParticles() {
+            particles.forEach(particle => {
+                ctx.save();
+                ctx.globalAlpha = particle.alpha;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function drawBackground() {
+            // Sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#1e3c72');
+            gradient.addColorStop(1, '#2a5298');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw stars
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            for (let i = 0; i < 50; i++) {
+                const x = (i * 123 + game.time * 0.1) % canvas.width;
+                const y = (i * 456 + game.time * 0.05) % canvas.height;
+                ctx.beginPath();
+                ctx.arc(x, y, 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function draw() {
+            drawBackground();
+            drawPlayer();
+            drawFallingBlocks();
+            drawCoins();
+            drawParticles();
+
+            // Draw HUD on canvas
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(10, 10, 200, 30);
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.fillText(`Speed: ${game.speed.toFixed(1)}`, 20, 30);
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing') {
+                game.time++;
+                
+                // Gradually increase difficulty
+                if (game.time % 600 === 0) { // Every 10 seconds
+                    game.speed += 0.5;
+                }
+
+                updatePlayer();
+                spawnFallingBlock();
+                spawnCoin();
+                updateFallingBlocks();
+                updateCoins();
+                updateParticles();
+                
+                game.score++;
+            }
+            
+            draw();
+            updateUI();
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateUI() {
+            scoreElement.textContent = game.score;
+            coinsElement.textContent = game.coins;
+            livesElement.textContent = game.lives;
+
+            if (gameState === 'menu') {
+                gameInfoElement.textContent = 'Press Start to begin!';
+            } else if (gameState === 'playing') {
+                gameInfoElement.textContent = 'Dodge the red blocks and collect coins!';
+            } else if (gameState === 'paused') {
+                gameInfoElement.textContent = 'Game Paused - Press Space to resume';
+            } else if (gameState === 'gameOver') {
+                gameInfoElement.textContent = `Game Over! Final Score: ${game.score}`;
+            }
+        }
+
+        function startGame() {
+            if (gameState === 'gameOver') {
+                resetGame();
+            }
+            gameState = 'playing';
+            if (!animationId) {
+                gameLoop();
+            }
+        }
+
+        function pauseGame() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+            }
+        }
+
+        function resumeGame() {
+            if (gameState === 'paused') {
+                gameState = 'playing';
+            }
+        }
+
+        function gameOver() {
+            gameState = 'gameOver';
+            createExplosion(player.x + player.width / 2, player.y + player.height / 2, '#ff6b6b');
+        }
+
+        function resetGame() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            game = {
+                score: 0,
+                coins: 0,
+                lives: 3,
+                speed: 2,
+                time: 0
+            };
+            
+            player.x = 300;
+            player.y = 350;
+            player.color = '#4ecdc4';
+            
+            fallingBlocks.length = 0;
+            coins.length = 0;
+            particles.length = 0;
+            
+            gameState = 'menu';
+            gameLoop();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.style.width = Math.min(window.innerWidth - 40, 600) + 'px';
+            canvas.style.height = (Math.min(window.innerWidth - 40, 600) * 0.67) + 'px';
+        });
+
+        // Initialize game
+        window.addEventListener('load', () => {
+            canvas.style.width = Math.min(window.innerWidth - 40, 600) + 'px';
+            canvas.style.height = (Math.min(window.innerWidth - 40, 600) * 0.67) + 'px';
+            resetGame();
+        });
+
+        resetGame();
+    </script>
+</body>
+</html>
