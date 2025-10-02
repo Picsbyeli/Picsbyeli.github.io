@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Color Dash</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 50%, #764ba2 100%);
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .menu-screen, .game-screen, .gameover-screen, .pause-screen {
+            display: none;
+            color: white;
+        }
+
+        .menu-screen.active, .game-screen.active, .gameover-screen.active, .pause-screen.active {
+            display: block;
+        }
+
+        .game-title {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+
+        .game-subtitle {
+            font-size: 1.5rem;
+            color: #87ceeb;
+            margin-bottom: 30px;
+        }
+
+        .start-btn, .play-again-btn, .menu-btn {
+            background: linear-gradient(45deg, #ff6b95, #c44569);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .start-btn:hover, .play-again-btn:hover, .menu-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+        }
+
+        .high-score {
+            font-size: 2rem;
+            color: #ffd700;
+            margin-top: 20px;
+        }
+
+        .instructions {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .instructions ul {
+            list-style: none;
+            space-y: 10px;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+            font-size: 1rem;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .score {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .streak {
+            color: #7dcea0;
+            font-weight: bold;
+        }
+
+        .mode-indicator {
+            background: #ff8c00;
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            border-radius: 25px;
+            height: 20px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #7dcea0, #4facfe);
+            height: 100%;
+            transition: width 0.1s linear;
+            border-radius: 25px;
+        }
+
+        .symbol-display {
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .color-square {
+            width: 200px;
+            height: 200px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .color-square:hover {
+            transform: scale(1.05);
+        }
+
+        .symbol-icon {
+            font-size: 6rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .red { background: #e74c3c; }
+        .blue { background: #3498db; }
+        .green { background: #2ecc71; }
+        .yellow { background: #f1c40f; }
+
+        .color-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .color-btn {
+            padding: 40px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .color-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .color-btn:active {
+            transform: scale(0.95);
+        }
+
+        .controls-hint {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        .final-score {
+            font-size: 2.5rem;
+            color: #ffd700;
+            margin: 20px 0;
+        }
+
+        .new-high-score {
+            color: #ffd700;
+            font-size: 1.8rem;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .pause-timer {
+            font-size: 3rem;
+            color: #ffd700;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            .game-title {
+                font-size: 2.5rem;
+            }
+            
+            .color-square {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .symbol-icon {
+                font-size: 4rem;
+            }
+            
+            .color-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Menu Screen -->
+        <div class="menu-screen active">
+            <h1 class="game-title">🎮 Color Dash</h1>
+            <p class="game-subtitle">Match the color before time runs out!</p>
+            <button class="start-btn" onclick="startGame()">START GAME</button>
+            <div class="high-score" id="menu-high-score" style="display: none;">
+                🏆 High Score: <span id="high-score-value">0</span>
+            </div>
+            <div class="instructions">
+                <h3>How to Play:</h3>
+                <ul>
+                    <li>🎯 Press the button matching the color shown</li>
+                    <li>⌨️ Use Arrow Keys or WASD</li>
+                    <li>⚡ Speed increases every 10 rounds</li>
+                    <li>🔄 Special modes activate every 15 rounds</li>
+                    <li>💥 One mistake = Game Over!</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen">
+            <div class="game-stats">
+                <div>Score: <span class="score" id="current-score">0</span></div>
+                <div>Streak: <span class="streak" id="current-streak">0</span> 🔥</div>
+            </div>
+
+            <div class="mode-indicator" id="mode-indicator" style="display: none;">
+                <div id="mode-text"></div>
+                <div id="mode-description"></div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+
+            <div class="symbol-display">
+                <div class="color-square" id="color-square">
+                    <div class="symbol-icon" id="symbol-icon">❤️</div>
+                </div>
+            </div>
+
+            <div class="color-buttons">
+                <button class="color-btn red" onclick="handleColorPress('red')">RED</button>
+                <button class="color-btn blue" onclick="handleColorPress('blue')">BLUE</button>
+                <button class="color-btn green" onclick="handleColorPress('green')">GREEN</button>
+                <button class="color-btn yellow" onclick="handleColorPress('yellow')">YELLOW</button>
+            </div>
+
+            <p class="controls-hint">Use Arrow Keys ← ↑ ↓ → or WASD</p>
+        </div>
+
+        <!-- Pause Screen -->
+        <div class="pause-screen">
+            <h2>Get Ready!</h2>
+            <div class="mode-indicator">
+                <div id="pause-mode-text"></div>
+                <div id="pause-mode-description"></div>
+            </div>
+            <div class="pause-timer" id="pause-timer">3</div>
+            <p>Press SPACE to continue</p>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="gameover-screen">
+            <h2 style="font-size: 3rem; color: #e74c3c; margin-bottom: 20px;">Game Over!</h2>
+            <p class="final-score">Final Score: <span id="final-score">0</span></p>
+            <p style="font-size: 1.5rem; margin-bottom: 20px;">Best Streak: <span id="final-streak" class="streak">0</span> 🔥</p>
+            <div class="new-high-score" id="new-high-score" style="display: none;">
+                🏆 NEW HIGH SCORE! 🏆
+            </div>
+            <button class="play-again-btn" onclick="startGame()">PLAY AGAIN</button>
+            <button class="menu-btn" onclick="showMenu()">Main Menu</button>
+        </div>
+    </div>
+
+    <script>
+        let gameState = 'menu';
+        let currentColor = 'red';
+        let currentSymbol = 'heart';
+        let score = 0;
+        let streak = 0;
+        let highScore = localStorage.getItem('colorDashHighScore') || 0;
+        let timeLeft = 3000;
+        let speed = 3000;
+        let mode = 'normal';
+        let modeRound = 0;
+        let pauseTimer = 15;
+        let gameTimer = null;
+        let pauseInterval = null;
+
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        const symbols = ['❤️', '⬛', '⭕', '⭐'];
+        
+        const oppositeColors = {
+            red: 'green',
+            green: 'red',
+            blue: 'yellow',
+            yellow: 'blue'
+        };
+
+        const reverseColors = {
+            red: 'yellow',
+            blue: 'green', 
+            green: 'blue',
+            yellow: 'red'
+        };
+
+        // Initialize high score display
+        if (highScore > 0) {
+            document.getElementById('menu-high-score').style.display = 'block';
+            document.getElementById('high-score-value').textContent = highScore;
+        }
+
+        function getRandomColor() {
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function getRandomSymbol() {
+            return symbols[Math.floor(Math.random() * symbols.length)];
+        }
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.menu-screen, .game-screen, .gameover-screen, .pause-screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.querySelector(`.${screenName}-screen`).classList.add('active');
+            gameState = screenName;
+        }
+
+        function startGame() {
+            score = 0;
+            streak = 0;
+            speed = 3000;
+            mode = 'normal';
+            modeRound = 0;
+            
+            showScreen('game');
+            updateGameDisplay();
+            nextRound();
+        }
+
+        function updateGameDisplay() {
+            document.getElementById('current-score').textContent = score;
+            document.getElementById('current-streak').textContent = streak;
+        }
+
+        function nextRound() {
+            currentColor = getRandomColor();
+            currentSymbol = getRandomSymbol();
+            
+            // Update visual display
+            const colorSquare = document.getElementById('color-square');
+            const symbolIcon = document.getElementById('symbol-icon');
+            
+            colorSquare.className = `color-square ${currentColor}`;
+            symbolIcon.textContent = currentSymbol;
+            
+            // Handle mode changes
+            modeRound++;
+            const modeIndicator = document.getElementById('mode-indicator');
+            const modeText = document.getElementById('mode-text');
+            const modeDescription = document.getElementById('mode-description');
+            
+            if (modeRound % 15 === 0 && modeRound % 30 !== 0) {
+                mode = 'opposite';
+                showPauseScreen('🔄 OPPOSITE MODE!', 'Red↔Green | Blue↔Yellow');
+                return;
+            } else if (modeRound % 30 === 0) {
+                mode = 'reverse';
+                showPauseScreen('⚡ REVERSE MODE!', 'Red→Yellow | Blue→Green | Green→Blue | Yellow→Red');
+                return;
+            } else if (modeRound % 15 === 1 && modeRound !== 1) {
+                mode = 'normal';
+            }
+            
+            // Show mode indicator if not normal
+            if (mode !== 'normal') {
+                modeIndicator.style.display = 'block';
+                if (mode === 'opposite') {
+                    modeText.textContent = '🔄 OPPOSITE MODE!';
+                    modeDescription.textContent = 'Red↔Green | Blue↔Yellow';
+                } else if (mode === 'reverse') {
+                    modeText.textContent = '⚡ REVERSE MODE!';
+                    modeDescription.textContent = 'Red→Yellow | Blue→Green | Green→Blue | Yellow→Red';
+                }
+            } else {
+                modeIndicator.style.display = 'none';
+            }
+            
+            // Increase speed every 10 rounds
+            if (score > 0 && score % 10 === 0) {
+                speed = Math.max(1000, speed - 300);
+            }
+            
+            timeLeft = speed;
+            startTimer();
+        }
+
+        function showPauseScreen(modeText, modeDesc) {
+            showScreen('pause');
+            document.getElementById('pause-mode-text').textContent = modeText;
+            document.getElementById('pause-mode-description').textContent = modeDesc;
+            
+            pauseTimer = 3;
+            document.getElementById('pause-timer').textContent = pauseTimer;
+            
+            pauseInterval = setInterval(() => {
+                pauseTimer--;
+                document.getElementById('pause-timer').textContent = pauseTimer;
+                
+                if (pauseTimer <= 0) {
+                    clearInterval(pauseInterval);
+                    showScreen('game');
+                    nextRound();
+                }
+            }, 1000);
+        }
+
+        function startTimer() {
+            if (gameTimer) clearInterval(gameTimer);
+            
+            gameTimer = setInterval(() => {
+                timeLeft -= 50;
+                const progressPercent = (timeLeft / speed) * 100;
+                document.getElementById('progress-fill').style.width = progressPercent + '%';
+                
+                if (timeLeft <= 0) {
+                    gameOver();
+                }
+            }, 50);
+        }
+
+        function gameOver() {
+            if (gameTimer) clearInterval(gameTimer);
+            if (pauseInterval) clearInterval(pauseInterval);
+            
+            showScreen('gameover');
+            
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-streak').textContent = streak;
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('colorDashHighScore', highScore);
+                document.getElementById('new-high-score').style.display = 'block';
+                document.getElementById('high-score-value').textContent = highScore;
+                document.getElementById('menu-high-score').style.display = 'block';
+            } else {
+                document.getElementById('new-high-score').style.display = 'none';
+            }
+        }
+
+        function handleColorPress(color) {
+            if (gameState !== 'game') return;
+            
+            let correctColor = currentColor;
+            
+            if (mode === 'opposite') {
+                correctColor = oppositeColors[currentColor];
+            } else if (mode === 'reverse') {
+                correctColor = reverseColors[currentColor];
+            }
+            
+            if (color === correctColor) {
+                const bonusPoints = Math.floor(streak / 5) + 1;
+                score += bonusPoints;
+                streak++;
+                updateGameDisplay();
+                nextRound();
+            } else {
+                gameOver();
+            }
+        }
+
+        function showMenu() {
+            if (gameTimer) clearInterval(gameTimer);
+            if (pauseInterval) clearInterval(pauseInterval);
+            showScreen('menu');
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (gameState === 'pause' && e.key === ' ') {
+                e.preventDefault();
+                if (pauseInterval) clearInterval(pauseInterval);
+                showScreen('game');
+                nextRound();
+                return;
+            }
+            
+            if (gameState !== 'game') return;
+            
+            const keyMap = {
+                'ArrowLeft': 'red',
+                'ArrowUp': 'blue', 
+                'ArrowDown': 'green',
+                'ArrowRight': 'yellow',
+                'a': 'red',
+                'A': 'red',
+                'w': 'blue',
+                'W': 'blue',
+                's': 'green',
+                'S': 'green',
+                'd': 'yellow',
+                'D': 'yellow'
+            };
+            
+            const color = keyMap[e.key];
+            if (color) {
+                e.preventDefault();
+                handleColorPress(color);
+            }
+        });
+    </script>
+</body>
+</html>

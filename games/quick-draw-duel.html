@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Quick Draw Duel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1000px;
+            text-align: center;
+        }
+
+        .menu-screen, .game-screen, .gameover-screen {
+            display: none;
+        }
+
+        .menu-screen.active, .game-screen.active, .gameover-screen.active {
+            display: block;
+        }
+
+        /* Theme backgrounds */
+        .cowboy { background: linear-gradient(135deg, #92400e, #b45309, #ea580c); }
+        .samurai { background: linear-gradient(135deg, #7f1d1d, #374151, #000000); }
+        .scifi { background: linear-gradient(135deg, #581c87, #1e3a8a, #0891b2); }
+        .ninja { background: linear-gradient(135deg, #312e81, #581c87, #000000); }
+
+        .game-title {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+
+        .game-subtitle {
+            font-size: 1.5rem;
+            color: #fbbf24;
+            margin-bottom: 30px;
+        }
+
+        .settings-panel {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .setting-group {
+            margin-bottom: 25px;
+        }
+
+        .setting-title {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .option-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .option-btn.active {
+            background: #3b82f6;
+            transform: scale(1.05);
+        }
+
+        .option-btn.active.mode-ai { background: #3b82f6; }
+        .option-btn.active.mode-pvp { background: #059669; }
+        .option-btn.active.difficulty { background: #dc2626; }
+        .option-btn.active.theme { background: #7c3aed; }
+        .option-btn.active.rounds { background: #f59e0b; }
+
+        .start-btn {
+            background: linear-gradient(45deg, #dc2626, #ea580c);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+        }
+
+        .best-time {
+            font-size: 1.5rem;
+            color: #10b981;
+            margin-top: 20px;
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .player-info {
+            text-align: center;
+        }
+
+        .player-avatar {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .player-score {
+            font-size: 2.5rem;
+            color: #fbbf24;
+            margin-top: 10px;
+        }
+
+        .round-info {
+            text-align: center;
+        }
+
+        .round-number {
+            font-size: 2rem;
+            color: #d1d5db;
+        }
+
+        .round-subtitle {
+            font-size: 1rem;
+            color: #9ca3af;
+        }
+
+        .game-arena {
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 60px 40px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .waiting-state {
+            text-align: center;
+        }
+
+        .waiting-icon {
+            font-size: 6rem;
+            animation: pulse 2s infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .waiting-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .waiting-subtitle {
+            font-size: 1.3rem;
+            color: #d1d5db;
+        }
+
+        .draw-state {
+            text-align: center;
+            animation: flashSignal 0.5s infinite;
+        }
+
+        @keyframes flashSignal {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .draw-weapon {
+            font-size: 8rem;
+            margin-bottom: 20px;
+        }
+
+        .draw-signal {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #dc2626;
+            animation: bounce 0.6s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        .result-state {
+            text-align: center;
+        }
+
+        .result-icon {
+            font-size: 6rem;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .result-time {
+            font-size: 2rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+
+        .result-subtitle {
+            font-size: 1.3rem;
+            color: #d1d5db;
+            margin-top: 30px;
+        }
+
+        .controls-info {
+            text-align: center;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .controls-info .key {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+
+        .final-score {
+            font-size: 2rem;
+            color: white;
+            margin: 20px 0;
+        }
+
+        .game-over-title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, #059669, #0891b2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .action-btn.secondary {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .action-btn.secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .false-start {
+            color: #dc2626 !important;
+        }
+
+        .winner-announcement {
+            color: #fbbf24 !important;
+        }
+
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2.5rem;
+            }
+            
+            .start-btn {
+                padding: 15px 40px;
+                font-size: 1.5rem;
+            }
+            
+            .scoreboard {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .game-arena {
+                padding: 40px 20px;
+                min-height: 300px;
+            }
+            
+            .button-group {
+                justify-content: center;
+            }
+            
+            .option-btn {
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body class="cowboy">
+    <div class="game-container">
+        <!-- Menu Screen -->
+        <div class="menu-screen active">
+            <h1 class="game-title">⚡ Quick Draw Duel</h1>
+            <p class="game-subtitle">Test your reflexes in the ultimate showdown!</p>
+
+            <div class="settings-panel">
+                <div class="setting-group">
+                    <h3 class="setting-title">Game Mode</h3>
+                    <div class="button-group">
+                        <button class="option-btn mode-ai active" onclick="setMode('ai')">🤖 vs AI</button>
+                        <button class="option-btn mode-pvp" onclick="setMode('pvp')">👥 Player vs Player</button>
+                    </div>
+                </div>
+
+                <div class="setting-group" id="difficulty-group">
+                    <h3 class="setting-title">AI Difficulty</h3>
+                    <div class="button-group">
+                        <button class="option-btn difficulty" onclick="setDifficulty('easy')">Easy</button>
+                        <button class="option-btn difficulty active" onclick="setDifficulty('medium')">Medium</button>
+                        <button class="option-btn difficulty" onclick="setDifficulty('hard')">Hard</button>
+                        <button class="option-btn difficulty" onclick="setDifficulty('impossible')">Impossible</button>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3 class="setting-title">Theme</h3>
+                    <div class="button-group">
+                        <button class="option-btn theme active" onclick="setTheme('cowboy')">🤠 Wild West</button>
+                        <button class="option-btn theme" onclick="setTheme('samurai')">⚔️ Samurai</button>
+                        <button class="option-btn theme" onclick="setTheme('scifi')">🚀 Sci-Fi</button>
+                        <button class="option-btn theme" onclick="setTheme('ninja')">🥷 Ninja</button>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3 class="setting-title">Rounds to Win</h3>
+                    <div class="button-group">
+                        <button class="option-btn rounds active" onclick="setRoundsToWin(3)">Best of 3</button>
+                        <button class="option-btn rounds" onclick="setRoundsToWin(5)">Best of 5</button>
+                        <button class="option-btn rounds" onclick="setRoundsToWin(7)">Best of 7</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="start-btn" onclick="startGame()">START DUEL</button>
+
+            <div class="best-time" id="best-time" style="display: none;">
+                ⚡ Personal Best: <span id="best-time-value">0</span>ms
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen">
+            <div class="scoreboard">
+                <div class="player-info">
+                    <div class="player-avatar" id="p1-avatar">🤠</div>
+                    <div>Player 1</div>
+                    <div class="player-score" id="p1-score">0</div>
+                </div>
+                <div class="round-info">
+                    <div class="round-number" id="round-number">Round 1</div>
+                    <div class="round-subtitle" id="round-subtitle">First to 3</div>
+                </div>
+                <div class="player-info">
+                    <div class="player-avatar" id="p2-avatar">🤠</div>
+                    <div id="p2-name">AI</div>
+                    <div class="player-score" id="p2-score">0</div>
+                </div>
+            </div>
+
+            <div class="game-arena">
+                <div class="waiting-state" id="waiting-state">
+                    <div class="waiting-icon">👁️</div>
+                    <div class="waiting-text">Get Ready...</div>
+                    <div class="waiting-subtitle">Wait for the signal!</div>
+                </div>
+
+                <div class="draw-state" id="draw-state" style="display: none;">
+                    <div class="draw-weapon" id="draw-weapon">🔫</div>
+                    <div class="draw-signal" id="draw-signal">DRAW!</div>
+                </div>
+
+                <div class="result-state" id="result-state" style="display: none;">
+                    <div class="result-icon" id="result-icon">🏆</div>
+                    <div class="result-title" id="result-title">Player 1 Wins!</div>
+                    <div class="result-time" id="result-time" style="display: none;">⚡ 234ms</div>
+                    <div class="result-subtitle">Press <span class="key">SPACE</span> to continue</div>
+                </div>
+            </div>
+
+            <div class="controls-info">
+                <div>Player 1: Press <span class="key">SPACE</span></div>
+                <div id="p2-controls">AI will respond automatically</div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="gameover-screen">
+            <div class="result-icon">🎉</div>
+            <h2 class="game-over-title" id="match-winner">Player 1 WINS!</h2>
+            <div class="final-score" id="final-score">Final Score: 3 - 1</div>
+            <div class="best-time" id="final-best-time" style="display: none;">
+                ⚡ Best Reaction: <span id="final-best-value">0</span>ms
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn" onclick="startGame()">Rematch</button>
+                <button class="action-btn secondary" onclick="showMenu()">Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = 'menu';
+        let mode = 'ai';
+        let difficulty = 'medium';
+        let theme = 'cowboy';
+        let roundsToWin = 3;
+        
+        let player1Score = 0;
+        let player2Score = 0;
+        let currentRound = 1;
+        
+        let waitTime = 0;
+        let drawTime = null;
+        let winner = null;
+        let reactionTime = null;
+        let falseStart = null;
+        
+        let bestTime = localStorage.getItem('quickDrawBest') || null;
+        let matchWinner = null;
+
+        let drawTimeRef = null;
+        let timeoutRef = null;
+        let aiTimeoutRef = null;
+
+        const themes = {
+            cowboy: {
+                name: '🤠 Wild West',
+                class: 'cowboy',
+                p1: '🤠',
+                p2: '🤠',
+                weapon: '🔫',
+                signal: 'DRAW!'
+            },
+            samurai: {
+                name: '⚔️ Samurai',
+                class: 'samurai',
+                p1: '🥷',
+                p2: '🥷',
+                weapon: '⚔️',
+                signal: '斬!'
+            },
+            scifi: {
+                name: '🚀 Sci-Fi',
+                class: 'scifi',
+                p1: '👽',
+                p2: '🤖',
+                weapon: '⚡',
+                signal: 'FIRE!'
+            },
+            ninja: {
+                name: '🥷 Ninja',
+                class: 'ninja',
+                p1: '🥷',
+                p2: '🥷',
+                weapon: '🗡️',
+                signal: '今!'
+            }
+        };
+
+        const difficultySettings = {
+            easy: { min: 400, max: 700 },
+            medium: { min: 250, max: 450 },
+            hard: { min: 150, max: 300 },
+            impossible: { min: 100, max: 180 }
+        };
+
+        // Initialize best time display
+        if (bestTime) {
+            document.getElementById('best-time').style.display = 'block';
+            document.getElementById('best-time-value').textContent = bestTime;
+        }
+
+        function setMode(newMode) {
+            mode = newMode;
+            updateModeButtons();
+            updateDifficultyVisibility();
+            updatePlayerNames();
+        }
+
+        function setDifficulty(newDifficulty) {
+            difficulty = newDifficulty;
+            updateDifficultyButtons();
+        }
+
+        function setTheme(newTheme) {
+            theme = newTheme;
+            updateThemeButtons();
+            updateThemeDisplay();
+        }
+
+        function setRoundsToWin(rounds) {
+            roundsToWin = rounds;
+            updateRoundsButtons();
+        }
+
+        function updateModeButtons() {
+            document.querySelectorAll('.mode-ai, .mode-pvp').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (mode === 'ai') {
+                document.querySelector('.mode-ai').classList.add('active');
+            } else {
+                document.querySelector('.mode-pvp').classList.add('active');
+            }
+        }
+
+        function updateDifficultyButtons() {
+            document.querySelectorAll('.difficulty').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[onclick="setDifficulty('${difficulty}')"]`).classList.add('active');
+        }
+
+        function updateThemeButtons() {
+            document.querySelectorAll('.theme').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[onclick="setTheme('${theme}')"]`).classList.add('active');
+        }
+
+        function updateRoundsButtons() {
+            document.querySelectorAll('.rounds').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[onclick="setRoundsToWin(${roundsToWin})"]`).classList.add('active');
+        }
+
+        function updateDifficultyVisibility() {
+            const difficultyGroup = document.getElementById('difficulty-group');
+            difficultyGroup.style.display = mode === 'ai' ? 'block' : 'none';
+        }
+
+        function updatePlayerNames() {
+            const p2Name = document.getElementById('p2-name');
+            const p2Controls = document.getElementById('p2-controls');
+            
+            if (mode === 'ai') {
+                p2Name.textContent = 'AI';
+                p2Controls.textContent = 'AI will respond automatically';
+            } else {
+                p2Name.textContent = 'Player 2';
+                p2Controls.innerHTML = 'Player 2: Press <span class="key">ENTER</span>';
+            }
+        }
+
+        function updateThemeDisplay() {
+            document.body.className = themes[theme].class;
+            
+            // Update avatars and weapon
+            document.getElementById('p1-avatar').textContent = themes[theme].p1;
+            document.getElementById('p2-avatar').textContent = themes[theme].p2;
+            document.getElementById('draw-weapon').textContent = themes[theme].weapon;
+            document.getElementById('draw-signal').textContent = themes[theme].signal;
+        }
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.menu-screen, .game-screen, .gameover-screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.querySelector(`.${screenName}-screen`).classList.add('active');
+            gameState = screenName;
+        }
+
+        function startGame() {
+            player1Score = 0;
+            player2Score = 0;
+            currentRound = 1;
+            matchWinner = null;
+            
+            updateScoreDisplay();
+            showScreen('game');
+            startRound();
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('p1-score').textContent = player1Score;
+            document.getElementById('p2-score').textContent = player2Score;
+            document.getElementById('round-number').textContent = `Round ${currentRound}`;
+            document.getElementById('round-subtitle').textContent = `First to ${roundsToWin}`;
+        }
+
+        function startRound() {
+            winner = null;
+            reactionTime = null;
+            falseStart = null;
+            
+            // Show waiting state
+            document.getElementById('waiting-state').style.display = 'block';
+            document.getElementById('draw-state').style.display = 'none';
+            document.getElementById('result-state').style.display = 'none';
+            
+            const randomWait = Math.random() * 3000 + 2000; // 2-5 seconds
+            waitTime = randomWait;
+            
+            timeoutRef = setTimeout(() => {
+                showDrawState();
+            }, randomWait);
+        }
+
+        function showDrawState() {
+            document.getElementById('waiting-state').style.display = 'none';
+            document.getElementById('draw-state').style.display = 'block';
+            document.getElementById('result-state').style.display = 'none';
+            
+            drawTimeRef = Date.now();
+        }
+
+        function handlePress(player) {
+            if (document.getElementById('waiting-state').style.display !== 'none') {
+                // False start
+                falseStart = player;
+                winner = player === 1 ? 2 : 1;
+                clearTimeout(timeoutRef);
+                if (aiTimeoutRef) clearTimeout(aiTimeoutRef);
+                showResult();
+                return;
+            }
+
+            if (document.getElementById('draw-state').style.display !== 'none' && !winner) {
+                const reaction = Date.now() - drawTimeRef;
+                reactionTime = reaction;
+                winner = player;
+                
+                if (!bestTime || reaction < bestTime) {
+                    bestTime = reaction;
+                    localStorage.setItem('quickDrawBest', bestTime);
+                    document.getElementById('best-time').style.display = 'block';
+                    document.getElementById('best-time-value').textContent = bestTime;
+                }
+
+                // AI response
+                if (mode === 'ai' && player === 1) {
+                    const aiDelay = Math.random() * 
+                        (difficultySettings[difficulty].max - difficultySettings[difficulty].min) + 
+                        difficultySettings[difficulty].min;
+                    
+                    aiTimeoutRef = setTimeout(() => {
+                        if (!winner || winner === 1) {
+                            // AI wins if player hasn't won yet
+                            if (winner === 1 && Date.now() - drawTimeRef < reaction + aiDelay) {
+                                // Player was faster
+                                return;
+                            }
+                            winner = 2;
+                            showResult();
+                        }
+                    }, aiDelay);
+                }
+
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('waiting-state').style.display = 'none';
+            document.getElementById('draw-state').style.display = 'none';
+            document.getElementById('result-state').style.display = 'block';
+            
+            const resultIcon = document.getElementById('result-icon');
+            const resultTitle = document.getElementById('result-title');
+            const resultTimeDiv = document.getElementById('result-time');
+            
+            if (falseStart) {
+                resultIcon.textContent = '❌';
+                resultTitle.textContent = 'FALSE START!';
+                resultTitle.className = 'result-title false-start';
+                resultTimeDiv.style.display = 'none';
+                
+                const falseStartPlayer = falseStart === 1 ? 'Player 1' : (mode === 'ai' ? 'AI' : 'Player 2');
+                setTimeout(() => {
+                    resultTitle.textContent = `${falseStartPlayer} jumped the gun!`;
+                }, 1000);
+            } else {
+                resultIcon.textContent = '🏆';
+                const winnerName = winner === 1 ? 'Player 1' : (mode === 'ai' ? 'AI' : 'Player 2');
+                resultTitle.textContent = `${winnerName} Wins!`;
+                resultTitle.className = 'result-title winner-announcement';
+                
+                if (reactionTime && winner === 1) {
+                    resultTimeDiv.style.display = 'block';
+                    resultTimeDiv.textContent = `⚡ ${reactionTime}ms`;
+                } else {
+                    resultTimeDiv.style.display = 'none';
+                }
+            }
+        }
+
+        function nextRound() {
+            const newP1Score = winner === 1 ? player1Score + 1 : player1Score;
+            const newP2Score = winner === 2 ? player2Score + 1 : player2Score;
+            
+            player1Score = newP1Score;
+            player2Score = newP2Score;
+
+            if (newP1Score >= roundsToWin) {
+                matchWinner = 1;
+                showGameOver();
+            } else if (newP2Score >= roundsToWin) {
+                matchWinner = 2;
+                showGameOver();
+            } else {
+                currentRound++;
+                updateScoreDisplay();
+                startRound();
+            }
+        }
+
+        function showGameOver() {
+            showScreen('gameover');
+            
+            const winnerName = matchWinner === 1 ? 'Player 1' : (mode === 'ai' ? 'AI' : 'Player 2');
+            document.getElementById('match-winner').textContent = `${winnerName} WINS!`;
+            document.getElementById('final-score').textContent = `Final Score: ${player1Score} - ${player2Score}`;
+            
+            if (bestTime) {
+                document.getElementById('final-best-time').style.display = 'block';
+                document.getElementById('final-best-value').textContent = bestTime;
+            }
+        }
+
+        function showMenu() {
+            showScreen('menu');
+            if (timeoutRef) clearTimeout(timeoutRef);
+            if (aiTimeoutRef) clearTimeout(aiTimeoutRef);
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (gameState === 'game') {
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    if (document.getElementById('result-state').style.display !== 'none') {
+                        nextRound();
+                    } else {
+                        handlePress(1);
+                    }
+                } else if (e.key === 'Enter' && mode === 'pvp') {
+                    e.preventDefault();
+                    if (document.getElementById('result-state').style.display === 'none') {
+                        handlePress(2);
+                    }
+                }
+            }
+        });
+
+        // Initialize display
+        updateThemeDisplay();
+        updateDifficultyVisibility();
+        updatePlayerNames();
+    </script>
+</body>
+</html>
