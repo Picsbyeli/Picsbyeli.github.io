@@ -49,170 +49,66 @@
 
   <div id="embed-container"></div>
 
-  <header class="topbar">
-    <div class="brand">🎮 E.Vol</div>
-    <nav class="nav">
-      <button data-view="home">Home</button>
-      <button onclick="window.location.href='games/imposter.html'">Imposter</button>
-  <button onclick="window.location.href='chess.html'">Chess</button>
-      <button onclick="window.location.href='games/connect4.html'">Connect 4</button>
-    </nav>
-  </header>
+  <!-- Roblox-Style Game Hub -->
+  <main class="hub-container">
+    <aside class="sidebar">
+      <h2>E.Vol Hub</h2>
+      <nav>
+        <a href="index.html">🏠 Home</a>
+        <a href="leaderboard.html">🏆 Leaderboard</a>
+        <a href="standalone.html">🎮 Classic Games</a>
+      </nav>
+    </aside>
 
-  <main id="views">
-    <!-- HOME -->
-    <section id="view-home" class="view active">
-      <h1>Welcome to E.Vol Games</h1>
-      <p>Choose from our collection of brain teasers, multiplayer games, and puzzles. Guest play enabled — no sign-in required!</p>
-      
-      <div class="game-grid">
-        <div class="game-card">
+    <section class="game-grid">
+      <h2>My Games</h2>
+      <div class="grid">
+        <a href="games/riddles.html" class="game-card">
+          <img src="assets/riddles.png" alt="Riddles" onerror="this.style.display='none'">
           <h3>🧩 Brain Riddles</h3>
-          <p>Solve classic riddles and brain teasers.</p>
-          <a href="games/riddles.html" class="play-btn">Play Now →</a>
-        </div>
-
-        <div class="game-card">
+          <p>Solve classic teasers</p>
+        </a>
+        <a href="games/trivia.html" class="game-card">
+          <img src="assets/trivia.png" alt="Trivia" onerror="this.style.display='none'">
           <h3>🤔 Trivia</h3>
-          <p>Test your knowledge with multiple choice trivia.</p>
-          <a href="games/trivia.html" class="play-btn">Play Now →</a>
-        </div>
-
-        <div class="game-card">
+          <p>Test knowledge with multiple-choice</p>
+        </a>
+        <a href="games/emoji.html" class="game-card">
+          <img src="assets/emoji.png" alt="Emoji Guess" onerror="this.style.display='none'">
           <h3>😂 Emoji Guess</h3>
-          <p>Decode emoji puzzles and phrases.</p>
-          <a href="games/emoji.html" class="play-btn">Play Now →</a>
-        </div>
-
-        <div class="game-card">
+          <p>Decode emoji puzzles</p>
+        </a>
+        <a href="games/word.html" class="game-card">
+          <img src="assets/word.png" alt="Word Game" onerror="this.style.display='none'">
           <h3>🔤 Word Game</h3>
-          <p>Guess the hidden word with clues.</p>
-          <a href="games/word.html" class="play-btn">Play Now →</a>
-        </div>
-
-        <div class="game-card">
+          <p>Guess the hidden word</p>
+        </a>
+        <a href="chess.html" class="game-card">
+          <img src="assets/chess.png" alt="Chess" onerror="this.style.display='none'">
           <h3>♟️ Chess</h3>
-          <p>Play chess against others or vs AI.</p>
-          <a href="chess.html" class="play-btn">Play Now →</a>
-        </div>
-
-        <div class="game-card">
+          <p>Play vs AI or online</p>
+        </a>
+        <a href="games/connect4.html" class="game-card">
+          <img src="assets/connect4.png" alt="Connect 4" onerror="this.style.display='none'">
           <h3>⭕ Connect 4</h3>
-          <p>Classic connect four online or vs bots.</p>
-          <a href="games/connect4.html" class="play-btn">Play Now →</a>
-        </div>
-
-        <div class="game-card">
-          <h3>�️ Imposter</h3>
-          <p>Chameleon-style multiplayer game.</p>
-          <a href="games/imposter.html" class="play-btn">Play Now →</a>
-        </div>
-
-        <div class="game-card">
+          <p>Classic 4-in-a-row</p>
+        </a>
+        <a href="games/imposter.html" class="game-card">
+          <img src="assets/imposter.png" alt="Imposter" onerror="this.style.display='none'">
+          <h3>🕵️ Imposter</h3>
+          <p>Find the faker!</p>
+        </a>
+        <a href="games/school-trivia.html" class="game-card">
+          <img src="assets/school.png" alt="School Trivia" onerror="this.style.display='none'">
           <h3>🎓 School Trivia</h3>
-          <p>Educational trivia for students.</p>
-          <a href="games/school-trivia.html" class="play-btn">Play Now →</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- IMPOSTER -->
-    <section id="view-imposter" class="view">
-      <h2>🕵️ Imposter</h2>
-      <div class="row">
-        <div class="card">
-          <h3>Lobby</h3>
-          <div class="lobby-row">
-            <button id="impCreate">Create Lobby</button>
-            <input id="impJoinInput" placeholder="Lobby ID"/>
-            <button id="impJoin">Join Lobby</button>
-            <button id="impBotEasy" class="ghost">Play vs Bots (Easy)</button>
-            <button id="impBotMedium" class="ghost">Bots (Medium)</button>
-          </div>
-          <div class="lobby-info">
-            <div>Lobby: <span id="impLobbyId">—</span></div>
-            <div>Players:</div>
-            <ul id="impPlayers"></ul>
-          </div>
-        </div>
-        <div class="card">
-          <h3>Round</h3>
-          <div id="impPhase">Phase: —</div>
-          <div id="impWord" class="secret-word hidden">Secret word: <b id="impWordText"></b></div>
-          <div class="row">
-            <input id="impClue" placeholder="Your clue" />
-            <button id="impClueBtn">Submit Clue</button>
-          </div>
-          <div>
-            <h4>Clues</h4>
-            <ul id="impClues"></ul>
-          </div>
-          <div>
-            <h4>Vote</h4>
-            <div id="impVoteBtns"></div>
-          </div>
-          <div>
-            <h4>Results</h4>
-            <ul id="impResults"></ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CHESS -->
-    <section id="view-chess" class="view">
-      <h2>♟️ Chess</h2>
-      <div class="row">
-        <div class="card">
-          <h3>Lobby</h3>
-          <div class="lobby-row">
-            <button id="chessCreate">Create Lobby</button>
-            <input id="chessJoinInput" placeholder="Lobby ID"/>
-            <button id="chessJoin">Join Lobby</button>
-            <button id="chessBotEasy" class="ghost">Play vs Bot (Easy)</button>
-            <button id="chessBotMedium" class="ghost">Bot (Medium)</button>
-          </div>
-          <div>Lobby: <span id="chessLobbyId">—</span></div>
-        </div>
-        <div class="card">
-          <h3>Moves (demo input)</h3>
-          <div class="row">
-            <input id="chessMove" placeholder="e2->e4, etc." />
-            <button id="chessMoveBtn">Submit Move</button>
-          </div>
-          <ul id="chessMoves"></ul>
-          <p class="hint">Tip: This is a lightweight text-move chess so you can test online play immediately. Swap in a visual chessboard later if you want.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- CONNECT 4 -->
-    <section id="view-connect4" class="view">
-      <h2>🔴 Connect 4</h2>
-      <div class="row">
-        <div class="card">
-          <h3>Lobby</h3>
-          <div class="lobby-row">
-            <button id="c4Create">Create Lobby</button>
-            <input id="c4JoinInput" placeholder="Lobby ID"/>
-            <button id="c4Join">Join Lobby</button>
-            <button id="c4BotEasy" class="ghost">Play vs Bot (Easy)</button>
-            <button id="c4BotMedium" class="ghost">Bot (Medium)</button>
-          </div>
-          <div>Lobby: <span id="c4LobbyId">—</span></div>
-        </div>
-        <div class="card">
-          <h3>Board</h3>
-          <div id="c4Board" class="c4-board"></div>
-          <div id="c4Status" class="status"></div>
-        </div>
+          <p>Educational quiz fun</p>
+        </a>
       </div>
     </section>
   </main>
 
-  <!-- Footer (kept tiny; no random text) -->
-  <footer class="footer">
-    <span>© <span id="year"></span> E.Vol</span>
+  <footer>
+    <p>© <span id="year"></span> E.Vol</p>
   </footer>
 
   <!-- Socket.IO client -->

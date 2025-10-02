@@ -1,0 +1,11 @@
+<svg width="220" height="140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="riddleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="220" height="140" fill="url(#riddleGrad)"/>
+  <circle cx="110" cy="70" r="40" fill="rgba(255,255,255,0.2)"/>
+  <text x="110" y="80" font-family="Arial" font-size="30" text-anchor="middle" fill="white">🧩</text>
+</svg>
