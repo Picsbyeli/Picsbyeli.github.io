@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Mini Battle Arena</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            font-family: 'Comic Sans MS', Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .game-container {
+            text-align: center;
+            position: relative;
+        }
+
+        canvas {
+            border: 3px solid #ecf0f1;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        .ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .player-stats {
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 10px;
+            min-width: 120px;
+        }
+
+        .health-bar {
+            width: 100px;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            transition: width 0.3s;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .control-row {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            border: 2px solid #FFD700;
+        }
+
+        .winner-text {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #e67e22, #d35400);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 600px) {
+            canvas {
+                width: 300px;
+                height: 400px;
+            }
+            
+            .controls {
+                bottom: 10px;
+                padding: 10px;
+            }
+            
+            .control-row {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="500" height="500"></canvas>
+        
+        <div class="ui">
+            <div class="player-stats">
+                <div>🔵 Player</div>
+                <div class="health-bar">
+                    <div class="health-fill" id="playerHealth" style="width: 100%"></div>
+                </div>
+                <div>HP: <span id="playerHP">100</span></div>
+            </div>
+            <div class="player-stats">
+                <div>🔴 Enemy</div>
+                <div class="health-bar">
+                    <div class="health-fill" id="enemyHealth" style="width: 100%"></div>
+                </div>
+                <div>HP: <span id="enemyHP">100</span></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-row">🏃 WASD: Move</div>
+            <div class="control-row">👊 SPACE: Attack</div>
+            <div class="control-row">🛡️ SHIFT: Block</div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <div class="winner-text" id="winnerText">Victory!</div>
+            <p>The battle is over!</p>
+            <button class="restart-btn" onclick="startGame()">⚔️ Fight Again</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameState = {
+            gameRunning: false,
+            roundNumber: 1
+        };
+
+        const keys = {
+            w: false, a: false, s: false, d: false,
+            space: false, shift: false
+        };
+
+        class Fighter {
+            constructor(x, y, color, isPlayer = false) {
+                this.x = x;
+                this.y = y;
+                this.width = 30;
+                this.height = 40;
+                this.color = color;
+                this.isPlayer = isPlayer;
+                
+                this.health = 100;
+                this.maxHealth = 100;
+                this.speed = 3;
+                this.attackDamage = 15;
+                this.attackRange = 45;
+                this.attackCooldown = 0;
+                this.blockCooldown = 0;
+                
+                this.isAttacking = false;
+                this.isBlocking = false;
+                this.stunned = false;
+                
+                this.direction = isPlayer ? 1 : -1;
+                this.lastAttack = 0;
+                this.aiTimer = 0;
+            }
+
+            update() {
+                // Update cooldowns
+                if (this.attackCooldown > 0) this.attackCooldown--;
+                if (this.blockCooldown > 0) this.blockCooldown--;
+                if (this.stunned > 0) this.stunned--;
+
+                if (this.isPlayer) {
+                    this.handlePlayerInput();
+                } else {
+                    this.handleAI();
+                }
+
+                // Keep in bounds
+                this.x = Math.max(10, Math.min(canvas.width - this.width - 10, this.x));
+                this.y = Math.max(10, Math.min(canvas.height - this.height - 10, this.y));
+            }
+
+            handlePlayerInput() {
+                if (this.stunned > 0) return;
+
+                // Movement
+                if (keys.a) this.x -= this.speed;
+                if (keys.d) this.x += this.speed;
+                if (keys.w) this.y -= this.speed;
+                if (keys.s) this.y += this.speed;
+
+                // Attack
+                if (keys.space && this.attackCooldown === 0) {
+                    this.attack();
+                }
+
+                // Block
+                this.isBlocking = keys.shift && this.blockCooldown === 0;
+            }
+
+            handleAI() {
+                if (this.stunned > 0) return;
+
+                this.aiTimer++;
+                const player = gameState.player;
+                const distance = Math.sqrt(
+                    (this.x - player.x) ** 2 + (this.y - player.y) ** 2
+                );
+
+                // AI Decision making
+                if (distance > this.attackRange * 1.5) {
+                    // Move closer to player
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    this.x += Math.cos(angle) * this.speed * 0.8;
+                    this.y += Math.sin(angle) * this.speed * 0.8;
+                } else if (distance < this.attackRange && this.attackCooldown === 0) {
+                    // Attack if in range
+                    if (Math.random() < 0.7) {
+                        this.attack();
+                    }
+                } else {
+                    // Circle around player
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x) + Math.PI/2;
+                    this.x += Math.cos(angle) * this.speed * 0.5;
+                    this.y += Math.sin(angle) * this.speed * 0.5;
+                }
+
+                // Random blocking
+                if (player.isAttacking && Math.random() < 0.4) {
+                    this.isBlocking = true;
+                } else {
+                    this.isBlocking = false;
+                }
+            }
+
+            attack() {
+                if (this.attackCooldown > 0) return;
+
+                this.isAttacking = true;
+                this.attackCooldown = 30;
+
+                // Check for hit
+                const target = this.isPlayer ? gameState.enemy : gameState.player;
+                const distance = Math.sqrt(
+                    (this.x - target.x) ** 2 + (this.y - target.y) ** 2
+                );
+
+                if (distance <= this.attackRange) {
+                    let damage = this.attackDamage;
+                    
+                    if (target.isBlocking) {
+                        damage *= 0.3; // Reduced damage when blocking
+                        target.blockCooldown = 20;
+                        this.createBlockEffect(target);
+                    } else {
+                        target.stunned = 10;
+                        this.createHitEffect(target);
+                    }
+
+                    target.takeDamage(damage);
+                }
+
+                // Reset attack animation
+                setTimeout(() => {
+                    this.isAttacking = false;
+                }, 200);
+            }
+
+            takeDamage(amount) {
+                this.health -= amount;
+                this.health = Math.max(0, this.health);
+
+                if (this.health === 0) {
+                    endGame(this.isPlayer ? 'enemy' : 'player');
+                }
+
+                updateHealthBars();
+            }
+
+            createHitEffect(target) {
+                // Blood/impact effect
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.beginPath();
+                        ctx.arc(
+                            target.x + target.width/2 + (Math.random() - 0.5) * 20,
+                            target.y + target.height/2 + (Math.random() - 0.5) * 20,
+                            2,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.fill();
+                    }, i * 20);
+                }
+            }
+
+            createBlockEffect(target) {
+                // Shield effect
+                ctx.strokeStyle = '#f39c12';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(target.x + target.width/2, target.y + target.height/2, 25, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            draw() {
+                ctx.save();
+
+                // Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(this.x + 2, this.y + this.height + 2, this.width, 5);
+
+                // Main body
+                if (this.stunned > 0) {
+                    ctx.fillStyle = this.isPlayer ? '#3498db' : '#e74c3c';
+                    ctx.globalAlpha = 0.5;
+                } else {
+                    ctx.fillStyle = this.color;
+                }
+
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+
+                // Health indicator
+                if (this.health < this.maxHealth) {
+                    const healthRatio = this.health / this.maxHealth;
+                    ctx.fillStyle = healthRatio > 0.5 ? '#2ecc71' : healthRatio > 0.25 ? '#f39c12' : '#e74c3c';
+                    ctx.fillRect(this.x, this.y - 8, this.width * healthRatio, 4);
+                    
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(this.x + this.width * healthRatio, this.y - 8, this.width * (1 - healthRatio), 4);
+                }
+
+                // Attack animation
+                if (this.isAttacking) {
+                    ctx.strokeStyle = '#f1c40f';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width/2, this.y + this.height/2, this.attackRange, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Block animation
+                if (this.isBlocking) {
+                    ctx.strokeStyle = '#3498db';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width/2, this.y + this.height/2, 20, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Eyes
+                ctx.fillStyle = 'white';
+                ctx.fillRect(this.x + 8, this.y + 8, 4, 4);
+                ctx.fillRect(this.x + 18, this.y + 8, 4, 4);
+
+                ctx.restore();
+            }
+        }
+
+        function startGame() {
+            gameState.gameRunning = true;
+            document.getElementById('gameOver').style.display = 'none';
+
+            // Create fighters
+            gameState.player = new Fighter(50, canvas.height/2, '#3498db', true);
+            gameState.enemy = new Fighter(canvas.width - 80, canvas.height/2, '#e74c3c', false);
+
+            updateHealthBars();
+            gameLoop();
+        }
+
+        function endGame(winner) {
+            gameState.gameRunning = false;
+            
+            const winnerText = winner === 'player' ? '🎉 Victory!' : '💀 Defeat!';
+            document.getElementById('winnerText').textContent = winnerText;
+            document.getElementById('winnerText').style.color = winner === 'player' ? '#2ecc71' : '#e74c3c';
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function updateHealthBars() {
+            const playerHealthPercent = (gameState.player.health / gameState.player.maxHealth) * 100;
+            const enemyHealthPercent = (gameState.enemy.health / gameState.enemy.maxHealth) * 100;
+
+            document.getElementById('playerHealth').style.width = playerHealthPercent + '%';
+            document.getElementById('enemyHealth').style.width = enemyHealthPercent + '%';
+            document.getElementById('playerHP').textContent = Math.ceil(gameState.player.health);
+            document.getElementById('enemyHP').textContent = Math.ceil(gameState.enemy.health);
+        }
+
+        function gameLoop() {
+            if (!gameState.gameRunning) return;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw arena background
+            const gradient = ctx.createRadialGradient(
+                canvas.width/2, canvas.height/2, 0,
+                canvas.width/2, canvas.height/2, canvas.width/2
+            );
+            gradient.addColorStop(0, '#8B4513');
+            gradient.addColorStop(1, '#654321');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw arena circle
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 200, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Update and draw fighters
+            gameState.player.update();
+            gameState.enemy.update();
+            
+            gameState.player.draw();
+            gameState.enemy.draw();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'KeyW': keys.w = true; break;
+                case 'KeyA': keys.a = true; break;
+                case 'KeyS': keys.s = true; break;
+                case 'KeyD': keys.d = true; break;
+                case 'Space': 
+                    e.preventDefault();
+                    keys.space = true; 
+                    break;
+                case 'ShiftLeft':
+                case 'ShiftRight':
+                    keys.shift = true;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch(e.code) {
+                case 'KeyW': keys.w = false; break;
+                case 'KeyA': keys.a = false; break;
+                case 'KeyS': keys.s = false; break;
+                case 'KeyD': keys.d = false; break;
+                case 'Space': keys.space = false; break;
+                case 'ShiftLeft':
+                case 'ShiftRight':
+                    keys.shift = false;
+                    break;
+            }
+        });
+
+        // Touch controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!gameState.gameRunning) return;
+
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            const deltaX = touchX - touchStartX;
+            const deltaY = touchY - touchStartY;
+
+            // Simple touch movement
+            if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    keys.a = deltaX < 0;
+                    keys.d = deltaX > 0;
+                } else {
+                    keys.w = deltaY < 0;
+                    keys.s = deltaY > 0;
+                }
+            }
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.a = keys.d = keys.w = keys.s = false;
+            keys.space = true; // Attack on touch end
+            setTimeout(() => keys.space = false, 100);
+        });
+
+        // Start the game
+        startGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏗️ Tower Balance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Comic Sans MS', Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            text-align: center;
+            position: relative;
+        }
+
+        canvas {
+            border: 3px solid white;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #87CEEB, #98FB98);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .score, .level {
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            max-width: 400px;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .final-score {
+            font-size: 2rem;
+            color: #FFD700;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 600px) {
+            canvas {
+                width: 300px;
+                height: 500px;
+            }
+            
+            .ui {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+            }
+            
+            .score, .level {
+                padding: 8px 15px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        
+        <div class="ui">
+            <div class="score">Score: <span id="scoreValue">0</span></div>
+            <div class="level">Level: <span id="levelValue">1</span></div>
+        </div>
+
+        <div class="instructions">
+            <p>🎯 Click to drop the moving block!</p>
+            <p>📏 Align perfectly for bonus points</p>
+            <p>🏗️ Build as high as you can!</p>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2>🏗️ Tower Complete!</h2>
+            <div class="final-score" id="finalScore">Score: 0</div>
+            <p>Height: <span id="finalHeight">0</span> blocks</p>
+            <button class="restart-btn" onclick="startGame()">🔄 Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameState = {
+            score: 0,
+            level: 1,
+            height: 0,
+            blocks: [],
+            currentBlock: null,
+            movingBlock: null,
+            gameRunning: false,
+            dropSpeed: 2,
+            moveSpeed: 3,
+            perfectBonus: 0
+        };
+
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
+            '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
+        ];
+
+        class Block {
+            constructor(x, y, width, height, color) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.color = color;
+                this.direction = 1;
+                this.speed = gameState.moveSpeed;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // Add highlight
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(this.x, this.y, this.width, 5);
+                
+                // Add border
+                ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x, this.y, this.width, this.height);
+            }
+
+            update() {
+                if (this === gameState.movingBlock) {
+                    this.x += this.direction * this.speed;
+                    
+                    if (this.x <= 0 || this.x + this.width >= canvas.width) {
+                        this.direction *= -1;
+                    }
+                }
+            }
+        }
+
+        function startGame() {
+            gameState = {
+                score: 0,
+                level: 1,
+                height: 0,
+                blocks: [],
+                currentBlock: null,
+                movingBlock: null,
+                gameRunning: true,
+                dropSpeed: 2,
+                moveSpeed: 3,
+                perfectBonus: 0
+            };
+
+            document.getElementById('gameOver').style.display = 'none';
+            
+            // Create base block
+            const baseBlock = new Block(
+                canvas.width / 2 - 100,
+                canvas.height - 50,
+                200,
+                50,
+                colors[0]
+            );
+            gameState.blocks.push(baseBlock);
+            
+            spawnNewBlock();
+            updateUI();
+            gameLoop();
+        }
+
+        function spawnNewBlock() {
+            const topBlock = gameState.blocks[gameState.blocks.length - 1];
+            const blockHeight = 40;
+            const maxWidth = Math.max(50, topBlock.width);
+            
+            gameState.movingBlock = new Block(
+                0,
+                topBlock.y - blockHeight - 10,
+                maxWidth,
+                blockHeight,
+                colors[gameState.height % colors.length]
+            );
+        }
+
+        function dropBlock() {
+            if (!gameState.movingBlock || !gameState.gameRunning) return;
+
+            const movingBlock = gameState.movingBlock;
+            const topBlock = gameState.blocks[gameState.blocks.length - 1];
+
+            // Calculate overlap
+            const leftEdge = Math.max(movingBlock.x, topBlock.x);
+            const rightEdge = Math.min(movingBlock.x + movingBlock.width, topBlock.x + topBlock.width);
+            const overlap = rightEdge - leftEdge;
+
+            if (overlap <= 0) {
+                // No overlap - game over
+                endGame();
+                return;
+            }
+
+            // Create new block with trimmed width
+            const newBlock = new Block(
+                leftEdge,
+                movingBlock.y,
+                overlap,
+                movingBlock.height,
+                movingBlock.color
+            );
+
+            gameState.blocks.push(newBlock);
+            gameState.height++;
+
+            // Calculate score
+            let points = 10;
+            const overlapRatio = overlap / topBlock.width;
+            
+            if (overlapRatio >= 0.95) {
+                points += 50; // Perfect alignment bonus
+                gameState.perfectBonus++;
+                showPerfectEffect(newBlock);
+            } else if (overlapRatio >= 0.8) {
+                points += 20; // Good alignment
+            }
+
+            gameState.score += points * gameState.level;
+
+            // Level up every 10 blocks
+            if (gameState.height % 10 === 0) {
+                gameState.level++;
+                gameState.moveSpeed += 0.5;
+                showLevelUpEffect();
+            }
+
+            gameState.movingBlock = null;
+            
+            // Move camera up if tower gets too high
+            if (newBlock.y < 150) {
+                moveBlocksDown(100);
+            }
+
+            // Spawn next block after short delay
+            setTimeout(() => {
+                if (gameState.gameRunning) {
+                    spawnNewBlock();
+                }
+            }, 500);
+
+            updateUI();
+        }
+
+        function moveBlocksDown(amount) {
+            gameState.blocks.forEach(block => {
+                block.y += amount;
+            });
+        }
+
+        function showPerfectEffect(block) {
+            // Add sparkle effect for perfect alignment
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(
+                        block.x + Math.random() * block.width,
+                        block.y + Math.random() * block.height,
+                        3,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                }, i * 50);
+            }
+        }
+
+        function showLevelUpEffect() {
+            ctx.fillStyle = 'rgba(255,215,0,0.8)';
+            ctx.font = '30px Comic Sans MS';
+            ctx.textAlign = 'center';
+            ctx.fillText('LEVEL UP!', canvas.width / 2, canvas.height / 2);
+        }
+
+        function endGame() {
+            gameState.gameRunning = false;
+            
+            document.getElementById('finalScore').textContent = `Score: ${gameState.score}`;
+            document.getElementById('finalHeight').textContent = gameState.height;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function updateUI() {
+            document.getElementById('scoreValue').textContent = gameState.score;
+            document.getElementById('levelValue').textContent = gameState.level;
+        }
+
+        function gameLoop() {
+            if (!gameState.gameRunning) return;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#98FB98');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update and draw blocks
+            gameState.blocks.forEach(block => {
+                block.draw();
+            });
+
+            // Update and draw moving block
+            if (gameState.movingBlock) {
+                gameState.movingBlock.update();
+                gameState.movingBlock.draw();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        canvas.addEventListener('click', dropBlock);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            dropBlock();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                dropBlock();
+            }
+        });
+
+        // Start the game
+        startGame();
+    </script>
+</body>
+</html>
