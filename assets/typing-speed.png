@@ -1,0 +1,87 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="keyboard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2c3e50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34495e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="screen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" fill="url(#bg)" rx="15"/>
+  
+  <!-- Computer screen -->
+  <rect x="30" y="30" width="140" height="90" fill="url(#screen)" rx="8" stroke="#34495e" stroke-width="3"/>
+  
+  <!-- Text on screen -->
+  <text x="35" y="50" fill="#2c3e50" font-size="10" font-family="monospace">The quick brown fox</text>
+  <text x="35" y="65" fill="#2c3e50" font-size="10" font-family="monospace">jumps over the lazy</text>
+  <text x="35" y="80" fill="#2c3e50" font-size="10" font-family="monospace">dog. This is a typ</text>
+  <text x="35" y="95" fill="#27ae60" font-size="10" font-family="monospace">ing test sample.</text>
+  
+  <!-- Cursor blinking -->
+  <rect x="128" y="88" width="2" height="12" fill="#2c3e50">
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+  </rect>
+  
+  <!-- WPM display -->
+  <rect x="135" y="35" width="30" height="20" fill="rgba(46, 204, 113, 0.9)" rx="5"/>
+  <text x="150" y="42" text-anchor="middle" fill="white" font-size="8" font-weight="bold">75</text>
+  <text x="150" y="50" text-anchor="middle" fill="white" font-size="6">WPM</text>
+  
+  <!-- Accuracy indicator -->
+  <rect x="135" y="60" width="30" height="15" fill="rgba(52, 152, 219, 0.9)" rx="3"/>
+  <text x="150" y="70" text-anchor="middle" fill="white" font-size="8" font-weight="bold">98%</text>
+  
+  <!-- Keyboard -->
+  <rect x="40" y="130" width="120" height="40" fill="url(#keyboard)" rx="5"/>
+  
+  <!-- Keyboard keys -->
+  <rect x="45" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="55" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="65" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="75" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="85" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="95" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="105" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="115" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="125" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="135" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="145" y="135" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  
+  <rect x="45" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="55" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="65" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="75" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="85" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="95" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="105" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="115" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="125" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="135" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  <rect x="145" y="145" width="8" height="8" fill="#ecf0f1" rx="1"/>
+  
+  <rect x="55" y="155" width="30" height="8" fill="#ecf0f1" rx="1"/> <!-- Spacebar -->
+  <rect x="95" y="155" width="30" height="8" fill="#ecf0f1" rx="1"/> <!-- Spacebar -->
+  
+  <!-- Highlight active key -->
+  <rect x="85" y="145" width="8" height="8" fill="#3498db" rx="1"/>
+  
+  <!-- Speed lines indicating fast typing -->
+  <line x1="25" y1="140" x2="35" y2="140" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+  <line x1="25" y1="150" x2="35" y2="150" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+  <line x1="25" y1="160" x2="35" y2="160" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+  
+  <!-- Keyboard icon -->
+  <text x="20" y="155" font-size="20">⌨️</text>
+  
+  <!-- Title -->
+  <text x="100" y="190" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="bold">TYPING SPEED</text>
+</svg>
