@@ -97,3 +97,37 @@ Notes:
 - The workflow will install `ffmpeg` on the Ubuntu runner to compress audio; compression adds time and compute cost to the run.
 - Consider compressing and hosting audio once (e.g., in `gh-pages` or a Releases asset) and referencing remote URLs for faster subsequent publishes.
 
+## 🎵 Music Player API Integration
+
+The site includes a built-in music player with support for both YouTube and Spotify APIs. To enable full functionality:
+
+### YouTube Data API v3 Setup
+
+1. Visit [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the "YouTube Data API v3"
+4. Create credentials (API Key)
+5. Go to the Settings tab in the music player and enter your API key
+
+### Spotify Web API Setup
+
+1. Visit [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Create a new app
+3. Note your Client ID and Client Secret
+4. Go to the Settings tab in the music player and enter your credentials
+
+### Features
+
+- **Real-time search**: Search YouTube and Spotify catalogs
+- **Seamless playback**: Play YouTube videos and preview Spotify tracks
+- **Platform switching**: Toggle between YouTube and Spotify search
+- **Secure storage**: API keys stored locally in browser
+- **Easy configuration**: User-friendly settings interface
+
+### Security Notes
+
+- API keys are stored locally in your browser only
+- No credentials are transmitted to external servers
+- Clear browser data to reset stored keys
+- Use the test buttons to verify your API setup
+
