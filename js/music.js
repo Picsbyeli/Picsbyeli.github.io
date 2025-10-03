@@ -670,6 +670,31 @@ class MusicPlayer {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
+  togglePlaylistExpansion(playlistName) {
+    // Set the playlist as current if not already
+    if (this.currentPlaylist !== playlistName) {
+      this.currentPlaylist = playlistName;
+    }
+    this.updateDisplay();
+  }
+
+  playTrackFromPlaylist(playlistName, trackIndex) {
+    // Set the playlist and index
+    this.currentPlaylist = playlistName;
+    this.currentIndex = trackIndex;
+    
+    // If the same track is playing, toggle play/pause
+    if (this.currentTrack && 
+        this.currentPlaylist === playlistName && 
+        this.currentIndex === trackIndex && 
+        this.isPlaying) {
+      this.handlePlayPause();
+    } else {
+      // Play the new track
+      this.playTrack(trackIndex);
+    }
+  }
+
   loginSpotify() {
     const redirectUri = encodeURIComponent(window.location.origin);
     const scope = encodeURIComponent('user-read-private user-read-email playlist-read-private');
@@ -834,21 +859,45 @@ class MusicPlayer {
     const playlistsList = document.getElementById('playlists-list');
     if (!playlistsList) return;
     
-    playlistsList.innerHTML = Object.keys(this.playlists).map(name => `
-      <div class="playlist-item ${name === this.currentPlaylist ? 'active' : ''}" data-playlist="${name}">
-        <span class="playlist-name">${name}</span>
-        <span class="track-count">${this.playlists[name].length} tracks</span>
-      </div>
-    `).join('');
-    
-    // Add click handlers to playlist items
-    playlistsList.querySelectorAll('.playlist-item').forEach(item => {
-      item.addEventListener('click', () => {
-        this.currentPlaylist = item.dataset.playlist;
-        this.currentIndex = 0;
-        this.updateDisplay();
-      });
-    });
+    playlistsList.innerHTML = Object.keys(this.playlists).map(name => {
+      const isActive = name === this.currentPlaylist;
+      const tracks = this.playlists[name] || [];
+      
+      return `
+        <div class="playlist-container">
+          <div class="playlist-item ${isActive ? 'active' : ''}" data-playlist="${name}">
+            <div class="playlist-header">
+              <span class="playlist-name">${name}</span>
+              <span class="track-count">${tracks.length} tracks</span>
+            </div>
+            <button class="playlist-toggle" onclick="musicPlayer.togglePlaylistExpansion('${name}')" title="Show/Hide songs">
+              ${isActive ? '▼' : '▶'}
+            </button>
+          </div>
+          <div class="playlist-tracks ${isActive ? 'expanded' : 'collapsed'}" id="tracks-${name}">
+            ${tracks.length === 0 ? '<div class="empty-playlist">No songs in this playlist</div>' : 
+              tracks.map((track, index) => `
+                <div class="track-item ${this.currentPlaylist === name && this.currentIndex === index ? 'current-playing' : ''}" 
+                     data-playlist="${name}" data-index="${index}">
+                  <div class="track-info">
+                    <div class="track-name">${track.name}</div>
+                    <div class="track-type">${track.type}</div>
+                  </div>
+                  <div class="track-controls">
+                    <button class="play-track-btn" onclick="musicPlayer.playTrackFromPlaylist('${name}', ${index})" title="Play">
+                      ${this.currentPlaylist === name && this.currentIndex === index && this.isPlaying ? '⏸️' : '▶️'}
+                    </button>
+                    <button class="remove-track-btn" onclick="musicPlayer.removeFromPlaylist(${index})" title="Remove">
+                      ×
+                    </button>
+                  </div>
+                </div>
+              `).join('')
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
   }
 
   updateSearchDisplay() {
