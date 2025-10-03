@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imposter Game - Multiplayer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #fd79a8, #e84393);
+        }
+
+        .room-code {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .players-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .player-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .game-info {
+            background: #e8f4f8;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .secret-word {
+            font-size: 2em;
+            color: #e74c3c;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 20px;
+            background: #ffeaa7;
+            border-radius: 10px;
+        }
+
+        .clue-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #00cec9;
+            text-align: left;
+        }
+
+        .voting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .vote-btn {
+            padding: 15px;
+            background: linear-gradient(45deg, #00cec9, #55a3ff);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .vote-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .results {
+            background: #dff0d8;
+            border: 1px solid #d6e9c6;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .error {
+            background: #f2dede;
+            border: 1px solid #ebccd1;
+            color: #a94442;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .status {
+            background: #d9edf7;
+            border: 1px solid #bce8f1;
+            color: #31708f;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-btn">← Back to Games</a>
+    
+    <div class="game-container">
+        <h1>🕵️ Imposter Game</h1>
+        <p class="subtitle">Multiplayer Detective Game</p>
+
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen active">
+            <div class="input-group">
+                <label for="player-name">Your Name:</label>
+                <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+            </div>
+            
+            <button class="btn" onclick="showCreateRoom()">🎮 Create New Game Room</button>
+            <button class="btn btn-secondary" onclick="showJoinRoom()">🚪 Join Existing Room</button>
+            
+            <div class="status">
+                <strong>How to Play:</strong><br>
+                1. One player creates a room and shares the code<br>
+                2. Others join using the room code<br>
+                3. The detective gets a secret word<br>
+                4. Others submit clues about the word<br>
+                5. Vote to find the imposter (who doesn't know the word)!
+            </div>
+        </div>
+
+        <!-- Create Room Screen -->
+        <div id="create-room-screen" class="screen">
+            <h2>Create Game Room</h2>
+            <button class="btn" onclick="createRoom()">🎲 Generate Room Code</button>
+            <button class="btn btn-secondary" onclick="showHome()">← Back</button>
+        </div>
+
+        <!-- Join Room Screen -->
+        <div id="join-room-screen" class="screen">
+            <h2>Join Game Room</h2>
+            <div class="input-group">
+                <label for="room-code-input">Room Code:</label>
+                <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="6">
+            </div>
+            <button class="btn" onclick="joinRoom()">🚪 Join Room</button>
+            <button class="btn btn-secondary" onclick="showHome()">← Back</button>
+        </div>
+
+        <!-- Waiting Room Screen -->
+        <div id="waiting-room-screen" class="screen">
+            <h2>Game Room</h2>
+            <div class="room-code">
+                Room Code: <span id="current-room-code"></span>
+            </div>
+            
+            <div class="players-list">
+                <h3>Players in Room:</h3>
+                <div id="players-container"></div>
+            </div>
+            
+            <button class="btn" onclick="startGame()" id="start-game-btn">🎮 Start Game</button>
+            <button class="btn btn-danger" onclick="leaveRoom()">🚪 Leave Room</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="game-info">
+                <h3 id="game-phase">Waiting for game to start...</h3>
+                <div id="role-info"></div>
+            </div>
+
+            <!-- Detective Phase -->
+            <div id="detective-phase" style="display: none;">
+                <div class="secret-word" id="secret-word-display"></div>
+                <p>You are the <strong>Detective</strong>! Share clues about this word with others, but don't make it too obvious!</p>
+            </div>
+
+            <!-- Clue Submission Phase -->
+            <div id="clue-phase" style="display: none;">
+                <p>Submit a clue about the secret word (you'll learn it from others' clues):</p>
+                <div class="input-group">
+                    <input type="text" id="clue-input" placeholder="Enter your clue" maxlength="50">
+                </div>
+                <button class="btn" onclick="submitClue()">📝 Submit Clue</button>
+            </div>
+
+            <!-- Clues Display -->
+            <div id="clues-display" style="display: none;">
+                <h3>Submitted Clues:</h3>
+                <div id="clues-container"></div>
+            </div>
+
+            <!-- Voting Phase -->
+            <div id="voting-phase" style="display: none;">
+                <h3>Vote for the Imposter!</h3>
+                <p>Who do you think doesn't know the secret word?</p>
+                <div class="voting-grid" id="voting-container"></div>
+            </div>
+
+            <!-- Results Phase -->
+            <div id="results-phase" style="display: none;">
+                <div class="results" id="game-results"></div>
+                <button class="btn" onclick="playAgain()">🎮 Play Again</button>
+                <button class="btn btn-secondary" onclick="leaveRoom()">🚪 Leave Game</button>
+            </div>
+        </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+        <div id="status-message" class="status" style="display: none;"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase Configuration - Using your provided config
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5In_8cVRzcEWpOd7u16eQ0w_bJbz39io",
+            authDomain: "evol-b02ac.firebaseapp.com",
+            databaseURL: "https://evol-b02ac-default-rtdb.firebaseio.com",
+            projectId: "evol-b02ac",
+            storageBucket: "evol-b02ac.firebasestorage.app",
+            messagingSenderId: "556948955579",
+            appId: "1:556948955579:web:4ed1572d4d0da26bf3649e",
+            measurementId: "G-FXYD231SXF"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Game state
+        let currentRoom = null;
+        let currentPlayer = null;
+        let gameState = {
+            phase: 'waiting', // waiting, clue-submission, voting, results
+            players: {},
+            clues: {},
+            votes: {},
+            secretWord: '',
+            detective: '',
+            imposter: ''
+        };
+
+        // Secret words pool
+        const secretWords = [
+            'Pizza', 'Dog', 'Car', 'Computer', 'Football', 'Banana', 'School', 'Ocean', 
+            'Camera', 'Guitar', 'Coffee', 'Beach', 'Mountain', 'Book', 'Phone', 'Clock',
+            'Rainbow', 'Butterfly', 'Elephant', 'Spaceship', 'Castle', 'Dragon', 'Robot',
+            'Wizard', 'Treasure', 'Adventure', 'Magic', 'Forest', 'Island', 'Bridge'
+        ];
+
+        // Utility functions
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function showStatus(message) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // Screen navigation
+        function showHome() {
+            showScreen('home-screen');
+            if (currentRoom) {
+                leaveRoom();
+            }
+        }
+
+        function showCreateRoom() {
+            const playerName = document.getElementById('player-name').value.trim();
+            if (!playerName) {
+                showError('Please enter your name first!');
+                return;
+            }
+            currentPlayer = {
+                id: Date.now().toString(),
+                name: playerName
+            };
+            showScreen('create-room-screen');
+        }
+
+        function showJoinRoom() {
+            const playerName = document.getElementById('player-name').value.trim();
+            if (!playerName) {
+                showError('Please enter your name first!');
+                return;
+            }
+            currentPlayer = {
+                id: Date.now().toString(),
+                name: playerName
+            };
+            showScreen('join-room-screen');
+        }
+
+        // Room management
+        async function createRoom() {
+            try {
+                const roomCode = generateRoomCode();
+                const roomData = {
+                    code: roomCode,
+                    host: currentPlayer.id,
+                    players: {
+                        [currentPlayer.id]: currentPlayer
+                    },
+                    gameState: 'waiting',
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                await database.ref(`rooms/${roomCode}`).set(roomData);
+                currentRoom = roomCode;
+                
+                // Listen for room updates
+                listenToRoom(roomCode);
+                
+                document.getElementById('current-room-code').textContent = roomCode;
+                showScreen('waiting-room-screen');
+                showStatus('Room created successfully!');
+            } catch (error) {
+                showError('Failed to create room: ' + error.message);
+            }
+        }
+
+        async function joinRoom() {
+            try {
+                const roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
+                if (!roomCode) {
+                    showError('Please enter a room code!');
+                    return;
+                }
+
+                // Check if room exists
+                const roomSnapshot = await database.ref(`rooms/${roomCode}`).once('value');
+                if (!roomSnapshot.exists()) {
+                    showError('Room not found!');
+                    return;
+                }
+
+                // Add player to room
+                await database.ref(`rooms/${roomCode}/players/${currentPlayer.id}`).set(currentPlayer);
+                currentRoom = roomCode;
+                
+                // Listen for room updates
+                listenToRoom(roomCode);
+                
+                document.getElementById('current-room-code').textContent = roomCode;
+                showScreen('waiting-room-screen');
+                showStatus('Joined room successfully!');
+            } catch (error) {
+                showError('Failed to join room: ' + error.message);
+            }
+        }
+
+        function listenToRoom(roomCode) {
+            database.ref(`rooms/${roomCode}`).on('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    showError('Room has been deleted!');
+                    showHome();
+                    return;
+                }
+
+                const roomData = snapshot.val();
+                updatePlayersDisplay(roomData.players || {});
+                
+                // Handle game state changes
+                if (roomData.gameState !== 'waiting') {
+                    gameState = roomData.gameState;
+                    updateGameDisplay();
+                }
+
+                // Show start button only for host
+                const startBtn = document.getElementById('start-game-btn');
+                if (startBtn) {
+                    startBtn.style.display = roomData.host === currentPlayer.id ? 'block' : 'none';
+                }
+            });
+        }
+
+        function updatePlayersDisplay(players) {
+            const container = document.getElementById('players-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+            Object.values(players).forEach(player => {
+                const playerEl = document.createElement('div');
+                playerEl.className = 'player-item';
+                playerEl.innerHTML = `
+                    <strong>${player.name}</strong>
+                    ${player.id === currentPlayer.id ? ' (You)' : ''}
+                `;
+                container.appendChild(playerEl);
+            });
+        }
+
+        async function startGame() {
+            try {
+                if (!currentRoom) return;
+
+                const roomSnapshot = await database.ref(`rooms/${currentRoom}`).once('value');
+                const roomData = roomSnapshot.val();
+                const players = Object.values(roomData.players || {});
+
+                if (players.length < 2) {
+                    showError('Need at least 2 players to start!');
+                    return;
+                }
+
+                // Select detective and imposter
+                const detective = players[0]; // Host is detective
+                const imposter = players[Math.floor(Math.random() * players.length)];
+                const secretWord = secretWords[Math.floor(Math.random() * secretWords.length)];
+
+                const newGameState = {
+                    phase: 'clue-submission',
+                    players: roomData.players,
+                    detective: detective.id,
+                    imposter: imposter.id,
+                    secretWord: secretWord,
+                    clues: {},
+                    votes: {},
+                    startedAt: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                await database.ref(`rooms/${currentRoom}/gameState`).set(newGameState);
+                showScreen('game-screen');
+            } catch (error) {
+                showError('Failed to start game: ' + error.message);
+            }
+        }
+
+        function updateGameDisplay() {
+            if (!gameState || !currentPlayer) return;
+
+            const phaseEl = document.getElementById('game-phase');
+            const roleEl = document.getElementById('role-info');
+
+            // Hide all phases first
+            document.querySelectorAll('#game-screen > div[id*="-phase"]').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            switch (gameState.phase) {
+                case 'clue-submission':
+                    phaseEl.textContent = 'Clue Submission Phase';
+                    
+                    if (gameState.detective === currentPlayer.id) {
+                        // Detective sees the word
+                        document.getElementById('detective-phase').style.display = 'block';
+                        document.getElementById('secret-word-display').textContent = gameState.secretWord;
+                        roleEl.innerHTML = '<strong>You are the Detective!</strong>';
+                    } else {
+                        // Others submit clues
+                        document.getElementById('clue-phase').style.display = 'block';
+                        if (gameState.imposter === currentPlayer.id) {
+                            roleEl.innerHTML = '<strong>You are the Imposter!</strong> Try to blend in without knowing the word!';
+                        } else {
+                            roleEl.innerHTML = '<strong>You know the secret word!</strong> Submit a helpful clue!';
+                        }
+                    }
+
+                    // Show submitted clues
+                    if (Object.keys(gameState.clues || {}).length > 0) {
+                        displayClues();
+                    }
+                    break;
+
+                case 'voting':
+                    phaseEl.textContent = 'Voting Phase';
+                    document.getElementById('voting-phase').style.display = 'block';
+                    displayVoting();
+                    displayClues();
+                    break;
+
+                case 'results':
+                    phaseEl.textContent = 'Game Results';
+                    document.getElementById('results-phase').style.display = 'block';
+                    displayResults();
+                    break;
+            }
+        }
+
+        async function submitClue() {
+            try {
+                const clueInput = document.getElementById('clue-input');
+                const clue = clueInput.value.trim();
+                
+                if (!clue) {
+                    showError('Please enter a clue!');
+                    return;
+                }
+
+                await database.ref(`rooms/${currentRoom}/gameState/clues/${currentPlayer.id}`).set({
+                    playerName: currentPlayer.name,
+                    clue: clue,
+                    submittedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                clueInput.value = '';
+                showStatus('Clue submitted!');
+
+                // Check if all non-detective players have submitted clues
+                const playerCount = Object.keys(gameState.players).length;
+                const clueCount = Object.keys(gameState.clues || {}).length;
+                
+                if (clueCount >= playerCount - 1) { // -1 for detective
+                    // Move to voting phase
+                    setTimeout(async () => {
+                        await database.ref(`rooms/${currentRoom}/gameState/phase`).set('voting');
+                    }, 2000);
+                }
+            } catch (error) {
+                showError('Failed to submit clue: ' + error.message);
+            }
+        }
+
+        function displayClues() {
+            const container = document.getElementById('clues-container');
+            const display = document.getElementById('clues-display');
+            
+            if (!container || !gameState.clues) return;
+
+            container.innerHTML = '';
+            Object.values(gameState.clues).forEach(clueData => {
+                const clueEl = document.createElement('div');
+                clueEl.className = 'clue-item';
+                clueEl.innerHTML = `
+                    <strong>${clueData.playerName}:</strong> "${clueData.clue}"
+                `;
+                container.appendChild(clueEl);
+            });
+
+            display.style.display = 'block';
+        }
+
+        function displayVoting() {
+            const container = document.getElementById('voting-container');
+            if (!container || !gameState.players) return;
+
+            container.innerHTML = '';
+            Object.values(gameState.players).forEach(player => {
+                if (player.id === currentPlayer.id) return; // Can't vote for yourself
+
+                const voteBtn = document.createElement('button');
+                voteBtn.className = 'vote-btn';
+                voteBtn.textContent = `Vote for ${player.name}`;
+                voteBtn.onclick = () => submitVote(player.id);
+                container.appendChild(voteBtn);
+            });
+        }
+
+        async function submitVote(playerId) {
+            try {
+                await database.ref(`rooms/${currentRoom}/gameState/votes/${currentPlayer.id}`).set({
+                    votedFor: playerId,
+                    voterName: currentPlayer.name,
+                    submittedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                showStatus('Vote submitted!');
+
+                // Check if all players have voted
+                const playerCount = Object.keys(gameState.players).length;
+                const voteCount = Object.keys(gameState.votes || {}).length;
+                
+                if (voteCount >= playerCount) {
+                    // Calculate results and move to results phase
+                    setTimeout(async () => {
+                        await calculateResults();
+                    }, 2000);
+                }
+            } catch (error) {
+                showError('Failed to submit vote: ' + error.message);
+            }
+        }
+
+        async function calculateResults() {
+            try {
+                const votes = gameState.votes || {};
+                const voteCounts = {};
+
+                // Count votes
+                Object.values(votes).forEach(vote => {
+                    voteCounts[vote.votedFor] = (voteCounts[vote.votedFor] || 0) + 1;
+                });
+
+                // Find player with most votes
+                let mostVotedPlayer = null;
+                let maxVotes = 0;
+                Object.entries(voteCounts).forEach(([playerId, count]) => {
+                    if (count > maxVotes) {
+                        maxVotes = count;
+                        mostVotedPlayer = playerId;
+                    }
+                });
+
+                const results = {
+                    mostVotedPlayer,
+                    imposter: gameState.imposter,
+                    detective: gameState.detective,
+                    secretWord: gameState.secretWord,
+                    voteCounts,
+                    winner: mostVotedPlayer === gameState.imposter ? 'detectives' : 'imposter'
+                };
+
+                await database.ref(`rooms/${currentRoom}/gameState`).update({
+                    phase: 'results',
+                    results
+                });
+            } catch (error) {
+                showError('Failed to calculate results: ' + error.message);
+            }
+        }
+
+        function displayResults() {
+            const container = document.getElementById('game-results');
+            if (!container || !gameState.results) return;
+
+            const results = gameState.results;
+            const imposterName = gameState.players[results.imposter]?.name || 'Unknown';
+            const mostVotedName = gameState.players[results.mostVotedPlayer]?.name || 'Unknown';
+
+            container.innerHTML = `
+                <h3>🎉 Game Results</h3>
+                <p><strong>Secret Word:</strong> ${results.secretWord}</p>
+                <p><strong>The Imposter was:</strong> ${imposterName}</p>
+                <p><strong>Most Voted Player:</strong> ${mostVotedName}</p>
+                <p><strong>Winner:</strong> ${results.winner === 'detectives' ? '🕵️ Detectives' : '🥷 Imposter'}</p>
+                
+                <h4>Vote Results:</h4>
+                ${Object.entries(results.voteCounts).map(([playerId, count]) => 
+                    `<p>${gameState.players[playerId]?.name}: ${count} vote(s)</p>`
+                ).join('')}
+            `;
+        }
+
+        async function playAgain() {
+            try {
+                // Reset game state but keep players
+                const newGameState = {
+                    phase: 'clue-submission',
+                    players: gameState.players,
+                    detective: Object.keys(gameState.players)[Math.floor(Math.random() * Object.keys(gameState.players).length)],
+                    imposter: Object.keys(gameState.players)[Math.floor(Math.random() * Object.keys(gameState.players).length)],
+                    secretWord: secretWords[Math.floor(Math.random() * secretWords.length)],
+                    clues: {},
+                    votes: {},
+                    startedAt: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                await database.ref(`rooms/${currentRoom}/gameState`).set(newGameState);
+                showStatus('New game started!');
+            } catch (error) {
+                showError('Failed to start new game: ' + error.message);
+            }
+        }
+
+        async function leaveRoom() {
+            try {
+                if (currentRoom && currentPlayer) {
+                    await database.ref(`rooms/${currentRoom}/players/${currentPlayer.id}`).remove();
+                    
+                    // If no players left, delete the room
+                    const roomSnapshot = await database.ref(`rooms/${currentRoom}/players`).once('value');
+                    if (!roomSnapshot.exists() || Object.keys(roomSnapshot.val() || {}).length === 0) {
+                        await database.ref(`rooms/${currentRoom}`).remove();
+                    }
+                }
+                
+                currentRoom = null;
+                showHome();
+                showStatus('Left the room');
+            } catch (error) {
+                showError('Failed to leave room: ' + error.message);
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (currentRoom && currentPlayer) {
+                database.ref(`rooms/${currentRoom}/players/${currentPlayer.id}`).remove();
+            }
+        });
+    </script>
+</body>
+</html>
