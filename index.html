@@ -27,6 +27,7 @@
         <button class="nav-tab active" data-view="player">Player</button>
         <button class="nav-tab" data-view="search">Search</button>
         <button class="nav-tab" data-view="playlists">Playlists</button>
+        <button class="nav-tab" data-view="queue">Queue</button>
         <button class="nav-tab" data-view="settings">Settings</button>
       </div>
 
@@ -62,9 +63,11 @@
 
           <!-- Controls -->
           <div class="player-controls">
+            <button id="shuffle-btn" class="control-btn" onclick="musicPlayer.toggleShuffle()" title="Shuffle">🔀</button>
             <button id="prev-btn" class="control-btn">⏮</button>
             <button id="play-pause-btn" class="play-btn">▶️</button>
             <button id="next-btn" class="control-btn">⏭</button>
+            <button id="queue-btn" class="control-btn" onclick="musicPlayer.setActiveTab('queue')" title="View Queue">📋</button>
           </div>
 
           <!-- Upload and Add Options -->
@@ -103,12 +106,26 @@
         <!-- Playlists View -->
         <div id="playlists-view" class="view">
           <div class="playlist-header">
-            <select id="playlist-selector" class="playlist-selector">
+            <select id="playlist-selector" class="playlist-selector" title="Select playlist">
               <option value="">Select Playlist</option>
             </select>
             <button id="create-playlist-btn" class="create-playlist-btn">➕ Create New Playlist</button>
           </div>
           <div id="playlists-list" class="playlists-list scrollable"></div>
+        </div>
+
+        <!-- Queue View -->
+        <div id="queue-view" class="view">
+          <div class="queue-header">
+            <h3>🎵 Up Next (<span id="queue-count">0</span> songs)</h3>
+            <button id="clear-queue-btn" class="clear-queue-btn" onclick="musicPlayer.clearQueue()">🗑️ Clear Queue</button>
+          </div>
+          <div id="queue-content" class="queue-content scrollable">
+            <div class="empty-queue">
+              <p>🎵 Queue is empty</p>
+              <p class="queue-hint">Add songs from search to play them next</p>
+            </div>
+          </div>
         </div>
 
         <!-- Settings View -->

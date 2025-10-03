@@ -10,7 +10,7 @@ class MusicPlayer {
     this.duration = 0;
     this.volume = 1;
     this.isMuted = false;
-    this.activeTab = 'player';
+    this.activeTab = 'playlist';
     this.searchQuery = '';
     this.searchResults = [];
     this.isSearching = false;
@@ -18,6 +18,11 @@ class MusicPlayer {
     this.currentPlaylist = null;
     this.linkInput = '';
     this.currentEmbed = null;
+    this.queue = [];
+    this.isShuffleOn = false;
+    this.shuffledIndices = [];
+    this.showCreatePlaylist = false;
+    this.newPlaylistName = '';
     
     // API Configuration
     this.SPOTIFY_CLIENT_ID = "836517f7831341f3a342af90f5c1390e";
@@ -319,15 +324,43 @@ class MusicPlayer {
     if (!this.currentPlaylist || !this.playlists[this.currentPlaylist]) return;
     const list = this.playlists[this.currentPlaylist];
     if (list.length === 0) return;
-    const newIndex = (this.currentIndex - 1 + list.length) % list.length;
+    
+    let newIndex;
+    if (this.isShuffleOn && this.shuffledIndices.length > 0) {
+      const currentShufflePos = this.shuffledIndices.indexOf(this.currentIndex);
+      const prevShufflePos = (currentShufflePos - 1 + this.shuffledIndices.length) % this.shuffledIndices.length;
+      newIndex = this.shuffledIndices[prevShufflePos];
+    } else {
+      newIndex = (this.currentIndex - 1 + list.length) % list.length;
+    }
+    
     this.playTrack(newIndex);
   }
 
   handleNext() {
+    // Check if there are songs in the queue first
+    if (this.queue.length > 0) {
+      const nextTrack = this.queue[0];
+      this.queue = this.queue.slice(1); // Remove first item from queue
+      this.setCurrentTrack(nextTrack);
+      this.updateDisplay();
+      return;
+    }
+    
+    // Otherwise play next from playlist
     if (!this.currentPlaylist || !this.playlists[this.currentPlaylist]) return;
     const list = this.playlists[this.currentPlaylist];
     if (list.length === 0) return;
-    const newIndex = (this.currentIndex + 1) % list.length;
+    
+    let newIndex;
+    if (this.isShuffleOn && this.shuffledIndices.length > 0) {
+      const currentShufflePos = this.shuffledIndices.indexOf(this.currentIndex);
+      const nextShufflePos = (currentShufflePos + 1) % this.shuffledIndices.length;
+      newIndex = this.shuffledIndices[nextShufflePos];
+    } else {
+      newIndex = (this.currentIndex + 1) % list.length;
+    }
+    
     this.playTrack(newIndex);
   }
 
@@ -561,6 +594,82 @@ class MusicPlayer {
     this.updateDisplay();
   }
 
+  // New methods for enhanced functionality
+  toggleShuffle() {
+    if (!this.currentPlaylist || !this.playlists[this.currentPlaylist]) return;
+    
+    this.isShuffleOn = !this.isShuffleOn;
+    
+    if (this.isShuffleOn) {
+      // Generate shuffled indices
+      const indices = this.playlists[this.currentPlaylist].map((_, i) => i);
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      this.shuffledIndices = indices;
+    } else {
+      this.shuffledIndices = [];
+    }
+    
+    this.updateDisplay();
+  }
+
+  addToQueue(track) {
+    this.queue.push(track);
+    this.showNotification(`Added "${track.name}" to queue`);
+    this.updateDisplay();
+  }
+
+  addSearchResultToQueue(result) {
+    if (result.url === '#') {
+      this.showNotification('This is a demo result. Add your API keys to enable real search!');
+      return;
+    }
+    const newTrack = { name: result.name, type: result.type, url: result.url };
+    this.addToQueue(newTrack);
+  }
+
+  clearQueue() {
+    this.queue = [];
+    this.showNotification('Queue cleared');
+    this.updateDisplay();
+  }
+
+  removeFromQueue(index) {
+    this.queue = this.queue.filter((_, i) => i !== index);
+    this.updateDisplay();
+  }
+
+  setCurrentTrack(track) {
+    this.currentTrack = track;
+    this.cleanupEmbed();
+
+    if (track.type === 'local') {
+      if (this.audio) {
+        this.audio.src = track.url;
+        this.audio.play().then(() => {
+          this.isPlaying = true;
+          this.updateDisplay();
+        }).catch(e => {
+          console.log('Audio play failed:', e);
+          this.isPlaying = false;
+          this.updateDisplay();
+        });
+      }
+    } else {
+      this.currentEmbed = track;
+      this.isPlaying = true;
+    }
+  }
+
+  formatTime(seconds) {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
   loginSpotify() {
     const redirectUri = encodeURIComponent(window.location.origin);
     const scope = encodeURIComponent('user-read-private user-read-email playlist-read-private');
@@ -664,6 +773,12 @@ class MusicPlayer {
     if (playBtn) {
       playBtn.textContent = this.isPlaying ? '⏸️' : '▶️';
     }
+    
+    // Update shuffle button
+    const shuffleBtn = document.getElementById('shuffle-btn');
+    if (shuffleBtn) {
+      shuffleBtn.classList.toggle('active', this.isShuffleOn);
+    }
   }
 
   updatePlaylistSelector() {
@@ -681,56 +796,38 @@ class MusicPlayer {
   }
 
   updateQueueDisplay() {
-    const queueList = document.getElementById('queue-list');
+    // Update queue count in header
     const queueCount = document.getElementById('queue-count');
+    if (queueCount) {
+      queueCount.textContent = this.queue.length;
+    }
     
-    if (!queueList || !queueCount) return;
+    // Update queue content
+    const queueContent = document.getElementById('queue-content');
+    if (!queueContent) return;
     
-    const playlist = this.playlists[this.currentPlaylist] || [];
-    queueCount.textContent = playlist.length;
-    
-    if (playlist.length === 0) {
-      queueList.innerHTML = '<div class="empty-queue">No songs in queue</div>';
+    if (this.queue.length === 0) {
+      queueContent.innerHTML = `
+        <div class="empty-queue">
+          <p>🎵 Queue is empty</p>
+          <p class="queue-hint">Add songs from search to play them next</p>
+        </div>
+      `;
       return;
     }
     
-    queueList.innerHTML = playlist.map((track, index) => `
-      <div class="queue-item ${index === this.currentIndex ? 'current' : ''}" data-index="${index}">
+    queueContent.innerHTML = this.queue.map((track, index) => `
+      <div class="queue-item" data-index="${index}">
+        <div class="queue-position">${index + 1}</div>
         <div class="track-info">
           <div class="track-name">${track.name}</div>
           <div class="track-type">${track.type}</div>
         </div>
         <div class="queue-item-controls">
-          <button class="queue-control-btn play-track-btn" title="Play">▶</button>
-          <button class="queue-control-btn remove-track-btn" title="Remove">×</button>
+          <button class="queue-control-btn remove-queue-btn" onclick="musicPlayer.removeFromQueue(${index})" title="Remove from Queue">×</button>
         </div>
       </div>
     `).join('');
-    
-    // Add click handlers to queue items
-    queueList.querySelectorAll('.queue-item').forEach((item, index) => {
-      const playBtn = item.querySelector('.play-track-btn');
-      const removeBtn = item.querySelector('.remove-track-btn');
-      
-      if (playBtn) {
-        playBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.playTrack(index);
-        });
-      }
-      
-      if (removeBtn) {
-        removeBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.removeFromPlaylist(index);
-        });
-      }
-      
-      // Click on item to play
-      item.addEventListener('click', () => {
-        this.playTrack(index);
-      });
-    });
   }
 
   updatePlaylistDisplay() {
@@ -774,7 +871,10 @@ class MusicPlayer {
           <div class="platform">${result.platform}</div>
           <div class="track-name">${result.name}</div>
         </div>
-        <button class="add-btn" onclick="musicPlayer.addSearchResult(musicPlayer.searchResults[${index}])">Add</button>
+        <div class="result-actions">
+          <button class="add-btn" onclick="musicPlayer.addSearchResult(musicPlayer.searchResults[${index}])" title="Add to Playlist">Playlist</button>
+          <button class="queue-btn" onclick="musicPlayer.addSearchResultToQueue(musicPlayer.searchResults[${index}])" title="Add to Queue">Queue</button>
+        </div>
       </div>
     `).join('');
   }
