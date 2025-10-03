@@ -27,17 +27,19 @@ class GameMusicPlayer {
                 <div class="music-header" onclick="gameMusicPlayer.toggleMinimize()">
                     <div class="header-info">
                         <span class="music-icon">🎵</span>
-                        <span class="player-title">Music</span>
+                        <span class="player-title">Music Player</span>
                     </div>
                     <div class="header-controls">
-                        <button class="minimize-btn">−</button>
+                        <button class="minimize-btn">${this.isMinimized ? '+' : '−'}</button>
                     </div>
                 </div>
                 
                 <div class="music-content">
                     <div class="current-track">
+                        <div class="track-avatar">🎵</div>
                         <div class="track-info">
                             <div class="track-name">No music playing</div>
+                            <div class="track-artist">Select a track below</div>
                         </div>
                     </div>
                     
@@ -47,16 +49,43 @@ class GameMusicPlayer {
                         <button class="control-btn" onclick="gameMusicPlayer.nextTrack()">⏭</button>
                     </div>
                     
-                    <div class="volume-control">
-                        <span class="volume-icon">🔊</span>
-                        <input type="range" class="volume-slider" min="0" max="100" value="30" 
-                               onchange="gameMusicPlayer.setVolume(this.value)">
+                    <div class="volume-section">
+                        <div class="volume-control">
+                            <span class="volume-icon">🔊</span>
+                            <input type="range" class="volume-slider" min="0" max="100" value="30" 
+                                   onchange="gameMusicPlayer.setVolume(this.value)">
+                            <span class="volume-value">30%</span>
+                        </div>
                     </div>
                     
-                    <div class="track-list">
-                        <div class="track-item" onclick="gameMusicPlayer.playTrack(0)">🎵 Chill Vibes</div>
-                        <div class="track-item" onclick="gameMusicPlayer.playTrack(1)">🎮 Game Theme</div>
-                        <div class="track-item" onclick="gameMusicPlayer.playTrack(2)">😌 Relaxing</div>
+                    <div class="playlist-section">
+                        <div class="playlist-header">Now Playing</div>
+                        <div class="track-list">
+                            <div class="track-item" onclick="gameMusicPlayer.playTrack(0)">
+                                <div class="track-emoji">🎵</div>
+                                <div class="track-details">
+                                    <div class="track-title">Chill Vibes</div>
+                                    <div class="track-duration">Ambient • Looping</div>
+                                </div>
+                                <div class="track-status"></div>
+                            </div>
+                            <div class="track-item" onclick="gameMusicPlayer.playTrack(1)">
+                                <div class="track-emoji">🎮</div>
+                                <div class="track-details">
+                                    <div class="track-title">Game Theme</div>
+                                    <div class="track-duration">Electronic • Looping</div>
+                                </div>
+                                <div class="track-status"></div>
+                            </div>
+                            <div class="track-item" onclick="gameMusicPlayer.playTrack(2)">
+                                <div class="track-emoji">😌</div>
+                                <div class="track-details">
+                                    <div class="track-title">Relaxing</div>
+                                    <div class="track-duration">Peaceful • Looping</div>
+                                </div>
+                                <div class="track-status"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -65,15 +94,20 @@ class GameMusicPlayer {
                 .game-music-player {
                     position: fixed;
                     bottom: 20px;
-                    right: 20px;
-                    width: 300px;
-                    background: white;
-                    border-radius: 15px;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                    left: 20px;
+                    width: 350px;
+                    background: #2a2d3a;
+                    border-radius: 20px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
                     z-index: 1000;
-                    font-family: Arial, sans-serif;
-                    border: 2px solid #667eea;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    border: 1px solid #404555;
                     transition: all 0.3s ease;
+                    overflow: hidden;
+                }
+                
+                .game-music-player.minimized {
+                    width: 200px;
                 }
                 
                 .game-music-player.minimized .music-content {
@@ -84,75 +118,104 @@ class GameMusicPlayer {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding: 10px 15px;
+                    padding: 16px 20px;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     color: white;
-                    border-radius: 13px 13px 0 0;
                     cursor: pointer;
                     user-select: none;
+                    border-radius: 20px 20px 0 0;
                 }
                 
                 .header-info {
                     display: flex;
                     align-items: center;
-                    gap: 8px;
+                    gap: 10px;
                 }
                 
                 .music-icon {
-                    font-size: 1.2rem;
+                    font-size: 1.4rem;
                 }
                 
                 .player-title {
-                    font-weight: bold;
-                    font-size: 0.9rem;
+                    font-weight: 600;
+                    font-size: 1rem;
                 }
                 
                 .minimize-btn {
-                    background: none;
+                    background: rgba(255,255,255,0.2);
                     border: none;
                     color: white;
                     font-size: 1.2rem;
                     cursor: pointer;
-                    padding: 2px 6px;
-                    border-radius: 3px;
-                    transition: background 0.2s;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    transition: all 0.2s;
+                    font-weight: bold;
                 }
                 
                 .minimize-btn:hover {
-                    background: rgba(255,255,255,0.2);
+                    background: rgba(255,255,255,0.3);
+                    transform: scale(1.1);
                 }
                 
                 .music-content {
-                    padding: 15px;
+                    padding: 20px;
+                    color: white;
                 }
                 
                 .current-track {
-                    text-align: center;
-                    margin-bottom: 15px;
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    margin-bottom: 20px;
+                    padding: 15px;
+                    background: #363950;
+                    border-radius: 12px;
+                }
+                
+                .track-avatar {
+                    width: 50px;
+                    height: 50px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.5rem;
+                }
+                
+                .track-info {
+                    flex: 1;
                 }
                 
                 .track-name {
-                    font-weight: bold;
-                    color: #333;
-                    font-size: 0.9rem;
+                    font-weight: 600;
+                    font-size: 1rem;
+                    margin-bottom: 4px;
+                }
+                
+                .track-artist {
+                    font-size: 0.85rem;
+                    color: #a0a3bd;
                 }
                 
                 .player-controls {
                     display: flex;
                     justify-content: center;
-                    gap: 10px;
-                    margin-bottom: 15px;
+                    align-items: center;
+                    gap: 15px;
+                    margin-bottom: 20px;
                 }
                 
                 .control-btn, .play-btn {
-                    background: #667eea;
+                    background: #404555;
                     border: none;
                     color: white;
-                    width: 35px;
-                    height: 35px;
+                    width: 44px;
+                    height: 44px;
                     border-radius: 50%;
                     cursor: pointer;
-                    font-size: 1rem;
+                    font-size: 1.1rem;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -160,32 +223,45 @@ class GameMusicPlayer {
                 }
                 
                 .play-btn {
-                    width: 45px;
-                    height: 45px;
-                    font-size: 1.2rem;
+                    width: 54px;
+                    height: 54px;
+                    font-size: 1.3rem;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 }
                 
-                .control-btn:hover, .play-btn:hover {
-                    background: #764ba2;
+                .control-btn:hover {
+                    background: #4a4f67;
                     transform: scale(1.1);
+                }
+                
+                .play-btn:hover {
+                    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+                    transform: scale(1.1);
+                }
+                
+                .volume-section {
+                    margin-bottom: 20px;
                 }
                 
                 .volume-control {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                    margin-bottom: 15px;
+                    gap: 12px;
+                    padding: 12px 15px;
+                    background: #363950;
+                    border-radius: 10px;
                 }
                 
                 .volume-icon {
-                    font-size: 1rem;
+                    font-size: 1.1rem;
+                    color: #a0a3bd;
                 }
                 
                 .volume-slider {
                     flex: 1;
-                    height: 6px;
-                    border-radius: 3px;
-                    background: #e1e5e9;
+                    height: 4px;
+                    border-radius: 2px;
+                    background: #4a4f67;
                     outline: none;
                     -webkit-appearance: none;
                 }
@@ -197,55 +273,164 @@ class GameMusicPlayer {
                     background: #667eea;
                     border-radius: 50%;
                     cursor: pointer;
+                    transition: all 0.2s;
+                }
+                
+                .volume-slider::-webkit-slider-thumb:hover {
+                    background: #764ba2;
+                    transform: scale(1.2);
+                }
+                
+                .volume-value {
+                    font-size: 0.85rem;
+                    color: #a0a3bd;
+                    min-width: 35px;
+                    text-align: right;
+                }
+                
+                .playlist-section {
+                    border-top: 1px solid #404555;
+                    padding-top: 16px;
+                }
+                
+                .playlist-header {
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    color: #a0a3bd;
+                    margin-bottom: 12px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
                 }
                 
                 .track-list {
-                    max-height: 120px;
+                    max-height: 180px;
                     overflow-y: auto;
+                    scrollbar-width: thin;
+                    scrollbar-color: #667eea #363950;
+                }
+                
+                .track-list::-webkit-scrollbar {
+                    width: 6px;
+                }
+                
+                .track-list::-webkit-scrollbar-track {
+                    background: #363950;
+                    border-radius: 3px;
+                }
+                
+                .track-list::-webkit-scrollbar-thumb {
+                    background: #667eea;
+                    border-radius: 3px;
                 }
                 
                 .track-item {
-                    padding: 8px 12px;
-                    background: #f8f9fa;
-                    margin: 5px 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px;
                     border-radius: 8px;
                     cursor: pointer;
-                    font-size: 0.85rem;
                     transition: all 0.2s;
-                    border: 1px solid transparent;
+                    margin-bottom: 4px;
                 }
                 
                 .track-item:hover {
-                    background: #e1e5e9;
-                    border-color: #667eea;
+                    background: #404555;
                 }
                 
                 .track-item.active {
-                    background: #667eea;
-                    color: white;
+                    background: rgba(102, 126, 234, 0.2);
+                    border: 1px solid rgba(102, 126, 234, 0.3);
+                }
+                
+                .track-emoji {
+                    width: 36px;
+                    height: 36px;
+                    background: #404555;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                }
+                
+                .track-item.active .track-emoji {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                }
+                
+                .track-details {
+                    flex: 1;
+                }
+                
+                .track-title {
+                    font-weight: 500;
+                    font-size: 0.9rem;
+                    margin-bottom: 2px;
+                }
+                
+                .track-item.active .track-title {
+                    color: #667eea;
+                }
+                
+                .track-duration {
+                    font-size: 0.8rem;
+                    color: #a0a3bd;
+                }
+                
+                .track-status {
+                    width: 16px;
+                    height: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .track-item.active .track-status::before {
+                    content: '🎵';
+                    font-size: 0.8rem;
+                    animation: pulse 2s infinite;
+                }
+                
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
                 }
                 
                 @media (max-width: 768px) {
                     .game-music-player {
-                        width: 250px;
+                        width: 300px;
                         bottom: 10px;
-                        right: 10px;
+                        left: 10px;
+                    }
+                    
+                    .game-music-player.minimized {
+                        width: 180px;
                     }
                     
                     .music-content {
+                        padding: 16px;
+                    }
+                    
+                    .current-track {
                         padding: 12px;
                     }
                     
+                    .track-avatar {
+                        width: 40px;
+                        height: 40px;
+                        font-size: 1.2rem;
+                    }
+                    
                     .control-btn, .play-btn {
-                        width: 30px;
-                        height: 30px;
-                        font-size: 0.9rem;
+                        width: 40px;
+                        height: 40px;
+                        font-size: 1rem;
                     }
                     
                     .play-btn {
-                        width: 40px;
-                        height: 40px;
-                        font-size: 1.1rem;
+                        width: 48px;
+                        height: 48px;
+                        font-size: 1.2rem;
                     }
                 }
             </style>
@@ -281,6 +466,45 @@ class GameMusicPlayer {
             player.classList.remove('minimized');
             minimizeBtn.textContent = '−';
         }
+    }
+
+    setVolume(value) {
+        this.volume = value / 100;
+        this.audio.volume = this.volume;
+        
+        // Update volume display
+        const volumeValue = document.querySelector('.volume-value');
+        if (volumeValue) {
+            volumeValue.textContent = value + '%';
+        }
+        
+        if (this.audioContext) {
+            const gainNodes = this.audioContext.destination;
+            // Update volume for generated tones
+        }
+    }
+
+    updateTrackDisplay() {
+        const trackNameEl = document.querySelector('.track-name');
+        const trackArtistEl = document.querySelector('.track-artist');
+        
+        if (this.currentTrack !== null) {
+            trackNameEl.textContent = this.tracks[this.currentTrack].name;
+            trackArtistEl.textContent = 'Now Playing';
+        } else {
+            trackNameEl.textContent = 'No music playing';
+            trackArtistEl.textContent = 'Select a track below';
+        }
+    }
+
+    updateActiveTrack() {
+        document.querySelectorAll('.track-item').forEach((item, index) => {
+            if (index === this.currentTrack) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
     }
 
     togglePlay() {
@@ -361,35 +585,6 @@ class GameMusicPlayer {
     nextTrack() {
         const newIndex = this.currentTrack < this.tracks.length - 1 ? this.currentTrack + 1 : 0;
         this.playTrack(newIndex);
-    }
-
-    setVolume(value) {
-        this.volume = value / 100;
-        this.audio.volume = this.volume;
-        
-        if (this.audioContext) {
-            const gainNodes = this.audioContext.destination;
-            // Update volume for generated tones
-        }
-    }
-
-    updateTrackDisplay() {
-        const trackNameEl = document.querySelector('.track-name');
-        if (this.currentTrack !== null) {
-            trackNameEl.textContent = this.tracks[this.currentTrack].name;
-        } else {
-            trackNameEl.textContent = 'No music playing';
-        }
-    }
-
-    updateActiveTrack() {
-        document.querySelectorAll('.track-item').forEach((item, index) => {
-            if (index === this.currentTrack) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
     }
 }
 

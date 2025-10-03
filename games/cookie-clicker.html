@@ -318,6 +318,35 @@
             box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
         }
 
+        .activate-btn {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        .activate-btn:hover {
+            background: linear-gradient(45deg, #d97706, #b45309);
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(245, 158, 11, 0.4);
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+            }
+        }
+
         .progress-section {
             background: white;
             border-radius: 20px;
@@ -596,6 +625,38 @@
             }
         }
 
+        function activateUpgrade(upgradeId) {
+            const upgrade = upgrades.find(u => u.id === upgradeId);
+            if (!upgrade || upgrade.purchased < 5) return; // Need at least 5 owned to activate
+            
+            if (confirm(`Activate ${upgrade.name}? This will reset your ${upgrade.purchased} owned to 0 but give you a permanent boost!`)) {
+                // Give permanent effect based on upgrade type
+                switch(upgradeId) {
+                    case 1: // Double Click
+                        clickPower += upgrade.purchased * 2; // +2 permanent click power per owned
+                        break;
+                    case 2: // Auto Clicker
+                        autoClickers += Math.floor(upgrade.purchased / 2); // +1 permanent auto per 2 owned
+                        break;
+                    case 3: // Mega Click
+                        clickPower += upgrade.purchased * 5; // +5 permanent click power per owned
+                        break;
+                    case 4: // Super Auto Clicker
+                        autoClickers += upgrade.purchased; // +1 permanent auto per owned
+                        break;
+                }
+                
+                // Reset the upgrade count but keep permanent effects
+                upgrade.purchased = 0;
+                upgrade.cost = getInitialCost(upgradeId);
+                
+                updateDisplay();
+                renderUpgrades();
+                
+                alert(`${upgrade.name} activated! Permanent boost applied.`);
+            }
+        }
+
         function renderUpgrades() {
             const upgradeList = document.getElementById('upgrade-list');
             upgradeList.innerHTML = '';
@@ -648,6 +709,12 @@
                 // Show owned count if purchased
                 let ownedText = upgrade.purchased > 0 ? ` (${upgrade.purchased} owned)` : '';
                 
+                // Check if can activate (need 5+ owned and not Sigma Cookie)
+                let activateButton = '';
+                if (upgrade.purchased >= 5 && upgrade.id !== 5) {
+                    activateButton = `<button class="activate-btn" onclick="event.stopPropagation(); activateUpgrade(${upgrade.id})">⚡ Activate</button>`;
+                }
+                
                 upgradeDiv.innerHTML = `
                     <div class="upgrade-content">
                         <div class="upgrade-icon">${upgrade.icon}</div>
@@ -661,6 +728,7 @@
                                 </div>
                             </div>
                             <div class="upgrade-description">${upgrade.description}</div>
+                            ${activateButton}
                         </div>
                     </div>
                 `;
