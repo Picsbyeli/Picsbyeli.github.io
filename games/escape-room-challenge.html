@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔐 Escape Room Challenge</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 700px;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+      animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .theme-card, .mode-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .theme-card:hover, .mode-card:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateX(10px);
+      border-color: #4CAF50;
+    }
+
+    .theme-card h3, .mode-card h3 {
+      margin-bottom: 10px;
+      color: #4CAF50;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .timer {
+      font-size: 2em;
+      text-align: center;
+      margin: 20px 0;
+      color: #4CAF50;
+      font-weight: bold;
+    }
+
+    .timer.warning {
+      color: #ff9800;
+      animation: pulse 1s infinite;
+    }
+
+    .timer.danger {
+      color: #f44336;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 16px;
+    }
+
+    input[type="text"]::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .puzzle {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .message {
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .message.success {
+      background: rgba(76, 175, 80, 0.3);
+      border: 2px solid #4CAF50;
+    }
+
+    .message.error {
+      background: rgba(244, 67, 54, 0.3);
+      border: 2px solid #f44336;
+    }
+
+    .progress {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 1.2em;
+    }
+
+    .leaderboard {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .leaderboard-entry {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rank {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #FFD700;
+      min-width: 40px;
+    }
+
+    .cipher-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .cipher-button {
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1.2em;
+    }
+
+    .cipher-button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .cipher-button.selected {
+      background: rgba(76, 175, 80, 0.3);
+      border-color: #4CAF50;
+    }
+
+    .hint-box {
+      background: rgba(255, 193, 7, 0.2);
+      border: 2px solid #FFC107;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 1000;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Hub</button>
+
+  <div class="container">
+    <h1>🔐 Escape Room Challenge</h1>
+
+    <!-- Main Menu -->
+    <div id="mainMenu" class="screen active">
+      <h2 style="text-align: center; margin-bottom: 20px;">Main Menu</h2>
+      <div class="button-group">
+        <button onclick="showThemeSelect()">🎮 Start New Game</button>
+        <button onclick="showLeaderboard()">🏆 View Best Times</button>
+        <button onclick="showInstructions()">📖 How to Play</button>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div id="instructions" class="screen">
+      <h2>📖 How to Play</h2>
+      <div class="puzzle">
+        <p style="line-height: 1.8;">
+          Welcome to Escape Room Challenge! Choose a theme and difficulty mode, then solve puzzles to escape before time runs out.
+          <br><br>
+          <strong>Tips:</strong><br>
+          • Read clues carefully<br>
+          • Use hints if you're stuck (adds time penalty)<br>
+          • Faster completion = better score<br>
+          • Each theme has unique puzzles<br>
+        </p>
+      </div>
+      <button onclick="showMainMenu()">Back to Menu</button>
+    </div>
+
+    <!-- Theme Selection -->
+    <div id="themeSelect" class="screen">
+      <h2>Choose Your Theme</h2>
+      
+      <div class="theme-card" onclick="selectTheme('digital')">
+        <h3>🔒 The Digital Heist</h3>
+        <p>Trapped in a virtual vault after a heist gone wrong. Hack your way out!</p>
+      </div>
+
+      <div class="theme-card" onclick="selectTheme('castle')">
+        <h3>🏰 The Cursed Castle</h3>
+        <p>Escape an ancient medieval castle before the vengeful spirit returns at midnight.</p>
+      </div>
+
+      <div class="theme-card" onclick="selectTheme('space')">
+        <h3>🚀 Abandoned Space Station</h3>
+        <p>The AI has gone rogue. Override security and reach the escape pods!</p>
+      </div>
+
+      <div class="theme-card" onclick="selectTheme('theater')">
+        <h3>🎭 Theater of Illusions</h3>
+        <p>See through the magician's tricks to escape before the final curtain falls.</p>
+      </div>
+
+      <button onclick="showMainMenu()">Back</button>
+    </div>
+
+    <!-- Mode Selection -->
+    <div id="modeSelect" class="screen">
+      <h2>Choose Difficulty</h2>
+      
+      <div class="mode-card" onclick="selectMode('easy')">
+        <h3>🟢 Easy Mode</h3>
+        <p>45 minutes • 3 puzzles • Unlimited hints</p>
+      </div>
+
+      <div class="mode-card" onclick="selectMode('medium')">
+        <h3>🟡 Medium Mode</h3>
+        <p>30 minutes • 4 puzzles • 3 hints available</p>
+      </div>
+
+      <div class="mode-card" onclick="selectMode('hard')">
+        <h3>🔴 Hard Mode</h3>
+        <p>20 minutes • 5 puzzles • 1 hint only</p>
+      </div>
+
+      <button onclick="showThemeSelect()">Back</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+      <div class="timer" id="timer">⏱️ 30:00</div>
+      <div class="progress" id="progress">Puzzle 1 of 4</div>
+      
+      <div id="puzzleContainer"></div>
+      
+      <div class="button-group">
+        <button onclick="useHint()" id="hintBtn">💡 Get Hint</button>
+        <button onclick="quitGame()">❌ Quit Game</button>
+      </div>
+
+      <div id="messageBox"></div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victoryScreen" class="screen">
+      <h2 style="text-align: center; color: #4CAF50;">🎉 Congratulations!</h2>
+      <div class="message success">
+        <div id="victoryMessage"></div>
+      </div>
+      <div class="button-group">
+        <button onclick="showThemeSelect()">Play Again</button>
+        <button onclick="showLeaderboard()">View Leaderboard</button>
+        <button onclick="showMainMenu()">Main Menu</button>
+      </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="screen">
+      <h2 style="text-align: center; color: #f44336;">⏰ Time's Up!</h2>
+      <div class="message error">
+        <p>You ran out of time! Better luck next time.</p>
+      </div>
+      <div class="button-group">
+        <button onclick="showThemeSelect()">Try Again</button>
+        <button onclick="showMainMenu()">Main Menu</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboard" class="screen">
+      <h2>🏆 Best Times</h2>
+      <div id="leaderboardContent" class="leaderboard"></div>
+      <button onclick="showMainMenu()">Back to Menu</button>
+    </div>
+  </div>
+
+  <script>
+    let gameState = {
+      theme: null,
+      mode: null,
+      currentPuzzle: 0,
+      timeLeft: 0,
+      timerInterval: null,
+      hintsUsed: 0,
+      maxHints: 0,
+      totalPuzzles: 0,
+      startTime: 0,
+      currentHintIndex: 0
+    };
+
+    const themes = {
+      digital: {
+        name: 'The Digital Heist',
+        icon: '🔒',
+        puzzles: [
+          {
+            title: 'Password Breach',
+            clue: 'The password is a 4-digit number. First digit: days in a week. Second: sides on a triangle. Third: letters in "cat". Fourth: wheels on a car.',
+            answer: '7334',
+            hints: [
+              'Think about common numbers: 7 days, 3 sides, 3 letters, 4 wheels',
+              'Break it down: Week=7, Triangle=3, Cat=3, Car=4',
+              'The answer is 7334'
+            ]
+          },
+          {
+            title: 'Binary Lock',
+            clue: 'Convert this binary to decimal: 1010',
+            answer: '10',
+            hints: [
+              '1010 in binary = 8+0+2+0',
+              'Start from the right: 0×1 + 1×2 + 0×4 + 1×8',
+              'Add them up: 8 + 2 = 10'
+            ]
+          },
+          {
+            title: 'Cipher Code',
+            clue: 'Caesar cipher (shift 3): HVFDSH',
+            answer: 'escape',
+            hints: [
+              'Shift each letter back by 3 positions in the alphabet',
+              'H becomes E, V becomes S, F becomes C...',
+              'The word is ESCAPE'
+            ]
+          },
+          {
+            title: 'System Override',
+            clue: 'What comes next? 2, 4, 8, 16, __',
+            answer: '32',
+            hints: [
+              'Each number doubles',
+              '2×2=4, 4×2=8, 8×2=16, so 16×2=?',
+              'The answer is 32'
+            ]
+          },
+          {
+            title: 'Final Firewall',
+            clue: 'Prime numbers between 10 and 20, added together',
+            answer: '60',
+            hints: [
+              'Primes between 10 and 20: 11, 13, 17, 19',
+              'Add them: 11 + 13 + 17 + 19',
+              'Total equals 60'
+            ]
+          }
+        ]
+      },
+      castle: {
+        name: 'The Cursed Castle',
+        icon: '🏰',
+        puzzles: [
+          {
+            title: 'The Rune Lock',
+            clue: 'A king wears it upon his head',
+            answer: 'crown',
+            hints: [
+              'It\'s made of gold and jewels',
+              'Royalty wears it during ceremonies',
+              'The answer is CROWN'
+            ]
+          },
+          {
+            title: 'Knight\'s Code',
+            clue: 'How many knights sit at the round table in legend?',
+            answer: '12',
+            hints: [
+              'Think of the most famous medieval legend',
+              'King Arthur\'s legendary table',
+              'There were 12 knights'
+            ]
+          },
+          {
+            title: 'Potion Formula',
+            clue: 'Mix: Dragon + Fire = ? (Think of a mythical creature)',
+            answer: 'phoenix',
+            hints: [
+              'A bird that rises from ashes',
+              'It\'s reborn from flames',
+              'The answer is PHOENIX'
+            ]
+          },
+          {
+            title: 'Ancient Riddle',
+            clue: 'I have cities but no houses, forests but no trees, water but no fish. What am I?',
+            answer: 'map',
+            hints: [
+              'You use it to find your way',
+              'It shows places but isn\'t a real place',
+              'The answer is MAP'
+            ]
+          },
+          {
+            title: 'The Final Seal',
+            clue: 'The opposite of death in one word',
+            answer: 'life',
+            hints: [
+              'Four letters, starts with L',
+              'What keeps us living and breathing',
+              'The answer is LIFE'
+            ]
+          }
+        ]
+      },
+      space: {
+        name: 'Abandoned Space Station',
+        icon: '🚀',
+        puzzles: [
+          {
+            title: 'Airlock Access',
+            clue: 'Planets from the sun: Mercury, Venus, Earth, __, Jupiter',
+            answer: 'mars',
+            hints: [
+              'The red planet',
+              'Fourth planet from the sun',
+              'The answer is MARS'
+            ]
+          },
+          {
+            title: 'Navigation System',
+            clue: 'How many moons does Earth have?',
+            answer: '1',
+            hints: [
+              'You can see it at night',
+              'It\'s called "the Moon"',
+              'Earth has only 1 moon'
+            ]
+          },
+          {
+            title: 'Oxygen Control',
+            clue: 'Chemical symbol for oxygen',
+            answer: 'o2',
+            hints: [
+              'The element symbol followed by a number',
+              'O is oxygen, and we breathe it as a pair',
+              'The answer is O2'
+            ]
+          },
+          {
+            title: 'Star Map',
+            clue: 'The closest star to Earth',
+            answer: 'sun',
+            hints: [
+              'You see it every day',
+              'It\'s at the center of our solar system',
+              'The answer is SUN'
+            ]
+          },
+          {
+            title: 'Escape Pod Launch',
+            clue: 'Speed of light is 300,000 km per __',
+            answer: 'second',
+            hints: [
+              'A unit of time',
+              'There are 60 of these in a minute',
+              'The answer is SECOND'
+            ]
+          }
+        ]
+      },
+      theater: {
+        name: 'Theater of Illusions',
+        icon: '🎭',
+        puzzles: [
+          {
+            title: 'Card Trick',
+            clue: 'How many cards in a standard deck?',
+            answer: '52',
+            hints: [
+              '4 suits times 13 cards each',
+              'Hearts, Diamonds, Clubs, Spades - each has 13 cards',
+              'The answer is 52'
+            ]
+          },
+          {
+            title: 'Mirror Maze',
+            clue: 'What word becomes shorter when you add letters to it?',
+            answer: 'short',
+            hints: [
+              'Add "er" to the answer',
+              'Think literally about the word itself',
+              'The answer is SHORT (becomes "shorter")'
+            ]
+          },
+          {
+            title: 'Stage Props',
+            clue: 'How many acts in a typical play?',
+            answer: '3',
+            hints: [
+              'Beginning, middle, end',
+              'Classic story structure',
+              'Most plays have 3 acts'
+            ]
+          },
+          {
+            title: 'Magician\'s Box',
+            clue: 'What disappears the moment you say its name?',
+            answer: 'silence',
+            hints: [
+              'Once you speak, it\'s gone',
+              'The absence of sound',
+              'The answer is SILENCE'
+            ]
+          },
+          {
+            title: 'Final Curtain',
+            clue: 'The show must go __',
+            answer: 'on',
+            hints: [
+              'Two letters, a common phrase',
+              'Famous theater saying about continuing',
+              'The answer is ON'
+            ]
+          }
+        ]
+      }
+    };
+
+    const modeSettings = {
+      easy: { time: 45 * 60, puzzles: 3, hints: 999 },
+      medium: { time: 30 * 60, puzzles: 4, hints: 3 },
+      hard: { time: 20 * 60, puzzles: 5, hints: 1 }
+    };
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    function showMainMenu() {
+      showScreen('mainMenu');
+    }
+
+    function showThemeSelect() {
+      showScreen('themeSelect');
+    }
+
+    function showInstructions() {
+      showScreen('instructions');
+    }
+
+    function selectTheme(theme) {
+      gameState.theme = theme;
+      showScreen('modeSelect');
+    }
+
+    function selectMode(mode) {
+      gameState.mode = mode;
+      startGame();
+    }
+
+    function startGame() {
+      const settings = modeSettings[gameState.mode];
+      gameState.currentPuzzle = 0;
+      gameState.timeLeft = settings.time;
+      gameState.hintsUsed = 0;
+      gameState.maxHints = settings.hints;
+      gameState.totalPuzzles = settings.puzzles;
+      gameState.startTime = Date.now();
+
+      showScreen('gameScreen');
+      loadPuzzle();
+      startTimer();
+    }
+
+    function startTimer() {
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+      
+      gameState.timerInterval = setInterval(() => {
+        gameState.timeLeft--;
+        updateTimerDisplay();
+
+        if (gameState.timeLeft <= 0) {
+          endGame(false);
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(gameState.timeLeft / 60);
+      const secs = gameState.timeLeft % 60;
+      const display = `⏱️ ${mins}:${secs.toString().padStart(2, '0')}`;
+      const timerEl = document.getElementById('timer');
+      timerEl.textContent = display;
+
+      timerEl.classList.remove('warning', 'danger');
+      if (gameState.timeLeft <= 60) {
+        timerEl.classList.add('danger');
+      } else if (gameState.timeLeft <= 180) {
+        timerEl.classList.add('warning');
+      }
+    }
+
+    function loadPuzzle() {
+      const theme = themes[gameState.theme];
+      const puzzle = theme.puzzles[gameState.currentPuzzle];
+      
+      gameState.currentHintIndex = 0;
+      
+      document.getElementById('progress').textContent = 
+        `Puzzle ${gameState.currentPuzzle + 1} of ${gameState.totalPuzzles}`;
+
+      const container = document.getElementById('puzzleContainer');
+      container.innerHTML = `
+        <div class="puzzle">
+          <h2>${theme.icon} ${puzzle.title}</h2>
+          <p style="font-size: 1.1em; line-height: 1.6; margin: 15px 0;">
+            ${puzzle.clue}
+          </p>
+          <input type="text" id="puzzleAnswer" placeholder="Enter your answer..." 
+                 onkeypress="if(event.key==='Enter') checkAnswer()">
+          <button onclick="checkAnswer()">Submit Answer</button>
+        </div>
+      `;
+
+      document.getElementById('messageBox').innerHTML = '';
+      document.getElementById('puzzleAnswer').focus();
+
+      const hintBtn = document.getElementById('hintBtn');
+      if (gameState.hintsUsed >= gameState.maxHints) {
+        hintBtn.disabled = true;
+        hintBtn.textContent = '💡 No Hints Left';
+      } else {
+        hintBtn.disabled = false;
+        hintBtn.textContent = `💡 Get Hint (${gameState.maxHints - gameState.hintsUsed} left)`;
+      }
+    }
+
+    function checkAnswer() {
+      const theme = themes[gameState.theme];
+      const puzzle = theme.puzzles[gameState.currentPuzzle];
+      const input = document.getElementById('puzzleAnswer').value.toLowerCase().trim();
+      const answer = puzzle.answer.toLowerCase();
+
+      const messageBox = document.getElementById('messageBox');
+
+      if (input === answer) {
+        messageBox.innerHTML = '<div class="message success">✅ Correct! Moving to next puzzle...</div>';
+        
+        setTimeout(() => {
+          gameState.currentPuzzle++;
+          if (gameState.currentPuzzle >= gameState.totalPuzzles) {
+            endGame(true);
+          } else {
+            loadPuzzle();
+          }
+        }, 1500);
+      } else {
+        messageBox.innerHTML = '<div class="message error">❌ Incorrect. Try again!</div>';
+        setTimeout(() => {
+          messageBox.innerHTML = '';
+        }, 2000);
+      }
+    }
+
+    function useHint() {
+      const theme = themes[gameState.theme];
+      const puzzle = theme.puzzles[gameState.currentPuzzle];
+      
+      if (gameState.currentHintIndex >= puzzle.hints.length) {
+        const messageBox = document.getElementById('messageBox');
+        messageBox.innerHTML = `
+          <div class="hint-box">
+            💡 No more hints available for this puzzle!
+          </div>
+        `;
+        return;
+      }
+
+      if (gameState.hintsUsed >= gameState.maxHints) {
+        const messageBox = document.getElementById('messageBox');
+        messageBox.innerHTML = `
+          <div class="hint-box">
+            💡 You've used all your hints for this game!
+          </div>
+        `;
+        return;
+      }
+
+      const currentHint = puzzle.hints[gameState.currentHintIndex];
+      gameState.currentHintIndex++;
+      gameState.hintsUsed++;
+      gameState.timeLeft -= 120;
+
+      const messageBox = document.getElementById('messageBox');
+      messageBox.innerHTML = `
+        <div class="hint-box">
+          💡 Hint ${gameState.currentHintIndex}: ${currentHint}
+          <br><small>(Time penalty: -2 minutes)</small>
+        </div>
+      `;
+
+      const hintBtn = document.getElementById('hintBtn');
+      if (gameState.hintsUsed >= gameState.maxHints) {
+        hintBtn.disabled = true;
+        hintBtn.textContent = '💡 No Hints Left';
+      } else if (gameState.currentHintIndex >= puzzle.hints.length) {
+        hintBtn.textContent = `💡 Get Hint (${gameState.maxHints - gameState.hintsUsed} left)`;
+      } else {
+        hintBtn.textContent = `💡 Get Hint (${gameState.maxHints - gameState.hintsUsed} left)`;
+      }
+    }
+
+    function endGame(won) {
+      clearInterval(gameState.timerInterval);
+
+      if (won) {
+        const timeTaken = modeSettings[gameState.mode].time - gameState.timeLeft;
+        const mins = Math.floor(timeTaken / 60);
+        const secs = timeTaken % 60;
+
+        saveTime(timeTaken);
+
+        document.getElementById('victoryMessage').innerHTML = `
+          You escaped from <strong>${themes[gameState.theme].name}</strong>!<br>
+          <strong>Time:</strong> ${mins}:${secs.toString().padStart(2, '0')}<br>
+          <strong>Difficulty:</strong> ${gameState.mode.charAt(0).toUpperCase() + gameState.mode.slice(1)}<br>
+          <strong>Hints Used:</strong> ${gameState.hintsUsed}
+        `;
+        showScreen('victoryScreen');
+      } else {
+        showScreen('gameOverScreen');
+      }
+    }
+
+    function quitGame() {
+      if (confirm('Are you sure you want to quit?')) {
+        clearInterval(gameState.timerInterval);
+        showMainMenu();
+      }
+    }
+
+    function saveTime(time) {
+      const key = `${gameState.theme}_${gameState.mode}`;
+      const times = JSON.parse(localStorage.getItem('escapeTimes') || '{}');
+      
+      if (!times[key]) times[key] = [];
+      
+      times[key].push({
+        time: time,
+        date: new Date().toLocaleDateString(),
+        hints: gameState.hintsUsed
+      });
+
+      times[key].sort((a, b) => a.time - b.time);
+      times[key] = times[key].slice(0, 10);
+
+      localStorage.setItem('escapeTimes', JSON.stringify(times));
+    }
+
+    function showLeaderboard() {
+      const times = JSON.parse(localStorage.getItem('escapeTimes') || '{}');
+      const content = document.getElementById('leaderboardContent');
+      
+      let html = '';
+      
+      Object.keys(themes).forEach(themeKey => {
+        Object.keys(modeSettings).forEach(modeKey => {
+          const key = `${themeKey}_${modeKey}`;
+          const records = times[key];
+          
+          if (records && records.length > 0) {
+            html += `
+              <h3 style="margin-top: 20px; color: #4CAF50;">
+                ${themes[themeKey].icon} ${themes[themeKey].name} - ${modeKey.charAt(0).toUpperCase() + modeKey.slice(1)}
+              </h3>
+            `;
+            
+            records.forEach((record, index) => {
+              const mins = Math.floor(record.time / 60);
+              const secs = record.time % 60;
+              html += `
+                <div class="leaderboard-entry">
+                  <span class="rank">#${index + 1}</span>
+                  <div>
+                    <div><strong>${mins}:${secs.toString().padStart(2, '0')}</strong></div>
+                    <small>${record.date} • ${record.hints} hints</small>
+                  </div>
+                </div>
+              `;
+            });
+          }
+        });
+      });
+
+      if (html === '') {
+        html = '<p style="text-align: center; padding: 40px;">No times recorded yet. Play some games!</p>';
+      }
+
+      content.innerHTML = html;
+      showScreen('leaderboard');
+    }
+  </script>
+</body>
+</html>

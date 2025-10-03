@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Gaming Hub</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Leaderboard-specific styles */
+        .leaderboard-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B73FF 100%);
+            padding: 2rem 1rem;
+        }
+
+        .leaderboard-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .leaderboard-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header-title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .header-title h1 {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: white;
+            margin: 0;
+        }
+
+        .trophy-icon {
+            width: 3rem;
+            height: 3rem;
+            color: #FFD700;
+        }
+
+        .header-subtitle {
+            color: #E3F2FD;
+            font-size: 1.2rem;
+        }
+
+        .game-selector {
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .game-buttons {
+            display: flex;
+            gap: 0.5rem;
+            min-width: max-content;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-btn {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .game-btn.active {
+            background: #FFD700;
+            color: #1A237E;
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+            transform: scale(1.05);
+        }
+
+        .game-btn:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-btn:not(.active):hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .leaderboard-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .leaderboard-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .leaderboard-title svg {
+            color: #FFD700;
+        }
+
+        .scores-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .score-entry {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .score-entry.first-place {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 193, 7, 0.2));
+            border: 2px solid #FFD700;
+        }
+
+        .score-entry:not(.first-place) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .score-entry:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .medal-icon {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rank-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            width: 2rem;
+            text-align: center;
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .player-games {
+            font-size: 0.875rem;
+            color: #E3F2FD;
+        }
+
+        .score-display {
+            text-align: right;
+        }
+
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .score-date {
+            font-size: 0.75rem;
+            color: #E3F2FD;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+        }
+
+        .empty-icon {
+            width: 4rem;
+            height: 4rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin: 0 auto 1rem;
+        }
+
+        .empty-title {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-subtitle {
+            font-size: 0.875rem;
+            color: #E3F2FD;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value.yellow { color: #FFD700; }
+        .stat-value.green { color: #4CAF50; }
+        .stat-value.blue { color: #2196F3; }
+
+        .stat-label {
+            color: white;
+            font-size: 1rem;
+        }
+
+        .integration-info {
+            background: rgba(33, 150, 243, 0.1);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .integration-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .integration-content {
+            color: #E3F2FD;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .integration-content p {
+            margin-bottom: 0.5rem;
+        }
+
+        .integration-content strong {
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .leaderboard-container {
+                padding: 1rem 0.5rem;
+            }
+
+            .header-title h1 {
+                font-size: 2.5rem;
+            }
+
+            .trophy-icon {
+                width: 2rem;
+                height: 2rem;
+            }
+
+            .game-buttons {
+                justify-content: flex-start;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 0.5rem;
+            }
+
+            .leaderboard-card {
+                padding: 1.5rem;
+            }
+
+            .score-entry {
+                gap: 0.75rem;
+                padding: 0.75rem;
+            }
+
+            .player-name {
+                font-size: 1.1rem;
+            }
+
+            .score-value {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="leaderboard-container">
+        <div class="leaderboard-content">
+            <!-- Header -->
+            <div class="leaderboard-header">
+                <div class="header-title">
+                    <svg class="trophy-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20.5C20.78 4 21 4.22 21 4.5S20.78 5 20.5 5H19V17C19 18.1 18.1 19 17 19H7C5.9 19 5 18.1 5 17V5H3.5C3.22 5 3 4.78 3 4.5S3.22 4 3.5 4H7ZM16 17V5H8V17H16ZM9 6H15V7H9V6ZM9 8H15V9H9V8ZM9 10H15V11H9V10Z"/>
+                    </svg>
+                    <h1>Leaderboard</h1>
+                    <svg class="trophy-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20.5C20.78 4 21 4.22 21 4.5S20.78 5 20.5 5H19V17C19 18.1 18.1 19 17 19H7C5.9 19 5 18.1 5 17V5H3.5C3.22 5 3 4.78 3 4.5S3.22 4 3.5 4H7ZM16 17V5H8V17H16ZM9 6H15V7H9V6ZM9 8H15V9H9V8ZM9 10H15V11H9V10Z"/>
+                    </svg>
+                </div>
+                <p class="header-subtitle">Top Players & High Scores</p>
+            </div>
+
+            <!-- Game Selector -->
+            <div class="game-selector">
+                <div class="game-buttons" id="game-buttons">
+                    <!-- Buttons will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Leaderboard Card -->
+            <div class="leaderboard-card">
+                <h2 class="leaderboard-title" id="leaderboard-title">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20.5C20.78 4 21 4.22 21 4.5S20.78 5 20.5 5H19V17C19 18.1 18.1 19 17 19H7C5.9 19 5 18.1 5 17V5H3.5C3.22 5 3 4.78 3 4.5S3.22 4 3.5 4H7ZM16 17V5H8V17H16ZM9 6H15V7H9V6ZM9 8H15V9H9V8ZM9 10H15V11H9V10Z"/>
+                    </svg>
+                    Overall Top Scorers
+                </h2>
+
+                <div class="scores-list" id="scores-list">
+                    <!-- Scores will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Stats Summary (Overall view only) -->
+            <div class="stats-grid" id="stats-grid" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-value yellow" id="total-games">34</div>
+                    <div class="stat-label">Total Games</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value green" id="total-scores">0</div>
+                    <div class="stat-label">Total Scores</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value blue" id="top-player">None Yet</div>
+                    <div class="stat-label">Top Player</div>
+                </div>
+            </div>
+
+            <!-- Integration Info -->
+            <div class="integration-info">
+                <div class="integration-title">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20.5C20.78 4 21 4.22 21 4.5S20.78 5 20.5 5H19V17C19 18.1 18.1 19 17 19H7C5.9 19 5 18.1 5 17V5H3.5C3.22 5 3 4.78 3 4.5S3.22 4 3.5 4H7ZM16 17V5H8V17H16ZM9 6H15V7H9V6ZM9 8H15V9H9V8ZM9 10H15V11H9V10Z"/>
+                    </svg>
+                    Integration Guide
+                </div>
+                <div class="integration-content">
+                    <p><strong>Data Structure:</strong> Scores are stored per game with username, score, and date</p>
+                    <p><strong>Required:</strong> User authentication system (login/signup)</p>
+                    <p><strong>API Endpoint:</strong> Connect to your backend at the loadScores function to fetch real scores</p>
+                    <p><strong>Scoring:</strong> Each game should POST scores to your API when users complete them</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Leaderboard functionality
+        const leaderboardApp = {
+            selectedGame: 'Overall',
+            scores: {},
+            
+            // List of all games
+            allGames: [
+                'Brain Riddles', 'Trivia', 'Emoji Guess', 'Word Game', 
+                'Chess & Checkers', 'Connect 4', 'Imposter', 'School Trivia',
+                'Tic-Tac-Toe', 'Rock Paper Scissors', 'Guess the Number', 
+                'Memory Cards', 'Snake', 'Word Scramble', 'Hangman',
+                'Reaction Timer', 'Whack-a-Mole', 'Cookie Clicker', '2048',
+                'Lights Out', 'Brick Breaker', 'Mini Sudoku', 'Pong',
+                'Counting Game', 'Dodge Game', 'Typing Speed', 'Flappy Helicopter',
+                'Color Dash', 'Quick Draw Duel', 'Tower Balance', 'Mini Battle Arena',
+                'Escape Room Challenge', 'Digital Sketchbook'
+            ],
+
+            init() {
+                this.games = ['Overall', ...this.allGames];
+                this.renderGameButtons();
+                this.loadScores();
+                this.renderLeaderboard();
+            },
+
+            renderGameButtons() {
+                const container = document.getElementById('game-buttons');
+                container.innerHTML = '';
+
+                this.games.forEach(game => {
+                    const button = document.createElement('button');
+                    button.className = `game-btn ${game === this.selectedGame ? 'active' : ''}`;
+                    button.textContent = game;
+                    button.onclick = () => this.selectGame(game);
+                    container.appendChild(button);
+                });
+            },
+
+            selectGame(game) {
+                this.selectedGame = game;
+                this.renderGameButtons();
+                this.renderLeaderboard();
+            },
+
+            async loadScores() {
+                try {
+                    // In production, this would fetch from your backend API
+                    // const response = await fetch('/api/leaderboard');
+                    // this.scores = await response.json();
+                    
+                    // For now, start with empty scores - will be populated by real user data
+                    this.scores = {};
+                    
+                    this.renderLeaderboard();
+                } catch (error) {
+                    console.error('Failed to load scores:', error);
+                    this.scores = {};
+                    this.renderLeaderboard();
+                }
+            },
+
+            getOverallLeaderboard() {
+                if (Object.keys(this.scores).length === 0) return [];
+                
+                const playerTotals = {};
+                
+                Object.entries(this.scores).forEach(([game, gameScores]) => {
+                    gameScores.forEach(entry => {
+                        if (!playerTotals[entry.username]) {
+                            playerTotals[entry.username] = { total: 0, games: 0 };
+                        }
+                        playerTotals[entry.username].total += entry.score;
+                        playerTotals[entry.username].games += 1;
+                    });
+                });
+
+                return Object.entries(playerTotals)
+                    .map(([username, data]) => ({
+                        username,
+                        score: data.total,
+                        games: data.games
+                    }))
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 5);
+            },
+
+            getMedalIcon(index) {
+                const icons = {
+                    0: '🏆', // Trophy
+                    1: '🥈', // Silver medal
+                    2: '🥉', // Bronze medal
+                };
+                return icons[index] || '⭐';
+            },
+
+            renderLeaderboard() {
+                const titleEl = document.getElementById('leaderboard-title');
+                const scoresEl = document.getElementById('scores-list');
+                const statsEl = document.getElementById('stats-grid');
+
+                // Update title
+                const titleText = this.selectedGame === 'Overall' 
+                    ? 'Overall Top Scorers' 
+                    : `${this.selectedGame} - Top 5`;
+                titleEl.innerHTML = `
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20.5C20.78 4 21 4.22 21 4.5S20.78 5 20.5 5H19V17C19 18.1 18.1 19 17 19H7C5.9 19 5 18.1 5 17V5H3.5C3.22 5 3 4.78 3 4.5S3.22 4 3.5 4H7ZM16 17V5H8V17H16ZM9 6H15V7H9V6ZM9 8H15V9H9V8ZM9 10H15V11H9V10Z"/>
+                    </svg>
+                    ${titleText}
+                `;
+
+                // Get display scores
+                const displayScores = this.selectedGame === 'Overall' 
+                    ? this.getOverallLeaderboard() 
+                    : (this.scores[this.selectedGame] || []).slice(0, 5);
+
+                // Render scores or empty state
+                if (displayScores.length > 0) {
+                    scoresEl.innerHTML = displayScores.map((entry, index) => `
+                        <div class="score-entry ${index === 0 ? 'first-place' : ''}">
+                            <div class="medal-icon">${this.getMedalIcon(index)}</div>
+                            <div class="rank-number">#${index + 1}</div>
+                            <div class="player-info">
+                                <div class="player-name">${entry.username}</div>
+                                ${entry.games ? `<div class="player-games">${entry.games} games played</div>` : ''}
+                            </div>
+                            <div class="score-display">
+                                <div class="score-value">${entry.score.toLocaleString()}</div>
+                                ${entry.date ? `<div class="score-date">${new Date(entry.date).toLocaleDateString()}</div>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    const hasAnyScores = Object.keys(this.scores).length > 0;
+                    scoresEl.innerHTML = `
+                        <div class="empty-state">
+                            <svg class="empty-icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M16 4C16.55 4 17 4.45 17 5V6H20C20.55 6 21 6.45 21 7S20.55 8 20 8H17V19C17 20.1 16.1 21 15 21H9C7.9 21 7 20.1 7 19V8H4C3.45 8 3 7.55 3 7S3.45 6 4 6H7V5C7 4.45 7.45 4 8 4H16ZM15 8H9V19H15V8ZM11 10H13V17H11V10Z"/>
+                            </svg>
+                            <p class="empty-title">No scores yet</p>
+                            <p class="empty-subtitle">
+                                ${hasAnyScores 
+                                    ? 'Be the first to play this game and set a record!'
+                                    : 'Sign in and start playing to appear on the leaderboard!'}
+                            </p>
+                        </div>
+                    `;
+                }
+
+                // Show/hide stats for overall view
+                if (this.selectedGame === 'Overall') {
+                    statsEl.style.display = 'grid';
+                    this.updateStats();
+                } else {
+                    statsEl.style.display = 'none';
+                }
+            },
+
+            updateStats() {
+                const totalScores = Object.values(this.scores).flat().length;
+                const topPlayer = this.getOverallLeaderboard()[0]?.username || 'None Yet';
+
+                document.getElementById('total-games').textContent = this.allGames.length;
+                document.getElementById('total-scores').textContent = totalScores;
+                document.getElementById('top-player').textContent = topPlayer;
+            }
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            leaderboardApp.init();
+        });
+
+        // Example function for games to submit scores (for integration)
+        async function submitScore(gameName, score) {
+            const token = localStorage.getItem('authToken'); // From your login system
+            
+            if (!token) {
+                alert('Please sign in to submit scores!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        game_name: gameName,
+                        score: score
+                    })
+                });
+
+                if (response.ok) {
+                    // Reload leaderboard to show new score
+                    leaderboardApp.loadScores();
+                }
+            } catch (error) {
+                console.error('Failed to submit score:', error);
+            }
+        }
+    </script>
+</body>
+</html>

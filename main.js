@@ -1,3 +1,278 @@
+// ======== MUSIC PLAYER FUNCTIONALITY ========
+
+let musicPlayer = {
+  isPlaying: false,
+  currentSong: null,
+  queue: [],
+  playlists: [{ id: 1, name: 'My Playlist', songs: [] }],
+  searchResults: [],
+  activeView: 'player',
+  volume: 50,
+  isMinimized: false,
+  position: { x: 20, y: 20 },
+  isDragging: false,
+  dragOffset: { x: 0, y: 0 },
+  youtubePlayer: null
+};
+
+// Initialize YouTube API
+function initializeYouTubeAPI() {
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  const firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  window.onYouTubeIframeAPIReady = () => {
+    musicPlayer.youtubePlayer = new window.YT.Player('youtube-player', {
+      height: '0',
+      width: '0',
+      events: {
+        onReady: onPlayerReady,
+        onStateChange: onPlayerStateChange
+      }
+    });
+  };
+}
+
+function onPlayerReady(event) {
+  event.target.setVolume(musicPlayer.volume);
+}
+
+function onPlayerStateChange(event) {
+  if (event.data === window.YT.PlayerState.ENDED) {
+    handleNext();
+  }
+}
+
+// Search YouTube
+async function searchYouTube() {
+  const query = document.getElementById('search-input').value.trim();
+  if (!query) return;
+
+  // Create mock results for demo
+  const mockResults = Array.from({ length: 8 }, (_, i) => ({
+    id: `vid-${Date.now()}-${i}`,
+    videoId: `dQw4w9WgXcQ`, // Demo video ID
+    title: `${query} - Result ${i + 1}`,
+    artist: `Artist ${i + 1}`,
+    thumbnail: `https://img.youtube.com/vi/dQw4w9WgXcQ/default.jpg`,
+    duration: '3:45'
+  }));
+
+  musicPlayer.searchResults = mockResults;
+  displaySearchResults();
+}
+
+function displaySearchResults() {
+  const container = document.getElementById('search-results');
+  container.innerHTML = '';
+
+  musicPlayer.searchResults.forEach(song => {
+    const songElement = document.createElement('div');
+    songElement.className = 'search-result-item';
+    songElement.innerHTML = `
+      <img src="${song.thumbnail}" alt="${song.title}" class="result-thumbnail">
+      <div class="result-info">
+        <div class="result-title">${song.title}</div>
+        <div class="result-artist">${song.artist}</div>
+      </div>
+      <div class="result-actions">
+        <button onclick="playSong(${JSON.stringify(song).replace(/"/g, '&quot;')})" class="result-play-btn">▶️</button>
+        <button onclick="addToQueue(${JSON.stringify(song).replace(/"/g, '&quot;')})" class="result-add-btn">➕</button>
+      </div>
+    `;
+    container.appendChild(songElement);
+  });
+}
+
+function playSong(song) {
+  musicPlayer.currentSong = song;
+  if (musicPlayer.youtubePlayer && musicPlayer.youtubePlayer.loadVideoById) {
+    musicPlayer.youtubePlayer.loadVideoById(song.videoId);
+    musicPlayer.isPlaying = true;
+    updatePlayerDisplay();
+  }
+}
+
+function togglePlay() {
+  if (!musicPlayer.youtubePlayer || !musicPlayer.currentSong) return;
+  
+  if (musicPlayer.isPlaying) {
+    musicPlayer.youtubePlayer.pauseVideo();
+  } else {
+    musicPlayer.youtubePlayer.playVideo();
+  }
+  musicPlayer.isPlaying = !musicPlayer.isPlaying;
+  updatePlayerDisplay();
+}
+
+function handleNext() {
+  if (musicPlayer.queue.length > 0) {
+    const nextSong = musicPlayer.queue[0];
+    musicPlayer.queue = musicPlayer.queue.slice(1);
+    playSong(nextSong);
+    updateQueueDisplay();
+  }
+}
+
+function handlePrevious() {
+  if (musicPlayer.youtubePlayer) {
+    musicPlayer.youtubePlayer.seekTo(0);
+  }
+}
+
+function addToQueue(song) {
+  musicPlayer.queue.push(song);
+  if (!musicPlayer.currentSong) {
+    playSong(song);
+  }
+  updateQueueDisplay();
+}
+
+function updatePlayerDisplay() {
+  const playPauseBtn = document.getElementById('play-pause-btn');
+  const minimizedPlayBtn = document.getElementById('minimized-play-btn');
+  
+  if (musicPlayer.currentSong) {
+    // Update main player
+    document.querySelector('.song-title').textContent = musicPlayer.currentSong.title;
+    document.querySelector('.song-artist').textContent = musicPlayer.currentSong.artist;
+    
+    // Update minimized view
+    document.querySelector('.minimized-title').textContent = musicPlayer.currentSong.title;
+    document.querySelector('.minimized-artist').textContent = musicPlayer.currentSong.artist;
+  }
+
+  const playIcon = musicPlayer.isPlaying ? '⏸️' : '▶️';
+  if (playPauseBtn) playPauseBtn.textContent = playIcon;
+  if (minimizedPlayBtn) minimizedPlayBtn.textContent = playIcon;
+}
+
+function updateQueueDisplay() {
+  document.getElementById('queue-count').textContent = musicPlayer.queue.length;
+  const queueList = document.getElementById('queue-list');
+  queueList.innerHTML = '';
+
+  musicPlayer.queue.slice(0, 5).forEach((song, index) => {
+    const queueItem = document.createElement('div');
+    queueItem.className = 'queue-item';
+    queueItem.innerHTML = `
+      <span class="queue-icon">🎵</span>
+      <div class="queue-info">
+        <div class="queue-title">${song.title}</div>
+        <div class="queue-artist">${song.artist}</div>
+      </div>
+    `;
+    queueList.appendChild(queueItem);
+  });
+}
+
+function handleVolumeChange(event) {
+  musicPlayer.volume = parseInt(event.target.value);
+  if (musicPlayer.youtubePlayer) {
+    musicPlayer.youtubePlayer.setVolume(musicPlayer.volume);
+  }
+}
+
+function switchView(viewName) {
+  // Update nav tabs
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+
+  // Update views
+  document.querySelectorAll('.view').forEach(view => {
+    view.classList.remove('active');
+  });
+  document.getElementById(`${viewName}-view`).classList.add('active');
+
+  musicPlayer.activeView = viewName;
+}
+
+function toggleMinimize() {
+  musicPlayer.isMinimized = !musicPlayer.isMinimized;
+  
+  const playerContent = document.getElementById('player-content');
+  const minimizedView = document.getElementById('minimized-view');
+  const minimizeBtn = document.getElementById('minimize-btn');
+  
+  if (musicPlayer.isMinimized) {
+    playerContent.classList.add('hidden');
+    minimizedView.classList.remove('hidden');
+    minimizeBtn.textContent = '🔼';
+  } else {
+    playerContent.classList.remove('hidden');
+    minimizedView.classList.add('hidden');
+    minimizeBtn.textContent = '🔽';
+  }
+}
+
+function createPlaylist() {
+  const name = prompt('Enter playlist name:');
+  if (name) {
+    musicPlayer.playlists.push({ 
+      id: Date.now(), 
+      name, 
+      songs: [] 
+    });
+    updatePlaylistsDisplay();
+  }
+}
+
+function updatePlaylistsDisplay() {
+  const container = document.getElementById('playlists-list');
+  container.innerHTML = '';
+
+  musicPlayer.playlists.forEach(playlist => {
+    const playlistElement = document.createElement('div');
+    playlistElement.className = 'playlist-item';
+    playlistElement.innerHTML = `
+      <div class="playlist-header">
+        <span class="playlist-icon">🎵</span>
+        <div class="playlist-info">
+          <div class="playlist-name">${playlist.name}</div>
+          <div class="playlist-count">${playlist.songs.length} songs</div>
+        </div>
+      </div>
+    `;
+    container.appendChild(playlistElement);
+  });
+}
+
+// Dragging functionality
+function initializeDragging() {
+  const musicPlayerEl = document.getElementById('music-player');
+  const dragHandle = document.querySelector('.drag-handle');
+  
+  if (!dragHandle) return;
+
+  dragHandle.addEventListener('mousedown', (e) => {
+    musicPlayer.isDragging = true;
+    musicPlayer.dragOffset = {
+      x: e.clientX - musicPlayer.position.x,
+      y: e.clientY - musicPlayer.position.y
+    };
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (musicPlayer.isDragging) {
+      musicPlayer.position = {
+        x: e.clientX - musicPlayer.dragOffset.x,
+        y: e.clientY - musicPlayer.dragOffset.y
+      };
+      musicPlayerEl.style.left = `${musicPlayer.position.x}px`;
+      musicPlayerEl.style.top = `${musicPlayer.position.y}px`;
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    musicPlayer.isDragging = false;
+  });
+}
+
+// ======== GAME FUNCTIONALITY ========
+
 // Helper function to safely add event listeners
 function safeAddListener(id, event, handler) {
   const element = document.getElementById(id);
@@ -15,28 +290,16 @@ const views = {
   chess: document.getElementById('view-chess'),
   connect4: document.getElementById('view-connect4'),
 };
+
 function show(view) {
   Object.values(views).forEach(v => v && v.classList.remove('active'));
   const targetView = views[view] || views.home;
   if (targetView) targetView.classList.add('active');
 }
 
-// Wait for DOM to be ready before setting up event listeners
-document.addEventListener('DOMContentLoaded', () => {
-  // View switcher buttons
-  document.querySelectorAll('[data-view]').forEach(btn => {
-    btn.addEventListener('click', () => show(btn.dataset.view));
-  });
-
-  // footer year
-  const yearEl = document.getElementById('year');
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
-});
-
-// ---------- Guest user support ----------
+// Guest user support
 let user = null;
 
-// Create guest user if no auth
 function initGuestMode() {
   user = {
     uid: "guest-" + Math.random().toString(36).slice(2),
@@ -46,8 +309,99 @@ function initGuestMode() {
   console.log("[Guest Mode] Playing as:", user.displayName);
 }
 
-// Initialize guest mode on load
-initGuestMode();
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize guest mode
+  initGuestMode();
+
+  // Set up view switcher buttons
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => show(btn.dataset.view));
+  });
+
+  // Set footer year
+  const yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  // Initialize music player
+  initializeYouTubeAPI();
+  initializeDragging();
+
+  // Music player event listeners
+  document.getElementById('minimize-btn')?.addEventListener('click', toggleMinimize);
+  document.getElementById('play-pause-btn')?.addEventListener('click', togglePlay);
+  document.getElementById('minimized-play-btn')?.addEventListener('click', togglePlay);
+  document.getElementById('prev-btn')?.addEventListener('click', handlePrevious);
+  document.getElementById('next-btn')?.addEventListener('click', handleNext);
+  document.getElementById('search-btn')?.addEventListener('click', searchYouTube);
+  document.getElementById('volume-slider')?.addEventListener('input', handleVolumeChange);
+  document.getElementById('create-playlist-btn')?.addEventListener('click', createPlaylist);
+
+  // Search on Enter key
+  document.getElementById('search-input')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') searchYouTube();
+  });
+
+  // Navigation tabs
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      switchView(tab.dataset.view);
+    });
+  });
+
+  // Initialize displays
+  updatePlayerDisplay();
+  updateQueueDisplay();
+  updatePlaylistsDisplay();
+});
+
+// ======== LEGACY AUDIO FUNCTIONS (for compatibility) ========
+
+// Keep some legacy functions for any existing references
+function togglePlay() {
+  // This is handled by the new music player
+  return;
+}
+
+function nextTrack() {
+  handleNext();
+}
+
+function prevTrack() {
+  handlePrevious();
+}
+
+function searchMusic() {
+  // Switch to search view and focus input
+  switchView('search');
+  document.getElementById('search-input')?.focus();
+}
+
+function createPlaylist() {
+  // Switch to playlists view
+  switchView('playlists');
+  const name = prompt('Enter playlist name:');
+  if (name) {
+    musicPlayer.playlists.push({ 
+      id: Date.now(), 
+      name, 
+      songs: [] 
+    });
+    updatePlaylistsDisplay();
+  }
+}
+
+function addLink() {
+  alert('Link adding functionality coming soon!');
+}
+
+function loginSpotify() {
+  alert('Spotify integration coming soon!');
+}
+
+function loginYouTube() {
+  alert('YouTube integration coming soon!');
+}
 
 // ---------- music ----------
 const musicToggle = document.getElementById('musicToggle');
