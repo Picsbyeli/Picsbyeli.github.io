@@ -482,6 +482,11 @@
             const upgrade = upgrades.find(u => u.id === upgradeId);
             if (!upgrade) return;
             
+            // Check if upgrade is already purchased (for single purchase items only)
+            if (upgrade.singlePurchase && upgrade.purchased) {
+                return;
+            }
+            
             if (cookies >= upgrade.cost) {
                 cookies -= upgrade.cost;
                 upgrade.effect();
@@ -489,7 +494,8 @@
                 if (upgrade.singlePurchase) {
                     upgrade.purchased = true;
                 } else {
-                    upgrade.cost = Math.floor(upgrade.cost * 1.5); // Increase cost
+                    // For repeatable upgrades, increase cost
+                    upgrade.cost = Math.floor(upgrade.cost * 1.5);
                 }
                 
                 updateDisplay();
@@ -504,6 +510,7 @@
             upgrades.forEach(upgrade => {
                 const canAfford = cookies >= upgrade.cost;
                 const isPurchased = upgrade.purchased && upgrade.singlePurchase;
+                const isClickable = !isPurchased && canAfford;
                 
                 const upgradeDiv = document.createElement('button');
                 upgradeDiv.className = 'upgrade';
@@ -516,8 +523,20 @@
                     upgradeDiv.classList.add('unavailable');
                 }
                 
-                upgradeDiv.onclick = () => buyUpgrade(upgrade.id);
-                upgradeDiv.disabled = isPurchased || !canAfford;
+                if (isClickable) {
+                    upgradeDiv.onclick = () => buyUpgrade(upgrade.id);
+                } else {
+                    upgradeDiv.onclick = null;
+                }
+                
+                upgradeDiv.disabled = !isClickable;
+                
+                let costText;
+                if (isPurchased) {
+                    costText = 'Owned';
+                } else {
+                    costText = `${upgrade.cost} 🍪`;
+                }
                 
                 upgradeDiv.innerHTML = `
                     <div class="upgrade-content">
@@ -528,7 +547,7 @@
                                     ${upgrade.name}${isPurchased ? ' ✓' : ''}
                                 </div>
                                 <div class="upgrade-cost">
-                                    ${isPurchased ? 'Owned' : `${upgrade.cost} 🍪`}
+                                    ${costText}
                                 </div>
                             </div>
                             <div class="upgrade-description">${upgrade.description}</div>

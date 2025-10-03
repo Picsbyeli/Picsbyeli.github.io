@@ -694,6 +694,12 @@
                 reactionTime = reaction;
                 winner = player;
                 
+                // Clear any existing AI timeout since we have a winner
+                if (aiTimeoutRef) {
+                    clearTimeout(aiTimeoutRef);
+                    aiTimeoutRef = null;
+                }
+                
                 if (!bestTime || reaction < bestTime) {
                     bestTime = reaction;
                     localStorage.setItem('quickDrawBest', bestTime);
@@ -701,26 +707,23 @@
                     document.getElementById('best-time-value').textContent = bestTime;
                 }
 
-                // AI response
-                if (mode === 'ai' && player === 1) {
+                // AI response - only if player hasn't won yet
+                if (mode === 'ai' && player === 1 && !winner) {
                     const aiDelay = Math.random() * 
                         (difficultySettings[difficulty].max - difficultySettings[difficulty].min) + 
                         difficultySettings[difficulty].min;
                     
                     aiTimeoutRef = setTimeout(() => {
-                        if (!winner || winner === 1) {
-                            // AI wins if player hasn't won yet
-                            if (winner === 1 && Date.now() - drawTimeRef < reaction + aiDelay) {
-                                // Player was faster
-                                return;
-                            }
+                        // Only change winner if no one has won yet (shouldn't happen now)
+                        if (!winner) {
                             winner = 2;
                             showResult();
                         }
                     }, aiDelay);
+                } else {
+                    // Player wins immediately, show result
+                    showResult();
                 }
-
-                showResult();
             }
         }
 
