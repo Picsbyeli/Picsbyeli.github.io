@@ -139,24 +139,37 @@ function checkAPIStatus() {
 
 // Platform selection functions
 function selectPlatform(platform) {
+  console.log('selectPlatform called with:', platform);
+  
   currentPlatform = platform;
   
   // Update button states
   document.querySelectorAll('.platform-btn').forEach(btn => btn.classList.remove('active'));
-  document.getElementById(`${platform}-btn`).classList.add('active');
+  const targetBtn = document.getElementById(`${platform}-btn`);
+  if (targetBtn) {
+    targetBtn.classList.add('active');
+  }
   
   // Update search placeholder
   const searchInput = document.getElementById('search-input');
-  if (platform === 'youtube') {
-    searchInput.placeholder = 'Search YouTube for songs, artists...';
-  } else {
-    searchInput.placeholder = 'Search Spotify for songs, artists...';
+  if (searchInput) {
+    if (platform === 'youtube') {
+      searchInput.placeholder = 'Search YouTube for songs, artists...';
+    } else {
+      searchInput.placeholder = 'Search Spotify for songs, artists...';
+    }
   }
   
   // Clear previous search results
   musicPlayer.searchResults = [];
-  document.getElementById('search-results').innerHTML = '';
+  const resultsContainer = document.getElementById('search-results');
+  if (resultsContainer) {
+    resultsContainer.innerHTML = '';
+  }
 }
+
+// Make function globally available
+window.selectPlatform = selectPlatform;
 
 // Universal search function that routes to the correct platform
 async function performSearch() {
@@ -428,24 +441,42 @@ function handleVolumeChange(event) {
 }
 
 function switchView(viewName) {
+  console.log('switchView called with:', viewName);
+  
   // Update nav tabs
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.classList.remove('active');
   });
-  document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+  
+  const navTab = document.querySelector(`[data-view="${viewName}"]`);
+  if (navTab) {
+    navTab.classList.add('active');
+    console.log('Nav tab activated:', viewName);
+  } else {
+    console.warn('Nav tab not found for:', viewName);
+  }
 
   // Update views
   document.querySelectorAll('.view').forEach(view => {
     view.classList.remove('active');
   });
-  document.getElementById(`${viewName}-view`).classList.add('active');
+  
+  const targetView = document.getElementById(`${viewName}-view`);
+  if (targetView) {
+    targetView.classList.add('active');
+    console.log('View activated:', viewName + '-view');
+  } else {
+    console.warn('View not found for:', viewName + '-view');
+  }
 
   // Check API status when settings view is opened
   if (viewName === 'settings') {
     setTimeout(checkAPIStatus, 100); // Small delay to ensure DOM is updated
   }
 
-  musicPlayer.activeView = viewName;
+  if (typeof musicPlayer !== 'undefined') {
+    musicPlayer.activeView = viewName;
+  }
 }
 
 function toggleMinimize() {
@@ -577,7 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Set up view switcher buttons
   document.querySelectorAll('[data-view]').forEach(btn => {
-    btn.addEventListener('click', () => show(btn.dataset.view));
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
 
   // Set footer year
@@ -630,11 +661,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ======== LEGACY AUDIO FUNCTIONS (for compatibility) ========
 
 // Keep some legacy functions for any existing references
-function togglePlay() {
-  // This is handled by the new music player
-  return;
-}
-
 function nextTrack() {
   handleNext();
 }
