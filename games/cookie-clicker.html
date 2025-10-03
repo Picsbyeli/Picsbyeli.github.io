@@ -202,12 +202,34 @@
             color: #065f46;
         }
 
+        .upgrade.sigma {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 50%, #ff3838 100%);
+            border-color: #ff3838;
+            color: white;
+            animation: pulseGlow 2s infinite;
+        }
+
+        .upgrade.sigma:hover {
+            background: linear-gradient(135deg, #ee5a24 0%, #ff3838 50%, #c44569 100%);
+            box-shadow: 0 10px 30px rgba(255, 56, 56, 0.6);
+            transform: translateY(-5px) scale(1.02);
+        }
+
         .upgrade.unavailable {
             background: #f3f4f6;
             border-color: #d1d5db;
             color: #9ca3af;
             cursor: not-allowed;
             opacity: 0.5;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(255, 56, 56, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(255, 56, 56, 0.8);
+            }
         }
 
         .upgrade-content {
@@ -399,11 +421,11 @@
                 id: 1, 
                 name: 'Double Click', 
                 cost: 10, 
-                effect: () => { clickPower *= 2; },
+                effect: () => { clickPower += 1; },
                 description: 'Double your click power',
                 icon: '⚡',
-                purchased: false,
-                singlePurchase: true
+                purchased: 0,
+                singlePurchase: false
             },
             { 
                 id: 2, 
@@ -412,18 +434,18 @@
                 effect: () => { autoClickers += 1; },
                 description: '+1 cookie per second',
                 icon: '📈',
-                purchased: false,
+                purchased: 0,
                 singlePurchase: false
             },
             { 
                 id: 3, 
                 name: 'Mega Click', 
                 cost: 100, 
-                effect: () => { clickPower *= 3; },
+                effect: () => { clickPower += 9; },
                 description: 'Triple your click power',
                 icon: '⭐',
-                purchased: false,
-                singlePurchase: true
+                purchased: 0,
+                singlePurchase: false
             },
             { 
                 id: 4, 
@@ -432,10 +454,42 @@
                 effect: () => { autoClickers += 5; },
                 description: '+5 cookies per second',
                 icon: '🚀',
-                purchased: false,
+                purchased: 0,
+                singlePurchase: false
+            },
+            { 
+                id: 5, 
+                name: 'Sigma Cookie', 
+                cost: 100000000000000000, 
+                effect: () => { 
+                    cookies = 0;
+                    clickPower = 100;
+                    autoClickers = 0;
+                    // Reset all other upgrades
+                    upgrades.forEach(u => {
+                        if (u.id !== 5) {
+                            u.purchased = 0;
+                            u.cost = getInitialCost(u.id);
+                        }
+                    });
+                },
+                description: 'Resets your score but makes each click worth 100!',
+                icon: '🔥',
+                purchased: 0,
                 singlePurchase: false
             }
         ];
+
+        function getInitialCost(upgradeId) {
+            const initialCosts = {
+                1: 10,
+                2: 50,
+                3: 100,
+                4: 250,
+                5: 100000000000000000
+            };
+            return initialCosts[upgradeId] || 100;
+        }
 
         // Auto clicker interval
         setInterval(() => {
@@ -482,19 +536,14 @@
             const upgrade = upgrades.find(u => u.id === upgradeId);
             if (!upgrade) return;
             
-            // Check if upgrade is already purchased (for single purchase items only)
-            if (upgrade.singlePurchase && upgrade.purchased) {
-                return;
-            }
-            
             if (cookies >= upgrade.cost) {
                 cookies -= upgrade.cost;
                 upgrade.effect();
+                upgrade.purchased++;
                 
-                if (upgrade.singlePurchase) {
-                    upgrade.purchased = true;
-                } else {
-                    // For repeatable upgrades, increase cost
+                // Special handling for Sigma Cookie - don't increase cost after purchase
+                if (upgradeId !== 5) {
+                    // For regular upgrades, increase cost
                     upgrade.cost = Math.floor(upgrade.cost * 1.5);
                 }
                 
@@ -509,34 +558,51 @@
             
             upgrades.forEach(upgrade => {
                 const canAfford = cookies >= upgrade.cost;
-                const isPurchased = upgrade.purchased && upgrade.singlePurchase;
-                const isClickable = !isPurchased && canAfford;
                 
                 const upgradeDiv = document.createElement('button');
                 upgradeDiv.className = 'upgrade';
                 
-                if (isPurchased) {
-                    upgradeDiv.classList.add('purchased');
-                } else if (canAfford) {
-                    upgradeDiv.classList.add('available');
+                // Special styling for Sigma Cookie
+                if (upgrade.id === 5) {
+                    if (canAfford) {
+                        upgradeDiv.classList.add('sigma');
+                    } else {
+                        upgradeDiv.classList.add('unavailable');
+                    }
                 } else {
-                    upgradeDiv.classList.add('unavailable');
+                    if (canAfford) {
+                        upgradeDiv.classList.add('available');
+                    } else {
+                        upgradeDiv.classList.add('unavailable');
+                    }
                 }
                 
-                if (isClickable) {
+                if (canAfford) {
                     upgradeDiv.onclick = () => buyUpgrade(upgrade.id);
                 } else {
                     upgradeDiv.onclick = null;
                 }
                 
-                upgradeDiv.disabled = !isClickable;
+                upgradeDiv.disabled = !canAfford;
                 
+                // Format large numbers
                 let costText;
-                if (isPurchased) {
-                    costText = 'Owned';
+                if (upgrade.cost >= 1000000000000000) {
+                    costText = (upgrade.cost / 1000000000000000).toFixed(0) + 'Q 🍪';
+                } else if (upgrade.cost >= 1000000000000) {
+                    costText = (upgrade.cost / 1000000000000).toFixed(0) + 'T 🍪';
+                } else if (upgrade.cost >= 1000000000) {
+                    costText = (upgrade.cost / 1000000000).toFixed(0) + 'B 🍪';
+                } else if (upgrade.cost >= 1000000) {
+                    costText = (upgrade.cost / 1000000).toFixed(0) + 'M 🍪';
+                } else if (upgrade.cost >= 1000) {
+                    costText = (upgrade.cost / 1000).toFixed(0) + 'K 🍪';
                 } else {
                     costText = `${upgrade.cost} 🍪`;
                 }
+                
+                // Show owned count if purchased
+                let ownedText = upgrade.purchased > 0 ? ` (${upgrade.purchased} owned)` : '';
                 
                 upgradeDiv.innerHTML = `
                     <div class="upgrade-content">
@@ -544,7 +610,7 @@
                         <div class="upgrade-details">
                             <div class="upgrade-header">
                                 <div class="upgrade-name">
-                                    ${upgrade.name}${isPurchased ? ' ✓' : ''}
+                                    ${upgrade.name}${ownedText}
                                 </div>
                                 <div class="upgrade-cost">
                                     ${costText}
@@ -559,9 +625,25 @@
             });
         }
 
+        function formatNumber(num) {
+            if (num >= 1000000000000000) {
+                return (num / 1000000000000000).toFixed(1) + 'Q';
+            } else if (num >= 1000000000000) {
+                return (num / 1000000000000).toFixed(1) + 'T';
+            } else if (num >= 1000000000) {
+                return (num / 1000000000).toFixed(1) + 'B';
+            } else if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            } else {
+                return Math.floor(num).toString();
+            }
+        }
+
         function updateDisplay() {
-            document.getElementById('cookie-count').textContent = Math.floor(cookies);
-            document.getElementById('total-cookies').textContent = Math.floor(cookies);
+            document.getElementById('cookie-count').textContent = formatNumber(cookies);
+            document.getElementById('total-cookies').textContent = formatNumber(cookies);
             document.getElementById('click-power').textContent = clickPower;
             document.getElementById('click-power-display').textContent = clickPower + 'x';
             document.getElementById('auto-rate').textContent = autoClickers;
