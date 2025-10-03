@@ -336,6 +336,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('search-btn')?.addEventListener('click', searchYouTube);
   document.getElementById('volume-slider')?.addEventListener('input', handleVolumeChange);
   document.getElementById('create-playlist-btn')?.addEventListener('click', createPlaylist);
+  
+  // Click on minimized view to expand
+  document.getElementById('minimized-view')?.addEventListener('click', (e) => {
+    if (e.target !== document.getElementById('minimized-play-btn')) {
+      toggleMinimize();
+    }
+  });
 
   // Search on Enter key
   document.getElementById('search-input')?.addEventListener('keypress', (e) => {
