@@ -256,30 +256,6 @@
             margin: 10px 0;
         }
 
-        .auth-status {
-            background: #ffeaa7;
-            border: 2px solid #fdcb6e;
-            color: #2d3436;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            font-weight: bold;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .auth-status.connected {
-            background: #55a3ff;
-            border-color: #0984e3;
-            color: white;
-        }
-
-        .auth-status.error {
-            background: #ff7675;
-            border-color: #d63031;
-            color: white;
-        }
-
         .turn-indicator {
             background: #fff3cd;
             border: 2px solid #ffc107;
@@ -294,6 +270,26 @@
             padding: 15px;
             background: #f8f9fa;
             border-radius: 10px;
+        }
+
+        .timer-display {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 2em;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+        }
+
+        .timer-display.warning {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         .vote-count {
@@ -378,11 +374,6 @@
     <div class="game-container">
         <h1>🦎 Chameleon Game</h1>
         <p class="subtitle">Word Chart Edition</p>
-        
-        <!-- Authentication Status -->
-        <div id="auth-status" class="auth-status">
-            🔐 Connecting to server...
-        </div>
 
         <!-- Home Screen -->
         <div id="home-screen" class="screen active">
@@ -445,11 +436,13 @@
             <h2>📊 Vote for a Category</h2>
             <p>Choose which category you want to play with:</p>
             
+            <div class="timer-display" id="category-timer">30</div>
+            
             <div class="category-votes" id="category-votes-display"></div>
             
             <div class="category-grid" id="category-container"></div>
             
-            <div class="status">Waiting for all players to vote...</div>
+            <div class="status">Vote now! Game starts when everyone votes or timer expires...</div>
         </div>
 
         <!-- Game Screen -->
@@ -519,11 +512,10 @@
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
-        // Firebase Configuration - Updated for public access
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBFBrWDLyNPHHwnllI9Pz4-QlNhylP3ub4",
             authDomain: "imposters-912d1.firebaseapp.com",
@@ -537,40 +529,14 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const database = firebase.database();
-
-        // Enable offline persistence and handle connection issues
-        database.goOffline();
-        database.goOnline();
-
-        // Initialize anonymous authentication
-        let isAuthenticated = false;
-        
-        // Simple approach - set authenticated to true and use database directly
-        setTimeout(() => {
-            isAuthenticated = true;
-            const authStatus = document.getElementById('auth-status');
-            authStatus.textContent = '✅ Ready to play';
-            authStatus.className = 'auth-status connected';
-        }, 1000);
-
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                console.log('User authenticated:', user.uid);
-            }
-        });
-
-        // Try to sign in anonymously (but don't block the game if it fails)
-        auth.signInAnonymously().catch((error) => {
-            console.warn('Firebase auth not available, using direct database access:', error);
-            // Continue anyway - the game will work if the database rules allow public access
-        });
 
         // Game state
         let currentRoom = null;
         let currentPlayer = null;
         let gameState = null;
+        let categoryTimerInterval = null;
+        let votingEndTime = null;
 
         // Word categories with 20 words each
         const categories = {
@@ -673,12 +639,6 @@
         // Room management
         async function createRoom() {
             try {
-                // Check if user is ready
-                if (!isAuthenticated) {
-                    showError('Please wait a moment and try again...');
-                    return;
-                }
-                
                 const roomCode = generateRoomCode();
                 const roomData = {
                     code: roomCode,
@@ -695,21 +655,13 @@
                 document.getElementById('current-room-code').textContent = roomCode;
                 showScreen('waiting-room-screen');
                 showStatus('Room created successfully!');
-                
             } catch (error) {
-                console.error('Create room error:', error);
-                showError('Failed to create room. The Firebase database may need public access rules enabled. Error: ' + error.message);
+                showError('Failed to create room: ' + error.message);
             }
         }
 
         async function joinRoom() {
             try {
-                // Check if user is authenticated
-                if (!isAuthenticated) {
-                    showError('Please wait for authentication to complete...');
-                    return;
-                }
-                
                 const roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
                 if (!roomCode) {
                     showError('Please enter a room code!');
@@ -785,9 +737,14 @@
                     return;
                 }
 
+                // Get server timestamp and calculate voting end time (30 seconds from now)
+                const serverTimeOffset = await getServerTimeOffset();
+                const votingEndTimestamp = Date.now() + serverTimeOffset + 30000; // 30 seconds
+
                 await database.ref(`rooms/${currentRoom}`).update({
                     phase: 'category-voting',
-                    categoryVotes: {}
+                    categoryVotes: {},
+                    votingEndTime: votingEndTimestamp
                 });
 
                 showScreen('category-screen');
@@ -795,6 +752,12 @@
             } catch (error) {
                 showError('Failed to start game: ' + error.message);
             }
+        }
+
+        async function getServerTimeOffset() {
+            const offsetRef = database.ref('.info/serverTimeOffset');
+            const snapshot = await offsetRef.once('value');
+            return snapshot.val() || 0;
         }
 
         function displayCategoryOptions() {
@@ -819,12 +782,18 @@
 
                 showStatus(`Voted for ${category}!`);
 
+                // Check if all players have voted
                 const roomSnapshot = await database.ref(`rooms/${currentRoom}`).once('value');
                 const roomData = roomSnapshot.val();
                 const playerCount = Object.keys(roomData.players || {}).length;
                 const voteCount = Object.keys(roomData.categoryVotes || {}).length;
 
-                if (voteCount >= playerCount) {
+                // If everyone voted, start game immediately (only host triggers this)
+                if (voteCount >= playerCount && roomData.host === currentPlayer.id) {
+                    if (categoryTimerInterval) {
+                        clearInterval(categoryTimerInterval);
+                        categoryTimerInterval = null;
+                    }
                     setTimeout(() => determineCategory(roomData.categoryVotes), 1000);
                 }
             } catch (error) {
@@ -834,6 +803,11 @@
 
         function displayCategoryVoting(roomData) {
             showScreen('category-screen');
+            
+            // Start timer if not already running
+            if (!categoryTimerInterval && roomData.votingEndTime) {
+                startCategoryTimer(roomData.votingEndTime);
+            }
             
             const votesDisplay = document.getElementById('category-votes-display');
             if (!votesDisplay) return;
@@ -851,13 +825,82 @@
             });
         }
 
+        function startCategoryTimer(endTime) {
+            const timerDisplay = document.getElementById('category-timer');
+            
+            if (categoryTimerInterval) {
+                clearInterval(categoryTimerInterval);
+            }
+
+            categoryTimerInterval = setInterval(() => {
+                const now = Date.now();
+                const timeLeft = Math.max(0, Math.ceil((endTime - now) / 1000));
+                
+                if (timerDisplay) {
+                    timerDisplay.textContent = `${timeLeft}s`;
+                    
+                    if (timeLeft <= 10) {
+                        timerDisplay.classList.add('warning');
+                    } else {
+                        timerDisplay.classList.remove('warning');
+                    }
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(categoryTimerInterval);
+                    categoryTimerInterval = null;
+                    
+                    // Only host should trigger the category determination
+                    database.ref(`rooms/${currentRoom}/host`).once('value', (snapshot) => {
+                        if (snapshot.val() === currentPlayer.id) {
+                            finalizeCategoryVoting();
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+        async function finalizeCategoryVoting() {
+            try {
+                const roomSnapshot = await database.ref(`rooms/${currentRoom}`).once('value');
+                const roomData = roomSnapshot.val();
+                const votes = roomData.categoryVotes || {};
+
+                if (Object.keys(votes).length === 0) {
+                    // No votes, pick random category
+                    const categories = Object.keys(categories);
+                    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+                    await determineCategory({ [currentPlayer.id]: { category: randomCategory } });
+                } else {
+                    await determineCategory(votes);
+                }
+            } catch (error) {
+                console.error('Error finalizing category voting:', error);
+            }
+        }
+
         async function determineCategory(votes) {
             const voteCounts = {};
             Object.values(votes).forEach(vote => {
                 voteCounts[vote.category] = (voteCounts[vote.category] || 0) + 1;
             });
 
-            let winningCategory = Object.entries(voteCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+            // Find category with most votes
+            let winningCategory = null;
+            let maxVotes = 0;
+            
+            Object.entries(voteCounts).forEach(([cat, count]) => {
+                if (count > maxVotes) {
+                    maxVotes = count;
+                    winningCategory = cat;
+                }
+            });
+
+            // If no winner (tie or no votes), pick random
+            if (!winningCategory) {
+                const categoryKeys = Object.keys(categories);
+                winningCategory = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
+            }
 
             const roomSnapshot = await database.ref(`rooms/${currentRoom}`).once('value');
             const roomData = roomSnapshot.val();
@@ -883,9 +926,16 @@
                 startedAt: firebase.database.ServerValue.TIMESTAMP
             };
 
+            // Clear timer
+            if (categoryTimerInterval) {
+                clearInterval(categoryTimerInterval);
+                categoryTimerInterval = null;
+            }
+
             await database.ref(`rooms/${currentRoom}`).update({
                 phase: 'game',
-                gameState: newGameState
+                gameState: newGameState,
+                votingEndTime: null
             });
 
             showScreen('game-screen');
@@ -1321,10 +1371,21 @@
 
         async function playAgain() {
             try {
+                // Clear any existing timer
+                if (categoryTimerInterval) {
+                    clearInterval(categoryTimerInterval);
+                    categoryTimerInterval = null;
+                }
+
+                // Get server timestamp and calculate new voting end time
+                const serverTimeOffset = await getServerTimeOffset();
+                const votingEndTimestamp = Date.now() + serverTimeOffset + 30000;
+
                 await database.ref(`rooms/${currentRoom}`).update({
                     phase: 'category-voting',
                     categoryVotes: {},
-                    gameState: null
+                    gameState: null,
+                    votingEndTime: votingEndTimestamp
                 });
 
                 showScreen('category-screen');
@@ -1337,6 +1398,12 @@
 
         async function leaveRoom() {
             try {
+                // Clear timer
+                if (categoryTimerInterval) {
+                    clearInterval(categoryTimerInterval);
+                    categoryTimerInterval = null;
+                }
+
                 if (currentRoom && currentPlayer) {
                     await database.ref(`rooms/${currentRoom}/players/${currentPlayer.id}`).remove();
                     
@@ -1356,6 +1423,9 @@
         }
 
         window.addEventListener('beforeunload', () => {
+            if (categoryTimerInterval) {
+                clearInterval(categoryTimerInterval);
+            }
             if (currentRoom && currentPlayer) {
                 database.ref(`rooms/${currentRoom}/players/${currentPlayer.id}`).remove();
             }
