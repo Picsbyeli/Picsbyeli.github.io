@@ -178,11 +178,11 @@
             padding: 20px;
             border-radius: 15px;
             border: 2px solid;
-            cursor: pointer;
             transition: all 0.3s ease;
             text-align: left;
             background: none;
             font-size: 1rem;
+            margin-bottom: 15px;
         }
 
         .upgrade.available {
@@ -220,13 +220,7 @@
             background: #f3f4f6;
             border-color: #d1d5db;
             color: #9ca3af;
-            cursor: not-allowed;
             opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .upgrade:disabled {
-            pointer-events: none;
         }
 
         @keyframes pulseGlow {
@@ -322,20 +316,48 @@
             background: linear-gradient(45deg, #f59e0b, #d97706);
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 12px;
             font-weight: bold;
-            margin-top: 10px;
             transition: all 0.3s ease;
             animation: pulse 2s infinite;
+            width: 100%;
+            margin-top: 8px;
         }
 
         .activate-btn:hover {
             background: linear-gradient(45deg, #d97706, #b45309);
-            transform: scale(1.05);
+            transform: scale(1.02);
             box-shadow: 0 3px 10px rgba(245, 158, 11, 0.4);
+        }
+
+        .buy-btn {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .buy-btn:hover {
+            background: linear-gradient(45deg, #059669, #047857);
+            transform: scale(1.02);
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.4);
+        }
+
+        .upgrade-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
         }
 
         @keyframes pulse {
@@ -664,7 +686,7 @@
             upgrades.forEach(upgrade => {
                 const canAfford = cookies >= upgrade.cost;
                 
-                const upgradeDiv = document.createElement('button');
+                const upgradeDiv = document.createElement('div');
                 upgradeDiv.className = 'upgrade';
                 
                 // Special styling for Sigma Cookie
@@ -682,12 +704,15 @@
                     }
                 }
                 
-                if (canAfford) {
+                // Add click handler for buying upgrades (only if can afford and no activation button)
+                const hasActivation = upgrade.purchased >= 5 && upgrade.id !== 5;
+                if (canAfford && !hasActivation) {
+                    upgradeDiv.style.cursor = 'pointer';
                     upgradeDiv.onclick = () => buyUpgrade(upgrade.id);
-                    upgradeDiv.disabled = false;
+                } else if (canAfford && hasActivation) {
+                    upgradeDiv.style.cursor = 'default';
                 } else {
-                    upgradeDiv.onclick = null;
-                    upgradeDiv.disabled = true;
+                    upgradeDiv.style.cursor = 'not-allowed';
                 }
                 
                 // Format large numbers
@@ -711,8 +736,14 @@
                 
                 // Check if can activate (need 5+ owned and not Sigma Cookie)
                 let activateButton = '';
+                let buyButton = '';
+                
                 if (upgrade.purchased >= 5 && upgrade.id !== 5) {
-                    activateButton = `<button class="activate-btn" onclick="event.stopPropagation(); activateUpgrade(${upgrade.id})">⚡ Activate</button>`;
+                    activateButton = `<button class="activate-btn" onclick="activateUpgrade(${upgrade.id})">⚡ Activate (Reset for Permanent Boost)</button>`;
+                }
+                
+                if (canAfford && (!hasActivation || upgrade.purchased < 5)) {
+                    buyButton = `<button class="buy-btn" onclick="buyUpgrade(${upgrade.id})">💰 Buy for ${costText}</button>`;
                 }
                 
                 upgradeDiv.innerHTML = `
@@ -728,7 +759,10 @@
                                 </div>
                             </div>
                             <div class="upgrade-description">${upgrade.description}</div>
-                            ${activateButton}
+                            <div class="upgrade-actions">
+                                ${buyButton}
+                                ${activateButton}
+                            </div>
                         </div>
                     </div>
                 `;
