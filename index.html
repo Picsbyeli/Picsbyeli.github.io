@@ -16,7 +16,8 @@
         <span class="player-title">Music Player</span>
       </div>
       <div class="header-controls">
-        <button id="minimize-btn" class="header-btn">�</button>
+        <button id="minimize-btn" class="header-btn" title="Minimize">−</button>
+        <button id="close-btn" class="header-btn" title="Close" style="display: none;">×</button>
       </div>
     </div>
 
@@ -41,6 +42,18 @@
             </div>
           </div>
           
+          <!-- Progress Bar (for local files) -->
+          <div id="progress-section" class="progress-section" style="display: none;">
+            <input type="range" id="progress-slider" min="0" max="100" value="0" class="progress-slider">
+            <div class="time-display">
+              <span id="current-time">0:00</span>
+              <span id="total-time">0:00</span>
+            </div>
+          </div>
+
+          <!-- Embed Container -->
+          <div id="embed-container" class="embed-container"></div>
+          
           <!-- Volume Control -->
           <div class="volume-control">
             <span class="volume-icon">🔊</span>
@@ -54,30 +67,48 @@
             <button id="next-btn" class="control-btn">⏭</button>
           </div>
 
+          <!-- Upload and Add Options -->
+          <div class="add-music-section">
+            <input type="file" id="audio-upload" accept="audio/*" multiple style="display: none;">
+            <button onclick="document.getElementById('audio-upload').click()" class="add-btn">📁 Upload Files</button>
+            <div class="link-input-group">
+              <input type="text" id="link-input" placeholder="Paste streaming link..." class="link-input">
+              <button onclick="addLink()" class="add-btn">➕ Add Link</button>
+            </div>
+          </div>
+
           <!-- Queue -->
           <div id="queue-section" class="queue-section">
             <h4 class="queue-title">🎵 Up Next (<span id="queue-count">0</span>)</h4>
-            <div id="queue-list" class="queue-list"></div>
+            <div id="queue-list" class="queue-list scrollable"></div>
           </div>
         </div>
 
         <!-- Search View -->
         <div id="search-view" class="view">
-          <div class="platform-selector">
-            <button id="youtube-btn" class="platform-btn active" onclick="selectPlatform('youtube')">📺 YouTube</button>
-            <button id="spotify-btn" class="platform-btn" onclick="selectPlatform('spotify')">🎵 Spotify</button>
+          <div class="search-section">
+            <div class="platform-selector">
+              <button id="youtube-btn" class="platform-btn active" onclick="selectPlatform('youtube')">📺 YouTube</button>
+              <button id="spotify-btn" class="platform-btn" onclick="selectPlatform('spotify')">🎵 Spotify</button>
+            </div>
+            <div class="search-bar">
+              <input type="text" id="search-input" placeholder="Search songs, artists..." class="search-input">
+              <button id="search-btn" class="search-button">🔍</button>
+            </div>
+            <button onclick="musicPlayer?.loginSpotify()" class="spotify-login-btn">🎵 Login to Spotify</button>
           </div>
-          <div class="search-bar">
-            <input type="text" id="search-input" placeholder="Search songs, artists..." class="search-input">
-            <button id="search-btn" class="search-button">🔍</button>
-          </div>
-          <div id="search-results" class="search-results"></div>
+          <div id="search-results" class="search-results scrollable"></div>
         </div>
 
         <!-- Playlists View -->
         <div id="playlists-view" class="view">
-          <button id="create-playlist-btn" class="create-playlist-btn">➕ Create New Playlist</button>
-          <div id="playlists-list" class="playlists-list"></div>
+          <div class="playlist-header">
+            <select id="playlist-selector" class="playlist-selector">
+              <option value="">Select Playlist</option>
+            </select>
+            <button id="create-playlist-btn" class="create-playlist-btn">➕ Create New Playlist</button>
+          </div>
+          <div id="playlists-list" class="playlists-list scrollable"></div>
         </div>
 
         <!-- Settings View -->
@@ -131,12 +162,16 @@
     <!-- Minimized View -->
     <div id="minimized-view" class="minimized-view hidden">
       <div class="minimized-content">
-        <span class="minimized-icon">🎵</span>
+        <div class="minimized-controls">
+          <button id="minimized-prev-btn" class="minimized-control-btn">⏮</button>
+          <button id="minimized-play-btn" class="minimized-play-btn">▶️</button>
+          <button id="minimized-next-btn" class="minimized-control-btn">⏭</button>
+        </div>
         <div class="minimized-info">
           <div class="minimized-title">No song playing</div>
           <div class="minimized-artist">Music Player</div>
         </div>
-        <button id="minimized-play-btn" class="minimized-play-btn">▶️</button>
+        <button id="expand-btn" class="expand-btn" title="Expand Player">🔼</button>
       </div>
     </div>
   </div>
