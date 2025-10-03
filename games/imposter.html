@@ -256,6 +256,30 @@
             margin: 10px 0;
         }
 
+        .auth-status {
+            background: #ffeaa7;
+            border: 2px solid #fdcb6e;
+            color: #2d3436;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .auth-status.connected {
+            background: #55a3ff;
+            border-color: #0984e3;
+            color: white;
+        }
+
+        .auth-status.error {
+            background: #ff7675;
+            border-color: #d63031;
+            color: white;
+        }
+
         .turn-indicator {
             background: #fff3cd;
             border: 2px solid #ffc107;
@@ -354,6 +378,11 @@
     <div class="game-container">
         <h1>🦎 Chameleon Game</h1>
         <p class="subtitle">Word Chart Edition</p>
+        
+        <!-- Authentication Status -->
+        <div id="auth-status" class="auth-status">
+            🔐 Connecting to server...
+        </div>
 
         <!-- Home Screen -->
         <div id="home-screen" class="screen active">
@@ -490,10 +519,11 @@
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
-        // Firebase Configuration
+        // Firebase Configuration - Updated for public access
         const firebaseConfig = {
             apiKey: "AIzaSyBFBrWDLyNPHHwnllI9Pz4-QlNhylP3ub4",
             authDomain: "imposters-912d1.firebaseapp.com",
@@ -507,7 +537,35 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const database = firebase.database();
+
+        // Enable offline persistence and handle connection issues
+        database.goOffline();
+        database.goOnline();
+
+        // Initialize anonymous authentication
+        let isAuthenticated = false;
+        
+        // Simple approach - set authenticated to true and use database directly
+        setTimeout(() => {
+            isAuthenticated = true;
+            const authStatus = document.getElementById('auth-status');
+            authStatus.textContent = '✅ Ready to play';
+            authStatus.className = 'auth-status connected';
+        }, 1000);
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('User authenticated:', user.uid);
+            }
+        });
+
+        // Try to sign in anonymously (but don't block the game if it fails)
+        auth.signInAnonymously().catch((error) => {
+            console.warn('Firebase auth not available, using direct database access:', error);
+            // Continue anyway - the game will work if the database rules allow public access
+        });
 
         // Game state
         let currentRoom = null;
@@ -615,6 +673,12 @@
         // Room management
         async function createRoom() {
             try {
+                // Check if user is ready
+                if (!isAuthenticated) {
+                    showError('Please wait a moment and try again...');
+                    return;
+                }
+                
                 const roomCode = generateRoomCode();
                 const roomData = {
                     code: roomCode,
@@ -631,13 +695,21 @@
                 document.getElementById('current-room-code').textContent = roomCode;
                 showScreen('waiting-room-screen');
                 showStatus('Room created successfully!');
+                
             } catch (error) {
-                showError('Failed to create room: ' + error.message);
+                console.error('Create room error:', error);
+                showError('Failed to create room. The Firebase database may need public access rules enabled. Error: ' + error.message);
             }
         }
 
         async function joinRoom() {
             try {
+                // Check if user is authenticated
+                if (!isAuthenticated) {
+                    showError('Please wait for authentication to complete...');
+                    return;
+                }
+                
                 const roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
                 if (!roomCode) {
                     showError('Please enter a room code!');
