@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Animal 20 Questions - E.Vol Games</title>
+  <script src="../js/music-persistence.js"></script>
+  <style>
+    body {
+      background: linear-gradient(to bottom right, #059669, #0891b2);
+      font-family: 'Inter', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .game-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 16px;
+      -webkit-backdrop-filter: blur(15px);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+    .habitat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 30px 0;
+    }
+    .habitat-card {
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.2);
+      padding: 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .habitat-card:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .habitat-icon {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    .habitat-name {
+      font-size: 1.1em;
+      font-weight: 600;
+    }
+    .question-container {
+      background: rgba(255,255,255,0.1);
+      padding: 25px;
+      border-radius: 12px;
+      margin: 20px 0;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .question-number {
+      font-size: 0.9em;
+      opacity: 0.8;
+      margin-bottom: 10px;
+    }
+    .question-text {
+      font-size: 1.3em;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+    .answer-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+    .btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+    .btn-yes {
+      background: #10b981;
+      color: white;
+    }
+    .btn-yes:hover {
+      background: #059669;
+      transform: translateY(-2px);
+    }
+    .btn-no {
+      background: #ef4444;
+      color: white;
+    }
+    .btn-no:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+    }
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #059669);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .questions-list {
+      text-align: left;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .question-item {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .question-item:last-child {
+      border-bottom: none;
+    }
+    .answer-indicator {
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+    }
+    .answer-yes {
+      background: #10b981;
+      color: white;
+    }
+    .answer-no {
+      background: #ef4444;
+      color: white;
+    }
+    .result-container {
+      background: rgba(255,255,255,0.15);
+      padding: 30px;
+      border-radius: 16px;
+      margin: 20px 0;
+    }
+    .result-icon {
+      font-size: 4em;
+      margin-bottom: 15px;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-btn">← Back to Games</a>
+  
+  <div class="game-container">
+    <h1>🐾 Animal 20 Questions</h1>
+    <p>Think of any animal, and I'll try to guess it in 20 questions or less!</p>
+    
+    <!-- Habitat Selection Screen -->
+    <div id="habitat-screen">
+      <h2>What habitat does your animal live in?</h2>
+      <div class="habitat-grid">
+        <div class="habitat-card" onclick="startGame('forest')">
+          <div class="habitat-icon">🌲</div>
+          <div class="habitat-name">Forest</div>
+        </div>
+        <div class="habitat-card" onclick="startGame('ocean')">
+          <div class="habitat-icon">🌊</div>
+          <div class="habitat-name">Ocean</div>
+        </div>
+        <div class="habitat-card" onclick="startGame('savanna')">
+          <div class="habitat-icon">🦁</div>
+          <div class="habitat-name">Savanna</div>
+        </div>
+        <div class="habitat-card" onclick="startGame('arctic')">
+          <div class="habitat-icon">❄️</div>
+          <div class="habitat-name">Arctic</div>
+        </div>
+        <div class="habitat-card" onclick="startGame('desert')">
+          <div class="habitat-icon">🌵</div>
+          <div class="habitat-name">Desert</div>
+        </div>
+        <div class="habitat-card" onclick="startGame('farm')">
+          <div class="habitat-icon">🚜</div>
+          <div class="habitat-name">Farm</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden">
+      <div style="margin-bottom: 20px;">
+        Habitat: <span id="current-habitat" style="font-weight: bold; text-transform: capitalize;"></span>
+      </div>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-bar"></div>
+      </div>
+      
+      <div class="question-container">
+        <div class="question-number">
+          Question <span id="question-counter">1</span> of 20
+        </div>
+        <div class="question-text" id="question-text">
+          Loading question...
+        </div>
+        <div class="answer-buttons">
+          <button class="btn btn-yes" onclick="answerQuestion(true)">
+            <span style="font-size: 1.2em;">✓</span> YES
+          </button>
+          <button class="btn btn-no" onclick="answerQuestion(false)">
+            <span style="font-size: 1.2em;">✗</span> NO
+          </button>
+        </div>
+      </div>
+
+      <div class="questions-list">
+        <h3>Questions Asked:</h3>
+        <div id="questions-history">
+          <p style="color: rgba(255,255,255,0.6); font-style: italic;">No questions asked yet...</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button class="btn btn-primary" onclick="makeGuess()" style="margin-top: 15px;">
+          🎯 I think I know! Let me guess
+        </button>
+      </div>
+
+      <!-- Guess Input Section -->
+      <div id="guess-input-section" class="hidden">
+        <h3>My Guess:</h3>
+        <p>Is your animal a <strong><span id="animal-guess"></span></strong>?</p>
+        <div class="answer-buttons">
+          <button class="btn btn-yes" onclick="handleGuessResult(true)">Yes! That's correct!</button>
+          <button class="btn btn-no" onclick="handleGuessResult(false)">No, that's wrong</button>
+        </div>
+      </div>
+      
+      <div style="margin-top: 20px;">
+        <button class="btn" onclick="resetGame()" style="background: #6b7280; color: white;">🔄 Start Over</button>
+      </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="hidden">
+      <div class="result-container">
+        <div class="result-icon" id="result-icon">🎉</div>
+        <h2 id="result-title">I Win!</h2>
+        <p id="result-message">I guessed your animal correctly!</p>
+        <div style="margin-top: 25px;">
+          <button class="btn btn-primary" onclick="resetGame()">🎮 Play Again</button>
+          <a href="../index.html" class="btn" style="background: #6b7280; color: white; text-decoration: none; margin-left: 10px;">🏠 Back to Games</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentHabitat = '';
+    let questionCount = 0;
+    let maxQuestions = 20;
+    let questionsAsked = [];
+    let currentQuestionSet = [];
+    let currentQuestionIndex = 0;
+    let animalGuess = '';
+
+    // Animal question sets by habitat
+    const animalQuestions = {
+      forest: [
+        { question: "Does your animal climb trees?", type: "behavior" },
+        { question: "Is your animal larger than a house cat?", type: "size" },
+        { question: "Does your animal hibernate in winter?", type: "behavior" },
+        { question: "Does your animal have fur?", type: "physical" },
+        { question: "Is your animal a predator?", type: "diet" },
+        { question: "Does your animal make loud sounds?", type: "behavior" },
+        { question: "Does your animal have a bushy tail?", type: "physical" },
+        { question: "Is your animal active during the day?", type: "behavior" },
+        { question: "Does your animal live in groups?", type: "social" },
+        { question: "Can your animal fly?", type: "ability" },
+        { question: "Does your animal eat nuts or berries?", type: "diet" },
+        { question: "Is your animal bigger than a deer?", type: "size" },
+        { question: "Does your animal have sharp claws?", type: "physical" },
+        { question: "Is your animal black or brown?", type: "appearance" },
+        { question: "Does your animal build nests?", type: "behavior" }
+      ],
+      ocean: [
+        { question: "Does your animal breathe air?", type: "physiology" },
+        { question: "Is your animal larger than a human?", type: "size" },
+        { question: "Does your animal have fins?", type: "physical" },
+        { question: "Can your animal swim very fast?", type: "ability" },
+        { question: "Does your animal have teeth?", type: "physical" },
+        { question: "Is your animal a mammal?", type: "classification" },
+        { question: "Does your animal live in deep water?", type: "habitat" },
+        { question: "Is your animal dangerous to humans?", type: "behavior" },
+        { question: "Does your animal have a shell?", type: "physical" },
+        { question: "Can your animal change colors?", type: "ability" },
+        { question: "Does your animal travel in groups?", type: "social" },
+        { question: "Is your animal longer than a car?", type: "size" },
+        { question: "Does your animal eat fish?", type: "diet" },
+        { question: "Does your animal make sounds underwater?", type: "behavior" },
+        { question: "Does your animal have eight arms?", type: "physical" }
+      ],
+      savanna: [
+        { question: "Is your animal taller than a human?", type: "size" },
+        { question: "Does your animal have stripes?", type: "appearance" },
+        { question: "Is your animal a carnivore?", type: "diet" },
+        { question: "Does your animal have a mane?", type: "physical" },
+        { question: "Can your animal run very fast?", type: "ability" },
+        { question: "Does your animal live in herds?", type: "social" },
+        { question: "Does your animal have spots?", type: "appearance" },
+        { question: "Is your animal the king of the jungle?", type: "reputation" },
+        { question: "Does your animal have a long neck?", type: "physical" },
+        { question: "Does your animal have tusks?", type: "physical" },
+        { question: "Is your animal bigger than a horse?", type: "size" },
+        { question: "Does your animal eat grass?", type: "diet" },
+        { question: "Can your animal jump high?", type: "ability" },
+        { question: "Does your animal have horns?", type: "physical" },
+        { question: "Is your animal gray in color?", type: "appearance" }
+      ],
+      arctic: [
+        { question: "Is your animal white in color?", type: "appearance" },
+        { question: "Does your animal have thick fur?", type: "physical" },
+        { question: "Is your animal larger than a dog?", type: "size" },
+        { question: "Can your animal swim?", type: "ability" },
+        { question: "Does your animal eat fish?", type: "diet" },
+        { question: "Does your animal hibernate?", type: "behavior" },
+        { question: "Can your animal walk on ice?", type: "ability" },
+        { question: "Does your animal have webbed feet?", type: "physical" },
+        { question: "Is your animal a predator?", type: "diet" },
+        { question: "Does your animal slide on its belly?", type: "behavior" },
+        { question: "Can your animal hold its breath underwater?", type: "ability" },
+        { question: "Does your animal have a black nose?", type: "physical" },
+        { question: "Is your animal taller than a human when standing?", type: "size" },
+        { question: "Does your animal live in groups?", type: "social" },
+        { question: "Can your animal fly?", type: "ability" }
+      ],
+      desert: [
+        { question: "Does your animal have a hump?", type: "physical" },
+        { question: "Can your animal go without water for days?", type: "ability" },
+        { question: "Is your animal smaller than a cat?", type: "size" },
+        { question: "Does your animal have scales?", type: "physical" },
+        { question: "Is your animal venomous?", type: "defense" },
+        { question: "Does your animal burrow underground?", type: "behavior" },
+        { question: "Can your animal change body temperature?", type: "physiology" },
+        { question: "Does your animal have a long tail?", type: "physical" },
+        { question: "Is your animal active at night?", type: "behavior" },
+        { question: "Does your animal eat insects?", type: "diet" },
+        { question: "Can your animal spit?", type: "behavior" },
+        { question: "Does your animal have big ears?", type: "physical" },
+        { question: "Is your animal brown or tan colored?", type: "appearance" },
+        { question: "Does your animal store fat in its body?", type: "physiology" },
+        { question: "Can your animal run on sand?", type: "ability" }
+      ],
+      farm: [
+        { question: "Does your animal give milk?", type: "production" },
+        { question: "Does your animal lay eggs?", type: "production" },
+        { question: "Is your animal bigger than a sheep?", type: "size" },
+        { question: "Does your animal have feathers?", type: "physical" },
+        { question: "Does your animal make loud noises?", type: "behavior" },
+        { question: "Can your animal fly?", type: "ability" },
+        { question: "Does your animal eat grass?", type: "diet" },
+        { question: "Does your animal have four legs?", type: "physical" },
+        { question: "Is your animal pink in color?", type: "appearance" },
+        { question: "Does your animal roll in mud?", type: "behavior" },
+        { question: "Does your animal have wool?", type: "physical" },
+        { question: "Can your animal swim?", type: "ability" },
+        { question: "Does your animal have a beard?", type: "physical" },
+        { question: "Does your animal eat everything?", type: "diet" },
+        { question: "Is your animal used for riding?", type: "use" }
+      ]
+    };
+
+    // Common animals by habitat for guessing
+    const habitatAnimals = {
+      forest: ['bear', 'deer', 'squirrel', 'owl', 'fox', 'rabbit', 'wolf', 'raccoon', 'woodpecker', 'chipmunk'],
+      ocean: ['whale', 'shark', 'dolphin', 'octopus', 'sea turtle', 'jellyfish', 'tuna', 'seahorse', 'crab', 'starfish'],
+      savanna: ['lion', 'elephant', 'giraffe', 'zebra', 'cheetah', 'rhinoceros', 'hippopotamus', 'antelope', 'hyena', 'leopard'],
+      arctic: ['polar bear', 'penguin', 'seal', 'walrus', 'arctic fox', 'snowy owl', 'caribou', 'arctic hare', 'beluga whale', 'narwhal'],
+      desert: ['camel', 'snake', 'lizard', 'scorpion', 'coyote', 'roadrunner', 'fennec fox', 'armadillo', 'jackrabbit', 'desert tortoise'],
+      farm: ['cow', 'pig', 'chicken', 'sheep', 'goat', 'horse', 'duck', 'turkey', 'donkey', 'rooster']
+    };
+
+    function startGame(habitat) {
+      currentHabitat = habitat;
+      document.getElementById('current-habitat').textContent = habitat;
+      document.getElementById('habitat-screen').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+      
+      currentQuestionSet = [...animalQuestions[habitat]];
+      shuffleArray(currentQuestionSet);
+      currentQuestionIndex = 0;
+      questionCount = 0;
+      questionsAsked = [];
+      
+      askNextQuestion();
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function askNextQuestion() {
+      if (questionCount >= maxQuestions) {
+        makeGuess();
+        return;
+      }
+      
+      if (currentQuestionIndex >= currentQuestionSet.length) {
+        makeGuess();
+        return;
+      }
+      
+      const question = currentQuestionSet[currentQuestionIndex];
+      questionCount++;
+      
+      document.getElementById('question-counter').textContent = questionCount;
+      document.getElementById('question-text').textContent = question.question;
+      
+      updateProgressBar();
+      
+      // Hide guess input section when asking new question
+      document.getElementById('guess-input-section').classList.add('hidden');
+    }
+
+    function answerQuestion(answer) {
+      const question = currentQuestionSet[currentQuestionIndex];
+      
+      questionsAsked.push({
+        question: question.question,
+        answer: answer
+      });
+      
+      updateQuestionsHistory();
+      currentQuestionIndex++;
+      
+      // If we've asked enough questions, make a guess
+      if (questionCount >= 8 || currentQuestionIndex >= currentQuestionSet.length) {
+        setTimeout(makeGuess, 1000);
+      } else {
+        setTimeout(askNextQuestion, 1000);
+      }
+    }
+
+    function updateQuestionsHistory() {
+      const historyContainer = document.getElementById('questions-history');
+      
+      if (questionsAsked.length === 0) {
+        historyContainer.innerHTML = '<p style="color: rgba(255,255,255,0.6); font-style: italic;">No questions asked yet...</p>';
+        return;
+      }
+      
+      historyContainer.innerHTML = questionsAsked.map(qa => `
+        <div class="question-item">
+          <span>${qa.question}</span>
+          <span class="answer-indicator ${qa.answer ? 'answer-yes' : 'answer-no'}">
+            ${qa.answer ? 'YES' : 'NO'}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    function updateProgressBar() {
+      const progress = (questionCount / maxQuestions) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+    }
+
+    function makeGuess() {
+      // Simple logic to pick an animal based on habitat
+      const animals = habitatAnimals[currentHabitat];
+      animalGuess = animals[Math.floor(Math.random() * animals.length)];
+      
+      document.getElementById('animal-guess').textContent = animalGuess;
+      document.getElementById('guess-input-section').classList.remove('hidden');
+      
+      // Hide the question asking interface
+      document.querySelector('.question-container').style.display = 'none';
+    }
+
+    function handleGuessResult(correct) {
+      if (correct) {
+        showResult(true, "🎉", "I Win!", `I correctly guessed your animal was a ${animalGuess}!`);
+      } else {
+        showResult(false, "😅", "You Win!", `I couldn't guess your animal in ${questionCount} questions. You got me this time!`);
+      }
+    }
+
+    function showResult(won, icon, title, message) {
+      document.getElementById('result-icon').textContent = icon;
+      document.getElementById('result-title').textContent = title;
+      document.getElementById('result-message').textContent = message;
+      
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+    }
+
+    function resetGame() {
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('habitat-screen').classList.remove('hidden');
+      
+      // Reset game state
+      currentHabitat = '';
+      questionCount = 0;
+      questionsAsked = [];
+      currentQuestionIndex = 0;
+      animalGuess = '';
+      
+      // Reset UI elements
+      document.querySelector('.question-container').style.display = 'block';
+      document.getElementById('guess-input-section').classList.add('hidden');
+      document.getElementById('progress-bar').style.width = '0%';
+      updateQuestionsHistory();
+    }
+  </script>
+</body>
+</html>

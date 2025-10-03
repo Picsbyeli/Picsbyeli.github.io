@@ -195,6 +195,22 @@ class MusicPlayer {
     this.audio.addEventListener('loadedmetadata', () => {
       this.handleTimeUpdate();
     });
+
+    this.audio.addEventListener('play', () => {
+      this.isPlaying = true;
+      this.updateDisplay();
+    });
+
+    this.audio.addEventListener('pause', () => {
+      this.isPlaying = false;
+      this.updateDisplay();
+    });
+
+    this.audio.addEventListener('error', (e) => {
+      console.error('Audio error:', e);
+      this.isPlaying = false;
+      this.updateDisplay();
+    });
   }
 
   formatTime(seconds) {
@@ -272,7 +288,9 @@ class MusicPlayer {
 
   handlePlayPause() {
     if (this.currentEmbed) {
-      // Embeds handle their own playback
+      // For embeds, we can't control playback directly, just update UI
+      this.isPlaying = !this.isPlaying;
+      this.updateDisplay();
       return;
     }
 
@@ -281,14 +299,19 @@ class MusicPlayer {
       return;
     }
     
-    if (this.audio) {
+    if (this.audio && this.currentTrack) {
       if (this.isPlaying) {
         this.audio.pause();
       } else {
-        this.audio.play().catch(e => console.log('Audio play failed:', e));
+        this.audio.play().then(() => {
+          this.isPlaying = true;
+          this.updateDisplay();
+        }).catch(e => {
+          console.log('Audio play failed:', e);
+          this.isPlaying = false;
+          this.updateDisplay();
+        });
       }
-      this.isPlaying = !this.isPlaying;
-      this.updateDisplay();
     }
   }
 
@@ -768,9 +791,60 @@ class MusicPlayer {
     }
   }
 
+  addSearchResult(result) {
+    if (!this.currentPlaylist) {
+      this.showNotification('Please select a playlist first!');
+      return;
+    }
+
+    const newTrack = { 
+      name: result.name, 
+      type: result.type, 
+      url: result.url 
+    };
+    
+    // Check if track already exists in playlist
+    const exists = this.playlists[this.currentPlaylist].some(track => 
+      track.url === newTrack.url
+    );
+    
+    if (exists) {
+      this.showNotification('Track already in playlist!');
+      return;
+    }
+
+    this.playlists[this.currentPlaylist].push(newTrack);
+    this.savePlaylists();
+    this.updateDisplay();
+    this.showNotification(`Added "${result.name}" to ${this.currentPlaylist}`);
+  }
+
   showNotification(message) {
-    // Simple notification - you might want to enhance this
-    alert(message);
+    // Create a notification element
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 4px;
+      z-index: 10000;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 3000);
   }
 }
 
@@ -778,6 +852,49 @@ class MusicPlayer {
 let musicPlayer;
 document.addEventListener('DOMContentLoaded', () => {
   musicPlayer = new MusicPlayer();
+  
+  // Global music persistence across pages
+  window.globalMusicPlayer = musicPlayer;
+  
+  // Save music state before page unload
+  window.addEventListener('beforeunload', () => {
+    if (musicPlayer.isPlaying && musicPlayer.audio) {
+      localStorage.setItem('musicState', JSON.stringify({
+        currentTrack: musicPlayer.currentTrack,
+        currentPlaylist: musicPlayer.currentPlaylist,
+        currentIndex: musicPlayer.currentIndex,
+        currentTime: musicPlayer.audio.currentTime,
+        volume: musicPlayer.volume,
+        isPlaying: true
+      }));
+    }
+  });
+  
+  // Restore music state on page load
+  const savedMusicState = localStorage.getItem('musicState');
+  if (savedMusicState) {
+    try {
+      const state = JSON.parse(savedMusicState);
+      if (state.currentTrack && state.currentPlaylist) {
+        musicPlayer.currentTrack = state.currentTrack;
+        musicPlayer.currentPlaylist = state.currentPlaylist;
+        musicPlayer.currentIndex = state.currentIndex;
+        musicPlayer.volume = state.volume || 0.7;
+        
+        // Restore playback
+        if (state.isPlaying) {
+          setTimeout(() => {
+            musicPlayer.playTrack(state.currentIndex);
+            if (musicPlayer.audio && state.currentTime) {
+              musicPlayer.audio.currentTime = state.currentTime;
+            }
+          }, 500);
+        }
+      }
+    } catch (e) {
+      console.log('Error restoring music state:', e);
+    }
+  }
 });
 
 // Legacy function support for existing HTML
