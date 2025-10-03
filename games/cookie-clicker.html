@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍪 Cookie Clicker</title>
+    <script src="../js/game-player.js"></script>
     <style>
         * {
             margin: 0;
@@ -221,6 +222,11 @@
             color: #9ca3af;
             cursor: not-allowed;
             opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .upgrade:disabled {
+            pointer-events: none;
         }
 
         @keyframes pulseGlow {
@@ -283,6 +289,33 @@
             color: #1e40af;
             font-size: 0.9rem;
             margin: 0;
+        }
+
+        .leaderboard-section {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .leaderboard-btn {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .leaderboard-btn:hover {
+            background: linear-gradient(45deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
         }
 
         .progress-section {
@@ -387,6 +420,11 @@
                 <div class="tip" id="tip" style="display: none;">
                     <p>💡 <strong>Tip:</strong> Keep clicking to earn your first upgrade!</p>
                 </div>
+
+                <div class="leaderboard-section">
+                    <button class="btn leaderboard-btn" onclick="submitScore()">🏆 Submit Score</button>
+                    <button class="btn leaderboard-btn" onclick="window.open('../leaderboard.html', '_blank')">📊 View Leaderboard</button>
+                </div>
             </div>
         </div>
 
@@ -462,6 +500,12 @@
                 name: 'Sigma Cookie', 
                 cost: 100000000000000000, 
                 effect: () => { 
+                    // Save score to leaderboard before reset
+                    const playerName = prompt('🎉 Sigma Cookie achieved! Enter your name for the leaderboard:');
+                    if (playerName && playerName.trim()) {
+                        addToLeaderboard('cookie-clicker', playerName.trim(), Math.floor(cookies));
+                    }
+                    
                     cookies = 0;
                     clickPower = 100;
                     autoClickers = 0;
@@ -579,11 +623,11 @@
                 
                 if (canAfford) {
                     upgradeDiv.onclick = () => buyUpgrade(upgrade.id);
+                    upgradeDiv.disabled = false;
                 } else {
                     upgradeDiv.onclick = null;
+                    upgradeDiv.disabled = true;
                 }
-                
-                upgradeDiv.disabled = !canAfford;
                 
                 // Format large numbers
                 let costText;
@@ -661,6 +705,23 @@
         // Initialize
         updateDisplay();
         renderUpgrades();
+
+        // Submit score function
+        function submitScore() {
+            if (cookies < 10) {
+                alert('You need at least 10 cookies to submit a score!');
+                return;
+            }
+            
+            const playerName = prompt('Enter your name for the leaderboard:');
+            if (playerName && playerName.trim()) {
+                addToLeaderboard('cookie-clicker', playerName.trim(), Math.floor(cookies), {
+                    clickPower: clickPower,
+                    autoClickers: autoClickers
+                });
+                alert(`Score submitted! You scored ${Math.floor(cookies).toLocaleString()} cookies.`);
+            }
+        }
     </script>
 </body>
 </html>
