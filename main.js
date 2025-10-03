@@ -44,23 +44,276 @@ function onPlayerStateChange(event) {
   }
 }
 
+// YouTube Data API v3 Configuration
+// For production, move this to environment variables or secure config
+let YOUTUBE_API_KEY = ''; // Will be loaded from localStorage
+
+// Spotify Web API Configuration
+let SPOTIFY_CLIENT_ID = ''; // Will be loaded from localStorage
+let SPOTIFY_CLIENT_SECRET = ''; // Will be loaded from localStorage
+let spotifyAccessToken = null;
+
+// Music search platform
+let currentPlatform = 'youtube';
+
+// API Key Management
+function loadStoredAPIKeys() {
+  const storedYouTubeKey = localStorage.getItem('youtube_api_key');
+  const storedSpotifyClientId = localStorage.getItem('spotify_client_id');
+  const storedSpotifyClientSecret = localStorage.getItem('spotify_client_secret');
+  
+  if (storedYouTubeKey) {
+    window.YOUTUBE_API_KEY = storedYouTubeKey;
+  }
+  
+  if (storedSpotifyClientId && storedSpotifyClientSecret) {
+    window.SPOTIFY_CLIENT_ID = storedSpotifyClientId;
+    window.SPOTIFY_CLIENT_SECRET = storedSpotifyClientSecret;
+  }
+}
+
+function saveYouTubeAPIKey() {
+  const apiKey = document.getElementById('youtube-api-key').value.trim();
+  const statusDiv = document.getElementById('youtube-status');
+  
+  if (!apiKey) {
+    statusDiv.className = 'api-status error';
+    statusDiv.textContent = 'Please enter a valid API key';
+    return;
+  }
+  
+  localStorage.setItem('youtube_api_key', apiKey);
+  window.YOUTUBE_API_KEY = apiKey;
+  
+  statusDiv.className = 'api-status success';
+  statusDiv.textContent = '✅ YouTube API key saved successfully!';
+  
+  // Clear the input for security
+  document.getElementById('youtube-api-key').value = '';
+}
+
+function saveSpotifyAPIKeys() {
+  const clientId = document.getElementById('spotify-client-id').value.trim();
+  const clientSecret = document.getElementById('spotify-client-secret').value.trim();
+  const statusDiv = document.getElementById('spotify-status');
+  
+  if (!clientId || !clientSecret) {
+    statusDiv.className = 'api-status error';
+    statusDiv.textContent = 'Please enter both Client ID and Client Secret';
+    return;
+  }
+  
+  localStorage.setItem('spotify_client_id', clientId);
+  localStorage.setItem('spotify_client_secret', clientSecret);
+  window.SPOTIFY_CLIENT_ID = clientId;
+  window.SPOTIFY_CLIENT_SECRET = clientSecret;
+  
+  statusDiv.className = 'api-status success';
+  statusDiv.textContent = '✅ Spotify API keys saved successfully!';
+  
+  // Clear the inputs for security
+  document.getElementById('spotify-client-id').value = '';
+  document.getElementById('spotify-client-secret').value = '';
+}
+
+function checkAPIStatus() {
+  const youtubeStatus = document.getElementById('youtube-status');
+  const spotifyStatus = document.getElementById('spotify-status');
+  
+  if (window.YOUTUBE_API_KEY) {
+    youtubeStatus.className = 'api-status success';
+    youtubeStatus.textContent = '✅ YouTube API configured';
+  } else {
+    youtubeStatus.className = 'api-status warning';
+    youtubeStatus.textContent = '⚠️ YouTube API not configured';
+  }
+  
+  if (window.SPOTIFY_CLIENT_ID && window.SPOTIFY_CLIENT_SECRET) {
+    spotifyStatus.className = 'api-status success';
+    spotifyStatus.textContent = '✅ Spotify API configured';
+  } else {
+    spotifyStatus.className = 'api-status warning';
+    spotifyStatus.textContent = '⚠️ Spotify API not configured';
+  }
+}
+
+// Platform selection functions
+function selectPlatform(platform) {
+  currentPlatform = platform;
+  
+  // Update button states
+  document.querySelectorAll('.platform-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`${platform}-btn`).classList.add('active');
+  
+  // Update search placeholder
+  const searchInput = document.getElementById('search-input');
+  if (platform === 'youtube') {
+    searchInput.placeholder = 'Search YouTube for songs, artists...';
+  } else {
+    searchInput.placeholder = 'Search Spotify for songs, artists...';
+  }
+  
+  // Clear previous search results
+  musicPlayer.searchResults = [];
+  document.getElementById('search-results').innerHTML = '';
+}
+
+// Universal search function that routes to the correct platform
+async function performSearch() {
+  const query = document.getElementById('search-input').value.trim();
+  if (!query) return;
+
+  if (currentPlatform === 'youtube') {
+    await searchYouTube();
+  } else if (currentPlatform === 'spotify') {
+    await searchSpotify(query);
+  }
+}
+
 // Search YouTube
 async function searchYouTube() {
   const query = document.getElementById('search-input').value.trim();
   if (!query) return;
 
-  // Create mock results for demo
-  const mockResults = Array.from({ length: 8 }, (_, i) => ({
-    id: `vid-${Date.now()}-${i}`,
-    videoId: `dQw4w9WgXcQ`, // Demo video ID
-    title: `${query} - Result ${i + 1}`,
-    artist: `Artist ${i + 1}`,
-    thumbnail: `https://img.youtube.com/vi/dQw4w9WgXcQ/default.jpg`,
-    duration: '3:45'
-  }));
+  if (!YOUTUBE_API_KEY) {
+    console.warn('YouTube API key not configured');
+    alert('YouTube API key not configured. Please add your YouTube Data API v3 key to use search functionality.');
+    
+    // Create mock results for demo
+    const mockResults = Array.from({ length: 8 }, (_, i) => ({
+      id: `vid-${Date.now()}-${i}`,
+      videoId: `dQw4w9WgXcQ`, // Demo video ID
+      title: `${query} - Result ${i + 1}`,
+      artist: `Artist ${i + 1}`,
+      thumbnail: `https://img.youtube.com/vi/dQw4w9WgXcQ/default.jpg`,
+      duration: '3:45'
+    }));
 
-  musicPlayer.searchResults = mockResults;
-  displaySearchResults();
+    musicPlayer.searchResults = mockResults;
+    displaySearchResults();
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=10&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`);
+    
+    if (!response.ok) {
+      throw new Error(`YouTube API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    const results = data.items.map((item, index) => ({
+      id: `vid-${Date.now()}-${index}`,
+      videoId: item.id.videoId,
+      title: item.snippet.title,
+      artist: item.snippet.channelTitle,
+      thumbnail: item.snippet.thumbnails.medium?.url || `https://img.youtube.com/vi/${item.id.videoId}/default.jpg`,
+      duration: '3:45' // YouTube Data API v3 doesn't include duration in search, would need contentDetails API
+    }));
+    
+    musicPlayer.searchResults = results;
+    displaySearchResults();
+  } catch (error) {
+    console.error('YouTube search error:', error);
+    alert('Failed to search YouTube. Please check your API key and network connection.');
+    
+    // Fallback to mock results
+    const mockResults = Array.from({ length: 8 }, (_, i) => ({
+      id: `vid-${Date.now()}-${i}`,
+      videoId: `dQw4w9WgXcQ`, // Demo video ID
+      title: `${query} - Result ${i + 1}`,
+      artist: `Artist ${i + 1}`,
+      thumbnail: `https://img.youtube.com/vi/dQw4w9WgXcQ/default.jpg`,
+      duration: '3:45'
+    }));
+
+    musicPlayer.searchResults = mockResults;
+    displaySearchResults();
+  }
+}
+
+// Spotify Web API functions
+async function getSpotifyAccessToken() {
+  if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
+    throw new Error('Spotify credentials not configured');
+  }
+
+  try {
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic ' + btoa(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET)
+      },
+      body: 'grant_type=client_credentials'
+    });
+
+    if (!response.ok) {
+      throw new Error(`Spotify auth error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    spotifyAccessToken = data.access_token;
+    return data.access_token;
+  } catch (error) {
+    console.error('Spotify authentication error:', error);
+    throw error;
+  }
+}
+
+async function searchSpotify(query) {
+  if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
+    console.warn('Spotify API credentials not configured');
+    alert('Spotify API credentials not configured. Please add your Spotify Client ID and Client Secret to use search functionality.');
+    return;
+  }
+
+  try {
+    if (!spotifyAccessToken) {
+      await getSpotifyAccessToken();
+    }
+
+    const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`, {
+      headers: {
+        'Authorization': `Bearer ${spotifyAccessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Token expired, get a new one
+        await getSpotifyAccessToken();
+        return searchSpotify(query); // Retry with new token
+      }
+      throw new Error(`Spotify search error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    const results = data.tracks.items.map((track, index) => ({
+      id: `spotify-${Date.now()}-${index}`,
+      spotifyId: track.id,
+      title: track.name,
+      artist: track.artists.map(a => a.name).join(', '),
+      thumbnail: track.album.images[1]?.url || track.album.images[0]?.url || '',
+      duration: formatDuration(track.duration_ms),
+      spotifyUrl: track.external_urls.spotify,
+      previewUrl: track.preview_url
+    }));
+    
+    musicPlayer.searchResults = results;
+    displaySearchResults();
+  } catch (error) {
+    console.error('Spotify search error:', error);
+    alert('Failed to search Spotify. Please check your API credentials and try again.');
+  }
+}
+
+function formatDuration(ms) {
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 function displaySearchResults() {
@@ -187,6 +440,11 @@ function switchView(viewName) {
   });
   document.getElementById(`${viewName}-view`).classList.add('active');
 
+  // Check API status when settings view is opened
+  if (viewName === 'settings') {
+    setTimeout(checkAPIStatus, 100); // Small delay to ensure DOM is updated
+  }
+
   musicPlayer.activeView = viewName;
 }
 
@@ -311,6 +569,9 @@ function initGuestMode() {
 
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+  // Load stored API keys
+  loadStoredAPIKeys();
+  
   // Initialize guest mode
   initGuestMode();
 
@@ -327,13 +588,17 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeYouTubeAPI();
   initializeDragging();
 
+  // Settings event listeners
+  document.getElementById('save-youtube-key')?.addEventListener('click', saveYouTubeAPIKey);
+  document.getElementById('save-spotify-keys')?.addEventListener('click', saveSpotifyAPIKeys);
+
   // Music player event listeners
   document.getElementById('minimize-btn')?.addEventListener('click', toggleMinimize);
   document.getElementById('play-pause-btn')?.addEventListener('click', togglePlay);
   document.getElementById('minimized-play-btn')?.addEventListener('click', togglePlay);
   document.getElementById('prev-btn')?.addEventListener('click', handlePrevious);
   document.getElementById('next-btn')?.addEventListener('click', handleNext);
-  document.getElementById('search-btn')?.addEventListener('click', searchYouTube);
+  document.getElementById('search-btn')?.addEventListener('click', performSearch);
   document.getElementById('volume-slider')?.addEventListener('input', handleVolumeChange);
   document.getElementById('create-playlist-btn')?.addEventListener('click', createPlaylist);
   
@@ -346,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Search on Enter key
   document.getElementById('search-input')?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') searchYouTube();
+    if (e.key === 'Enter') performSearch();
   });
 
   // Navigation tabs
@@ -403,11 +668,19 @@ function addLink() {
 }
 
 function loginSpotify() {
-  alert('Spotify integration coming soon!');
+  if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
+    alert('To use Spotify functionality:\n\n1. Create a Spotify app at https://developer.spotify.com/dashboard\n2. Add your Client ID and Client Secret to the SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET variables in main.js\n3. Add your domain to the app\'s redirect URIs\n\nOnce configured, you can search and preview Spotify tracks!');
+  } else {
+    alert('Spotify API is configured and ready to use! Try searching for music in the Search tab.\n\nNote: This uses Client Credentials flow which allows searching but not user-specific features like playlists.');
+  }
 }
 
 function loginYouTube() {
-  alert('YouTube integration coming soon!');
+  if (!YOUTUBE_API_KEY) {
+    alert('To use YouTube functionality:\n\n1. Get a YouTube Data API v3 key from Google Cloud Console\n2. Add it to the YOUTUBE_API_KEY variable in main.js\n3. Enable YouTube Data API v3 in your Google Cloud project\n\nOnce configured, you can search and play YouTube videos directly!');
+  } else {
+    alert('YouTube API is configured and ready to use! Try searching for music in the Search tab.');
+  }
 }
 
 // ---------- music ----------

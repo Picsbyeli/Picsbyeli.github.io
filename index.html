@@ -26,6 +26,7 @@
         <button class="nav-tab active" data-view="player">Player</button>
         <button class="nav-tab" data-view="search">Search</button>
         <button class="nav-tab" data-view="playlists">Playlists</button>
+        <button class="nav-tab" data-view="settings">Settings</button>
       </div>
 
       <!-- Content Area -->
@@ -62,6 +63,10 @@
 
         <!-- Search View -->
         <div id="search-view" class="view">
+          <div class="platform-selector">
+            <button id="youtube-btn" class="platform-btn active" onclick="selectPlatform('youtube')">📺 YouTube</button>
+            <button id="spotify-btn" class="platform-btn" onclick="selectPlatform('spotify')">🎵 Spotify</button>
+          </div>
           <div class="search-bar">
             <input type="text" id="search-input" placeholder="Search songs, artists..." class="search-input">
             <button id="search-btn" class="search-button">🔍</button>
@@ -73,6 +78,52 @@
         <div id="playlists-view" class="view">
           <button id="create-playlist-btn" class="create-playlist-btn">➕ Create New Playlist</button>
           <div id="playlists-list" class="playlists-list"></div>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settings-view" class="view">
+          <div class="settings-section">
+            <h3>🎵 Music API Configuration</h3>
+            <p>To enable music search and playback, you need to configure API credentials:</p>
+            
+            <div class="api-config">
+              <h4>📺 YouTube Data API v3</h4>
+              <div class="config-info">
+                <p>1. Visit <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></p>
+                <p>2. Create a new project or select existing one</p>
+                <p>3. Enable "YouTube Data API v3"</p>
+                <p>4. Create credentials (API Key)</p>
+                <p>5. Add your API key below:</p>
+                <input type="text" id="youtube-api-key" placeholder="Your YouTube API Key" class="api-input">
+                <button id="save-youtube-key" class="save-btn">💾 Save YouTube Key</button>
+                <div id="youtube-status" class="api-status"></div>
+              </div>
+            </div>
+
+            <div class="api-config">
+              <h4>🎵 Spotify Web API</h4>
+              <div class="config-info">
+                <p>1. Visit <a href="https://developer.spotify.com/dashboard" target="_blank">Spotify Developer Dashboard</a></p>
+                <p>2. Create a new app</p>
+                <p>3. Note your Client ID and Client Secret</p>
+                <p>4. Add your credentials below:</p>
+                <input type="text" id="spotify-client-id" placeholder="Your Spotify Client ID" class="api-input">
+                <input type="password" id="spotify-client-secret" placeholder="Your Spotify Client Secret" class="api-input">
+                <button id="save-spotify-keys" class="save-btn">💾 Save Spotify Keys</button>
+                <div id="spotify-status" class="api-status"></div>
+              </div>
+            </div>
+
+            <div class="api-config">
+              <h4>ℹ️ Important Notes</h4>
+              <ul>
+                <li>API keys are stored locally in your browser</li>
+                <li>Keys are not shared or transmitted to any external servers</li>
+                <li>You can test the login functions to verify your setup</li>
+                <li>Clear your browser data to reset stored keys</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
