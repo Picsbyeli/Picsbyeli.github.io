@@ -1,877 +1,1293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎭 Imposter (Chameleon)</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      color: white;
-      padding: 16px;
-    }
-    
-    .container {
-      max-width: 1024px;
-      margin: 0 auto;
-    }
-    
-    .title {
-      font-size: 3rem;
-      font-weight: bold;
-      text-align: center;
-      margin: 32px 0 32px 0;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-    
-    .card {
-      background: rgba(255, 255, 255, 0.1);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      border-radius: 16px;
-      padding: 32px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-      margin-bottom: 24px;
-    }
-    
-    .form-group {
-      margin-bottom: 24px;
-    }
-    
-    .form-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-    
-    .form-input {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      font-size: 16px;
-    }
-    
-    .form-input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
-    
-    .form-input:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px #a855f7;
-    }
-    
-    .btn {
-      width: 100%;
-      padding: 16px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 18px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-decoration: none;
-      display: inline-block;
-      text-align: center;
-    }
-    
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #a855f7, #ec4899);
-    }
-    
-    .btn-primary:hover:not(:disabled) {
-      background: linear-gradient(135deg, #9333ea, #db2777);
-      transform: scale(1.05);
-    }
-    
-    .btn-secondary {
-      background: linear-gradient(135deg, #3b82f6, #06b6d4);
-    }
-    
-    .btn-secondary:hover:not(:disabled) {
-      background: linear-gradient(135deg, #2563eb, #0891b2);
-      transform: scale(1.05);
-    }
-    
-    .btn-success {
-      background: linear-gradient(135deg, #10b981, #059669);
-    }
-    
-    .btn-success:hover:not(:disabled) {
-      background: linear-gradient(135deg, #059669, #047857);
-      transform: scale(1.05);
-    }
-    
-    .btn-warning {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-    
-    .btn-ghost {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-    }
-    
-    .btn-ghost:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.3);
-    }
-    
-    .divider {
-      display: flex;
-      align-items: center;
-      margin: 24px 0;
-    }
-    
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(255, 255, 255, 0.3);
-    }
-    
-    .divider span {
-      margin: 0 16px;
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.6);
-    }
-    
-    .room-code {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 12px 24px;
-      border-radius: 25px;
-      margin-bottom: 24px;
-    }
-    
-    .room-code span:nth-child(2) {
-      font-size: 24px;
-      font-weight: bold;
-      letter-spacing: 2px;
-    }
-    
-    .copy-btn {
-      padding: 4px;
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      border-radius: 4px;
-      color: white;
-      cursor: pointer;
-    }
-    
-    .players-list {
-      margin-bottom: 24px;
-    }
-    
-    .player-item {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .crown {
-      color: #fbbf24;
-    }
-    
-    .you-tag {
-      font-size: 12px;
-      color: #10b981;
-    }
-    
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-bottom: 24px;
-    }
-    
-    .word-card {
-      padding: 12px 8px;
-      border-radius: 6px;
-      text-align: center;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.3s;
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-    }
-    
-    .word-card.secret {
-      background: #fbbf24;
-      color: black;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transform: scale(1.05);
-    }
-    
-    .status-card {
-      background: rgba(16, 185, 129, 0.2);
-      border: 1px solid rgba(16, 185, 129, 0.5);
-      border-radius: 8px;
-      padding: 16px;
-      text-align: center;
-    }
-    
-    .status-card.warning {
-      background: rgba(245, 158, 11, 0.2);
-      border-color: rgba(245, 158, 11, 0.5);
-    }
-    
-    .clues-grid {
-      margin-bottom: 24px;
-    }
-    
-    .clue-item {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .clue-text {
-      display: flex;
-      gap: 12px;
-    }
-    
-    .player-name {
-      color: #c084fc;
-      font-weight: 500;
-    }
-    
-    .back-btn {
-      background: linear-gradient(45deg, #667eea, #764ba2);
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      padding: 10px 20px;
-      border-radius: 20px;
-      text-decoration: none;
-      color: white;
-      font-weight: bold;
-      z-index: 1000;
-    }
-    
-    .hidden { display: none; }
-    .text-center { text-align: center; }
-    .mb-4 { margin-bottom: 16px; }
-    .mb-6 { margin-bottom: 24px; }
-    .text-lg { font-size: 18px; }
-    .text-xl { font-size: 20px; }
-    .text-2xl { font-size: 24px; }
-    .text-4xl { font-size: 36px; }
-    .font-bold { font-weight: bold; }
-    .font-semibold { font-weight: 600; }
-    .text-red { color: #ef4444; }
-    .text-yellow { color: #fbbf24; }
-    .emoji-large { font-size: 48px; margin-bottom: 8px; }
-    .instructions { line-height: 1.6; }
-    
-    @media (max-width: 768px) {
-      .title { font-size: 2rem; }
-      .card { padding: 20px; }
-      .grid { grid-template-columns: repeat(3, 1fr); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chameleon Game - Multiplayer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #fd79a8, #e84393);
+        }
+
+        .room-code {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .players-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .player-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .game-info {
+            background: #e8f4f8;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .word-chart {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .word-cell {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .word-cell.highlighted {
+            background: #ffeb3b;
+            border: 3px solid #ff5722;
+            font-weight: bold;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(255, 87, 34, 0.3);
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .category-btn {
+            padding: 20px;
+            background: linear-gradient(45deg, #00cec9, #55a3ff);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .category-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .category-btn.voted {
+            background: linear-gradient(45deg, #fdcb6e, #e17055);
+        }
+
+        .clue-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #00cec9;
+            text-align: left;
+        }
+
+        .voting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .vote-btn {
+            padding: 15px;
+            background: linear-gradient(45deg, #00cec9, #55a3ff);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .vote-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .results {
+            background: #dff0d8;
+            border: 1px solid #d6e9c6;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .error {
+            background: #f2dede;
+            border: 1px solid #ebccd1;
+            color: #a94442;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .status {
+            background: #d9edf7;
+            border: 1px solid #bce8f1;
+            color: #31708f;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .turn-indicator {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .category-votes {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .vote-count {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+
+        .final-guess-container {
+            background: #fff3cd;
+            border: 3px solid #ffc107;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .final-guess-container h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .scoreboard {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .score-value {
+            font-weight: bold;
+            color: #4caf50;
+            font-size: 1.2em;
+        }
+
+        .bonus-points {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px 0;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+    </style>
 </head>
 <body>
-  <a href="../index.html" class="back-btn">← Back to Hub</a>
-  
-  <div class="container">
-    <h1 class="title">🎭 Imposter (Chameleon)</h1>
+    <a href="../index.html" class="back-btn">← Back to Games</a>
     
-    <!-- Menu Screen -->
-    <div id="menu" class="card">
-      <div class="form-group">
-        <label class="form-label">Your Name</label>
-        <input type="text" id="playerName" class="form-input" placeholder="Enter your name" maxlength="15">
-      </div>
-      
-      <button id="createRoomBtn" class="btn btn-primary mb-4">Create Room</button>
-      
-      <div class="divider">
-        <span>OR</span>
-      </div>
-      
-      <div class="form-group">
-        <label class="form-label">Room Code</label>
-        <input type="text" id="roomCodeInput" class="form-input" placeholder="Enter room code" maxlength="6">
-      </div>
-      
-      <button id="joinRoomBtn" class="btn btn-secondary">Join Room</button>
-    </div>
-    
-    <!-- Lobby Screen -->
-    <div id="lobby" class="card hidden">
-      <div class="text-center mb-6">
-        <div class="room-code">
-          <span>Room Code:</span>
-          <span id="displayRoomCode"></span>
-          <button id="copyCodeBtn" class="copy-btn">📋</button>
+    <div class="game-container">
+        <h1>🦎 Chameleon Game</h1>
+        <p class="subtitle">Word Chart Edition</p>
+
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen active">
+            <div class="input-group">
+                <label for="player-name">Your Name:</label>
+                <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+            </div>
+            
+            <button class="btn" onclick="showCreateRoom()">🎮 Create New Game Room</button>
+            <button class="btn btn-secondary" onclick="showJoinRoom()">🚪 Join Existing Room</button>
+            
+            <div class="status">
+                <strong>How to Play:</strong><br>
+                1. Create or join a room<br>
+                2. Vote on a category together<br>
+                3. Everyone sees a chart with 20 words<br>
+                4. One word is highlighted (except for the chameleon!)<br>
+                5. Take turns giving clues about the word<br>
+                6. Vote to find the chameleon<br>
+                7. Caught chameleon gets one final guess for bonus points!
+            </div>
         </div>
-      </div>
-      
-      <div class="players-list">
-        <h3 class="text-xl font-semibold mb-4">👥 Players (<span id="playerCount">0</span>)</h3>
-        <div id="playersList"></div>
-      </div>
-      
-      <div id="hostControls" class="hidden">
-        <div class="form-group">
-          <label class="form-label">Category</label>
-          <select id="categorySelect" class="form-input">
-            <option value="food">Food</option>
-            <option value="animals">Animals</option>
-            <option value="countries">Countries</option>
-            <option value="movies">Movies</option>
-            <option value="sports">Sports</option>
-            <option value="colors">Colors</option>
-          </select>
+
+        <!-- Create Room Screen -->
+        <div id="create-room-screen" class="screen">
+            <h2>Create Game Room</h2>
+            <button class="btn" onclick="createRoom()">🎲 Generate Room Code</button>
+            <button class="btn btn-secondary" onclick="showHome()">← Back</button>
         </div>
-        
-        <button id="startGameBtn" class="btn btn-success">Start Game</button>
-      </div>
-      
-      <div id="waitingMessage" class="text-center text-lg hidden">
-        Waiting for host to start the game...
-      </div>
-    </div>
-    
-    <!-- Playing Screen -->
-    <div id="playing" class="hidden">
-      <div class="card">
-        <div class="text-center mb-6">
-          <h2 id="roleTitle" class="text-2xl font-bold mb-4"></h2>
-          <p id="categoryDisplay" class="text-lg"></p>
+
+        <!-- Join Room Screen -->
+        <div id="join-room-screen" class="screen">
+            <h2>Join Game Room</h2>
+            <div class="input-group">
+                <label for="room-code-input">Room Code:</label>
+                <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="6">
+            </div>
+            <button class="btn" onclick="joinRoom()">🚪 Join Room</button>
+            <button class="btn btn-secondary" onclick="showHome()">← Back</button>
         </div>
-        
-        <button id="revealBoardBtn" class="btn btn-ghost mb-4">👁️ Reveal Board</button>
-        
-        <div id="wordGrid" class="grid hidden"></div>
-        
-        <div id="clueInput">
-          <div class="form-group">
-            <label class="form-label">Give a clue word:</label>
-            <input type="text" id="clueText" class="form-input" placeholder="Enter your clue..." maxlength="30">
-          </div>
-          <button id="submitClueBtn" class="btn btn-primary">Submit Clue</button>
+
+        <!-- Waiting Room Screen -->
+        <div id="waiting-room-screen" class="screen">
+            <h2>Game Room</h2>
+            <div class="room-code">
+                Room Code: <span id="current-room-code"></span>
+            </div>
+            
+            <div class="players-list">
+                <h3>Players in Room:</h3>
+                <div id="players-container"></div>
+            </div>
+            
+            <button class="btn" onclick="startGame()" id="start-game-btn">🎮 Start Game</button>
+            <button class="btn btn-danger" onclick="leaveRoom()">🚪 Leave Room</button>
         </div>
-        
-        <div id="clueSubmitted" class="status-card hidden">
-          <p>✓ Your clue submitted</p>
-          <p id="submittedClue" class="font-semibold mt-1"></p>
-          <p id="waitingCount" class="text-sm mt-2"></p>
+
+        <!-- Category Voting Screen -->
+        <div id="category-screen" class="screen">
+            <h2>📊 Vote for a Category</h2>
+            <p>Choose which category you want to play with:</p>
+            
+            <div class="category-votes" id="category-votes-display"></div>
+            
+            <div class="category-grid" id="category-container"></div>
+            
+            <div class="status">Waiting for all players to vote...</div>
         </div>
-      </div>
-      
-      <div class="card">
-        <h3 class="text-xl font-semibold mb-4">Clues Submitted</h3>
-        <div id="cluesProgress"></div>
-      </div>
-    </div>
-    
-    <!-- Voting Screen -->
-    <div id="voting" class="card hidden">
-      <h2 class="text-4xl font-bold text-center mb-6">🗳️ Vote for the Imposter!</h2>
-      
-      <div class="clues-grid mb-6">
-        <h3 class="font-semibold mb-4">All Clues:</h3>
-        <div id="allClues"></div>
-      </div>
-      
-      <div id="voteButtons">
-        <p class="text-center mb-4">Who do you think is the imposter?</p>
-        <div id="votePlayersList"></div>
-      </div>
-      
-      <div id="voteSubmitted" class="status-card hidden">
-        <p>✓ Vote submitted</p>
-        <p id="voteWaitingCount" class="text-sm mt-2"></p>
-      </div>
-    </div>
-    
-    <!-- Guess Screen -->
-    <div id="guess" class="card hidden">
-      <h2 class="text-4xl font-bold text-center mb-4">🎯 Imposter Caught!</h2>
-      <p class="text-center text-xl mb-6">
-        <span id="caughtImposter" class="font-bold text-red"></span> was the imposter!
-      </p>
-      
-      <div id="imposterGuess">
-        <div class="status-card warning mb-4">
-          <div class="text-center">
-            <div class="emoji-large">⚠️</div>
-            <p class="font-semibold">You've been caught!</p>
-            <p class="text-sm mt-1">But you can still win by guessing the secret word!</p>
-          </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="game-info">
+                <h3 id="game-phase">Game in Progress</h3>
+                <div id="role-info"></div>
+            </div>
+
+            <!-- Word Chart Display -->
+            <div id="word-chart-container">
+                <h3 id="chart-title">Word Chart</h3>
+                <div class="word-chart" id="word-chart"></div>
+            </div>
+
+            <!-- Turn Indicator -->
+            <div id="turn-indicator" class="turn-indicator" style="display: none;"></div>
+
+            <!-- Clue Submission Phase -->
+            <div id="clue-phase" style="display: none;">
+                <div class="input-group">
+                    <input type="text" id="clue-input" placeholder="Enter your clue" maxlength="50">
+                </div>
+                <button class="btn" onclick="submitClue()">📝 Submit Clue</button>
+            </div>
+
+            <!-- Clues Display -->
+            <div id="clues-display" style="display: none;">
+                <h3>Submitted Clues:</h3>
+                <div id="clues-container"></div>
+            </div>
+
+            <!-- Voting Phase -->
+            <div id="voting-phase" style="display: none;">
+                <h3>Vote for the Chameleon!</h3>
+                <p>Who do you think doesn't know the secret word?</p>
+                <div class="voting-grid" id="voting-container"></div>
+            </div>
+
+            <!-- Final Guess Phase -->
+            <div id="final-guess-phase" style="display: none;">
+                <div class="final-guess-container">
+                    <h3>🎯 Chameleon's Last Chance!</h3>
+                    <p id="final-guess-message"></p>
+                    <div class="input-group" id="imposter-guess-input" style="display: none;">
+                        <input type="text" id="guess-input" placeholder="Enter your guess for the secret word" maxlength="50">
+                        <button class="btn" onclick="submitFinalGuess()">🎲 Submit Guess</button>
+                    </div>
+                    <div id="waiting-for-guess" style="display: none;">
+                        <p>⏳ Waiting for the chameleon to make their final guess...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Phase -->
+            <div id="results-phase" style="display: none;">
+                <div class="scoreboard" id="scoreboard-display"></div>
+                <div class="results" id="game-results"></div>
+                <button class="btn" onclick="playAgain()">🎮 Play Again</button>
+                <button class="btn btn-secondary" onclick="leaveRoom()">🚪 Leave Game</button>
+            </div>
         </div>
-        
-        <div id="guessWordGrid" class="grid mb-4"></div>
-        
-        <div class="form-group">
-          <input type="text" id="guessInput" class="form-input" placeholder="Type your guess...">
-        </div>
-        <button id="submitGuessBtn" class="btn btn-warning">Submit Guess</button>
-      </div>
-      
-      <div id="waitingForGuess" class="status-card hidden">
-        <p class="text-lg">Waiting for the imposter to guess the word...</p>
-      </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+        <div id="status-message" class="status" style="display: none;"></div>
     </div>
-    
-    <!-- Result Screen -->
-    <div id="result" class="card hidden">
-      <div class="text-center mb-6">
-        <h2 id="winnerTitle" class="text-4xl font-bold mb-4"></h2>
-        <p class="text-xl mb-2">
-          The secret word was: <span id="revealSecretWord" class="font-bold text-yellow"></span>
-        </p>
-        <p class="text-lg">
-          Imposter: <span id="revealImposter" class="font-bold text-red"></span>
-        </p>
-      </div>
-      
-      <button id="playAgainBtn" class="btn btn-primary mb-4">Play Again</button>
-      <button id="returnLobbyBtn" class="btn btn-ghost">Return to Lobby</button>
-    </div>
-    
-    <!-- Instructions -->
-    <div class="card">
-      <h3 class="text-xl font-semibold mb-4">📖 How to Play</h3>
-      <div class="instructions">
-        <p class="mb-4"><strong>🔍 For Detectives:</strong> You see the secret word highlighted in gold. Give clues that relate to it, but don't be too obvious!</p>
-        <p class="mb-4"><strong>🎭 For the Imposter:</strong> You don't know the secret word. Listen to clues and try to blend in with a believable response!</p>
-        <p class="mb-4"><strong>🗳️ Voting:</strong> After everyone gives clues, vote for who you think is the imposter. If the imposter is caught, they get one chance to guess the word and win!</p>
-        <p><strong>🎯 Winning:</strong> Detectives win by finding the imposter. The imposter wins by either avoiding detection or correctly guessing the secret word when caught.</p>
-      </div>
-    </div>
-  </div>
 
-  <script>
-    // Game categories
-    const CATEGORIES = {
-      food: ['Pizza', 'Burger', 'Sushi', 'Tacos', 'Pasta', 'Steak', 'Salad', 'Ramen', 'Curry', 'Sandwich', 'Soup', 'Rice', 'Noodles', 'Bread', 'Cheese', 'Chicken'],
-      animals: ['Dog', 'Cat', 'Lion', 'Eagle', 'Dolphin', 'Elephant', 'Tiger', 'Penguin', 'Giraffe', 'Monkey', 'Bear', 'Wolf', 'Shark', 'Rabbit', 'Horse', 'Snake'],
-      countries: ['USA', 'Japan', 'France', 'Brazil', 'Egypt', 'Australia', 'Canada', 'Italy', 'Spain', 'China', 'India', 'Mexico', 'Germany', 'Greece', 'Russia', 'Thailand'],
-      movies: ['Titanic', 'Avatar', 'Jaws', 'Frozen', 'Inception', 'Gladiator', 'Rocky', 'Shrek', 'Aliens', 'Dune', 'Coco', 'Up', 'Joker', 'Matrix', 'Batman', 'Superman'],
-      sports: ['Soccer', 'Basketball', 'Tennis', 'Baseball', 'Hockey', 'Golf', 'Boxing', 'Swimming', 'Skiing', 'Surfing', 'Volleyball', 'Cricket', 'Rugby', 'Bowling', 'Archery', 'Diving'],
-      colors: ['Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Orange', 'Pink', 'Black', 'White', 'Brown', 'Gray', 'Gold', 'Silver', 'Turquoise', 'Violet', 'Cyan']
-    };
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-    // Game state
-    let gameState = 'menu';
-    let roomCode = '';
-    let playerName = '';
-    let players = [];
-    let isHost = false;
-    let myId = '';
-    let category = 'food';
-    let secretWord = '';
-    let imposter = '';
-    let boardRevealed = false;
-    let clues = {};
-    let myClue = '';
-    let votes = {};
-    let myVote = '';
-    let guessWord = '';
-    let winner = '';
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFBrWDLyNPHHwnllI9Pz4-QlNhylP3ub4",
+            authDomain: "imposters-912d1.firebaseapp.com",
+            databaseURL: "https://imposters-912d1-default-rtdb.firebaseio.com",
+            projectId: "imposters-912d1",
+            storageBucket: "imposters-912d1.firebasestorage.app",
+            messagingSenderId: "558821621021",
+            appId: "1:558821621021:web:c31a12816dbed520c2b5f4",
+            measurementId: "G-QR5RP6JJ8D"
+        };
 
-    // Initialize
-    function init() {
-      myId = 'player_' + Math.random().toString(36).substr(2, 9);
-      setupEventListeners();
-    }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-    function setupEventListeners() {
-      // Menu
-      document.getElementById('createRoomBtn').onclick = createRoom;
-      document.getElementById('joinRoomBtn').onclick = joinRoom;
-      
-      // Lobby
-      document.getElementById('copyCodeBtn').onclick = copyRoomCode;
-      document.getElementById('startGameBtn').onclick = startGame;
-      
-      // Playing
-      document.getElementById('revealBoardBtn').onclick = toggleBoard;
-      document.getElementById('submitClueBtn').onclick = submitClue;
-      
-      // Voting
-      // Vote buttons are created dynamically
-      
-      // Guess
-      document.getElementById('submitGuessBtn').onclick = submitGuess;
-      
-      // Result
-      document.getElementById('playAgainBtn').onclick = playAgain;
-      document.getElementById('returnLobbyBtn').onclick = returnToLobby;
-      
-      // Input validation
-      document.getElementById('playerName').oninput = validateMenuInputs;
-      document.getElementById('roomCodeInput').oninput = function() {
-        this.value = this.value.toUpperCase();
-        validateMenuInputs();
-      };
-      document.getElementById('clueText').oninput = validateClueInput;
-      document.getElementById('guessInput').oninput = validateGuessInput;
-    }
+        // Game state
+        let currentRoom = null;
+        let currentPlayer = null;
+        let gameState = null;
 
-    function validateMenuInputs() {
-      const name = document.getElementById('playerName').value.trim();
-      const code = document.getElementById('roomCodeInput').value.trim();
-      
-      document.getElementById('createRoomBtn').disabled = !name;
-      document.getElementById('joinRoomBtn').disabled = !name || !code;
-    }
+        // Word categories with 20 words each
+        const categories = {
+            'Movies': [
+                'Jurassic Park', 'Jaws', 'Raiders of the Lost Ark', 'The Avengers',
+                'Transformers', 'Toy Story', 'Home Alone', 'Titanic',
+                'E.T.', 'The Wizard of Oz', 'King Kong', 'The Matrix',
+                'Shrek', 'The Godfather', 'Finding Nemo', 'Avatar',
+                'Frozen', 'Star Wars', 'Harry Potter', 'The Lion King'
+            ],
+            'Food': [
+                'Pizza', 'Burger', 'Sushi', 'Tacos',
+                'Pasta', 'Ice Cream', 'Chocolate', 'Salad',
+                'Steak', 'Chicken', 'Rice', 'Bread',
+                'Cheese', 'Eggs', 'Bacon', 'Pancakes',
+                'Soup', 'Sandwich', 'Cookies', 'Cake'
+            ],
+            'Vacation Spots': [
+                'Paris', 'Tokyo', 'New York', 'London',
+                'Hawaii', 'Bali', 'Rome', 'Dubai',
+                'Sydney', 'Barcelona', 'Maldives', 'Iceland',
+                'Egypt', 'Greece', 'Thailand', 'Switzerland',
+                'Venice', 'Amsterdam', 'Prague', 'Santorini'
+            ],
+            'Famous Characters': [
+                'Mickey Mouse', 'Superman', 'Batman', 'Spider-Man',
+                'Mario', 'Pikachu', 'Elsa', 'Darth Vader',
+                'Iron Man', 'Wonder Woman', 'Hulk', 'Thor',
+                'Captain America', 'Yoda', 'Simba', 'Buzz Lightyear',
+                'Sonic', 'Link', 'Pac-Man', 'Snoopy'
+            ],
+            'Sports': [
+                'Soccer', 'Basketball', 'Tennis', 'Baseball',
+                'Football', 'Swimming', 'Golf', 'Volleyball',
+                'Boxing', 'Hockey', 'Cricket', 'Rugby',
+                'Skiing', 'Surfing', 'Cycling', 'Running',
+                'Gymnastics', 'Wrestling', 'Bowling', 'Skateboarding'
+            ],
+            'Animals': [
+                'Lion', 'Elephant', 'Giraffe', 'Dolphin',
+                'Panda', 'Tiger', 'Penguin', 'Kangaroo',
+                'Koala', 'Zebra', 'Monkey', 'Eagle',
+                'Shark', 'Bear', 'Wolf', 'Fox',
+                'Owl', 'Turtle', 'Butterfly', 'Octopus'
+            ]
+        };
 
-    function validateClueInput() {
-      const clue = document.getElementById('clueText').value.trim();
-      document.getElementById('submitClueBtn').disabled = !clue;
-    }
-
-    function validateGuessInput() {
-      const guess = document.getElementById('guessInput').value.trim();
-      document.getElementById('submitGuessBtn').disabled = !guess;
-    }
-
-    function showScreen(screen) {
-      const screens = ['menu', 'lobby', 'playing', 'voting', 'guess', 'result'];
-      screens.forEach(s => {
-        document.getElementById(s).classList.toggle('hidden', s !== screen);
-      });
-      gameState = screen;
-    }
-
-    function generateRoomCode() {
-      return Math.random().toString(36).substr(2, 6).toUpperCase();
-    }
-
-    function createRoom() {
-      const name = document.getElementById('playerName').value.trim();
-      if (!name) return;
-      
-      playerName = name;
-      roomCode = generateRoomCode();
-      isHost = true;
-      players = [{ id: myId, name: playerName, isHost: true }];
-      
-      updateLobby();
-      showScreen('lobby');
-    }
-
-    function joinRoom() {
-      const name = document.getElementById('playerName').value.trim();
-      const code = document.getElementById('roomCodeInput').value.trim();
-      if (!name || !code) return;
-      
-      playerName = name;
-      roomCode = code;
-      isHost = false;
-      
-      // Simulate joining - in real game this would be via websocket
-      players = [
-        { id: 'host', name: 'Host Player', isHost: true },
-        { id: myId, name: playerName, isHost: false }
-      ];
-      
-      updateLobby();
-      showScreen('lobby');
-    }
-
-    function updateLobby() {
-      document.getElementById('displayRoomCode').textContent = roomCode;
-      document.getElementById('playerCount').textContent = players.length;
-      
-      const playersList = document.getElementById('playersList');
-      playersList.innerHTML = '';
-      
-      players.forEach(player => {
-        const div = document.createElement('div');
-        div.className = 'player-item';
-        div.innerHTML = `
-          ${player.isHost ? '<span class="crown">👑</span>' : ''}
-          <span class="font-semibold">${player.name}</span>
-          ${player.id === myId ? '<span class="you-tag">(You)</span>' : ''}
-        `;
-        playersList.appendChild(div);
-      });
-      
-      document.getElementById('hostControls').classList.toggle('hidden', !isHost);
-      document.getElementById('waitingMessage').classList.toggle('hidden', isHost);
-      
-      if (isHost) {
-        document.getElementById('startGameBtn').disabled = players.length < 3;
-        if (players.length < 3) {
-          document.getElementById('startGameBtn').textContent = 'Start Game (Need 3+ players)';
-        } else {
-          document.getElementById('startGameBtn').textContent = 'Start Game';
+        // Utility functions
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
         }
-      }
-    }
 
-    function copyRoomCode() {
-      navigator.clipboard.writeText(roomCode).then(() => {
-        const btn = document.getElementById('copyCodeBtn');
-        btn.textContent = '✓';
-        setTimeout(() => btn.textContent = '📋', 2000);
-      });
-    }
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
 
-    function startGame() {
-      if (players.length < 3) return;
-      
-      category = document.getElementById('categorySelect').value;
-      const words = CATEGORIES[category];
-      secretWord = words[Math.floor(Math.random() * words.length)];
-      imposter = players[Math.floor(Math.random() * players.length)].id;
-      
-      boardRevealed = false;
-      clues = {};
-      myClue = '';
-      votes = {};
-      myVote = '';
-      guessWord = '';
-      winner = '';
-      
-      updatePlayingScreen();
-      showScreen('playing');
-    }
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => errorEl.style.display = 'none', 5000);
+        }
 
-    function updatePlayingScreen() {
-      const isImposter = myId === imposter;
-      
-      document.getElementById('roleTitle').textContent = 
-        isImposter ? '🎭 You are the IMPOSTER!' : '🔍 You are a DETECTIVE!';
-      
-      document.getElementById('categoryDisplay').textContent = 
-        `Category: ${category.charAt(0).toUpperCase() + category.slice(1)}`;
-      
-      document.getElementById('clueText').placeholder = 
-        isImposter ? "Blend in with a vague clue..." : "Subtle, but not too obvious...";
-      
-      updateWordGrid();
-      updateCluesProgress();
-    }
+        function showStatus(message) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            setTimeout(() => statusEl.style.display = 'none', 3000);
+        }
 
-    function toggleBoard() {
-      boardRevealed = !boardRevealed;
-      const btn = document.getElementById('revealBoardBtn');
-      btn.textContent = boardRevealed ? '🙈 Hide Board' : '👁️ Reveal Board';
-      
-      document.getElementById('wordGrid').classList.toggle('hidden', !boardRevealed);
-      updateWordGrid();
-    }
+        // Screen navigation
+        function showHome() {
+            showScreen('home-screen');
+            if (currentRoom) leaveRoom();
+        }
 
-    function updateWordGrid() {
-      const grid = document.getElementById('wordGrid');
-      grid.innerHTML = '';
-      
-      if (boardRevealed) {
-        const words = CATEGORIES[category];
-        const isImposter = myId === imposter;
-        
-        words.forEach(word => {
-          const div = document.createElement('div');
-          div.className = 'word-card';
-          if (!isImposter && word === secretWord) {
-            div.classList.add('secret');
-          }
-          div.textContent = word;
-          grid.appendChild(div);
+        function showCreateRoom() {
+            const playerName = document.getElementById('player-name').value.trim();
+            if (!playerName) {
+                showError('Please enter your name first!');
+                return;
+            }
+            currentPlayer = { id: Date.now().toString(), name: playerName };
+            showScreen('create-room-screen');
+        }
+
+        function showJoinRoom() {
+            const playerName = document.getElementById('player-name').value.trim();
+            if (!playerName) {
+                showError('Please enter your name first!');
+                return;
+            }
+            currentPlayer = { id: Date.now().toString(), name: playerName };
+            showScreen('join-room-screen');
+        }
+
+        // Room management
+        async function createRoom() {
+            try {
+                const roomCode = generateRoomCode();
+                const roomData = {
+                    code: roomCode,
+                    host: currentPlayer.id,
+                    players: { [currentPlayer.id]: currentPlayer },
+                    phase: 'waiting',
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                await database.ref(`rooms/${roomCode}`).set(roomData);
+                currentRoom = roomCode;
+                listenToRoom(roomCode);
+                
+                document.getElementById('current-room-code').textContent = roomCode;
+                showScreen('waiting-room-screen');
+                showStatus('Room created successfully!');
+            } catch (error) {
+                showError('Failed to create room: ' + error.message);
+            }
+        }
+
+        async function joinRoom() {
+            try {
+                const roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
+                if (!roomCode) {
+                    showError('Please enter a room code!');
+                    return;
+                }
+
+                const roomSnapshot = await database.ref(`rooms/${roomCode}`).once('value');
+                if (!roomSnapshot.exists()) {
+                    showError('Room not found!');
+                    return;
+                }
+
+                await database.ref(`rooms/${roomCode}/players/${currentPlayer.id}`).set(currentPlayer);
+                currentRoom = roomCode;
+                listenToRoom(roomCode);
+                
+                document.getElementById('current-room-code').textContent = roomCode;
+                showScreen('waiting-room-screen');
+                showStatus('Joined room successfully!');
+            } catch (error) {
+                showError('Failed to join room: ' + error.message);
+            }
+        }
+
+        function listenToRoom(roomCode) {
+            database.ref(`rooms/${roomCode}`).on('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    showError('Room has been deleted!');
+                    showHome();
+                    return;
+                }
+
+                const roomData = snapshot.val();
+                updatePlayersDisplay(roomData.players || {});
+                
+                if (roomData.phase === 'category-voting') {
+                    displayCategoryVoting(roomData);
+                } else if (roomData.gameState) {
+                    gameState = roomData.gameState;
+                    updateGameDisplay();
+                }
+
+                const startBtn = document.getElementById('start-game-btn');
+                if (startBtn) {
+                    startBtn.style.display = roomData.host === currentPlayer.id ? 'block' : 'none';
+                }
+            });
+        }
+
+        function updatePlayersDisplay(players) {
+            const container = document.getElementById('players-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+            Object.values(players).forEach(player => {
+                const playerEl = document.createElement('div');
+                playerEl.className = 'player-item';
+                playerEl.innerHTML = `<strong>${player.name}</strong>${player.id === currentPlayer.id ? ' (You)' : ''}`;
+                container.appendChild(playerEl);
+            });
+        }
+
+        async function startGame() {
+            try {
+                if (!currentRoom) return;
+
+                const roomSnapshot = await database.ref(`rooms/${currentRoom}`).once('value');
+                const roomData = roomSnapshot.val();
+                const players = Object.values(roomData.players || {});
+
+                if (players.length < 3) {
+                    showError('Need at least 3 players to start!');
+                    return;
+                }
+
+                await database.ref(`rooms/${currentRoom}`).update({
+                    phase: 'category-voting',
+                    categoryVotes: {}
+                });
+
+                showScreen('category-screen');
+                displayCategoryOptions();
+            } catch (error) {
+                showError('Failed to start game: ' + error.message);
+            }
+        }
+
+        function displayCategoryOptions() {
+            const container = document.getElementById('category-container');
+            container.innerHTML = '';
+
+            Object.keys(categories).forEach(category => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.textContent = category;
+                btn.onclick = () => voteCategory(category);
+                container.appendChild(btn);
+            });
+        }
+
+        async function voteCategory(category) {
+            try {
+                await database.ref(`rooms/${currentRoom}/categoryVotes/${currentPlayer.id}`).set({
+                    category: category,
+                    voterName: currentPlayer.name
+                });
+
+                showStatus(`Voted for ${category}!`);
+
+                const roomSnapshot = await database.ref(`rooms/${currentRoom}`).once('value');
+                const roomData = roomSnapshot.val();
+                const playerCount = Object.keys(roomData.players || {}).length;
+                const voteCount = Object.keys(roomData.categoryVotes || {}).length;
+
+                if (voteCount >= playerCount) {
+                    setTimeout(() => determineCategory(roomData.categoryVotes), 1000);
+                }
+            } catch (error) {
+                showError('Failed to vote: ' + error.message);
+            }
+        }
+
+        function displayCategoryVoting(roomData) {
+            showScreen('category-screen');
+            
+            const votesDisplay = document.getElementById('category-votes-display');
+            if (!votesDisplay) return;
+
+            const votes = roomData.categoryVotes || {};
+            const voteCounts = {};
+
+            Object.values(votes).forEach(vote => {
+                voteCounts[vote.category] = (voteCounts[vote.category] || 0) + 1;
+            });
+
+            votesDisplay.innerHTML = '<h4>Current Votes:</h4>';
+            Object.entries(voteCounts).forEach(([cat, count]) => {
+                votesDisplay.innerHTML += `<p>${cat}: <span class="vote-count">${count}</span></p>`;
+            });
+        }
+
+        async function determineCategory(votes) {
+            const voteCounts = {};
+            Object.values(votes).forEach(vote => {
+                voteCounts[vote.category] = (voteCounts[vote.category] || 0) + 1;
+            });
+
+            let winningCategory = Object.entries(voteCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+
+            const roomSnapshot = await database.ref(`rooms/${currentRoom}`).once('value');
+            const roomData = roomSnapshot.val();
+            const players = Object.keys(roomData.players || {});
+            
+            const detective = players[0];
+            const imposter = players[Math.floor(Math.random() * players.length)];
+            const words = categories[winningCategory];
+            const secretWord = words[Math.floor(Math.random() * words.length)];
+
+            const newGameState = {
+                phase: 'clue-submission',
+                category: winningCategory,
+                words: words,
+                players: roomData.players,
+                detective: detective,
+                imposter: imposter,
+                secretWord: secretWord,
+                clues: [],
+                currentTurn: 0,
+                turnOrder: players.filter(p => p !== detective),
+                votes: {},
+                startedAt: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            await database.ref(`rooms/${currentRoom}`).update({
+                phase: 'game',
+                gameState: newGameState
+            });
+
+            showScreen('game-screen');
+        }
+
+        function updateGameDisplay() {
+            if (!gameState || !currentPlayer) return;
+
+            const phaseEl = document.getElementById('game-phase');
+            const roleEl = document.getElementById('role-info');
+
+            displayWordChart();
+
+            document.querySelectorAll('#game-screen > div[id*="-phase"]').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            switch (gameState.phase) {
+                case 'clue-submission':
+                    phaseEl.textContent = `Category: ${gameState.category}`;
+                    
+                    if (gameState.detective === currentPlayer.id) {
+                        roleEl.innerHTML = '<strong>🔍 You are the Detective!</strong> Watch the clues carefully!';
+                        document.getElementById('clue-phase').style.display = 'none';
+                    } else {
+                        if (gameState.imposter === currentPlayer.id) {
+                            roleEl.innerHTML = '<strong>🦎 You are the Chameleon!</strong> Try to blend in!';
+                        } else {
+                            roleEl.innerHTML = '<strong>✅ You know the secret word!</strong> Give helpful clues!';
+                        }
+
+                        const currentTurnPlayer = gameState.turnOrder[gameState.currentTurn];
+                        const turnIndicator = document.getElementById('turn-indicator');
+                        
+                        if (currentTurnPlayer === currentPlayer.id) {
+                            turnIndicator.textContent = "🎯 It's your turn to give a clue!";
+                            turnIndicator.style.display = 'block';
+                            document.getElementById('clue-phase').style.display = 'block';
+                        } else {
+                            const playerName = gameState.players[currentTurnPlayer]?.name || 'Someone';
+                            turnIndicator.textContent = `⏳ Waiting for ${playerName} to give a clue...`;
+                            turnIndicator.style.display = 'block';
+                            document.getElementById('clue-phase').style.display = 'none';
+                        }
+                    }
+
+                    if (gameState.clues && gameState.clues.length > 0) {
+                        displayClues();
+                    }
+                    break;
+
+                case 'voting':
+                    phaseEl.textContent = 'Voting Phase';
+                    document.getElementById('voting-phase').style.display = 'block';
+                    displayVoting();
+                    displayClues();
+                    document.getElementById('turn-indicator').style.display = 'none';
+                    break;
+
+                case 'final-guess':
+                    phaseEl.textContent = "Imposter's Last Chance!";
+                    document.getElementById('final-guess-phase').style.display = 'block';
+                    displayFinalGuessPhase();
+                    displayClues();
+                    document.getElementById('turn-indicator').style.display = 'none';
+                    break;
+
+                case 'results':
+                    phaseEl.textContent = 'Game Results';
+                    document.getElementById('results-phase').style.display = 'block';
+                    displayScoreboard();
+                    displayResults();
+                    document.getElementById('turn-indicator').style.display = 'none';
+                    break;
+            }
+        }
+
+        function displayWordChart() {
+            const chartContainer = document.getElementById('word-chart');
+            const chartTitle = document.getElementById('chart-title');
+            
+            if (!chartContainer || !gameState) return;
+
+            chartTitle.textContent = `${gameState.category} - Word Chart`;
+            chartContainer.innerHTML = '';
+
+            gameState.words.forEach(word => {
+                const cell = document.createElement('div');
+                cell.className = 'word-cell';
+                cell.textContent = word;
+                
+                if (word === gameState.secretWord && gameState.imposter !== currentPlayer.id) {
+                    cell.classList.add('highlighted');
+                }
+                
+                chartContainer.appendChild(cell);
+            });
+        }
+
+        async function submitClue() {
+            try {
+                const clueInput = document.getElementById('clue-input');
+                const clue = clueInput.value.trim();
+                
+                if (!clue) {
+                    showError('Please enter a clue!');
+                    return;
+                }
+
+                const clueData = {
+                    playerId: currentPlayer.id,
+                    playerName: currentPlayer.name,
+                    clue: clue,
+                    submittedAt: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                const newClues = [...(gameState.clues || []), clueData];
+                const nextTurn = gameState.currentTurn + 1;
+
+                if (nextTurn >= gameState.turnOrder.length) {
+                    await database.ref(`rooms/${currentRoom}/gameState`).update({
+                        clues: newClues,
+                        phase: 'voting'
+                    });
+                } else {
+                    await database.ref(`rooms/${currentRoom}/gameState`).update({
+                        clues: newClues,
+                        currentTurn: nextTurn
+                    });
+                }
+
+                clueInput.value = '';
+                showStatus('Clue submitted!');
+            } catch (error) {
+                showError('Failed to submit clue: ' + error.message);
+            }
+        }
+
+        function displayClues() {
+            const container = document.getElementById('clues-container');
+            const display = document.getElementById('clues-display');
+            
+            if (!container || !gameState.clues) return;
+
+            container.innerHTML = '';
+            gameState.clues.forEach(clueData => {
+                const clueEl = document.createElement('div');
+                clueEl.className = 'clue-item';
+                clueEl.innerHTML = `<strong>${clueData.playerName}:</strong> "${clueData.clue}"`;
+                container.appendChild(clueEl);
+            });
+
+            display.style.display = 'block';
+        }
+
+        function displayVoting() {
+            const container = document.getElementById('voting-container');
+            if (!container || !gameState.players) return;
+
+            container.innerHTML = '';
+            Object.values(gameState.players).forEach(player => {
+                if (player.id === currentPlayer.id) return;
+
+                const voteBtn = document.createElement('button');
+                voteBtn.className = 'vote-btn';
+                voteBtn.textContent = `Vote for ${player.name}`;
+                voteBtn.onclick = () => submitVote(player.id);
+                
+                if (gameState.votes && gameState.votes[currentPlayer.id]) {
+                    voteBtn.disabled = true;
+                    if (gameState.votes[currentPlayer.id].votedFor === player.id) {
+                        voteBtn.textContent = `✓ Voted for ${player.name}`;
+                    }
+                }
+                
+                container.appendChild(voteBtn);
+            });
+        }
+
+        async function submitVote(playerId) {
+            try {
+                const voteData = {
+                    votedFor: playerId,
+                    voterName: currentPlayer.name
+                };
+
+                await database.ref(`rooms/${currentRoom}/gameState/votes/${currentPlayer.id}`).set(voteData);
+                showStatus('Vote submitted!');
+
+                const playerCount = Object.keys(gameState.players).length;
+                const voteCount = Object.keys(gameState.votes || {}).length + 1;
+                
+                if (voteCount >= playerCount) {
+                    setTimeout(() => calculateResults(), 2000);
+                }
+            } catch (error) {
+                showError('Failed to submit vote: ' + error.message);
+            }
+        }
+
+        async function calculateResults() {
+            try {
+                const votes = gameState.votes || {};
+                const voteCounts = {};
+
+                Object.values(votes).forEach(vote => {
+                    voteCounts[vote.votedFor] = (voteCounts[vote.votedFor] || 0) + 1;
+                });
+
+                let mostVotedPlayer = null;
+                let maxVotes = 0;
+                Object.entries(voteCounts).forEach(([playerId, count]) => {
+                    if (count > maxVotes) {
+                        maxVotes = count;
+                        mostVotedPlayer = playerId;
+                    }
+                });
+
+                if (mostVotedPlayer === gameState.imposter) {
+                    await database.ref(`rooms/${currentRoom}/gameState`).update({
+                        phase: 'final-guess',
+                        votingResults: {
+                            mostVotedPlayer,
+                            voteCounts,
+                            imposterCaught: true
+                        }
+                    });
+                } else {
+                    await finalizeResults(mostVotedPlayer, voteCounts, false, null);
+                }
+            } catch (error) {
+                showError('Failed to calculate results: ' + error.message);
+            }
+        }
+
+        function displayFinalGuessPhase() {
+            const messageEl = document.getElementById('final-guess-message');
+            const guessInputDiv = document.getElementById('imposter-guess-input');
+            const waitingDiv = document.getElementById('waiting-for-guess');
+
+            if (currentPlayer.id === gameState.imposter) {
+                messageEl.innerHTML = `<strong>You were caught!</strong><br>You have one last chance to guess the secret word and win bonus points!`;
+                guessInputDiv.style.display = 'block';
+                waitingDiv.style.display = 'none';
+            } else {
+                const chameleonName = gameState.players[gameState.imposter]?.name || 'The chameleon';
+                messageEl.innerHTML = `<strong>${chameleonName} was caught!</strong><br>They have one last chance to guess the secret word.`;
+                guessInputDiv.style.display = 'none';
+                waitingDiv.style.display = 'block';
+            }
+        }
+
+        async function submitFinalGuess() {
+            try {
+                const guessInput = document.getElementById('guess-input');
+                const guess = guessInput.value.trim();
+
+                if (!guess) {
+                    showError('Please enter your guess!');
+                    return;
+                }
+
+                const isCorrect = guess.toLowerCase() === gameState.secretWord.toLowerCase();
+
+                await database.ref(`rooms/${currentRoom}/gameState/finalGuess`).set({
+                    guess: guess,
+                    isCorrect: isCorrect,
+                    submittedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                guessInput.value = '';
+                showStatus('Guess submitted!');
+
+                setTimeout(() => {
+                    finalizeResults(
+                        gameState.votingResults.mostVotedPlayer,
+                        gameState.votingResults.voteCounts,
+                        true,
+                        isCorrect
+                    );
+                }, 1000);
+            } catch (error) {
+                showError('Failed to submit guess: ' + error.message);
+            }
+        }
+
+        async function finalizeResults(mostVotedPlayer, voteCounts, imposterCaught, imposterGuessedCorrect) {
+            try {
+                let winner;
+                let pointsAwarded = {};
+
+                Object.keys(gameState.players).forEach(playerId => {
+                    pointsAwarded[playerId] = 0;
+                });
+
+                if (!imposterCaught) {
+                    winner = 'imposter';
+                    pointsAwarded[gameState.imposter] = 2;
+                } else if (imposterGuessedCorrect) {
+                    winner = 'imposter';
+                    pointsAwarded[gameState.imposter] = 3;
+                } else {
+                    winner = 'detectives';
+                    Object.keys(gameState.players).forEach(playerId => {
+                        if (playerId !== gameState.imposter) {
+                            pointsAwarded[playerId] = 1;
+                        }
+                    });
+                }
+
+                const results = {
+                    mostVotedPlayer,
+                    imposter: gameState.imposter,
+                    detective: gameState.detective,
+                    secretWord: gameState.secretWord,
+                    category: gameState.category,
+                    voteCounts,
+                    winner,
+                    imposterCaught,
+                    imposterGuessedCorrect,
+                    finalGuess: gameState.finalGuess?.guess || null,
+                    pointsAwarded
+                };
+
+                const currentScores = (await database.ref(`rooms/${currentRoom}/scores`).once('value')).val() || {};
+                Object.keys(pointsAwarded).forEach(playerId => {
+                    currentScores[playerId] = (currentScores[playerId] || 0) + pointsAwarded[playerId];
+                });
+
+                await database.ref(`rooms/${currentRoom}`).update({ scores: currentScores });
+                await database.ref(`rooms/${currentRoom}/gameState`).update({
+                    phase: 'results',
+                    results
+                });
+            } catch (error) {
+                showError('Failed to finalize results: ' + error.message);
+            }
+        }
+
+        function displayScoreboard() {
+            const container = document.getElementById('scoreboard-display');
+            if (!container) return;
+
+            database.ref(`rooms/${currentRoom}/scores`).once('value', (snapshot) => {
+                const scores = snapshot.val() || {};
+                
+                container.innerHTML = '<h3>🏆 Scoreboard</h3>';
+                
+                const sortedScores = Object.entries(scores)
+                    .map(([playerId, score]) => ({
+                        playerId,
+                        name: gameState.players[playerId]?.name || 'Unknown',
+                        score
+                    }))
+                    .sort((a, b) => b.score - a.score);
+
+                sortedScores.forEach(player => {
+                    container.innerHTML += `
+                        <div class="score-item">
+                            <span><strong>${player.name}</strong></span>
+                            <span class="score-value">${player.score} points</span>
+                        </div>
+                    `;
+                });
+
+                Object.values(gameState.players).forEach(player => {
+                    if (!scores[player.id]) {
+                        container.innerHTML += `
+                            <div class="score-item">
+                                <span><strong>${player.name}</strong></span>
+                                <span class="score-value">0 points</span>
+                            </div>
+                        `;
+                    }
+                });
+            });
+        }
+
+        function displayResults() {
+            const container = document.getElementById('game-results');
+            if (!container || !gameState.results) return;
+
+            const results = gameState.results;
+            const chameleonName = gameState.players[results.imposter]?.name || 'Unknown';
+            const mostVotedName = gameState.players[results.mostVotedPlayer]?.name || 'Unknown';
+
+            let resultHTML = `
+                <h3>🎉 Round Results</h3>
+                <p><strong>Category:</strong> ${results.category}</p>
+                <p><strong>Secret Word:</strong> ${results.secretWord}</p>
+                <p><strong>The Chameleon was:</strong> ${chameleonName}</p>
+                <p><strong>Most Voted Player:</strong> ${mostVotedName}</p>
+            `;
+
+            if (results.imposterCaught) {
+                resultHTML += `<p>✅ <strong>The chameleon was caught!</strong></p>`;
+                
+                if (results.imposterGuessedCorrect) {
+                    resultHTML += `
+                        <div class="bonus-points">
+                            🎯 ${chameleonName} guessed "${results.finalGuess}" correctly!<br>
+                            +3 BONUS POINTS!
+                        </div>
+                        <p><strong>Winner:</strong> 🦎 ${chameleonName} (Chameleon)</p>
+                    `;
+                } else {
+                    resultHTML += `
+                        <p>❌ ${chameleonName} guessed "${results.finalGuess}" - Incorrect!</p>
+                        <p><strong>Winner:</strong> 🕵️ Detectives Win! (+1 point each)</p>
+                    `;
+                }
+            } else {
+                resultHTML += `
+                    <p>❌ <strong>The chameleon was NOT caught!</strong></p>
+                    <p><strong>Winner:</strong> 🦎 ${chameleonName} (Chameleon) (+2 points)</p>
+                `;
+            }
+
+            resultHTML += `
+                <h4>Vote Results:</h4>
+                ${Object.entries(results.voteCounts).map(([playerId, count]) => 
+                    `<p>${gameState.players[playerId]?.name}: ${count} vote(s)</p>`
+                ).join('')}
+                
+                <h4>Points This Round:</h4>
+                ${Object.entries(results.pointsAwarded).map(([playerId, points]) => 
+                    points > 0 ? `<p>${gameState.players[playerId]?.name}: +${points} point${points > 1 ? 's' : ''}</p>` : ''
+                ).join('')}
+            `;
+
+            container.innerHTML = resultHTML;
+        }
+
+        async function playAgain() {
+            try {
+                await database.ref(`rooms/${currentRoom}`).update({
+                    phase: 'category-voting',
+                    categoryVotes: {},
+                    gameState: null
+                });
+
+                showScreen('category-screen');
+                displayCategoryOptions();
+                showStatus('Starting new round!');
+            } catch (error) {
+                showError('Failed to start new game: ' + error.message);
+            }
+        }
+
+        async function leaveRoom() {
+            try {
+                if (currentRoom && currentPlayer) {
+                    await database.ref(`rooms/${currentRoom}/players/${currentPlayer.id}`).remove();
+                    
+                    const roomSnapshot = await database.ref(`rooms/${currentRoom}/players`).once('value');
+                    if (!roomSnapshot.exists() || Object.keys(roomSnapshot.val() || {}).length === 0) {
+                        await database.ref(`rooms/${currentRoom}`).remove();
+                    }
+                }
+                
+                currentRoom = null;
+                gameState = null;
+                showHome();
+                showStatus('Left the room');
+            } catch (error) {
+                showError('Failed to leave room: ' + error.message);
+            }
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (currentRoom && currentPlayer) {
+                database.ref(`rooms/${currentRoom}/players/${currentPlayer.id}`).remove();
+            }
         });
-      }
-    }
-
-    function submitClue() {
-      const clueText = document.getElementById('clueText').value.trim();
-      if (!clueText) return;
-      
-      myClue = clueText;
-      clues[myId] = clueText;
-      
-      document.getElementById('clueInput').classList.add('hidden');
-      document.getElementById('clueSubmitted').classList.remove('hidden');
-      document.getElementById('submittedClue').textContent = clueText;
-      
-      updateCluesProgress();
-      
-      // Check if all clues submitted
-      if (Object.keys(clues).length >= players.length) {
-        setTimeout(() => showVotingScreen(), 1000);
-      }
-    }
-
-    function updateCluesProgress() {
-      const progress = document.getElementById('cluesProgress');
-      progress.innerHTML = '';
-      
-      players.forEach(player => {
-        const div = document.createElement('div');
-        div.className = 'clue-item';
-        div.innerHTML = `
-          <span class="font-semibold">${player.name}</span>
-          <span>${clues[player.id] ? '✓' : '...'}</span>
-        `;
-        progress.appendChild(div);
-      });
-      
-      document.getElementById('waitingCount').textContent = 
-        `Waiting for others... (${Object.keys(clues).length}/${players.length})`;
-    }
-
-    function showVotingScreen() {
-      updateAllClues();
-      updateVoteButtons();
-      showScreen('voting');
-    }
-
-    function updateAllClues() {
-      const allClues = document.getElementById('allClues');
-      allClues.innerHTML = '';
-      
-      players.forEach(player => {
-        if (clues[player.id]) {
-          const div = document.createElement('div');
-          div.className = 'clue-text';
-          div.innerHTML = `
-            <span class="player-name">${player.name}:</span>
-            <span>${clues[player.id]}</span>
-          `;
-          allClues.appendChild(div);
-        }
-      });
-    }
-
-    function updateVoteButtons() {
-      const voteList = document.getElementById('votePlayersList');
-      voteList.innerHTML = '';
-      
-      players.forEach(player => {
-        const button = document.createElement('button');
-        button.className = 'btn btn-ghost mb-4';
-        button.textContent = `${player.name} ${player.id === myId ? '(You)' : ''}`;
-        button.onclick = () => submitVote(player.id);
-        voteList.appendChild(button);
-      });
-    }
-
-    function submitVote(playerId) {
-      myVote = playerId;
-      votes[myId] = playerId;
-      
-      document.getElementById('voteButtons').classList.add('hidden');
-      document.getElementById('voteSubmitted').classList.remove('hidden');
-      
-      // Check if all votes submitted
-      if (Object.keys(votes).length >= players.length) {
-        setTimeout(() => calculateVotes(), 1000);
-      }
-      
-      document.getElementById('voteWaitingCount').textContent = 
-        `Waiting for others... (${Object.keys(votes).length}/${players.length})`;
-    }
-
-    function calculateVotes() {
-      const voteCounts = {};
-      Object.values(votes).forEach(vote => {
-        voteCounts[vote] = (voteCounts[vote] || 0) + 1;
-      });
-      
-      const mostVoted = Object.keys(voteCounts).reduce((a, b) => 
-        voteCounts[a] > voteCounts[b] ? a : b
-      );
-      
-      if (mostVoted === imposter) {
-        showGuessScreen();
-      } else {
-        winner = 'imposter';
-        showResultScreen();
-      }
-    }
-
-    function showGuessScreen() {
-      const imposterPlayer = players.find(p => p.id === imposter);
-      document.getElementById('caughtImposter').textContent = imposterPlayer.name;
-      
-      const isImposter = myId === imposter;
-      document.getElementById('imposterGuess').classList.toggle('hidden', !isImposter);
-      document.getElementById('waitingForGuess').classList.toggle('hidden', isImposter);
-      
-      if (isImposter) {
-        updateGuessWordGrid();
-      }
-      
-      showScreen('guess');
-    }
-
-    function updateGuessWordGrid() {
-      const grid = document.getElementById('guessWordGrid');
-      grid.innerHTML = '';
-      
-      const words = CATEGORIES[category];
-      words.forEach(word => {
-        const div = document.createElement('div');
-        div.className = 'word-card';
-        div.textContent = word;
-        grid.appendChild(div);
-      });
-    }
-
-    function submitGuess() {
-      const guess = document.getElementById('guessInput').value.trim();
-      if (!guess) return;
-      
-      guessWord = guess;
-      
-      if (guess.toLowerCase() === secretWord.toLowerCase()) {
-        winner = 'imposter';
-      } else {
-        winner = 'players';
-      }
-      
-      showResultScreen();
-    }
-
-    function showResultScreen() {
-      document.getElementById('winnerTitle').textContent = 
-        winner === 'imposter' ? '🎭 Imposter Wins!' : '🔍 Detectives Win!';
-      
-      document.getElementById('revealSecretWord').textContent = secretWord;
-      
-      const imposterPlayer = players.find(p => p.id === imposter);
-      document.getElementById('revealImposter').textContent = imposterPlayer.name;
-      
-      showScreen('result');
-    }
-
-    function playAgain() {
-      startGame();
-    }
-
-    function returnToLobby() {
-      updateLobby();
-      showScreen('lobby');
-    }
-
-    // Initialize the game
-    init();
-  </script>
+    </script>
 </body>
 </html>
