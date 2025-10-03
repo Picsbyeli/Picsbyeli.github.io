@@ -23,67 +23,64 @@ class GameMusicPlayer {
 
     createPlayerHTML() {
         const playerHTML = `
-            <div id="game-music-player" class="game-music-player ${this.isMinimized ? 'minimized' : ''}">
-                <div class="music-header" onclick="gameMusicPlayer.toggleMinimize()">
-                    <div class="header-info">
-                        <span class="music-icon">🎵</span>
-                        <span class="player-title">Music Player</span>
+            <!-- Music Player Toggle Button -->
+            <div id="music-toggle" class="music-toggle" onclick="gameMusicPlayer.togglePlayer()">
+                <div class="toggle-icon">🎵</div>
+                <div class="toggle-text">Music</div>
+            </div>
+
+            <!-- Music Player Popup -->
+            <div id="music-popup" class="music-popup hidden">
+                <div class="popup-overlay" onclick="gameMusicPlayer.closePlayer()"></div>
+                <div class="popup-content">
+                    <div class="popup-header">
+                        <h3>🎵 Game Music Player</h3>
+                        <button class="close-btn" onclick="gameMusicPlayer.closePlayer()">×</button>
                     </div>
-                    <div class="header-controls">
-                        <button class="minimize-btn">${this.isMinimized ? '+' : '−'}</button>
-                    </div>
-                </div>
-                
-                <div class="music-content">
-                    <div class="current-track">
-                        <div class="track-avatar">🎵</div>
-                        <div class="track-info">
-                            <div class="track-name">No music playing</div>
-                            <div class="track-artist">Select a track below</div>
+                    
+                    <div class="player-section">
+                        <div class="now-playing">
+                            <div class="track-cover">🎵</div>
+                            <div class="track-info">
+                                <div class="track-title">No track selected</div>
+                                <div class="track-artist">Choose a track below</div>
+                            </div>
+                            <div class="play-status"></div>
                         </div>
-                    </div>
-                    
-                    <div class="player-controls">
-                        <button class="control-btn" onclick="gameMusicPlayer.previousTrack()">⏮</button>
-                        <button class="play-btn" onclick="gameMusicPlayer.togglePlay()">▶️</button>
-                        <button class="control-btn" onclick="gameMusicPlayer.nextTrack()">⏭</button>
-                    </div>
-                    
-                    <div class="volume-section">
-                        <div class="volume-control">
-                            <span class="volume-icon">🔊</span>
+                        
+                        <div class="player-controls">
+                            <button class="control-btn" onclick="gameMusicPlayer.previousTrack()">⏮️</button>
+                            <button class="play-btn" onclick="gameMusicPlayer.togglePlay()">
+                                <span class="play-icon">▶️</span>
+                            </button>
+                            <button class="control-btn" onclick="gameMusicPlayer.nextTrack()">⏭️</button>
+                        </div>
+                        
+                        <div class="volume-section">
+                            <span class="volume-label">🔊</span>
                             <input type="range" class="volume-slider" min="0" max="100" value="30" 
                                    onchange="gameMusicPlayer.setVolume(this.value)">
-                            <span class="volume-value">30%</span>
+                            <span class="volume-display">30%</span>
                         </div>
                     </div>
                     
-                    <div class="playlist-section">
-                        <div class="playlist-header">Now Playing</div>
-                        <div class="track-list">
-                            <div class="track-item" onclick="gameMusicPlayer.playTrack(0)">
+                    <div class="tracks-section">
+                        <h4>Available Tracks</h4>
+                        <div class="tracks-grid">
+                            <div class="track-card" onclick="gameMusicPlayer.playTrack(0)">
                                 <div class="track-emoji">🎵</div>
-                                <div class="track-details">
-                                    <div class="track-title">Chill Vibes</div>
-                                    <div class="track-duration">Ambient • Looping</div>
-                                </div>
-                                <div class="track-status"></div>
+                                <div class="track-name">Chill Vibes</div>
+                                <div class="track-genre">Ambient</div>
                             </div>
-                            <div class="track-item" onclick="gameMusicPlayer.playTrack(1)">
+                            <div class="track-card" onclick="gameMusicPlayer.playTrack(1)">
                                 <div class="track-emoji">🎮</div>
-                                <div class="track-details">
-                                    <div class="track-title">Game Theme</div>
-                                    <div class="track-duration">Electronic • Looping</div>
-                                </div>
-                                <div class="track-status"></div>
+                                <div class="track-name">Game Theme</div>
+                                <div class="track-genre">Electronic</div>
                             </div>
-                            <div class="track-item" onclick="gameMusicPlayer.playTrack(2)">
+                            <div class="track-card" onclick="gameMusicPlayer.playTrack(2)">
                                 <div class="track-emoji">😌</div>
-                                <div class="track-details">
-                                    <div class="track-title">Relaxing</div>
-                                    <div class="track-duration">Peaceful • Looping</div>
-                                </div>
-                                <div class="track-status"></div>
+                                <div class="track-name">Relaxing</div>
+                                <div class="track-genre">Peaceful</div>
                             </div>
                         </div>
                     </div>
@@ -91,146 +88,201 @@ class GameMusicPlayer {
             </div>
             
             <style>
-                .game-music-player {
+                .music-toggle {
                     position: fixed;
-                    bottom: 20px;
-                    left: 20px;
-                    width: 350px;
-                    background: #2a2d3a;
-                    border-radius: 20px;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-                    z-index: 1000;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    border: 1px solid #404555;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    cursor: pointer;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+                    z-index: 1001;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
                     transition: all 0.3s ease;
-                    overflow: hidden;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    user-select: none;
                 }
                 
-                .game-music-player.minimized {
-                    width: 200px;
+                .music-toggle:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
                 }
                 
-                .game-music-player.minimized .music-content {
-                    display: none;
+                .toggle-icon {
+                    font-size: 1.2rem;
+                    animation: bounce 2s infinite;
                 }
                 
-                .music-header {
+                .toggle-text {
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                }
+                
+                @keyframes bounce {
+                    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                    40% { transform: translateY(-3px); }
+                    60% { transform: translateY(-2px); }
+                }
+                
+                .music-popup {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    z-index: 1000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.3s ease;
+                }
+                
+                .music-popup.hidden {
+                    opacity: 0;
+                    pointer-events: none;
+                }
+                
+                .popup-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(5px);
+                    -webkit-backdrop-filter: blur(5px);
+                }
+                
+                .popup-content {
+                    background: #1a1a2e;
+                    border-radius: 20px;
+                    width: 90%;
+                    max-width: 500px;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    position: relative;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    border: 1px solid #2d2d44;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    color: white;
+                }
+                
+                .popup-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding: 16px 20px;
+                    padding: 20px 25px;
+                    border-bottom: 1px solid #2d2d44;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    cursor: pointer;
-                    user-select: none;
                     border-radius: 20px 20px 0 0;
                 }
                 
-                .header-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-                
-                .music-icon {
-                    font-size: 1.4rem;
-                }
-                
-                .player-title {
+                .popup-header h3 {
+                    margin: 0;
+                    font-size: 1.3rem;
                     font-weight: 600;
-                    font-size: 1rem;
                 }
                 
-                .minimize-btn {
-                    background: rgba(255,255,255,0.2);
+                .close-btn {
+                    background: rgba(255, 255, 255, 0.2);
                     border: none;
                     color: white;
-                    font-size: 1.2rem;
+                    width: 35px;
+                    height: 35px;
+                    border-radius: 50%;
                     cursor: pointer;
-                    padding: 4px 8px;
-                    border-radius: 6px;
-                    transition: all 0.2s;
-                    font-weight: bold;
+                    font-size: 1.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s ease;
                 }
                 
-                .minimize-btn:hover {
-                    background: rgba(255,255,255,0.3);
+                .close-btn:hover {
+                    background: rgba(255, 255, 255, 0.3);
                     transform: scale(1.1);
                 }
                 
-                .music-content {
-                    padding: 20px;
-                    color: white;
+                .player-section {
+                    padding: 25px;
+                    border-bottom: 1px solid #2d2d44;
                 }
                 
-                .current-track {
+                .now-playing {
                     display: flex;
                     align-items: center;
                     gap: 15px;
-                    margin-bottom: 20px;
+                    margin-bottom: 25px;
                     padding: 15px;
-                    background: #363950;
+                    background: #252541;
                     border-radius: 12px;
                 }
                 
-                .track-avatar {
-                    width: 50px;
-                    height: 50px;
+                .track-cover {
+                    width: 60px;
+                    height: 60px;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     border-radius: 10px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 1.5rem;
+                    font-size: 1.8rem;
                 }
                 
                 .track-info {
                     flex: 1;
                 }
                 
-                .track-name {
+                .track-title {
+                    font-size: 1.1rem;
                     font-weight: 600;
-                    font-size: 1rem;
                     margin-bottom: 4px;
                 }
                 
                 .track-artist {
-                    font-size: 0.85rem;
+                    font-size: 0.9rem;
                     color: #a0a3bd;
+                }
+                
+                .play-status {
+                    font-size: 1.5rem;
                 }
                 
                 .player-controls {
                     display: flex;
                     justify-content: center;
-                    align-items: center;
-                    gap: 15px;
-                    margin-bottom: 20px;
+                    gap: 20px;
+                    margin-bottom: 25px;
                 }
                 
                 .control-btn, .play-btn {
-                    background: #404555;
+                    background: #2d2d44;
                     border: none;
                     color: white;
-                    width: 44px;
-                    height: 44px;
+                    width: 50px;
+                    height: 50px;
                     border-radius: 50%;
                     cursor: pointer;
-                    font-size: 1.1rem;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    transition: all 0.2s;
+                    transition: all 0.2s ease;
+                    font-size: 1.2rem;
                 }
                 
                 .play-btn {
-                    width: 54px;
-                    height: 54px;
-                    font-size: 1.3rem;
+                    width: 60px;
+                    height: 60px;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    font-size: 1.4rem;
                 }
                 
                 .control-btn:hover {
-                    background: #4a4f67;
+                    background: #404062;
                     transform: scale(1.1);
                 }
                 
@@ -240,40 +292,36 @@ class GameMusicPlayer {
                 }
                 
                 .volume-section {
-                    margin-bottom: 20px;
-                }
-                
-                .volume-control {
                     display: flex;
                     align-items: center;
-                    gap: 12px;
-                    padding: 12px 15px;
-                    background: #363950;
+                    gap: 15px;
+                    padding: 15px;
+                    background: #252541;
                     border-radius: 10px;
                 }
                 
-                .volume-icon {
-                    font-size: 1.1rem;
+                .volume-label {
+                    font-size: 1.2rem;
                     color: #a0a3bd;
                 }
                 
                 .volume-slider {
                     flex: 1;
-                    height: 4px;
-                    border-radius: 2px;
-                    background: #4a4f67;
+                    height: 6px;
+                    background: #404062;
+                    border-radius: 3px;
                     outline: none;
                     -webkit-appearance: none;
                 }
                 
                 .volume-slider::-webkit-slider-thumb {
                     appearance: none;
-                    width: 16px;
-                    height: 16px;
+                    width: 18px;
+                    height: 18px;
                     background: #667eea;
                     border-radius: 50%;
                     cursor: pointer;
-                    transition: all 0.2s;
+                    transition: all 0.2s ease;
                 }
                 
                 .volume-slider::-webkit-slider-thumb:hover {
@@ -281,156 +329,100 @@ class GameMusicPlayer {
                     transform: scale(1.2);
                 }
                 
-                .volume-value {
-                    font-size: 0.85rem;
+                .volume-display {
+                    font-size: 0.9rem;
                     color: #a0a3bd;
-                    min-width: 35px;
+                    min-width: 40px;
                     text-align: right;
                 }
                 
-                .playlist-section {
-                    border-top: 1px solid #404555;
-                    padding-top: 16px;
+                .tracks-section {
+                    padding: 25px;
                 }
                 
-                .playlist-header {
-                    font-weight: 600;
-                    font-size: 0.9rem;
+                .tracks-section h4 {
+                    margin: 0 0 20px 0;
+                    font-size: 1.1rem;
                     color: #a0a3bd;
-                    margin-bottom: 12px;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                 }
                 
-                .track-list {
-                    max-height: 180px;
-                    overflow-y: auto;
-                    scrollbar-width: thin;
-                    scrollbar-color: #667eea #363950;
+                .tracks-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                    gap: 15px;
                 }
                 
-                .track-list::-webkit-scrollbar {
-                    width: 6px;
-                }
-                
-                .track-list::-webkit-scrollbar-track {
-                    background: #363950;
-                    border-radius: 3px;
-                }
-                
-                .track-list::-webkit-scrollbar-thumb {
-                    background: #667eea;
-                    border-radius: 3px;
-                }
-                
-                .track-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 12px;
-                    border-radius: 8px;
+                .track-card {
+                    background: #252541;
+                    border-radius: 12px;
+                    padding: 20px 15px;
+                    text-align: center;
                     cursor: pointer;
-                    transition: all 0.2s;
-                    margin-bottom: 4px;
+                    transition: all 0.3s ease;
+                    border: 2px solid transparent;
                 }
                 
-                .track-item:hover {
-                    background: #404555;
+                .track-card:hover {
+                    background: #2d2d50;
+                    border-color: #667eea;
+                    transform: translateY(-2px);
                 }
                 
-                .track-item.active {
+                .track-card.active {
                     background: rgba(102, 126, 234, 0.2);
-                    border: 1px solid rgba(102, 126, 234, 0.3);
+                    border-color: #667eea;
                 }
                 
                 .track-emoji {
-                    width: 36px;
-                    height: 36px;
-                    background: #404555;
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.2rem;
+                    font-size: 2rem;
+                    margin-bottom: 10px;
                 }
                 
-                .track-item.active .track-emoji {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                .track-name {
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                    margin-bottom: 5px;
                 }
                 
-                .track-details {
-                    flex: 1;
-                }
-                
-                .track-title {
-                    font-weight: 500;
-                    font-size: 0.9rem;
-                    margin-bottom: 2px;
-                }
-                
-                .track-item.active .track-title {
-                    color: #667eea;
-                }
-                
-                .track-duration {
+                .track-genre {
                     font-size: 0.8rem;
                     color: #a0a3bd;
                 }
                 
-                .track-status {
-                    width: 16px;
-                    height: 16px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .track-item.active .track-status::before {
-                    content: '🎵';
-                    font-size: 0.8rem;
-                    animation: pulse 2s infinite;
-                }
-                
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.5; }
-                }
-                
                 @media (max-width: 768px) {
-                    .game-music-player {
-                        width: 300px;
-                        bottom: 10px;
-                        left: 10px;
+                    .music-toggle {
+                        top: 15px;
+                        right: 15px;
+                        padding: 10px 16px;
                     }
                     
-                    .game-music-player.minimized {
-                        width: 180px;
+                    .popup-content {
+                        width: 95%;
+                        margin: 10px;
                     }
                     
-                    .music-content {
-                        padding: 16px;
+                    .popup-header {
+                        padding: 15px 20px;
                     }
                     
-                    .current-track {
-                        padding: 12px;
+                    .player-section, .tracks-section {
+                        padding: 20px;
                     }
                     
-                    .track-avatar {
-                        width: 40px;
-                        height: 40px;
-                        font-size: 1.2rem;
+                    .tracks-grid {
+                        grid-template-columns: 1fr;
                     }
                     
                     .control-btn, .play-btn {
-                        width: 40px;
-                        height: 40px;
-                        font-size: 1rem;
+                        width: 45px;
+                        height: 45px;
                     }
                     
                     .play-btn {
-                        width: 48px;
-                        height: 48px;
-                        font-size: 1.2rem;
+                        width: 55px;
+                        height: 55px;
                     }
                 }
             </style>
@@ -454,18 +446,68 @@ class GameMusicPlayer {
         });
     }
 
-    toggleMinimize() {
-        this.isMinimized = !this.isMinimized;
-        const player = document.getElementById('game-music-player');
-        const minimizeBtn = player.querySelector('.minimize-btn');
-        
-        if (this.isMinimized) {
-            player.classList.add('minimized');
-            minimizeBtn.textContent = '+';
-        } else {
-            player.classList.remove('minimized');
-            minimizeBtn.textContent = '−';
+    togglePlayer() {
+        const popup = document.getElementById('music-popup');
+        if (popup) {
+            popup.classList.toggle('hidden');
         }
+    }
+
+    closePlayer() {
+        const popup = document.getElementById('music-popup');
+        if (popup) {
+            popup.classList.add('hidden');
+        }
+    }
+
+    toggleMinimize() {
+        // Legacy method - now just toggles player
+        this.togglePlayer();
+    }
+
+    setVolume(value) {
+        this.volume = value / 100;
+        if (this.currentAudio) {
+            this.currentAudio.volume = this.volume;
+        }
+        
+        const volumeDisplay = document.querySelector('.volume-display');
+        if (volumeDisplay) {
+            volumeDisplay.textContent = `${value}%`;
+        }
+    }
+
+    updatePlayerDisplay() {
+        const currentTrack = this.tracks[this.currentTrack];
+        
+        // Update now playing section
+        const trackTitle = document.querySelector('.track-title');
+        const trackArtist = document.querySelector('.track-artist');
+        const playStatus = document.querySelector('.play-status');
+        
+        if (trackTitle && trackArtist && playStatus) {
+            if (currentTrack) {
+                trackTitle.textContent = currentTrack.name;
+                trackArtist.textContent = currentTrack.genre;
+                playStatus.textContent = this.isPlaying ? '🎵' : '⏸️';
+            } else {
+                trackTitle.textContent = 'No track selected';
+                trackArtist.textContent = 'Choose a track below';
+                playStatus.textContent = '';
+            }
+        }
+        
+        // Update play button
+        const playBtn = document.querySelector('.play-btn .play-icon');
+        if (playBtn) {
+            playBtn.textContent = this.isPlaying ? '⏸️' : '▶️';
+        }
+        
+        // Update track cards
+        const trackCards = document.querySelectorAll('.track-card');
+        trackCards.forEach((card, index) => {
+            card.classList.toggle('active', index === this.currentTrack);
+        });
     }
 
     setVolume(value) {

@@ -628,13 +628,21 @@
         }
 
         function buyUpgrade(upgradeId) {
+            console.log('buyUpgrade called with ID:', upgradeId); // Debug log
             const upgrade = upgrades.find(u => u.id === upgradeId);
-            if (!upgrade) return;
+            if (!upgrade) {
+                console.log('Upgrade not found!'); // Debug log
+                return;
+            }
+            
+            console.log('Current cookies:', cookies, 'Upgrade cost:', upgrade.cost); // Debug log
             
             if (cookies >= upgrade.cost) {
                 cookies -= upgrade.cost;
                 upgrade.effect();
                 upgrade.purchased++;
+                
+                console.log('Upgrade purchased! New cookies:', cookies); // Debug log
                 
                 // Special handling for Sigma Cookie - don't increase cost after purchase
                 if (upgradeId !== 5) {
@@ -644,6 +652,8 @@
                 
                 updateDisplay();
                 renderUpgrades();
+            } else {
+                console.log('Not enough cookies to buy upgrade!'); // Debug log
             }
         }
 
@@ -704,16 +714,9 @@
                     }
                 }
                 
-                // Add click handler for buying upgrades (only if can afford and no activation button)
-                const hasActivation = upgrade.purchased >= 5 && upgrade.id !== 5;
-                if (canAfford && !hasActivation) {
-                    upgradeDiv.style.cursor = 'pointer';
-                    upgradeDiv.onclick = () => buyUpgrade(upgrade.id);
-                } else if (canAfford && hasActivation) {
-                    upgradeDiv.style.cursor = 'default';
-                } else {
-                    upgradeDiv.style.cursor = 'not-allowed';
-                }
+                // Remove any container click handlers to avoid conflicts
+                upgradeDiv.style.cursor = 'default';
+                upgradeDiv.onclick = null;
                 
                 // Format large numbers
                 let costText;
@@ -739,11 +742,11 @@
                 let buyButton = '';
                 
                 if (upgrade.purchased >= 5 && upgrade.id !== 5) {
-                    activateButton = `<button class="activate-btn" onclick="activateUpgrade(${upgrade.id})">⚡ Activate (Reset for Permanent Boost)</button>`;
+                    activateButton = `<button class="activate-btn" onclick="event.stopPropagation(); activateUpgrade(${upgrade.id})">⚡ Activate (Reset for Permanent Boost)</button>`;
                 }
                 
-                if (canAfford && (!hasActivation || upgrade.purchased < 5)) {
-                    buyButton = `<button class="buy-btn" onclick="buyUpgrade(${upgrade.id})">💰 Buy for ${costText}</button>`;
+                if (canAfford) {
+                    buyButton = `<button class="buy-btn" onclick="event.stopPropagation(); buyUpgrade(${upgrade.id})">💰 Buy for ${costText}</button>`;
                 }
                 
                 upgradeDiv.innerHTML = `
