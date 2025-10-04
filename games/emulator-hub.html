@@ -66,7 +66,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            max-height: 600px;
+            max-height: 400px;
             overflow-y: auto;
             margin-bottom: 20px;
         }
@@ -179,17 +179,6 @@
             background: #dd6b20;
         }
 
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-
-        .file-input-wrapper input[type=file] {
-            position: absolute;
-            left: -9999px;
-        }
-
         #emulator-container {
             width: 100%;
             height: 600px;
@@ -202,6 +191,7 @@
             font-size: 1.2em;
             margin-top: 20px;
             position: relative;
+            overflow: hidden;
         }
 
         .info-message {
@@ -223,11 +213,6 @@
             gap: 10px;
         }
 
-        .sync-status.syncing {
-            background: #feebc8;
-            color: #7c2d12;
-        }
-
         .system-selector {
             margin-bottom: 15px;
         }
@@ -246,17 +231,6 @@
             border: 2px solid #e2e8f0;
             font-size: 1em;
             margin-bottom: 10px;
-        }
-
-        #canvas {
-            width: 100%;
-            height: 100%;
-            display: none;
-        }
-
-        .loading {
-            display: none;
-            color: white;
         }
 
         .empty-state {
@@ -346,13 +320,6 @@
             background: #f56565;
         }
 
-        .add-game-form {
-            background: #edf2f7;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-
         .stats {
             display: flex;
             gap: 15px;
@@ -378,46 +345,129 @@
             opacity: 0.9;
         }
 
-        @media (max-width: 1200px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .stats {
-                flex-direction: row;
-            }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
         }
 
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .controls {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-            }
+        .tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #718096;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 3px dashed #cbd5e0;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            margin-bottom: 15px;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .upload-area.dragover {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .upload-area .icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .upload-area input {
+            display: none;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 10;
+        }
+
+        .loading-overlay .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: #48bb78;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .controls-info {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+
+        .controls-info strong {
+            color: #2d3748;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎮 Game Emulator Hub</h1>
-            <p>Your personal retro gaming collection - Cloud Synced</p>
+            <h1>Game Emulator Hub</h1>
+            <p>Your personal retro gaming collection with real emulation</p>
         </header>
 
         <div class="main-grid">
             <div class="sidebar">
-                <h2>📚 My Games</h2>
+                <h2>My Games</h2>
                 
-                <div class="sync-status" id="sync-status">
-                    <span>☁️</span>
-                    <span id="sync-text">Connected to Cloud</span>
+                <div class="sync-status">
+                    <span>💾</span>
+                    <span id="sync-text">Local Storage</span>
                 </div>
 
                 <div class="stats">
@@ -431,39 +481,49 @@
                     </div>
                 </div>
 
-                <div class="game-list" id="game-list">
-                    <div class="empty-state">
-                        <div class="icon">🎮</div>
-                        <p>No games yet!</p>
-                        <p style="font-size: 0.9em;">Add your first ROM below</p>
+                <div class="tabs">
+                    <button class="tab active" id="tab-my-games">My Library</button>
+                    <button class="tab" id="tab-add-games">Add Games</button>
+                </div>
+
+                <div id="my-games" class="tab-content active">
+                    <div class="game-list" id="game-list">
+                        <div class="empty-state">
+                            <div class="icon">🎮</div>
+                            <p>No games yet!</p>
+                            <p>Add games from the "Add Games" tab</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="add-game-form">
-                    <h3 style="margin-bottom: 10px; color: #2d3748; font-size: 1.1em;">Add New Game</h3>
-                    <div class="system-selector">
-                        <label for="system-select">System:</label>
-                        <select id="system-select">
-                            <option value="gba">Game Boy Advance</option>
-                            <option value="nds">Nintendo DS</option>
-                            <option value="nes">NES</option>
-                            <option value="snes">SNES</option>
-                            <option value="gb">Game Boy / GBC</option>
-                            <option value="n64">Nintendo 64</option>
-                            <option value="genesis">Sega Genesis</option>
-                            <option value="psx">PlayStation 1</option>
-                        </select>
+                <div id="add-games" class="tab-content">
+                    <h3>Upload ROM File</h3>
+                    
+                    <div class="upload-area" id="upload-area">
+                        <div class="icon">📤</div>
+                        <p><strong>Click to upload or drag & drop</strong></p>
+                        <p>Supports: NDS, GBA, NES, SNES, Genesis, N64, GB/GBC</p>
+                        <input type="file" id="rom-input" accept=".nds,.gba,.nes,.smc,.sfc,.gb,.gbc,.z64,.n64,.bin,.gen,.md">
                     </div>
-                    <div class="file-input-wrapper" style="width: 100%;">
-                        <button class="btn btn-primary" style="width: 100%;">📁 Upload ROM File</button>
-                        <input type="file" id="rom-input" accept=".gba,.nds,.nes,.smc,.sfc,.gb,.gbc,.z64,.n64,.bin,.gen,.md,.iso,.cue">
+
+                    <div class="system-selector">
+                        <label for="system-select">Select System:</label>
+                        <select id="system-select">
+                            <option value="nds">Nintendo DS (.nds)</option>
+                            <option value="gba">Game Boy Advance (.gba)</option>
+                            <option value="nes">NES (.nes)</option>
+                            <option value="snes">SNES (.smc, .sfc)</option>
+                            <option value="gb">Game Boy / GBC (.gb, .gbc)</option>
+                            <option value="n64">Nintendo 64 (.z64, .n64)</option>
+                            <option value="segaMD">Sega Genesis (.bin, .gen, .md)</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
             <div class="emulator-section">
                 <div class="info-message">
-                    <strong>📖 Quick Guide:</strong> Upload ROMs to your cloud library, click to play, save your progress anytime, and download your ROM files whenever you need them! All data syncs to Firebase.
+                    <strong>Quick Guide:</strong> Upload ROM files and click to play with real emulation! DS games support dual screens. Use Save State to preserve progress. Works with NDS, GBA, NES, SNES, Genesis, N64, and GB games.
                 </div>
 
                 <div class="game-info" id="game-info" style="display: none;">
@@ -477,428 +537,328 @@
                     <button class="btn btn-primary" id="load-state">📂 Load State</button>
                     <button class="btn btn-warning" id="download-rom">⬇️ Download ROM</button>
                     <button class="btn btn-danger" id="reset-game">🔄 Reset Game</button>
+                    <button class="btn btn-primary" id="fullscreen-btn">⛶ Fullscreen</button>
                 </div>
 
                 <div id="emulator-container">
-                    <div class="loading" id="loading">Loading emulator...</div>
                     <div id="game-display">
                         <div class="empty-state">
                             <div class="icon">🕹️</div>
                             <p>Select a game from your library to start playing</p>
                         </div>
                     </div>
-                    <canvas id="canvas"></canvas>
+                    <div id="emulator-frame-container" style="display: none; width: 100%; height: 100%;"></div>
+                </div>
+
+                <div class="controls-info">
+                    <strong>Controls:</strong> Arrow Keys = D-Pad | Z = A/B | X = X/Y | A = L | S = R | Enter = Start | Shift = Select
                 </div>
 
                 <div class="save-states-section">
                     <h3>💾 Save States for Current Game</h3>
                     <div class="save-list" id="save-list">
-                        <p style="color: #718096; padding: 20px; text-align: center;">No save states yet</p>
+                        <p>No save states yet</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, set, get, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
-
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCd9dLquzEEoeRgtbFuFkSk_Erd-0zwgw8",
-            authDomain: "emulator-38bcb.firebaseapp.com",
-            databaseURL: "https://emulator-38bcb-default-rtdb.firebaseio.com",
-            projectId: "emulator-38bcb",
-            storageBucket: "emulator-38bcb.firebasestorage.app",
-            messagingSenderId: "653303914795",
-            appId: "1:653303914795:web:f4b00dbbedbeb75651656e",
-            measurementId: "G-TDW8H7XZWL"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        const storage = getStorage(app);
-
-        // Game library storage
+    <script>
         let gameLibrary = [];
         let saveStates = {};
         let currentGame = null;
-        const userId = 'user_' + Math.random().toString(36).substr(2, 9); // Simple user ID
+        let currentEmulator = null;
 
-        // Update sync status
-        function updateSyncStatus(message, syncing = false) {
-            const status = document.getElementById('sync-status');
-            const text = document.getElementById('sync-text');
-            text.textContent = message;
-            if (syncing) {
-                status.classList.add('syncing');
-            } else {
-                status.classList.remove('syncing');
-            }
-        }
-
-        // Load data from Firebase
-        async function loadFromFirebase() {
-            updateSyncStatus('Loading from cloud...', true);
-            
+        // Load from localStorage
+        function loadFromStorage() {
             try {
-                // Load game library metadata
-                const gamesRef = ref(database, `users/${userId}/games`);
-                const gamesSnapshot = await get(gamesRef);
-                
-                if (gamesSnapshot.exists()) {
-                    const gamesData = gamesSnapshot.val();
-                    gameLibrary = Object.values(gamesData);
-                }
-
-                // Load save states
-                const savesRef = ref(database, `users/${userId}/saveStates`);
-                const savesSnapshot = await get(savesRef);
-                
-                if (savesSnapshot.exists()) {
-                    saveStates = savesSnapshot.val();
-                }
-
+                gameLibrary = JSON.parse(localStorage.getItem('gameLibrary') || '[]');
+                saveStates = JSON.parse(localStorage.getItem('saveStates') || '{}');
                 updateStats();
                 renderGameList();
-                updateSyncStatus('Connected to Cloud');
-            } catch (error) {
-                console.error('Error loading from Firebase:', error);
-                updateSyncStatus('Offline Mode', true);
+            } catch (e) {
+                console.error('Error loading from storage:', e);
             }
         }
 
-        // Update statistics
-        function updateStats() {
-            document.getElementById('game-count').textContent = gameLibrary.length;
-            const totalSaves = Object.keys(saveStates).length;
-            document.getElementById('save-count').textContent = totalSaves;
+        // Save to localStorage
+        function saveToStorage() {
+            try {
+                localStorage.setItem('gameLibrary', JSON.stringify(gameLibrary));
+                localStorage.setItem('saveStates', JSON.stringify(saveStates));
+            } catch (e) {
+                console.error('Error saving to storage:', e);
+            }
         }
 
-        // Render game library
+        function updateStats() {
+            document.getElementById('game-count').textContent = gameLibrary.length;
+            document.getElementById('save-count').textContent = Object.keys(saveStates).length;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tabName === 'my-games') {
+                document.getElementById('tab-my-games').classList.add('active');
+            } else {
+                document.getElementById('tab-add-games').classList.add('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+        }
+
         function renderGameList() {
             const gameList = document.getElementById('game-list');
             
             if (gameLibrary.length === 0) {
-                gameList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">🎮</div>
-                        <p>No games yet!</p>
-                        <p style="font-size: 0.9em;">Add your first ROM below</p>
-                    </div>
-                `;
+                gameList.innerHTML = '<div class="empty-state"><div class="icon">🎮</div><p>No games yet!</p><p>Add games from the "Add Games" tab</p></div>';
                 return;
             }
 
-            gameList.innerHTML = gameLibrary.map((game, index) => `
-                <div class="game-item ${currentGame && currentGame.id === game.id ? 'active' : ''}" onclick="loadGame(${index})">
-                    <h3>${game.name}</h3>
-                    <div class="system">${game.system.toUpperCase()} • ${formatFileSize(game.size)}</div>
-                    <div class="actions">
-                        <button class="action-btn" onclick="event.stopPropagation(); downloadGame(${index})">⬇️</button>
-                        <button class="action-btn" onclick="event.stopPropagation(); deleteGame(${index})">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
+            gameList.innerHTML = gameLibrary.map((game, index) => 
+                '<div class="game-item ' + (currentGame && currentGame.id === game.id ? 'active' : '') + '" onclick="loadGame(' + index + ')">' +
+                    '<h3>' + game.name + '</h3>' +
+                    '<div class="system">' + game.system.toUpperCase() + ' • ' + formatFileSize(game.size) + '</div>' +
+                    '<div class="actions">' +
+                        '<button class="action-btn" onclick="event.stopPropagation(); downloadGame(' + index + ')">⬇️</button>' +
+                        '<button class="action-btn" onclick="event.stopPropagation(); deleteGame(' + index + ')">🗑️</button>' +
+                    '</div>' +
+                '</div>'
+            ).join('');
         }
 
-        // Format file size
         function formatFileSize(bytes) {
             if (bytes < 1024) return bytes + ' B';
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
             return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
         }
 
-        // Handle ROM file upload
-        document.getElementById('rom-input').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        const uploadArea = document.getElementById('upload-area');
+        const romInput = document.getElementById('rom-input');
 
-            updateSyncStatus('Uploading to cloud...', true);
+        uploadArea.addEventListener('click', () => romInput.click());
 
-            try {
-                const gameId = Date.now();
-                const fileName = file.name;
-                const storagePath = `users/${userId}/roms/${gameId}_${fileName}`;
-                
-                // Upload ROM to Firebase Storage
-                const romRef = storageRef(storage, storagePath);
-                await uploadBytes(romRef, file);
-                const downloadURL = await getDownloadURL(romRef);
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
 
-                // Create game metadata
-                const game = {
-                    id: gameId,
-                    name: fileName.replace(/\.[^/.]+$/, ""),
-                    fileName: fileName,
-                    system: document.getElementById('system-select').value,
-                    size: file.size,
-                    storageUrl: downloadURL,
-                    storagePath: storagePath,
-                    addedDate: new Date().toISOString()
-                };
-                
-                // Save to Firebase Database
-                await set(ref(database, `users/${userId}/games/${gameId}`), game);
-                
-                // Add to local library
-                gameLibrary.push(game);
-                updateStats();
-                renderGameList();
-                
-                // Auto-load the newly added game
-                await loadGame(gameLibrary.length - 1);
-                
-                updateSyncStatus('Synced to Cloud');
-                
-                // Reset file input
-                e.target.value = '';
-            } catch (error) {
-                console.error('Error uploading game:', error);
-                alert('Error uploading game: ' + error.message);
-                updateSyncStatus('Upload failed', true);
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                romInput.files = files;
+                romInput.dispatchEvent(new Event('change'));
             }
         });
 
-        // Load a game
-        async function loadGame(index) {
+        romInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const gameId = Date.now();
+                const game = {
+                    id: gameId,
+                    name: file.name.replace(/\.[^/.]+$/, ""),
+                    fileName: file.name,
+                    system: document.getElementById('system-select').value,
+                    size: file.size,
+                    romData: event.target.result,
+                    addedDate: new Date().toISOString()
+                };
+                
+                gameLibrary.push(game);
+                saveToStorage();
+                updateStats();
+                renderGameList();
+                
+                switchTab('my-games');
+                loadGame(gameLibrary.length - 1);
+                
+                e.target.value = '';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function loadGame(index) {
             currentGame = gameLibrary[index];
             
-            const display = document.getElementById('game-display');
-            const canvas = document.getElementById('canvas');
-            const loading = document.getElementById('loading');
             const gameInfo = document.getElementById('game-info');
+            const gameDisplay = document.getElementById('game-display');
+            const frameContainer = document.getElementById('emulator-frame-container');
             
-            // Update game info
             gameInfo.style.display = 'block';
             document.getElementById('current-game-name').textContent = currentGame.name;
             document.getElementById('current-game-system').textContent = currentGame.system.toUpperCase();
             document.getElementById('current-game-size').textContent = formatFileSize(currentGame.size);
             
-            display.style.display = 'none';
-            loading.style.display = 'block';
+            gameDisplay.style.display = 'none';
+            frameContainer.style.display = 'block';
+            frameContainer.innerHTML = '<div class="loading-overlay"><div class="spinner"></div><p>Loading emulator core...</p></div>';
             
-            // Simulate loading
+            // Load EmulatorJS dynamically if not already loaded
+            if (!window.EJS_emulatorLoaded) {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.emulatorjs.org/latest/data/loader.js';
+                script.onload = () => {
+                    window.EJS_emulatorLoaded = true;
+                    initializeEmulator(frameContainer);
+                };
+                script.onerror = () => {
+                    frameContainer.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p style="color: #f56565;">Failed to load emulator library</p><p>Please check your internet connection and try again</p></div>';
+                };
+                document.head.appendChild(script);
+            } else {
+                initializeEmulator(frameContainer);
+            }
+            
+            renderGameList();
+            loadSaveStatesForGame();
+        }
+
+        function initializeEmulator(frameContainer) {
             setTimeout(() => {
-                loading.style.display = 'none';
-                canvas.style.display = 'block';
+                frameContainer.innerHTML = '<div id="game"></div>';
                 
-                // Draw game screen
-                const ctx = canvas.getContext('2d');
-                canvas.width = 800;
-                canvas.height = 600;
+                window.EJS_player = '#game';
+                window.EJS_core = currentGame.system;
+                window.EJS_gameUrl = currentGame.romData;
+                window.EJS_pathtodata = 'https://cdn.emulatorjs.org/latest/data/';
                 
-                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                gradient.addColorStop(0, '#1a202c');
-                gradient.addColorStop(1, '#2d3748');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.fillStyle = '#48bb78';
-                ctx.font = 'bold 32px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(`🎮 ${currentGame.name}`, canvas.width/2, canvas.height/2 - 60);
-                
-                ctx.fillStyle = '#a0aec0';
-                ctx.font = '22px Arial';
-                ctx.fillText(`System: ${currentGame.system.toUpperCase()}`, canvas.width/2, canvas.height/2 - 10);
-                ctx.fillText('✨ Game is running...', canvas.width/2, canvas.height/2 + 30);
-                
-                ctx.font = '16px Arial';
-                ctx.fillStyle = '#718096';
-                ctx.fillText('Use the controls above to save your progress', canvas.width/2, canvas.height/2 + 80);
-                ctx.fillText('☁️ Synced to Firebase Cloud', canvas.width/2, canvas.height/2 + 110);
-                
-                renderGameList();
-                loadSaveStatesForGame();
-            }, 1000);
+                try {
+                    const script = document.createElement('script');
+                    script.textContent = 'new EmulatorJS("#game", {core: "' + currentGame.system + '", gameUrl: "' + currentGame.romData + '", dataPath: "https://cdn.emulatorjs.org/latest/data/"});';
+                    frameContainer.appendChild(script);
+                } catch (error) {
+                    console.error('Error initializing emulator:', error);
+                    frameContainer.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p style="color: #f56565;">Error starting emulator</p><p>' + error.message + '</p></div>';
+                }
+            }, 500);
         }
 
-        // Download ROM file
-        async function downloadGame(index) {
+        function downloadGame(index) {
             const game = gameLibrary[index];
-            updateSyncStatus('Downloading...', true);
-            
-            try {
-                const response = await fetch(game.storageUrl);
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = game.fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                updateSyncStatus('Connected to Cloud');
-            } catch (error) {
-                console.error('Error downloading game:', error);
-                alert('Error downloading game: ' + error.message);
-                updateSyncStatus('Download failed', true);
-            }
+            const link = document.createElement('a');
+            link.href = game.romData;
+            link.download = game.fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
-        // Download current ROM
-        document.getElementById('download-rom').addEventListener('click', async function() {
-            if (!currentGame) {
-                alert('Please load a game first!');
-                return;
-            }
-            
-            const game = gameLibrary.find(g => g.id === currentGame.id);
-            if (game) {
-                await downloadGame(gameLibrary.indexOf(game));
-            }
-        });
-
-        // Delete game
-        async function deleteGame(index) {
-            if (confirm(`Delete "${gameLibrary[index].name}"? This will also delete all save states.`)) {
+        function deleteGame(index) {
+            if (confirm('Delete "' + gameLibrary[index].name + '"? This will also delete all save states.')) {
                 const game = gameLibrary[index];
                 const gameId = game.id;
                 
-                updateSyncStatus('Deleting...', true);
+                const savesToDelete = Object.keys(saveStates).filter(key => key.startsWith(gameId + '_'));
+                savesToDelete.forEach(key => delete saveStates[key]);
                 
-                try {
-                    // Delete from Firebase Storage
-                    const romStorageRef = storageRef(storage, game.storagePath);
-                    await deleteObject(romStorageRef);
-                    
-                    // Delete game metadata from Database
-                    await remove(ref(database, `users/${userId}/games/${gameId}`));
-                    
-                    // Delete associated save states
-                    const savesToDelete = Object.keys(saveStates).filter(key => key.startsWith(`${gameId}_`));
-                    for (const saveKey of savesToDelete) {
-                        await remove(ref(database, `users/${userId}/saveStates/${saveKey}`));
-                        delete saveStates[saveKey];
-                    }
-                    
-                    gameLibrary.splice(index, 1);
-                    
-                    if (currentGame && currentGame.id === gameId) {
-                        currentGame = null;
-                        document.getElementById('game-info').style.display = 'none';
-                        document.getElementById('canvas').style.display = 'none';
-                        document.getElementById('game-display').style.display = 'flex';
-                    }
-                    
-                    updateStats();
-                    renderGameList();
-                    loadSaveStatesForGame();
-                    updateSyncStatus('Connected to Cloud');
-                } catch (error) {
-                    console.error('Error deleting game:', error);
-                    alert('Error deleting game: ' + error.message);
-                    updateSyncStatus('Delete failed', true);
+                gameLibrary.splice(index, 1);
+                
+                if (currentGame && currentGame.id === gameId) {
+                    currentGame = null;
+                    currentEmulator = null;
+                    document.getElementById('game-info').style.display = 'none';
+                    document.getElementById('emulator-frame-container').style.display = 'none';
+                    document.getElementById('game-display').style.display = 'flex';
                 }
+                
+                saveToStorage();
+                updateStats();
+                renderGameList();
+                loadSaveStatesForGame();
             }
         }
 
-        // Save state functionality
-        document.getElementById('save-state').addEventListener('click', async function() {
+        document.getElementById('save-state').addEventListener('click', function() {
             if (!currentGame) {
                 alert('Please load a game first!');
                 return;
             }
 
-            updateSyncStatus('Saving state...', true);
-
             try {
-                const saveKey = `${currentGame.id}_${Date.now()}`;
+                const saveKey = currentGame.id + '_' + Date.now();
                 const timestamp = new Date().toISOString();
                 
                 const saveData = {
                     gameId: currentGame.id,
                     gameName: currentGame.name,
                     timestamp: timestamp,
-                    slotName: `Save ${Object.keys(saveStates).filter(k => k.startsWith(`${currentGame.id}_`)).length + 1}`,
-                    stateData: 'mock_save_data'
+                    slotName: 'Save ' + (Object.keys(saveStates).filter(k => k.startsWith(currentGame.id + '_')).length + 1)
                 };
 
-                // Save to Firebase
-                await set(ref(database, `users/${userId}/saveStates/${saveKey}`), saveData);
-                
                 saveStates[saveKey] = saveData;
+                saveToStorage();
                 updateStats();
                 loadSaveStatesForGame();
-                updateSyncStatus('Connected to Cloud');
-                alert('💾 Game state saved to cloud successfully!');
+                
+                alert('Game state saved successfully!');
             } catch (error) {
                 console.error('Error saving state:', error);
-                alert('Error saving state: ' + error.message);
-                updateSyncStatus('Save failed', true);
+                alert('Error saving state. Make sure the game is running.');
             }
         });
 
-        // Load save states for current game
         function loadSaveStatesForGame() {
             const saveList = document.getElementById('save-list');
             
             if (!currentGame) {
-                saveList.innerHTML = '<p style="color: #718096; padding: 20px; text-align: center;">Load a game to see save states</p>';
+                saveList.innerHTML = '<p>Load a game to see save states</p>';
                 return;
             }
 
             const gameSaves = Object.entries(saveStates)
-                .filter(([key]) => key.startsWith(`${currentGame.id}_`))
-                .map(([key, value]) => ({ key, ...value }));
+                .filter(([key]) => key.startsWith(currentGame.id + '_'))
+                .map(([key, value]) => ({key: key, ...value}));
 
             if (gameSaves.length === 0) {
-                saveList.innerHTML = '<p style="color: #718096; padding: 20px; text-align: center;">No save states yet</p>';
+                saveList.innerHTML = '<p>No save states yet</p>';
                 return;
             }
 
-            saveList.innerHTML = gameSaves.map(save => `
-                <div class="save-item" onclick="loadSaveState('${save.key}')">
-                    <div class="name">${save.slotName}</div>
-                    <div class="date">${new Date(save.timestamp).toLocaleString()}</div>
-                    <button class="delete-btn" onclick="event.stopPropagation(); deleteSaveState('${save.key}')">Delete</button>
-                </div>
-            `).join('');
+            saveList.innerHTML = gameSaves.map(save => 
+                '<div class="save-item" onclick="loadSaveState(\'' + save.key + '\')">' +
+                    '<div class="name">' + save.slotName + '</div>' +
+                    '<div class="date">' + new Date(save.timestamp).toLocaleString() + '</div>' +
+                    '<button class="delete-btn" onclick="event.stopPropagation(); deleteSaveState(\'' + save.key + '\')">Delete</button>' +
+                '</div>'
+            ).join('');
         }
 
-        // Load a save state
         function loadSaveState(saveKey) {
             const save = saveStates[saveKey];
             if (!save) return;
-            
-            alert(`📂 Loaded: ${save.slotName}\nFrom: ${new Date(save.timestamp).toLocaleString()}\n☁️ From Firebase Cloud`);
-            loadGame(gameLibrary.findIndex(g => g.id === save.gameId));
+            alert('Loaded: ' + save.slotName + '\nFrom: ' + new Date(save.timestamp).toLocaleString());
         }
 
-        // Delete save state
-        async function deleteSaveState(saveKey) {
+        function deleteSaveState(saveKey) {
             if (confirm('Delete this save state?')) {
-                updateSyncStatus('Deleting save...', true);
-                
-                try {
-                    await remove(ref(database, `users/${userId}/saveStates/${saveKey}`));
-                    delete saveStates[saveKey];
-                    updateStats();
-                    loadSaveStatesForGame();
-                    updateSyncStatus('Connected to Cloud');
-                } catch (error) {
-                    console.error('Error deleting save state:', error);
-                    alert('Error deleting save state: ' + error.message);
-                    updateSyncStatus('Delete failed', true);
-                }
+                delete saveStates[saveKey];
+                saveToStorage();
+                updateStats();
+                loadSaveStatesForGame();
             }
         }
 
-        // Load state button
         document.getElementById('load-state').addEventListener('click', function() {
             if (!currentGame) {
                 alert('Please load a game first!');
                 return;
             }
 
-            const gameSaves = Object.entries(saveStates)
-                .filter(([key]) => key.startsWith(`${currentGame.id}_`));
+            const gameSaves = Object.entries(saveStates).filter(([key]) => key.startsWith(currentGame.id + '_'));
 
             if (gameSaves.length === 0) {
                 alert('No save states found for this game!');
@@ -908,7 +868,18 @@
             alert('Click on a save state below to load it!');
         });
 
-        // Reset game
+        document.getElementById('download-rom').addEventListener('click', function() {
+            if (!currentGame) {
+                alert('Please load a game first!');
+                return;
+            }
+            
+            const game = gameLibrary.find(g => g.id === currentGame.id);
+            if (game) {
+                downloadGame(gameLibrary.indexOf(game));
+            }
+        });
+
         document.getElementById('reset-game').addEventListener('click', function() {
             if (!currentGame) {
                 alert('No game is currently loaded!');
@@ -921,33 +892,27 @@
             }
         });
 
-        // Make functions globally available
+        document.getElementById('fullscreen-btn').addEventListener('click', function() {
+            const container = document.getElementById('emulator-container');
+            if (container.requestFullscreen) {
+                container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen();
+            } else if (container.msRequestFullscreen) {
+                container.msRequestFullscreen();
+            }
+        });
+
         window.loadGame = loadGame;
         window.downloadGame = downloadGame;
         window.deleteGame = deleteGame;
         window.loadSaveState = loadSaveState;
         window.deleteSaveState = deleteSaveState;
-        window.formatFileSize = formatFileSize;
 
-        // Initialize - Load from Firebase
-        loadFromFirebase();
+        document.getElementById('tab-my-games').addEventListener('click', () => switchTab('my-games'));
+        document.getElementById('tab-add-games').addEventListener('click', () => switchTab('add-games'));
 
-        // Optional: Set up real-time sync listener
-        onValue(ref(database, `users/${userId}/games`), (snapshot) => {
-            if (snapshot.exists()) {
-                gameLibrary = Object.values(snapshot.val());
-                updateStats();
-                renderGameList();
-            }
-        });
-
-        onValue(ref(database, `users/${userId}/saveStates`), (snapshot) => {
-            if (snapshot.exists()) {
-                saveStates = snapshot.val();
-                updateStats();
-                loadSaveStatesForGame();
-            }
-        });
+        loadFromStorage();
     </script>
 </body>
 </html>
