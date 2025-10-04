@@ -617,8 +617,8 @@
                             lightState = redState;
                             updateLightDisplay();
                         }
-                        setTimeout(cycle, 800 + Math.random() * 1200);
-                    }, 600);
+                        setTimeout(cycle, 2000 + Math.random() * 3000); // Red light: 2-5 seconds
+                    }, 1000); // Yellow light: 1 second
                 } else {
                     const greenState = 'green';
                     if (lobbyType === 'online') {
@@ -627,7 +627,7 @@
                         lightState = greenState;
                         updateLightDisplay();
                     }
-                    setTimeout(cycle, 1500 + Math.random() * 2000);
+                    setTimeout(cycle, 3000 + Math.random() * 4000); // Green light: 3-7 seconds
                 }
             };
             cycle();
