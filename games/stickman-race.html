@@ -683,7 +683,7 @@
             if (gameMode === 'redlight' && lightState === 'red') {
                 players[index].position = 0;
             } else if (gameMode === 'regular' || lightState === 'green') {
-                players[index].position = Math.min(players[index].position + 3 + Math.random() * 2, 88);
+                players[index].position = Math.min(players[index].position + 1.5 + Math.random() * 1, 88);
             }
 
             updatePlayerPosition(players[index]);
@@ -701,7 +701,7 @@
                 const player = snapshot.val();
                 if (!player) return;
 
-                const newPos = Math.min(player.position + 3 + Math.random() * 2, 88);
+                const newPos = Math.min(player.position + 1.5 + Math.random() * 1, 88);
 
                 playerRef.update({ position: newPos });
 
