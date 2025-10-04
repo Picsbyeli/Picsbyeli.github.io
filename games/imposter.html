@@ -697,10 +697,21 @@
                 const roomData = snapshot.val();
                 updatePlayersDisplay(roomData.players || {});
                 
-                if (roomData.phase === 'category-voting') {
+                // Handle different phases
+                if (roomData.phase === 'waiting') {
+                    // Show waiting room
+                    if (document.getElementById('waiting-room-screen').classList.contains('active')) {
+                        // Already on waiting screen, just update
+                    }
+                } else if (roomData.phase === 'category-voting') {
+                    // Show category voting for ALL players
                     displayCategoryVoting(roomData);
-                } else if (roomData.gameState) {
+                } else if (roomData.phase === 'game' && roomData.gameState) {
+                    // Show game screen for ALL players
                     gameState = roomData.gameState;
+                    if (!document.getElementById('game-screen').classList.contains('active')) {
+                        showScreen('game-screen');
+                    }
                     updateGameDisplay();
                 }
 
@@ -802,7 +813,10 @@
         }
 
         function displayCategoryVoting(roomData) {
-            showScreen('category-screen');
+            // ALWAYS show category screen for ALL players when in this phase
+            if (!document.getElementById('category-screen').classList.contains('active')) {
+                showScreen('category-screen');
+            }
             
             // Start timer if not already running
             if (!categoryTimerInterval && roomData.votingEndTime) {
@@ -820,9 +834,18 @@
             });
 
             votesDisplay.innerHTML = '<h4>Current Votes:</h4>';
-            Object.entries(voteCounts).forEach(([cat, count]) => {
-                votesDisplay.innerHTML += `<p>${cat}: <span class="vote-count">${count}</span></p>`;
-            });
+            if (Object.keys(voteCounts).length === 0) {
+                votesDisplay.innerHTML += '<p>No votes yet...</p>';
+            } else {
+                Object.entries(voteCounts).forEach(([cat, count]) => {
+                    votesDisplay.innerHTML += `<p>${cat}: <span class="vote-count">${count}</span></p>`;
+                });
+            }
+
+            // Make sure category options are displayed
+            if (document.getElementById('category-container').children.length === 0) {
+                displayCategoryOptions();
+            }
         }
 
         function startCategoryTimer(endTime) {
@@ -932,13 +955,14 @@
                 categoryTimerInterval = null;
             }
 
+            // Update Firebase - this will trigger all clients to update via the listener
             await database.ref(`rooms/${currentRoom}`).update({
                 phase: 'game',
                 gameState: newGameState,
                 votingEndTime: null
             });
 
-            showScreen('game-screen');
+            // The listenToRoom function will handle showing the game screen for all players
         }
 
         function updateGameDisplay() {
