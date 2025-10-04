@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stick Man Race - Multiplayer Racing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #312e81 0%, #7c3aed 50%, #ec4899 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .background-effects {
+            position: absolute;
+            inset: 0;
+            opacity: 0.2;
+        }
+
+        .bg-orb-1 {
+            position: absolute;
+            top: 0;
+            left: 25%;
+            width: 384px;
+            height: 384px;
+            background: #3b82f6;
+            border-radius: 50%;
+            filter: blur(96px);
+            animation: pulse 3s infinite;
+        }
+
+        .bg-orb-2 {
+            position: absolute;
+            bottom: 0;
+            right: 25%;
+            width: 384px;
+            height: 384px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            filter: blur(96px);
+            animation: pulse 3s infinite 1s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .screen {
+            display: none;
+            position: relative;
+            z-index: 10;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .menu-container {
+            text-align: center;
+            color: white;
+        }
+
+        .title {
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #fbbf24, #ec4899, #8b5cf6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .menu-panel {
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            border: 4px solid #8b5cf6;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-label {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 1rem;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #3b82f6, #06b6d4);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ef4444, #f97316);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #10b981, #34d399);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-purple {
+            background: linear-gradient(45deg, #8b5cf6, #ec4899);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-gray {
+            background: #6b7280;
+            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.4);
+        }
+
+        .btn:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn.selected {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
+        }
+
+        .lobby-container {
+            max-width: 64rem;
+            width: 100%;
+        }
+
+        .lobby-title {
+            font-size: 3.75rem;
+            font-weight: 900;
+            color: white;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .player-list {
+            margin-bottom: 1.5rem;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .player-input {
+            flex: 1;
+            background: #374151;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+        }
+
+        .player-key {
+            background: #374151;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+        }
+
+        .color-select {
+            background: #374151;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+        }
+
+        .game-area {
+            max-width: 112rem;
+            width: 100%;
+        }
+
+        .light-indicator {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .light-display {
+            display: inline-block;
+            padding: 2rem 4rem;
+            border-radius: 1.5rem;
+            font-size: 3rem;
+            font-weight: 900;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .light-green {
+            background: linear-gradient(45deg, #10b981, #34d399);
+            color: white;
+            animation: pulse 1s infinite;
+        }
+
+        .light-yellow {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .light-red {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .race-track {
+            position: relative;
+            background: linear-gradient(to bottom, #1e293b, #0f172a);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            min-height: 550px;
+            border: 4px solid #8b5cf6;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .track-lines {
+            position: absolute;
+            inset: 0;
+            opacity: 0.1;
+        }
+
+        .track-line {
+            position: absolute;
+            height: 100%;
+            width: 64px;
+            background: white;
+        }
+
+        .finish-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 12px;
+            background: linear-gradient(to bottom, #fbbf24, #f59e0b);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+            z-index: 10;
+        }
+
+        .finish-flag {
+            position: absolute;
+            top: -3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            animation: bounce 2s infinite;
+        }
+
+        .finish-label {
+            position: absolute;
+            top: -5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fbbf24;
+            font-weight: 900;
+            font-size: 1.25rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            white-space: nowrap;
+        }
+
+        .lane {
+            position: relative;
+            border-bottom: 4px solid #475569;
+        }
+
+        .lane:nth-child(even) {
+            background: linear-gradient(90deg, rgba(100,100,150,0.1) 0%, rgba(100,100,150,0.05) 100%);
+        }
+
+        .lane:nth-child(odd) {
+            background: linear-gradient(90deg, rgba(150,100,150,0.1) 0%, rgba(150,100,150,0.05) 100%);
+        }
+
+        .lane-number {
+            position: absolute;
+            left: 0.5rem;
+            top: 0.5rem;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            background: rgba(0,0,0,0.5);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .player-name {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: 900;
+            background: rgba(0,0,0,0.5);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .player-character {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: left 0.1s ease;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 1rem;
+            left: 1.5rem;
+            right: 1.5rem;
+            height: 12px;
+            background: #374151;
+            border-radius: 9999px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            border: 2px solid #475569;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .countdown-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.9);
+            z-index: 50;
+        }
+
+        .countdown-number {
+            font-size: 12.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #fbbf24, #ef4444);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: bounce 1s infinite;
+        }
+
+        .victory-screen {
+            text-align: center;
+            color: white;
+        }
+
+        .victory-trophy {
+            font-size: 9rem;
+            margin-bottom: 1.5rem;
+            animation: bounce 2s infinite;
+        }
+
+        .victory-title {
+            font-size: 4.375rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .victory-text {
+            font-size: 3.75rem;
+            font-weight: 900;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, #fde047, #fbbf24);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .victory-emoji {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-field {
+            width: 100%;
+            background: #1e293b;
+            color: white;
+            padding: 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .online-container {
+            max-width: 28rem;
+            width: 100%;
+            text-align: center;
+            color: white;
+        }
+
+        .online-title {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .placeholder-container {
+            max-width: 48rem;
+            width: 100%;
+            text-align: center;
+            color: white;
+        }
+
+        .placeholder-title {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .warning-panel {
+            background: rgba(249, 115, 22, 0.2);
+            border: 4px solid #f97316;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: left;
+        }
+
+        .warning-title {
+            color: #fed7aa;
+            font-weight: bold;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-section {
+            background: rgba(0,0,0,0.4);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-text {
+            font-size: 0.875rem;
+            color: #d1d5db;
+        }
+
+        .code-block {
+            font-size: 0.875rem;
+            background: #0f172a;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            margin-top: 0.5rem;
+            display: block;
+        }
+
+        .code-pre {
+            font-size: 0.75rem;
+            background: #0f172a;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            margin-top: 0.5rem;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .feature-list {
+            font-size: 0.875rem;
+            color: #d1d5db;
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .feature-list li {
+            margin-bottom: 0.25rem;
+        }
+
+        .cyan-panel {
+            background: rgba(6, 182, 212, 0.2);
+            border: 2px solid #06b6d4;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .cyan-title {
+            font-weight: bold;
+            color: #67e8f9;
+        }
+
+        .cyan-text {
+            font-size: 0.875rem;
+            color: #a7f3d0;
+            margin-top: 0.5rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-btn">← Back to Games</a>
+    
+    <div class="game-container">
+        <div class="background-effects">
+            <div class="bg-orb-1"></div>
+            <div class="bg-orb-2"></div>
+        </div>
+
+        <!-- Menu Screen -->
+        <div id="menu-screen" class="screen active">
+            <div class="menu-container">
+                <div>
+                    <h1 class="title">STICK MAN RACE</h1>
+                    <p class="subtitle">🏃 Tap Fast, Win Big! 🏆</p>
+                </div>
+                
+                <div class="menu-panel">
+                    <div class="section">
+                        <label class="section-label">🎮 Game Mode</label>
+                        <div class="button-group">
+                            <button id="mode-regular" class="btn btn-primary selected" onclick="setGameMode('regular')">
+                                ⚡ Regular Race
+                            </button>
+                            <button id="mode-redlight" class="btn btn-secondary" onclick="setGameMode('redlight')">
+                                🚦 Red Light, Green Light
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <label class="section-label">🌐 Lobby Type</label>
+                        <div class="button-group">
+                            <button class="btn btn-success" onclick="selectLobbyType('local')">
+                                👥 LOCAL<br/>
+                                <span style="font-size: 0.9rem; font-weight: normal;">Same Device</span>
+                            </button>
+                            <button class="btn btn-purple" onclick="selectLobbyType('online')">
+                                🌍 ONLINE<br/>
+                                <span style="font-size: 0.9rem; font-weight: normal;">Add Firebase</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Online Select Screen -->
+        <div id="online-select-screen" class="screen">
+            <div class="online-container">
+                <h2 class="online-title">🌍 Online Mode</h2>
+                
+                <div class="menu-panel">
+                    <button class="btn btn-success" onclick="createOnlineRoom()" style="width: 100%; margin-bottom: 1rem;">
+                        ➕ CREATE ROOM
+                    </button>
+                    
+                    <div style="color: white; font-weight: bold; margin: 1rem 0;">OR</div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <input
+                            type="text"
+                            id="join-code-input"
+                            placeholder="Enter Room Code"
+                            class="input-field"
+                            maxlength="6"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                    </div>
+                    <button id="join-room-btn" class="btn btn-primary" onclick="joinOnlineRoom()" style="width: 100%; margin-bottom: 1rem;" disabled>
+                        🚪 JOIN ROOM
+                    </button>
+
+                    <button class="btn btn-gray" onclick="backToMenu()" style="width: 100%;">
+                        ← Back
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Online Placeholder Screen -->
+        <div id="online-placeholder-screen" class="screen">
+            <div class="placeholder-container">
+                <h2 class="placeholder-title">🔥 Firebase Integration Needed</h2>
+                
+                <div class="warning-panel">
+                    <p class="warning-title">⚠️ To enable online multiplayer:</p>
+                    
+                    <div style="color: white;">
+                        <div class="info-section">
+                            <p class="info-title">1. Export this game to your own React project</p>
+                            <p class="info-text">Copy the code to your local environment</p>
+                        </div>
+                        
+                        <div class="info-section">
+                            <p class="info-title">2. Install Firebase:</p>
+                            <code class="code-block">npm install firebase</code>
+                        </div>
+                        
+                        <div class="info-section">
+                            <p class="info-title">3. Add your Firebase config:</p>
+                            <pre class="code-pre">import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, set, onValue... } from 'firebase/database';
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  databaseURL: "YOUR_DATABASE_URL",
+  // ... rest of your config
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);</pre>
+                        </div>
+                        
+                        <div class="info-section">
+                            <p class="info-title">4. Implement the Firebase functions:</p>
+                            <p class="info-text">Use Firebase Realtime Database to sync:</p>
+                            <ul class="feature-list">
+                                <li>• Room creation and joining</li>
+                                <li>• Player positions and movements</li>
+                                <li>• Game state (countdown, playing, finished)</li>
+                                <li>• Light states for Red Light Green Light</li>
+                            </ul>
+                        </div>
+
+                        <div class="cyan-panel">
+                            <p class="cyan-title">💡 Your Firebase Config is ready:</p>
+                            <p class="cyan-text">I have your credentials - just plug them into the exported code!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-gray" onclick="backToMenu()" style="margin-top: 2rem;">
+                    ← Back to Menu
+                </button>
+            </div>
+        </div>
+
+        <!-- Lobby Screen -->
+        <div id="lobby-screen" class="screen">
+            <div class="lobby-container">
+                <h2 class="lobby-title">👥 Local Lobby</h2>
+                
+                <div class="menu-panel">
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.5rem; font-weight: bold; color: white; margin-bottom: 1rem;">
+                            Players (<span id="player-count">0</span>/5)
+                        </h3>
+                        
+                        <div id="players-list" class="player-list"></div>
+                        
+                        <button id="add-player-btn" class="btn btn-success" onclick="addPlayer()">
+                            ➕ Add Player
+                        </button>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-gray" onclick="backToMenu()">
+                            ← Back
+                        </button>
+                        
+                        <button id="start-race-btn" class="btn btn-primary" onclick="startRace()" disabled>
+                            🏁 START RACE
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Countdown Screen -->
+        <div id="countdown-screen" class="screen">
+            <div class="countdown-overlay">
+                <div id="countdown-number" class="countdown-number">3</div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="game-area">
+                <div id="light-indicator" class="light-indicator" style="display: none;">
+                    <div id="light-display" class="light-display light-green">
+                        🟢 GO GO GO!
+                    </div>
+                </div>
+
+                <div class="race-track">
+                    <div class="track-lines">
+                        <div class="track-line" style="left: 10%;"></div>
+                        <div class="track-line" style="left: 20%;"></div>
+                        <div class="track-line" style="left: 30%;"></div>
+                        <div class="track-line" style="left: 40%;"></div>
+                        <div class="track-line" style="left: 50%;"></div>
+                        <div class="track-line" style="left: 60%;"></div>
+                        <div class="track-line" style="left: 70%;"></div>
+                        <div class="track-line" style="left: 80%;"></div>
+                        <div class="track-line" style="left: 90%;"></div>
+                    </div>
+
+                    <div id="finish-line" class="finish-line">
+                        <div class="finish-flag">🏁</div>
+                        <div class="finish-label">FINISH</div>
+                    </div>
+
+                    <div id="race-lanes"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div id="victory-screen" class="screen">
+            <div class="victory-screen">
+                <div class="victory-trophy">🏆</div>
+                <h2 id="winner-name" class="victory-title">Player Wins!</h2>
+                <div class="victory-text">VICTORY!</div>
+                <div class="victory-emoji">🎉</div>
+                <button class="btn btn-purple" onclick="resetGame()" style="font-size: 1.5rem; padding: 1.5rem 4rem;">
+                    🔄 PLAY AGAIN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = 'menu';
+        let gameMode = 'regular';
+        let lobbyPlayers = [];
+        let racePlayers = [];
+        let winner = null;
+        let lightState = 'green';
+        let countdown = null;
+        let lightTimer = null;
+        let keysHeld = new Set();
+        let mouseHeld = false;
+
+        // Game constants
+        const RACE_DISTANCE = 800;
+        const MOVE_SPEED = 3;
+        const FINISH_LINE = RACE_DISTANCE - 100;
+        const PLAYER_KEYS = ['Space', 'KeyW', 'KeyI', 'KeyN', 'KeyB'];
+        const KEY_LABELS = ['Space/Click', 'W', 'I', 'N', 'B'];
+        const AVAILABLE_COLORS = [
+            { name: 'Red', value: '#ef4444' },
+            { name: 'Blue', value: '#3b82f6' },
+            { name: 'Green', value: '#10b981' },
+            { name: 'Orange', value: '#f59e0b' },
+            { name: 'Purple', value: '#8b5cf6' },
+            { name: 'Pink', value: '#ec4899' },
+            { name: 'Cyan', value: '#06b6d4' },
+            { name: 'Lime', value: '#84cc16' }
+        ];
+
+        // Utility functions
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function setGameMode(mode) {
+            gameMode = mode;
+            document.getElementById('mode-regular').classList.toggle('selected', mode === 'regular');
+            document.getElementById('mode-redlight').classList.toggle('selected', mode === 'redlight');
+        }
+
+        function selectLobbyType(type) {
+            if (type === 'online') {
+                showScreen('online-select-screen');
+            } else {
+                lobbyPlayers = [];
+                updateLobby();
+                showScreen('lobby-screen');
+            }
+        }
+
+        function createOnlineRoom() {
+            showScreen('online-placeholder-screen');
+        }
+
+        function joinOnlineRoom() {
+            const joinCode = document.getElementById('join-code-input').value;
+            if (joinCode) {
+                showScreen('online-placeholder-screen');
+            }
+        }
+
+        function backToMenu() {
+            resetGame();
+        }
+
+        function addPlayer() {
+            if (lobbyPlayers.length < 5) {
+                const usedColors = lobbyPlayers.map(p => p.color);
+                const availableColor = AVAILABLE_COLORS.find(c => !usedColors.includes(c.value));
+                
+                lobbyPlayers.push({
+                    id: lobbyPlayers.length,
+                    name: `Player ${lobbyPlayers.length + 1}`,
+                    key: KEY_LABELS[lobbyPlayers.length],
+                    keyCode: PLAYER_KEYS[lobbyPlayers.length],
+                    color: availableColor ? availableColor.value : AVAILABLE_COLORS[0].value,
+                    position: 0,
+                    squatPose: 0
+                });
+                
+                updateLobby();
+            }
+        }
+
+        function removePlayer(index) {
+            lobbyPlayers.splice(index, 1);
+            // Update keys for remaining players
+            lobbyPlayers.forEach((player, i) => {
+                player.id = i;
+                player.key = KEY_LABELS[i];
+                player.keyCode = PLAYER_KEYS[i];
+            });
+            updateLobby();
+        }
+
+        function updatePlayerName(index, name) {
+            lobbyPlayers[index].name = name;
+        }
+
+        function updatePlayerColor(index, color) {
+            lobbyPlayers[index].color = color;
+        }
+
+        function updateLobby() {
+            const playersList = document.getElementById('players-list');
+            const playerCount = document.getElementById('player-count');
+            const addPlayerBtn = document.getElementById('add-player-btn');
+            const startRaceBtn = document.getElementById('start-race-btn');
+            
+            playerCount.textContent = lobbyPlayers.length;
+            
+            playersList.innerHTML = '';
+            lobbyPlayers.forEach((player, index) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player-item';
+                playerDiv.innerHTML = `
+                    <div style="flex-shrink: 0;">
+                        ${createStickManSVG(player)}
+                    </div>
+                    
+                    <input
+                        type="text"
+                        value="${player.name}"
+                        oninput="updatePlayerName(${index}, this.value)"
+                        class="player-input"
+                        placeholder="Player Name"
+                    />
+                    
+                    <div class="player-key">${player.key}</div>
+                    
+                    <select
+                        onchange="updatePlayerColor(${index}, this.value)"
+                        class="color-select"
+                        style="border-left: 6px solid ${player.color};"
+                    >
+                        ${AVAILABLE_COLORS.map(color => 
+                            `<option value="${color.value}" ${color.value === player.color ? 'selected' : ''}>
+                                ${color.name}
+                            </option>`
+                        ).join('')}
+                    </select>
+                    
+                    <button onclick="removePlayer(${index})" class="btn" style="background: #ef4444; padding: 0.5rem 1rem;">
+                        ✕
+                    </button>
+                `;
+                playersList.appendChild(playerDiv);
+            });
+            
+            addPlayerBtn.style.display = lobbyPlayers.length < 5 ? 'inline-block' : 'none';
+            startRaceBtn.disabled = lobbyPlayers.length < 2;
+        }
+
+        function createStickManSVG(player) {
+            const pose = player.squatPose || 0;
+            const color = player.color;
+            const id = player.id;
+
+            let stickMan = `
+                <svg width="50" height="70" viewBox="0 0 50 70">
+                    <defs>
+                        <radialGradient id="grad-${id}">
+                            <stop offset="0%" style="stop-color: ${color}; stop-opacity: 1" />
+                            <stop offset="100%" style="stop-color: ${color}; stop-opacity: 0.7" />
+                        </radialGradient>
+                    </defs>
+            `;
+
+            if (pose === 0) {
+                stickMan += `
+                    <circle cx="25" cy="15" r="10" fill="url(#grad-${id})" stroke="${color}" stroke-width="2" />
+                    <line x1="25" y1="25" x2="25" y2="45" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="30" x2="13" y2="40" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="30" x2="37" y2="40" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="45" x2="17" y2="63" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="45" x2="33" y2="63" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                `;
+            } else if (pose === 1) {
+                stickMan += `
+                    <circle cx="25" cy="20" r="10" fill="url(#grad-${id})" stroke="${color}" stroke-width="2" />
+                    <line x1="25" y1="30" x2="25" y2="48" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="35" x2="12" y2="38" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="35" x2="38" y2="38" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="48" x2="15" y2="58" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="48" x2="35" y2="58" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                `;
+            } else {
+                stickMan += `
+                    <circle cx="25" cy="28" r="10" fill="url(#grad-${id})" stroke="${color}" stroke-width="2" />
+                    <line x1="25" y1="38" x2="25" y2="52" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="42" x2="10" y2="42" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="42" x2="40" y2="42" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="52" x2="13" y2="55" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                    <line x1="25" y1="52" x2="37" y2="55" stroke="${color}" stroke-width="4" stroke-linecap="round" />
+                `;
+            }
+
+            stickMan += '</svg>';
+            return stickMan;
+        }
+
+        function startRace() {
+            if (lobbyPlayers.length < 2) return;
+            
+            racePlayers = lobbyPlayers.map(p => ({...p, position: 0, squatPose: 0}));
+            winner = null;
+            countdown = 3;
+            
+            showScreen('countdown-screen');
+            document.getElementById('countdown-number').textContent = countdown;
+            
+            const countInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    document.getElementById('countdown-number').textContent = countdown;
+                } else {
+                    clearInterval(countInterval);
+                    startPlaying();
+                }
+            }, 1000);
+        }
+
+        function startPlaying() {
+            gameState = 'playing';
+            showScreen('game-screen');
+            
+            // Set up finish line position
+            document.getElementById('finish-line').style.left = `${(FINISH_LINE / RACE_DISTANCE) * 100}%`;
+            
+            // Show light indicator for red light mode
+            if (gameMode === 'redlight') {
+                document.getElementById('light-indicator').style.display = 'block';
+                startLightTimer();
+            }
+            
+            setupRaceTrack();
+            setupEventListeners();
+        }
+
+        function setupRaceTrack() {
+            const raceLanes = document.getElementById('race-lanes');
+            raceLanes.innerHTML = '';
+            
+            racePlayers.forEach((player, index) => {
+                const lane = document.createElement('div');
+                lane.className = 'lane';
+                lane.style.height = `${100 / racePlayers.length}%`;
+                
+                lane.innerHTML = `
+                    <div class="lane-number">Lane ${index + 1}</div>
+                    <div class="player-name">${player.name} (${player.key})</div>
+                    <div class="player-character" id="player-${index}" style="left: 0%;">
+                        ${createStickManSVG(player)}
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-${index}" style="width: 0%; background: linear-gradient(90deg, ${player.color}, ${player.color}dd);"></div>
+                    </div>
+                `;
+                
+                raceLanes.appendChild(lane);
+            });
+        }
+
+        function setupEventListeners() {
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        function removeEventListeners() {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('keyup', handleKeyUp);
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('mouseup', handleMouseUp);
+        }
+
+        function handleKeyDown(e) {
+            if (gameState !== 'playing') return;
+            
+            const playerIndex = PLAYER_KEYS.indexOf(e.code);
+            
+            if (playerIndex !== -1 && playerIndex < racePlayers.length && !keysHeld.has(e.code)) {
+                keysHeld.add(e.code);
+                
+                if (gameMode === 'regular') {
+                    movePlayer(playerIndex);
+                } else if (gameMode === 'redlight' && lightState === 'green') {
+                    movePlayer(playerIndex);
+                } else if (gameMode === 'redlight' && lightState === 'red') {
+                    penalizePlayer(playerIndex);
+                }
+            }
+        }
+
+        function handleKeyUp(e) {
+            keysHeld.delete(e.code);
+        }
+
+        function handleMouseDown() {
+            if (gameState !== 'playing' || mouseHeld || racePlayers.length === 0) return;
+            
+            mouseHeld = true;
+            
+            if (gameMode === 'regular') {
+                movePlayer(0);
+            } else if (gameMode === 'redlight' && lightState === 'green') {
+                movePlayer(0);
+            } else if (gameMode === 'redlight' && lightState === 'red') {
+                penalizePlayer(0);
+            }
+        }
+
+        function handleMouseUp() {
+            mouseHeld = false;
+        }
+
+        function movePlayer(index) {
+            const player = racePlayers[index];
+            const moveAmount = MOVE_SPEED + Math.random() * 2;
+            const newPosition = Math.min(player.position + moveAmount, FINISH_LINE);
+            
+            player.position = newPosition;
+            player.squatPose = (player.squatPose + 1) % 3;
+            
+            updatePlayerPosition(index);
+            
+            setTimeout(() => {
+                player.squatPose = 0;
+                updatePlayerPosition(index);
+            }, 200);
+
+            if (newPosition >= FINISH_LINE && !winner) {
+                winner = player;
+                gameState = 'finished';
+                removeEventListeners();
+                if (lightTimer) clearTimeout(lightTimer);
+                showVictory();
+            }
+        }
+
+        function penalizePlayer(index) {
+            racePlayers[index].position = 0;
+            updatePlayerPosition(index);
+        }
+
+        function updatePlayerPosition(index) {
+            const player = racePlayers[index];
+            const progress = (player.position / RACE_DISTANCE) * 100;
+            
+            const playerElement = document.getElementById(`player-${index}`);
+            const progressElement = document.getElementById(`progress-${index}`);
+            
+            if (playerElement) {
+                playerElement.style.left = `${progress}%`;
+                playerElement.innerHTML = createStickManSVG(player);
+            }
+            
+            if (progressElement) {
+                progressElement.style.width = `${progress}%`;
+            }
+        }
+
+        function startLightTimer() {
+            const changeLights = () => {
+                if (lightState === 'green') {
+                    setLightState('yellow');
+                    lightTimer = setTimeout(() => {
+                        setLightState('red');
+                        lightTimer = setTimeout(changeLights, 800 + Math.random() * 1200);
+                    }, 600);
+                } else {
+                    setLightState('green');
+                    lightTimer = setTimeout(changeLights, 1500 + Math.random() * 2000);
+                }
+            };
+
+            changeLights();
+        }
+
+        function setLightState(state) {
+            lightState = state;
+            const lightDisplay = document.getElementById('light-display');
+            
+            lightDisplay.className = 'light-display';
+            
+            if (state === 'green') {
+                lightDisplay.classList.add('light-green');
+                lightDisplay.textContent = '🟢 GO GO GO!';
+            } else if (state === 'yellow') {
+                lightDisplay.classList.add('light-yellow');
+                lightDisplay.textContent = '🟡 GET READY...';
+            } else {
+                lightDisplay.classList.add('light-red');
+                lightDisplay.textContent = '🔴 FREEZE!';
+            }
+        }
+
+        function showVictory() {
+            document.getElementById('winner-name').textContent = `${winner.name} WINS!`;
+            showScreen('victory-screen');
+        }
+
+        function resetGame() {
+            gameState = 'menu';
+            lobbyPlayers = [];
+            racePlayers = [];
+            winner = null;
+            lightState = 'green';
+            countdown = null;
+            keysHeld.clear();
+            mouseHeld = false;
+            
+            if (lightTimer) {
+                clearTimeout(lightTimer);
+                lightTimer = null;
+            }
+            
+            removeEventListeners();
+            showScreen('menu-screen');
+        }
+
+        // Initialize join code input listener
+        document.getElementById('join-code-input').addEventListener('input', function() {
+            const joinBtn = document.getElementById('join-room-btn');
+            joinBtn.disabled = !this.value;
+        });
+    </script>
+</body>
+</html>

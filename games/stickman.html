@@ -1,0 +1,662 @@
+import { useState, useEffect, useRef } from 'react';
+
+const AVAILABLE_COLORS = [
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Green', value: '#10b981' },
+  { name: 'Orange', value: '#f59e0b' },
+  { name: 'Purple', value: '#8b5cf6' },
+  { name: 'Pink', value: '#ec4899' },
+  { name: 'Cyan', value: '#06b6d4' },
+  { name: 'Lime', value: '#84cc16' }
+];
+
+const PLAYER_KEYS = ['Space', 'KeyW', 'KeyI', 'KeyN', 'KeyB'];
+const KEY_LABELS = ['Space/Click', 'W', 'I', 'N', 'B'];
+
+export default function StickManRaceGame() {
+  const [gameState, setGameState] = useState('menu');
+  const [lobbyType, setLobbyType] = useState(null);
+  const [gameMode, setGameMode] = useState('regular');
+  const [lobbyPlayers, setLobbyPlayers] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [winner, setWinner] = useState(null);
+  const [lightState, setLightState] = useState('green');
+  const [countdown, setCountdown] = useState(null);
+  const [roomCode, setRoomCode] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  
+  const lightTimerRef = useRef(null);
+  const keysHeldRef = useRef(new Set());
+  const mouseHeldRef = useRef(false);
+
+  const RACE_DISTANCE = 800;
+  const MOVE_SPEED = 3;
+  const FINISH_LINE = RACE_DISTANCE - 100;
+
+  useEffect(() => {
+    if (gameState === 'playing') {
+      const handleKeyPress = (e) => {
+        const playerIndex = PLAYER_KEYS.indexOf(e.code);
+        
+        if (playerIndex !== -1 && playerIndex < players.length && !keysHeldRef.current.has(e.code)) {
+          keysHeldRef.current.add(e.code);
+          
+          if (gameMode === 'regular') {
+            movePlayer(playerIndex);
+          } else if (gameMode === 'redlight' && lightState === 'green') {
+            movePlayer(playerIndex);
+          } else if (gameMode === 'redlight' && lightState === 'red') {
+            penalizePlayer(playerIndex);
+          }
+        }
+      };
+
+      const handleKeyRelease = (e) => {
+        keysHeldRef.current.delete(e.code);
+      };
+
+      const handleMouseDown = () => {
+        if (!mouseHeldRef.current && players.length >= 1) {
+          mouseHeldRef.current = true;
+          
+          if (gameMode === 'regular') {
+            movePlayer(0);
+          } else if (gameMode === 'redlight' && lightState === 'green') {
+            movePlayer(0);
+          } else if (gameMode === 'redlight' && lightState === 'red') {
+            penalizePlayer(0);
+          }
+        }
+      };
+
+      const handleMouseUp = () => {
+        mouseHeldRef.current = false;
+      };
+
+      window.addEventListener('keydown', handleKeyPress);
+      window.addEventListener('keyup', handleKeyRelease);
+      window.addEventListener('mousedown', handleMouseDown);
+      window.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        window.removeEventListener('keydown', handleKeyPress);
+        window.removeEventListener('keyup', handleKeyRelease);
+        window.removeEventListener('mousedown', handleMouseDown);
+        window.removeEventListener('mouseup', handleMouseUp);
+        keysHeldRef.current.clear();
+        mouseHeldRef.current = false;
+      };
+    }
+  }, [gameState, players, gameMode, lightState]);
+
+  useEffect(() => {
+    if (gameState === 'playing' && gameMode === 'redlight') {
+      const changeLights = () => {
+        if (lightState === 'green') {
+          setLightState('yellow');
+          lightTimerRef.current = setTimeout(() => {
+            setLightState('red');
+            lightTimerRef.current = setTimeout(changeLights, 800 + Math.random() * 1200);
+          }, 600);
+        } else {
+          setLightState('green');
+          lightTimerRef.current = setTimeout(changeLights, 1500 + Math.random() * 2000);
+        }
+      };
+
+      changeLights();
+
+      return () => {
+        if (lightTimerRef.current) clearTimeout(lightTimerRef.current);
+      };
+    }
+  }, [gameState, gameMode, lightState]);
+
+  const createOnlineRoom = () => {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    setRoomCode(code);
+    setLobbyType('online');
+    setGameState('online-placeholder');
+  };
+
+  const joinOnlineRoom = () => {
+    if (!joinCode) return;
+    setRoomCode(joinCode.toUpperCase());
+    setLobbyType('online');
+    setGameState('online-placeholder');
+  };
+
+  const selectLobbyType = (type) => {
+    if (type === 'online') {
+      setLobbyType('online-select');
+    } else {
+      setLobbyType('local');
+      setGameState('lobby');
+      setLobbyPlayers([]);
+    }
+  };
+
+  const addPlayerToLocalLobby = () => {
+    if (lobbyPlayers.length < 5) {
+      const usedColors = lobbyPlayers.map(p => p.color);
+      const availableColor = AVAILABLE_COLORS.find(c => !usedColors.includes(c.value));
+      
+      setLobbyPlayers([...lobbyPlayers, {
+        id: lobbyPlayers.length,
+        name: `Player ${lobbyPlayers.length + 1}`,
+        key: KEY_LABELS[lobbyPlayers.length],
+        keyCode: PLAYER_KEYS[lobbyPlayers.length],
+        color: availableColor ? availableColor.value : AVAILABLE_COLORS[0].value
+      }]);
+    }
+  };
+
+  const removePlayerFromLobby = (index) => {
+    setLobbyPlayers(lobbyPlayers.filter((_, i) => i !== index));
+  };
+
+  const updatePlayerColor = (index, newColor) => {
+    const updated = [...lobbyPlayers];
+    updated[index].color = newColor;
+    setLobbyPlayers(updated);
+  };
+
+  const updatePlayerName = (index, newName) => {
+    const updated = [...lobbyPlayers];
+    updated[index].name = newName;
+    setLobbyPlayers(updated);
+  };
+
+  const startGameFromLobby = () => {
+    if (lobbyPlayers.length < 2) return;
+    
+    const initialPlayers = lobbyPlayers.map(p => ({
+      ...p,
+      position: 0,
+      squatPose: 0
+    }));
+    
+    setPlayers(initialPlayers);
+    setWinner(null);
+    setCountdown(3);
+    
+    const countInterval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev === 1) {
+          clearInterval(countInterval);
+          setGameState('playing');
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const movePlayer = (index) => {
+    setPlayers(prev => {
+      const newPlayers = [...prev];
+      const moveAmount = MOVE_SPEED + Math.random() * 2;
+      const newPosition = newPlayers[index].position + moveAmount;
+      
+      newPlayers[index].position = Math.min(newPosition, FINISH_LINE);
+      newPlayers[index].squatPose = (newPlayers[index].squatPose + 1) % 3;
+      
+      setTimeout(() => {
+        setPlayers(current => {
+          const updated = [...current];
+          if (updated[index]) {
+            updated[index].squatPose = 0;
+          }
+          return updated;
+        });
+      }, 200);
+
+      if (newPlayers[index].position >= FINISH_LINE && !winner) {
+        setWinner(newPlayers[index]);
+        setGameState('finished');
+      }
+
+      return newPlayers;
+    });
+  };
+
+  const penalizePlayer = (index) => {
+    setPlayers(prev => {
+      const newPlayers = [...prev];
+      newPlayers[index].position = 0;
+      return newPlayers;
+    });
+  };
+
+  const resetGame = () => {
+    setGameState('menu');
+    setLobbyType(null);
+    setPlayers([]);
+    setLobbyPlayers([]);
+    setWinner(null);
+    setLightState('green');
+    setCountdown(null);
+    setRoomCode('');
+    setJoinCode('');
+  };
+
+  const StickManSVG = ({ player }) => (
+    <svg width="50" height="70" viewBox="0 0 50 70">
+      <defs>
+        <radialGradient id={`grad-${player.id}`}>
+          <stop offset="0%" style={{stopColor: player.color, stopOpacity: 1}} />
+          <stop offset="100%" style={{stopColor: player.color, stopOpacity: 0.7}} />
+        </radialGradient>
+      </defs>
+      
+      {player.squatPose === 0 && (
+        <>
+          <circle cx="25" cy="15" r="10" fill={`url(#grad-${player.id})`} stroke={player.color} strokeWidth="2" />
+          <line x1="25" y1="25" x2="25" y2="45" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="30" x2="13" y2="40" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="30" x2="37" y2="40" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="45" x2="17" y2="63" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="45" x2="33" y2="63" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+        </>
+      )}
+      
+      {player.squatPose === 1 && (
+        <>
+          <circle cx="25" cy="20" r="10" fill={`url(#grad-${player.id})`} stroke={player.color} strokeWidth="2" />
+          <line x1="25" y1="30" x2="25" y2="48" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="35" x2="12" y2="38" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="35" x2="38" y2="38" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="48" x2="15" y2="58" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="48" x2="35" y2="58" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+        </>
+      )}
+      
+      {player.squatPose === 2 && (
+        <>
+          <circle cx="25" cy="28" r="10" fill={`url(#grad-${player.id})`} stroke={player.color} strokeWidth="2" />
+          <line x1="25" y1="38" x2="25" y2="52" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="42" x2="10" y2="42" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="42" x2="40" y2="42" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="52" x2="13" y2="55" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+          <line x1="25" y1="52" x2="37" y2="55" stroke={player.color} strokeWidth="4" strokeLinecap="round" />
+        </>
+      )}
+    </svg>
+  );
+
+  return (
+    <div className="w-full h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+      </div>
+
+      {gameState === 'menu' && (
+        <div className="text-center space-y-8 relative z-10">
+          <div className="mb-8">
+            <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 mb-4 drop-shadow-2xl animate-pulse">
+              STICK MAN RACE
+            </h1>
+            <p className="text-2xl text-white font-semibold drop-shadow-lg">
+              🏃 Tap Fast, Win Big! 🏆
+            </p>
+          </div>
+          
+          <div className="space-y-6 bg-black bg-opacity-40 backdrop-blur-xl p-10 rounded-3xl border-4 border-purple-500 shadow-2xl">
+            <div>
+              <label className="block text-white text-2xl font-bold mb-4 drop-shadow-lg">🎮 Game Mode</label>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => setGameMode('regular')}
+                  className={`px-8 py-4 rounded-2xl font-bold text-lg transition-all transform hover:scale-105 ${
+                    gameMode === 'regular'
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white scale-105 shadow-2xl'
+                      : 'bg-gray-700 bg-opacity-50 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  ⚡ Regular Race
+                </button>
+                <button
+                  onClick={() => setGameMode('redlight')}
+                  className={`px-8 py-4 rounded-2xl font-bold text-lg transition-all transform hover:scale-105 ${
+                    gameMode === 'redlight'
+                      ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white scale-105 shadow-2xl'
+                      : 'bg-gray-700 bg-opacity-50 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  🚦 Red Light, Green Light
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-white text-2xl font-bold mb-4 drop-shadow-lg">🌐 Lobby Type</label>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => selectLobbyType('local')}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-10 py-5 rounded-2xl text-xl font-black hover:scale-105 transition-transform shadow-2xl"
+                >
+                  👥 LOCAL<br/>
+                  <span className="text-sm font-normal">Same Device</span>
+                </button>
+                <button
+                  onClick={() => selectLobbyType('online')}
+                  className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-10 py-5 rounded-2xl text-xl font-black hover:scale-105 transition-transform shadow-2xl"
+                >
+                  🌍 ONLINE<br/>
+                  <span className="text-sm font-normal">Add Firebase</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {lobbyType === 'online-select' && (
+        <div className="text-center space-y-6 relative z-10 w-full max-w-md">
+          <h2 className="text-5xl font-black text-white mb-6 drop-shadow-2xl">🌍 Online Mode</h2>
+          
+          <div className="space-y-4 bg-black bg-opacity-40 backdrop-blur-xl p-8 rounded-3xl border-4 border-purple-500 shadow-2xl">
+            <button
+              onClick={createOnlineRoom}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-5 rounded-2xl text-xl font-black hover:scale-105 transition-transform shadow-2xl"
+            >
+              ➕ CREATE ROOM
+            </button>
+            
+            <div className="text-white font-bold">OR</div>
+            
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                placeholder="Enter Room Code"
+                className="w-full bg-slate-800 text-white px-6 py-4 rounded-xl text-center text-2xl font-bold uppercase tracking-wider"
+                maxLength={6}
+              />
+              <button
+                onClick={joinOnlineRoom}
+                disabled={!joinCode}
+                className={`w-full px-8 py-5 rounded-2xl text-xl font-black transition-transform ${
+                  joinCode
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:scale-105'
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                🚪 JOIN ROOM
+              </button>
+            </div>
+
+            <button
+              onClick={() => setLobbyType(null)}
+              className="w-full bg-gray-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-700 transition-colors mt-4"
+            >
+              ← Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {gameState === 'online-placeholder' && (
+        <div className="text-center space-y-6 relative z-10 w-full max-w-3xl">
+          <h2 className="text-5xl font-black text-white mb-6 drop-shadow-2xl">🔥 Firebase Integration Needed</h2>
+          
+          <div className="bg-orange-500 bg-opacity-20 border-4 border-orange-500 rounded-3xl p-8 text-left">
+            <p className="text-orange-300 font-bold text-xl mb-4">⚠️ To enable online multiplayer:</p>
+            
+            <div className="space-y-4 text-white">
+              <div className="bg-black bg-opacity-40 rounded-xl p-4">
+                <p className="font-bold mb-2">1. Export this game to your own React project</p>
+                <p className="text-sm text-gray-300">Copy the code to your local environment</p>
+              </div>
+              
+              <div className="bg-black bg-opacity-40 rounded-xl p-4">
+                <p className="font-bold mb-2">2. Install Firebase:</p>
+                <code className="text-sm bg-slate-900 px-3 py-1 rounded block mt-2">npm install firebase</code>
+              </div>
+              
+              <div className="bg-black bg-opacity-40 rounded-xl p-4">
+                <p className="font-bold mb-2">3. Add your Firebase config:</p>
+                <pre className="text-xs bg-slate-900 p-3 rounded mt-2 overflow-x-auto">
+{`import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, set, onValue... } from 'firebase/database';
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  databaseURL: "YOUR_DATABASE_URL",
+  // ... rest of your config
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);`}
+                </pre>
+              </div>
+              
+              <div className="bg-black bg-opacity-40 rounded-xl p-4">
+                <p className="font-bold mb-2">4. Implement the Firebase functions:</p>
+                <p className="text-sm text-gray-300">Use Firebase Realtime Database to sync:</p>
+                <ul className="text-sm text-gray-300 ml-6 mt-2 space-y-1">
+                  <li>• Room creation and joining</li>
+                  <li>• Player positions and movements</li>
+                  <li>• Game state (countdown, playing, finished)</li>
+                  <li>• Light states for Red Light Green Light</li>
+                </ul>
+              </div>
+
+              <div className="bg-cyan-500 bg-opacity-20 border-2 border-cyan-500 rounded-xl p-4 mt-4">
+                <p className="font-bold text-cyan-300">💡 Your Firebase Config is ready:</p>
+                <p className="text-sm text-cyan-200 mt-2">I have your credentials - just plug them into the exported code!</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={resetGame}
+            className="bg-gray-600 text-white px-12 py-4 rounded-xl text-xl font-bold hover:bg-gray-700 transition-colors"
+          >
+            ← Back to Menu
+          </button>
+        </div>
+      )}
+
+      {gameState === 'lobby' && (
+        <div className="text-center space-y-6 relative z-10 w-full max-w-4xl">
+          <h2 className="text-6xl font-black text-white mb-6 drop-shadow-2xl">
+            👥 Local Lobby
+          </h2>
+          
+          <div className="bg-black bg-opacity-40 backdrop-blur-xl p-8 rounded-3xl border-4 border-purple-500 shadow-2xl">
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-white mb-4">Players ({lobbyPlayers.length}/5)</h3>
+              
+              <div className="space-y-3 mb-6">
+                {lobbyPlayers.map((player, index) => (
+                  <div key={player.id} className="bg-slate-800 bg-opacity-80 p-4 rounded-xl flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      <StickManSVG player={{...player, squatPose: 0}} />
+                    </div>
+                    
+                    <input
+                      type="text"
+                      value={player.name}
+                      onChange={(e) => updatePlayerName(index, e.target.value)}
+                      className="flex-1 bg-slate-700 text-white px-4 py-2 rounded-lg font-semibold"
+                      placeholder="Player Name"
+                    />
+                    
+                    <div className="text-white font-bold bg-slate-700 px-4 py-2 rounded-lg">
+                      {player.key}
+                    </div>
+                    
+                    <select
+                      value={player.color}
+                      onChange={(e) => updatePlayerColor(index, e.target.value)}
+                      className="bg-slate-700 text-white px-4 py-2 rounded-lg font-semibold"
+                      style={{ borderLeft: `6px solid ${player.color}` }}
+                    >
+                      {AVAILABLE_COLORS.map(color => (
+                        <option key={color.value} value={color.value}>
+                          {color.name}
+                        </option>
+                      ))}
+                    </select>
+                    
+                    <button
+                      onClick={() => removePlayerFromLobby(index)}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              {lobbyPlayers.length < 5 && (
+                <button
+                  onClick={addPlayerToLocalLobby}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:scale-105 transition-transform"
+                >
+                  ➕ Add Player
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-4 justify-center pt-4">
+              <button
+                onClick={resetGame}
+                className="bg-gray-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-700 transition-colors"
+              >
+                ← Back
+              </button>
+              
+              <button
+                onClick={startGameFromLobby}
+                disabled={lobbyPlayers.length < 2}
+                className={`px-12 py-3 rounded-xl font-bold transition-transform ${
+                  lobbyPlayers.length >= 2
+                    ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:scale-105'
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                🏁 START RACE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {countdown !== null && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
+          <div className="text-[200px] font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500 animate-bounce">
+            {countdown}
+          </div>
+        </div>
+      )}
+
+      {gameState === 'playing' && (
+        <div className="w-full max-w-7xl relative z-10">
+          {gameMode === 'redlight' && (
+            <div className="mb-10 text-center">
+              <div className={`inline-block px-16 py-8 rounded-3xl text-5xl font-black transition-all shadow-2xl ${
+                lightState === 'green' 
+                  ? 'bg-gradient-to-r from-green-400 to-emerald-600 text-white animate-pulse' 
+                  : lightState === 'yellow'
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
+                  : 'bg-gradient-to-r from-red-500 to-rose-700 text-white'
+              }`}>
+                {lightState === 'green' ? '🟢 GO GO GO!' : lightState === 'yellow' ? '🟡 GET READY...' : '🔴 FREEZE!'}
+              </div>
+            </div>
+          )}
+
+          <div className="relative bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-8 min-h-[550px] border-4 border-purple-600 shadow-2xl overflow-hidden">
+            <div className="absolute inset-0 opacity-10">
+              {[...Array(10)].map((_, i) => (
+                <div key={i} className="absolute h-full w-16 bg-white" style={{left: `${i * 10}%`}}></div>
+              ))}
+            </div>
+
+            <div 
+              className="absolute top-0 bottom-0 w-3 bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-500 shadow-lg z-10"
+              style={{ left: `${(FINISH_LINE / RACE_DISTANCE) * 100}%` }}
+            >
+              <div className="absolute -top-12 left-1/2 -translate-x-1/2 text-4xl animate-bounce">
+                🏁
+              </div>
+              <div className="absolute -top-20 left-1/2 -translate-x-1/2 text-yellow-400 font-black whitespace-nowrap text-xl drop-shadow-lg">
+                FINISH
+              </div>
+            </div>
+
+            {players.map((player, index) => {
+              const trackHeight = 100 / players.length;
+              const progress = (player.position / RACE_DISTANCE) * 100;
+              
+              return (
+                <div 
+                  key={player.id}
+                  className="relative border-b-4 border-slate-600"
+                  style={{ 
+                    height: `${trackHeight}%`,
+                    background: index % 2 === 0 
+                      ? 'linear-gradient(90deg, rgba(100,100,150,0.1) 0%, rgba(100,100,150,0.05) 100%)'
+                      : 'linear-gradient(90deg, rgba(150,100,150,0.1) 0%, rgba(150,100,150,0.05) 100%)'
+                  }}
+                >
+                  <div className="absolute left-2 top-2 text-white text-xs font-bold bg-black bg-opacity-50 px-2 py-1 rounded">
+                    Lane {index + 1}
+                  </div>
+
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-white font-black text-base drop-shadow-lg bg-black bg-opacity-50 px-3 py-1 rounded-lg">
+                    {player.name} ({player.key})
+                  </div>
+                  
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 transition-all duration-100"
+                    style={{ left: `${progress}%` }}
+                  >
+                    <StickManSVG player={player} />
+                  </div>
+
+                  <div className="absolute bottom-4 left-0 right-0 h-3 bg-slate-700 mx-6 rounded-full overflow-hidden shadow-inner border-2 border-slate-600">
+                    <div 
+                      className="h-full transition-all duration-100 shadow-lg"
+                      style={{ 
+                        width: `${progress}%`,
+                        background: `linear-gradient(90deg, ${player.color}, ${player.color}dd)`
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {gameState === 'finished' && winner && (
+        <div className="text-center space-y-8 relative z-10">
+          <div className="text-9xl mb-6 animate-bounce">🏆</div>
+          <h2 className="text-7xl font-black text-white mb-6 drop-shadow-2xl animate-pulse">
+            {winner.name} WINS!
+          </h2>
+          <div className="text-6xl font-black mb-8 drop-shadow-2xl">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500">
+              VICTORY!
+            </span>
+          </div>
+          <div className="text-8xl mb-8">🎉</div>
+          <button
+            onClick={resetGame}
+            className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white px-16 py-6 rounded-2xl text-3xl font-black hover:scale-110 transition-transform shadow-2xl"
+          >
+            🔄 PLAY AGAIN
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
