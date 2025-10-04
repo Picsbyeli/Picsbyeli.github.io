@@ -403,8 +403,9 @@
 
             database.ref(`rooms/${roomCode}/gameState`).on('value', (snapshot) => {
                 const state = snapshot.val();
-                if (state && state.status === 'countdown') {
-                    showCountdown(state.countdown);
+                if (state && state.status === 'countdown' && state.startTime) {
+                    // Synchronized countdown for all players
+                    startSynchronizedCountdown(state.startTime);
                 } else if (state && state.status === 'playing') {
                     const playersList = Object.entries(state.players || {}).map(([id, p]) => ({...p, id}));
                     startRace(playersList);
@@ -499,27 +500,47 @@
                     }
                 }, 1000);
             } else if (isHost) {
-                let count = 3;
-                const interval = setInterval(() => {
-                    if (count > 0) {
-                        database.ref(`rooms/${roomCode}/gameState`).update({
-                            status: 'countdown',
-                            countdown: count
-                        });
-                        count--;
-                    } else {
-                        clearInterval(interval);
-                        const playersData = {};
-                        players.forEach(p => {
-                            playersData[p.id] = {...p, position: 0, squatPose: 0};
-                        });
-                        database.ref(`rooms/${roomCode}/gameState`).update({
-                            status: 'playing',
-                            players: playersData
-                        });
-                    }
-                }, 1000);
+                // Use Firebase server timestamp for perfect synchronization
+                const startTime = Date.now() + 4000; // Start in 4 seconds
+                database.ref(`rooms/${roomCode}/gameState`).update({
+                    status: 'countdown',
+                    startTime: startTime
+                });
+                
+                // Start local countdown display
+                startSynchronizedCountdown(startTime);
             }
+        }
+
+        function startSynchronizedCountdown(startTime) {
+            const updateCountdown = () => {
+                const now = Date.now();
+                const timeLeft = startTime - now;
+                
+                if (timeLeft > 1000) {
+                    const count = Math.ceil(timeLeft / 1000);
+                    showCountdown(count);
+                    setTimeout(updateCountdown, 100);
+                } else if (timeLeft > 0) {
+                    showCountdown(1);
+                    setTimeout(() => {
+                        hide('countdown');
+                        if (isHost) {
+                            const playersData = {};
+                            players.forEach(p => {
+                                playersData[p.id] = {...p, position: 0, squatPose: 0};
+                            });
+                            database.ref(`rooms/${roomCode}/gameState`).update({
+                                status: 'playing',
+                                players: playersData
+                            });
+                        }
+                    }, timeLeft);
+                } else {
+                    hide('countdown');
+                }
+            };
+            updateCountdown();
         }
 
         function showCountdown(count) {
@@ -683,7 +704,7 @@
             if (gameMode === 'redlight' && lightState === 'red') {
                 players[index].position = 0;
             } else if (gameMode === 'regular' || lightState === 'green') {
-                players[index].position = Math.min(players[index].position + 1.5 + Math.random() * 1, 88);
+                players[index].position = Math.min(players[index].position + 0.1 + Math.random() * 0.1, 88);
             }
 
             updatePlayerPosition(players[index]);
@@ -701,7 +722,7 @@
                 const player = snapshot.val();
                 if (!player) return;
 
-                const newPos = Math.min(player.position + 1.5 + Math.random() * 1, 88);
+                const newPos = Math.min(player.position + 0.1 + Math.random() * 0.1, 88);
 
                 playerRef.update({ position: newPos });
 
