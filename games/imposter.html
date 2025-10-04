@@ -283,6 +283,10 @@
             box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
         }
 
+        .timer-display.voting {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
         .timer-display.warning {
             animation: pulse 1s infinite;
         }
@@ -477,6 +481,7 @@
 
             <!-- Voting Phase -->
             <div id="voting-phase" style="display: none;">
+                <div class="timer-display voting" id="voting-timer">45</div>
                 <h3>Vote for the Chameleon!</h3>
                 <p>Who do you think doesn't know the secret word?</p>
                 <div class="voting-grid" id="voting-container"></div>
@@ -536,6 +541,7 @@
         let currentPlayer = null;
         let gameState = null;
         let categoryTimerInterval = null;
+        let votingTimerInterval = null;
         let votingEndTime = null;
 
         // Word categories with 20 words each
@@ -942,9 +948,7 @@
                 detective: detective,
                 imposter: imposter,
                 secretWord: secretWord,
-                clues: [],
-                currentTurn: 0,
-                turnOrder: players.filter(p => p !== detective),
+                clues: {},
                 votes: {},
                 startedAt: firebase.database.ServerValue.TIMESTAMP
             };
@@ -1076,23 +1080,33 @@
                     submittedAt: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                const newClues = [...(gameState.clues || []), clueData];
-                const nextTurn = gameState.currentTurn + 1;
-
-                if (nextTurn >= gameState.turnOrder.length) {
-                    await database.ref(`rooms/${currentRoom}/gameState`).update({
-                        clues: newClues,
-                        phase: 'voting'
-                    });
-                } else {
-                    await database.ref(`rooms/${currentRoom}/gameState`).update({
-                        clues: newClues,
-                        currentTurn: nextTurn
-                    });
-                }
+                // Submit clue to Firebase
+                await database.ref(`rooms/${currentRoom}/gameState/clues/${currentPlayer.id}`).set(clueData);
 
                 clueInput.value = '';
                 showStatus('Clue submitted!');
+
+                // Check if all non-detective players have submitted clues
+                const playerCount = Object.keys(gameState.players).length;
+                const clueCount = Object.keys(gameState.clues || {}).length + 1; // +1 for current submission
+                
+                // All non-detective players have submitted (playerCount - 1 for detective)
+                if (clueCount >= playerCount - 1) {
+                    // Only host triggers the voting phase
+                    const roomSnapshot = await database.ref(`rooms/${currentRoom}/host`).once('value');
+                    if (roomSnapshot.val() === currentPlayer.id) {
+                        // Get server timestamp and calculate voting end time (45 seconds from now)
+                        const serverTimeOffset = await getServerTimeOffset();
+                        const votingEndTimestamp = Date.now() + serverTimeOffset + 45000; // 45 seconds
+
+                        setTimeout(async () => {
+                            await database.ref(`rooms/${currentRoom}/gameState`).update({
+                                phase: 'voting',
+                                votingEndTime: votingEndTimestamp
+                            });
+                        }, 1000);
+                    }
+                }
             } catch (error) {
                 showError('Failed to submit clue: ' + error.message);
             }
