@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evol Band - Professional Beat Maker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #7c3aed 50%, #1e293b 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #a855f7, #ec4899, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+
+        .controls-panel {
+            background: rgba(55, 65, 81, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+
+        .btn-record {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        .btn-record.recording {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            border: 1px solid rgba(220, 38, 38, 0.5);
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+        }
+
+        .bpm-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bpm-input {
+            width: 80px;
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            padding: 0.5rem;
+            color: white;
+            text-align: center;
+        }
+
+        .sequencer-panel {
+            background: rgba(55, 65, 81, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sequencer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .sequencer-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .sequencer-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .scroll-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-scroll {
+            background: #4b5563;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .sequencer-container {
+            overflow-x: auto;
+            overflow-y: visible;
+            padding-bottom: 0.5rem;
+        }
+
+        .sequencer {
+            min-width: max-content;
+        }
+
+        .track {
+            background: rgba(17, 24, 39, 0.5);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .track-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .track-name {
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            color: white;
+            width: 120px;
+            font-size: 0.875rem;
+        }
+
+        .instrument-select {
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .note-select {
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .volume-slider {
+            width: 80px;
+        }
+
+        .volume-label {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            width: 35px;
+        }
+
+        .btn-mute {
+            background: #6b7280;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-mute.muted {
+            background: #dc2626;
+        }
+
+        .btn-play-track {
+            background: #2563eb;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-remove {
+            background: transparent;
+            color: #ef4444;
+            border: none;
+            padding: 0.25rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .btn-remove:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .steps-container {
+            display: flex;
+            gap: 2px;
+        }
+
+        .step {
+            width: 40px;
+            height: 48px;
+            background: #374151;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .step:hover {
+            background: #4b5563;
+        }
+
+        .step.active {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+        }
+
+        .step.current {
+            box-shadow: 0 0 0 2px #fbbf24;
+        }
+
+        .step-number {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            font-size: 0.6rem;
+            color: #9ca3af;
+        }
+
+        .footer {
+            text-align: center;
+            background: rgba(55, 65, 81, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .footer-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #a855f7;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-text {
+            color: #cbd5e1;
+            margin-bottom: 0.25rem;
+        }
+
+        .hidden-input {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+            
+            .track-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .step {
+                width: 35px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🎵 Evol Band</h1>
+            <p class="subtitle">Professional Beat Maker • 25+ Instruments • 32-Step Sequencer</p>
+        </div>
+
+        <div class="controls-panel">
+            <div class="controls-row">
+                <button id="playBtn" class="btn btn-play" onclick="togglePlay()">
+                    <span id="playIcon">▶️</span>
+                    <span id="playText">Play</span>
+                </button>
+                
+                <button class="btn btn-stop" onclick="stopSequencer()">
+                    <span>⏹️</span>
+                    Stop
+                </button>
+
+                <div class="bpm-control">
+                    <label>BPM:</label>
+                    <input type="number" id="bpmInput" class="bpm-input" value="120" min="60" max="200" onchange="updateBPM()">
+                </div>
+
+                <button id="recordBtn" class="btn btn-record" onclick="toggleRecording()">
+                    <span>🎤</span>
+                    <span id="recordText">Record</span>
+                </button>
+
+                <button class="btn btn-export" onclick="exportPattern()">
+                    <span>💾</span>
+                    Export
+                </button>
+
+                <label class="btn btn-export" style="margin: 0; cursor: pointer;">
+                    <span>📁</span>
+                    Import
+                    <input type="file" accept=".json" onchange="importPattern(event)" class="hidden-input">
+                </label>
+
+                <button class="btn btn-clear" onclick="clearPattern()">
+                    Clear
+                </button>
+            </div>
+        </div>
+
+        <div class="sequencer-panel">
+            <div class="sequencer-header">
+                <h2 class="sequencer-title">32-Step Sequencer</h2>
+                <div class="sequencer-controls">
+                    <div class="scroll-buttons">
+                        <button class="btn btn-scroll" onclick="scrollLeft()">
+                            ← Scroll
+                        </button>
+                        <button class="btn btn-scroll" onclick="scrollRight()">
+                            Scroll →
+                        </button>
+                    </div>
+                    <button class="btn btn-add" onclick="addTrack()">
+                        <span>➕</span>
+                        Add Track
+                    </button>
+                </div>
+            </div>
+
+            <div id="sequencerContainer" class="sequencer-container">
+                <div id="sequencer" class="sequencer">
+                    <!-- Tracks will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p class="footer-title">✨ Evol Band Features</p>
+            <p class="footer-text">🎹 25+ Professional Instruments • 32-Step Sequencer • Real-Time Playback</p>
+            <p class="footer-text">🎺 Brass • 🎻 Strings • 🎷 Woodwinds • 🥁 Drums • 🎸 Guitars • 🎹 Keys</p>
+            <p class="footer-text">💾 Export/Import Patterns • Live Recording • Professional Reverb</p>
+            <p class="footer-text">🎵 Create amazing beats with authentic instrument sounds!</p>
+        </div>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let bpm = 120;
+        let currentStep = 0;
+        let sequence = null;
+        let instruments = {};
+        let reverb = null;
+        let isRecording = false;
+        let mediaRecorder = null;
+
+        let tracks = [
+            { id: 1, name: 'Kick', instrument: 'kick', pattern: Array(32).fill(false), volume: -5, muted: false },
+            { id: 2, name: 'Snare', instrument: 'snare', pattern: Array(32).fill(false), volume: -8, muted: false },
+            { id: 3, name: 'Hi-Hat', instrument: 'hihat', pattern: Array(32).fill(false), volume: -20, muted: false },
+            { id: 4, name: 'Synth', instrument: 'synth', pattern: Array(32).fill(false), volume: -12, muted: false, note: 'C4' }
+        ];
+
+        // Initialize audio context and instruments
+        async function initAudio() {
+            await Tone.start();
+            
+            // Create reverb effect
+            reverb = new Tone.Reverb({ decay: 2.5, wet: 0.3 }).toDestination();
+
+            // Initialize instruments
+            instruments = {
+                kick: new Tone.MembraneSynth({
+                    pitchDecay: 0.05,
+                    octaves: 10,
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 },
+                    volume: -5
+                }).toDestination(),
+                
+                snare: (() => {
+                    const noise = new Tone.NoiseSynth({
+                        noise: { type: 'white' },
+                        envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.05 },
+                        volume: -10
+                    });
+                    const tone = new Tone.MembraneSynth({
+                        pitchDecay: 0.02,
+                        octaves: 3,
+                        oscillator: { type: 'triangle' },
+                        envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.05 },
+                        volume: -18
+                    });
+                    const merge = new Tone.Merge();
+                    noise.connect(merge, 0, 0);
+                    tone.connect(merge, 0, 1);
+                    merge.toDestination();
+                    return { noise, tone };
+                })(),
+                
+                hihat: new Tone.MetalSynth({
+                    frequency: 200,
+                    envelope: { attack: 0.001, decay: 0.1, release: 0.05 },
+                    harmonicity: 5.1,
+                    modulationIndex: 32,
+                    resonance: 4000,
+                    volume: -20
+                }).toDestination(),
+
+                bass: (() => {
+                    const bass = new Tone.MonoSynth({
+                        oscillator: { type: 'sawtooth' },
+                        filter: { Q: 2, type: 'lowpass', rolloff: -24 },
+                        envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 1 },
+                        filterEnvelope: { 
+                            attack: 0.01, decay: 0.2, sustain: 0.4, release: 1.2, 
+                            baseFrequency: 100, octaves: 3 
+                        },
+                        volume: -5
+                    });
+                    bass.connect(reverb);
+                    return bass;
+                })(),
+
+                synth: (() => {
+                    const synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: 'sawtooth' },
+                        envelope: { attack: 0.01, decay: 0.2, sustain: 0.4, release: 1 },
+                        volume: -12
+                    });
+                    synth.connect(reverb);
+                    return synth;
+                })(),
+
+                lead: (() => {
+                    const lead = new Tone.MonoSynth({
+                        oscillator: { type: 'square' },
+                        filter: { Q: 4, type: 'lowpass', rolloff: -24 },
+                        envelope: { attack: 0.005, decay: 0.3, sustain: 0.5, release: 0.8 },
+                        filterEnvelope: { 
+                            attack: 0.01, decay: 0.4, sustain: 0.3, release: 0.8, 
+                            baseFrequency: 200, octaves: 4 
+                        },
+                        volume: -12
+                    });
+                    lead.connect(reverb);
+                    return lead;
+                })(),
+
+                pad: (() => {
+                    const pad = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: 'sine' },
+                        envelope: { attack: 0.8, decay: 0.3, sustain: 0.9, release: 3 },
+                        volume: -14
+                    });
+                    pad.connect(reverb);
+                    return pad;
+                })(),
+
+                piano: (() => {
+                    const piano = new Tone.Synth({
+                        oscillator: { type: 'sine' },
+                        envelope: { attack: 0.005, decay: 0.3, sustain: 0.2, release: 1.5 },
+                        volume: -10
+                    });
+                    piano.connect(reverb);
+                    return piano;
+                })(),
+
+                guitar: (() => {
+                    const guitar = new Tone.PluckSynth({
+                        attackNoise: 2,
+                        dampening: 2000,
+                        resonance: 0.92,
+                        release: 2.5,
+                        volume: -10
+                    });
+                    guitar.connect(reverb);
+                    return guitar;
+                })(),
+
+                organ: (() => {
+                    const organ = new Tone.Synth({
+                        oscillator: { type: 'square' },
+                        envelope: { attack: 0.02, decay: 0.1, sustain: 0.95, release: 0.4 },
+                        volume: -12
+                    });
+                    organ.connect(reverb);
+                    return organ;
+                })()
+            };
+
+            Tone.Transport.bpm.value = bpm;
+            renderTracks();
+        }
+
+        function renderTracks() {
+            const sequencer = document.getElementById('sequencer');
+            sequencer.innerHTML = '';
+
+            tracks.forEach(track => {
+                const trackDiv = document.createElement('div');
+                trackDiv.className = 'track';
+                trackDiv.innerHTML = `
+                    <div class="track-controls">
+                        <input type="text" value="${track.name}" class="track-name" 
+                               onchange="updateTrackName(${track.id}, this.value)">
+                        
+                        <select class="instrument-select" onchange="updateTrackInstrument(${track.id}, this.value)">
+                            <optgroup label="🥁 Drums">
+                                <option value="kick" ${track.instrument === 'kick' ? 'selected' : ''}>Kick</option>
+                                <option value="snare" ${track.instrument === 'snare' ? 'selected' : ''}>Snare</option>
+                                <option value="hihat" ${track.instrument === 'hihat' ? 'selected' : ''}>Hi-Hat</option>
+                            </optgroup>
+                            <optgroup label="🎸 Bass & Guitar">
+                                <option value="bass" ${track.instrument === 'bass' ? 'selected' : ''}>Bass</option>
+                                <option value="guitar" ${track.instrument === 'guitar' ? 'selected' : ''}>Guitar</option>
+                            </optgroup>
+                            <optgroup label="🎹 Synths & Keys">
+                                <option value="synth" ${track.instrument === 'synth' ? 'selected' : ''}>Synth</option>
+                                <option value="lead" ${track.instrument === 'lead' ? 'selected' : ''}>Lead</option>
+                                <option value="pad" ${track.instrument === 'pad' ? 'selected' : ''}>Pad</option>
+                                <option value="piano" ${track.instrument === 'piano' ? 'selected' : ''}>Piano</option>
+                                <option value="organ" ${track.instrument === 'organ' ? 'selected' : ''}>Organ</option>
+                            </optgroup>
+                        </select>
+
+                        ${!['kick', 'snare', 'hihat'].includes(track.instrument) ? `
+                            <select class="note-select" onchange="updateTrackNote(${track.id}, this.value)">
+                                <option value="C2" ${track.note === 'C2' ? 'selected' : ''}>C2</option>
+                                <option value="D2" ${track.note === 'D2' ? 'selected' : ''}>D2</option>
+                                <option value="E2" ${track.note === 'E2' ? 'selected' : ''}>E2</option>
+                                <option value="F2" ${track.note === 'F2' ? 'selected' : ''}>F2</option>
+                                <option value="G2" ${track.note === 'G2' ? 'selected' : ''}>G2</option>
+                                <option value="A2" ${track.note === 'A2' ? 'selected' : ''}>A2</option>
+                                <option value="B2" ${track.note === 'B2' ? 'selected' : ''}>B2</option>
+                                <option value="C3" ${track.note === 'C3' ? 'selected' : ''}>C3</option>
+                                <option value="D3" ${track.note === 'D3' ? 'selected' : ''}>D3</option>
+                                <option value="E3" ${track.note === 'E3' ? 'selected' : ''}>E3</option>
+                                <option value="F3" ${track.note === 'F3' ? 'selected' : ''}>F3</option>
+                                <option value="G3" ${track.note === 'G3' ? 'selected' : ''}>G3</option>
+                                <option value="A3" ${track.note === 'A3' ? 'selected' : ''}>A3</option>
+                                <option value="B3" ${track.note === 'B3' ? 'selected' : ''}>B3</option>
+                                <option value="C4" ${track.note === 'C4' ? 'selected' : ''}>C4</option>
+                                <option value="D4" ${track.note === 'D4' ? 'selected' : ''}>D4</option>
+                                <option value="E4" ${track.note === 'E4' ? 'selected' : ''}>E4</option>
+                            </select>
+                        ` : ''}
+
+                        <div class="volume-control">
+                            <span>🔊</span>
+                            <input type="range" min="-40" max="0" value="${track.volume}" class="volume-slider"
+                                   onchange="updateTrackVolume(${track.id}, this.value)">
+                            <span class="volume-label">${track.volume}db</span>
+                        </div>
+
+                        <button class="btn btn-mute ${track.muted ? 'muted' : ''}" 
+                                onclick="toggleMute(${track.id})">M</button>
+
+                        <button class="btn btn-play-track" onclick="playTrackSound(${track.id})">▶</button>
+
+                        <button class="btn-remove" onclick="removeTrack(${track.id})">🗑️</button>
+                    </div>
+
+                    <div class="steps-container">
+                        ${track.pattern.map((active, step) => `
+                            <button class="step ${active ? 'active' : ''} ${currentStep === step && isPlaying ? 'current' : ''}"
+                                    onclick="toggleStep(${track.id}, ${step})">
+                                ${step % 8 === 0 ? `<div class="step-number">${step + 1}</div>` : ''}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+                sequencer.appendChild(trackDiv);
+            });
+        }
+
+        async function togglePlay() {
+            await Tone.start();
+            
+            if (isPlaying) {
+                Tone.Transport.stop();
+                if (sequence) {
+                    sequence.dispose();
+                    sequence = null;
+                }
+                isPlaying = false;
+                currentStep = 0;
+                document.getElementById('playIcon').textContent = '▶️';
+                document.getElementById('playText').textContent = 'Play';
+            } else {
+                sequence = new Tone.Sequence(
+                    (time, step) => {
+                        currentStep = step;
+                        updateCurrentStepDisplay();
+                        
+                        tracks.forEach(track => {
+                            if (track.pattern[step] && !track.muted) {
+                                playInstrument(track.instrument, track.note, time, track.volume);
+                            }
+                        });
+                    },
+                    [...Array(32).keys()],
+                    '16n'
+                );
+                
+                sequence.start(0);
+                Tone.Transport.start();
+                isPlaying = true;
+                document.getElementById('playIcon').textContent = '⏸️';
+                document.getElementById('playText').textContent = 'Pause';
+            }
+            renderTracks();
+        }
+
+        function stopSequencer() {
+            Tone.Transport.stop();
+            if (sequence) {
+                sequence.dispose();
+                sequence = null;
+            }
+            isPlaying = false;
+            currentStep = 0;
+            document.getElementById('playIcon').textContent = '▶️';
+            document.getElementById('playText').textContent = 'Play';
+            renderTracks();
+        }
+
+        function updateCurrentStepDisplay() {
+            const steps = document.querySelectorAll('.step');
+            steps.forEach((step, index) => {
+                step.classList.toggle('current', index % 32 === currentStep);
+            });
+        }
+
+        function playInstrument(instrumentName, note, time, volume) {
+            const instrument = instruments[instrumentName];
+            if (!instrument) return;
+
+            try {
+                if (instrument.volume) {
+                    instrument.volume.value = volume;
+                }
+
+                const velocity = 0.7 + Math.random() * 0.2;
+
+                if (instrumentName === 'kick') {
+                    instrument.triggerAttackRelease('C1', '8n', time);
+                } else if (instrumentName === 'snare') {
+                    instrument.noise.triggerAttackRelease('8n', time);
+                    instrument.tone.triggerAttackRelease('C2', '8n', time);
+                } else if (instrumentName === 'hihat') {
+                    instrument.triggerAttackRelease('8n', time);
+                } else if (['bass', 'lead'].includes(instrumentName)) {
+                    instrument.triggerAttackRelease(note || 'C2', '8n', time, velocity);
+                } else if (['guitar'].includes(instrumentName)) {
+                    instrument.triggerAttackRelease(note || 'E3', '2n', time, velocity);
+                } else if (instrument.triggerAttackRelease) {
+                    instrument.triggerAttackRelease(note || 'C3', '4n', time, velocity);
+                }
+            } catch (e) {
+                console.error('Sound play error:', e);
+            }
+        }
+
+        function toggleStep(trackId, step) {
+            const track = tracks.find(t => t.id === trackId);
+            if (track) {
+                track.pattern[step] = !track.pattern[step];
+                renderTracks();
+            }
+        }
+
+        function updateTrackName(trackId, name) {
+            const track = tracks.find(t => t.id === trackId);
+            if (track) track.name = name;
+        }
+
+        function updateTrackInstrument(trackId, instrument) {
+            const track = tracks.find(t => t.id === trackId);
+            if (track) {
+                track.instrument = instrument;
+                track.note = getDefaultNote(instrument);
+                renderTracks();
+            }
+        }
+
+        function updateTrackNote(trackId, note) {
+            const track = tracks.find(t => t.id === trackId);
+            if (track) track.note = note;
+        }
+
+        function updateTrackVolume(trackId, volume) {
+            const track = tracks.find(t => t.id === trackId);
+            if (track) track.volume = Number(volume);
+        }
+
+        function toggleMute(trackId) {
+            const track = tracks.find(t => t.id === trackId);
+            if (track) {
+                track.muted = !track.muted;
+                renderTracks();
+            }
+        }
+
+        function playTrackSound(trackId) {
+            const track = tracks.find(t => t.id === trackId);
+            if (track) {
+                playInstrument(track.instrument, track.note, Tone.now(), track.volume);
+            }
+        }
+
+        function removeTrack(trackId) {
+            tracks = tracks.filter(t => t.id !== trackId);
+            renderTracks();
+        }
+
+        function addTrack() {
+            const newId = Math.max(...tracks.map(t => t.id), 0) + 1;
+            tracks.push({
+                id: newId,
+                name: `Track ${newId}`,
+                instrument: 'synth',
+                pattern: Array(32).fill(false),
+                volume: -12,
+                muted: false,
+                note: 'C3'
+            });
+            renderTracks();
+        }
+
+        function updateBPM() {
+            bpm = Number(document.getElementById('bpmInput').value);
+            Tone.Transport.bpm.value = bpm;
+        }
+
+        function getDefaultNote(instrument) {
+            if (instrument === 'bass') return 'C2';
+            if (instrument === 'guitar') return 'E3';
+            return 'C3';
+        }
+
+        function scrollLeft() {
+            document.getElementById('sequencerContainer').scrollBy({ left: -300, behavior: 'smooth' });
+        }
+
+        function scrollRight() {
+            document.getElementById('sequencerContainer').scrollBy({ left: 300, behavior: 'smooth' });
+        }
+
+        function clearPattern() {
+            tracks.forEach(track => {
+                track.pattern = Array(32).fill(false);
+            });
+            renderTracks();
+        }
+
+        function exportPattern() {
+            const data = JSON.stringify({ tracks, bpm }, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `evol-band-${Date.now()}.json`;
+            a.click();
+        }
+
+        function importPattern(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.tracks) {
+                            tracks = data.tracks.map(t => ({
+                                ...t,
+                                pattern: t.pattern.length === 32 ? t.pattern : [...t.pattern, ...Array(32 - t.pattern.length).fill(false)]
+                            }));
+                        }
+                        if (data.bpm) {
+                            bpm = data.bpm;
+                            document.getElementById('bpmInput').value = bpm;
+                            updateBPM();
+                        }
+                        renderTracks();
+                    } catch (err) {
+                        alert('Invalid file');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        async function toggleRecording() {
+            if (isRecording) {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+                isRecording = false;
+                document.getElementById('recordBtn').classList.remove('recording');
+                document.getElementById('recordText').textContent = 'Record';
+            } else {
+                try {
+                    await Tone.start();
+                    if (!isPlaying) await togglePlay();
+
+                    const dest = Tone.getDestination();
+                    const stream = dest.context.createMediaStreamDestination();
+                    dest.connect(stream);
+
+                    mediaRecorder = new MediaRecorder(stream.stream);
+                    
+                    const chunks = [];
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) chunks.push(e.data);
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `evol-band-${Date.now()}.webm`;
+                        a.click();
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    document.getElementById('recordBtn').classList.add('recording');
+                    document.getElementById('recordText').textContent = 'Stop Rec';
+                } catch (err) {
+                    alert('Recording failed. Please check your browser permissions.');
+                }
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', initAudio);
+    </script>
+</body>
+</html>

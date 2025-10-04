@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chain Link - Word Connection Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 1rem;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            color: #333;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .menu {
+            display: block;
+        }
+
+        .game {
+            display: none;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-easy {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-medium {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .btn-hard {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-back {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .chain-progress {
+            margin-bottom: 2rem;
+        }
+
+        .progress-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .word-chain {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .word-bubble {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .arrow {
+            color: #999;
+            font-size: 1.2rem;
+        }
+
+        .unknown-word {
+            color: #999;
+            padding: 0.5rem 1rem;
+        }
+
+        .puzzle-area {
+            background: linear-gradient(135deg, #f8f9ff, #e8ebff);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .compound-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .input-area {
+            margin-bottom: 1.5rem;
+        }
+
+        .guess-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .guess-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .game-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-buttons .btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-hint {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .btn-hint:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .how-to-play {
+            background: #e8f4fd;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .how-to-play h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .how-to-play p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .compound-display {
+                font-size: 1.5rem;
+            }
+            
+            .game-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="menu" class="menu">
+            <h1>🔗 Chain Link</h1>
+            <p class="subtitle">Connect the words to complete the chain!</p>
+            
+            <div class="difficulty-buttons">
+                <button class="btn btn-easy" onclick="startGame('easy')">
+                    Easy (5 words)
+                </button>
+                <button class="btn btn-medium" onclick="startGame('medium')">
+                    Medium (7 words)
+                </button>
+                <button class="btn btn-hard" onclick="startGame('hard')">
+                    Hard (12 words)
+                </button>
+            </div>
+
+            <div class="how-to-play">
+                <h3>🎯 How to Play:</h3>
+                <p>
+                    Connect words to form compound words or common phrases. 
+                    For example: FISH + FOOD = FISH FOOD, then FOOD + CHAIN = FOOD CHAIN!
+                    Complete the entire chain to win!
+                </p>
+            </div>
+        </div>
+
+        <div id="game" class="game">
+            <div class="game-header">
+                <h2>🔗 Chain Link</h2>
+                <div class="score">Score: <span id="scoreValue">0</span></div>
+            </div>
+
+            <div class="chain-progress">
+                <div class="progress-label">
+                    Chain Progress: <span id="progressText">1 of 5</span>
+                </div>
+                <div class="word-chain" id="wordChain"></div>
+            </div>
+
+            <div class="puzzle-area">
+                <div class="compound-display" id="compoundDisplay">FIRE ____</div>
+                
+                <div class="input-area">
+                    <input type="text" 
+                           id="guessInput" 
+                           class="guess-input" 
+                           placeholder="Type your guess..."
+                           autocomplete="off">
+                </div>
+
+                <div class="game-buttons">
+                    <button class="btn btn-secondary" onclick="submitGuess()">
+                        ✓ Submit
+                    </button>
+                    <button class="btn btn-hint" onclick="getHint()" id="hintBtn">
+                        💡 Hint (-2)
+                    </button>
+                </div>
+            </div>
+
+            <div id="message" class="message" style="display: none;"></div>
+
+            <button class="btn btn-back" onclick="backToMenu()">← Back to Menu</button>
+        </div>
+    </div>
+
+    <script>
+        const puzzles = {
+            easy: [
+                ['fire', 'work', 'shop', 'lift', 'off'],
+                ['sun', 'light', 'house', 'boat', 'yard'],
+                ['rain', 'bow', 'tie', 'break', 'fast'],
+                ['snow', 'ball', 'park', 'bench', 'mark'],
+                ['water', 'fall', 'out', 'side', 'walk'],
+                ['book', 'case', 'study', 'hall', 'way'],
+                ['tooth', 'pick', 'pocket', 'book', 'shelf'],
+                ['hand', 'bag', 'pipe', 'line', 'up'],
+                ['eye', 'ball', 'room', 'mate', 'ship'],
+                ['foot', 'ball', 'game', 'play', 'ground'],
+                ['door', 'bell', 'boy', 'friend', 'ship'],
+                ['air', 'port', 'land', 'mark', 'down'],
+                ['back', 'pack', 'age', 'old', 'school'],
+                ['head', 'light', 'weight', 'loss', 'leader'],
+                ['news', 'paper', 'back', 'bone', 'head'],
+                ['sun', 'set', 'up', 'town', 'ship'],
+                ['rain', 'coat', 'rack', 'time', 'out'],
+                ['snow', 'man', 'kind', 'heart', 'beat'],
+                ['sea', 'food', 'chain', 'link', 'age'],
+                ['moon', 'light', 'bulb', 'head', 'first']
+            ],
+            medium: [
+                ['basket', 'ball', 'park', 'bench', 'press', 'release', 'date'],
+                ['base', 'ball', 'room', 'service', 'charge', 'card', 'holder'],
+                ['foot', 'ball', 'game', 'plan', 'et', 'work', 'shop'],
+                ['hand', 'ball', 'point', 'guard', 'rail', 'road', 'trip'],
+                ['eye', 'ball', 'park', 'way', 'out', 'side', 'kick'],
+                ['tooth', 'brush', 'fire', 'work', 'load', 'star', 'fish'],
+                ['hair', 'cut', 'back', 'door', 'bell', 'hop', 'scotch'],
+                ['finger', 'print', 'out', 'back', 'bone', 'dry', 'run'],
+                ['water', 'proof', 'read', 'out', 'law', 'suit', 'case'],
+                ['fire', 'place', 'mat', 'ress', 'less', 'ness', 'monster']
+            ],
+            hard: [
+                ['fire', 'truck', 'stop', 'light', 'house', 'boat', 'deck', 'chair', 'lift', 'off', 'shore', 'line'],
+                ['sun', 'flower', 'pot', 'luck', 'charm', 'bracelet', 'watch', 'dog', 'house', 'boat', 'yard', 'stick'],
+                ['rain', 'water', 'fall', 'out', 'side', 'walk', 'way', 'out', 'back', 'fire', 'fly', 'ball'],
+                ['snow', 'storm', 'drain', 'pipe', 'dream', 'land', 'mine', 'field', 'goal', 'post', 'card', 'holder'],
+                ['star', 'dust', 'pan', 'cake', 'walk', 'through', 'way', 'out', 'law', 'suit', 'case', 'study']
+            ]
+        };
+
+        let gameState = {
+            difficulty: 'easy',
+            currentPuzzle: [],
+            currentIndex: 0,
+            score: 0,
+            hintsUsed: 0,
+            revealedLetters: 0,
+            completedWords: []
+        };
+
+        function startGame(difficulty) {
+            gameState.difficulty = difficulty;
+            const puzzleSet = puzzles[difficulty];
+            const randomPuzzle = puzzleSet[Math.floor(Math.random() * puzzleSet.length)];
+            
+            gameState.currentPuzzle = randomPuzzle;
+            gameState.currentIndex = 0;
+            gameState.score = 0;
+            gameState.hintsUsed = 0;
+            gameState.revealedLetters = 0;
+            gameState.completedWords = [randomPuzzle[0]];
+
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            
+            updateDisplay();
+            document.getElementById('guessInput').focus();
+        }
+
+        function updateDisplay() {
+            document.getElementById('scoreValue').textContent = gameState.score;
+            document.getElementById('progressText').textContent = 
+                `${gameState.currentIndex + 1} of ${gameState.currentPuzzle.length}`;
+
+            // Update word chain
+            const chainContainer = document.getElementById('wordChain');
+            chainContainer.innerHTML = '';
+            
+            gameState.completedWords.forEach((word, index) => {
+                const wordBubble = document.createElement('div');
+                wordBubble.className = 'word-bubble';
+                wordBubble.textContent = word.toUpperCase();
+                chainContainer.appendChild(wordBubble);
+
+                if (index < gameState.completedWords.length - 1) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arrow';
+                    arrow.textContent = '→';
+                    chainContainer.appendChild(arrow);
+                }
+            });
+
+            if (gameState.currentIndex < gameState.currentPuzzle.length - 1) {
+                const arrow = document.createElement('div');
+                arrow.className = 'arrow';
+                arrow.textContent = '→';
+                chainContainer.appendChild(arrow);
+
+                const unknownWord = document.createElement('div');
+                unknownWord.className = 'unknown-word';
+                unknownWord.textContent = '?';
+                chainContainer.appendChild(unknownWord);
+            }
+
+            // Update compound display
+            const currentWord = gameState.currentPuzzle[gameState.currentIndex];
+            const targetWord = getCurrentWord();
+            const displayWord = getDisplayWord();
+            
+            document.getElementById('compoundDisplay').textContent = 
+                `${currentWord.toUpperCase()} ${displayWord}`;
+
+            // Update hint button
+            const hintBtn = document.getElementById('hintBtn');
+            hintBtn.disabled = gameState.revealedLetters >= targetWord.length - 1;
+        }
+
+        function getCurrentWord() {
+            if (gameState.currentIndex >= gameState.currentPuzzle.length - 1) return '';
+            return gameState.currentPuzzle[gameState.currentIndex + 1];
+        }
+
+        function getDisplayWord() {
+            const word = getCurrentWord();
+            if (!word) return '';
+            
+            let display = '';
+            for (let i = 0; i < word.length; i++) {
+                if (i < gameState.revealedLetters) {
+                    display += word[i];
+                } else {
+                    display += '_';
+                }
+            }
+            return display.toUpperCase();
+        }
+
+        function submitGuess() {
+            const input = document.getElementById('guessInput');
+            const guess = input.value.toLowerCase().trim();
+            const targetWord = getCurrentWord();
+
+            if (!guess) return;
+
+            if (guess === targetWord) {
+                showMessage('✓ Correct!', 'success');
+                gameState.score += (10 - gameState.hintsUsed * 2);
+                gameState.completedWords.push(targetWord);
+                gameState.revealedLetters = 0;
+                gameState.hintsUsed = 0;
+
+                if (gameState.currentIndex >= gameState.currentPuzzle.length - 2) {
+                    setTimeout(() => {
+                        showMessage(`🎉 Chain Complete! Final Score: ${gameState.score}`, 'info');
+                        setTimeout(backToMenu, 3000);
+                    }, 1000);
+                } else {
+                    gameState.currentIndex++;
+                    updateDisplay();
+                }
+                input.value = '';
+            } else {
+                showMessage('✗ Incorrect! Try again.', 'error');
+                setTimeout(hideMessage, 2000);
+            }
+        }
+
+        function getHint() {
+            const word = getCurrentWord();
+            if (gameState.revealedLetters < word.length - 1) {
+                gameState.revealedLetters++;
+                gameState.hintsUsed++;
+                updateDisplay();
+                hideMessage();
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+        }
+
+        function hideMessage() {
+            document.getElementById('message').style.display = 'none';
+        }
+
+        function backToMenu() {
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('menu').style.display = 'block';
+            hideMessage();
+        }
+
+        // Event listeners
+        document.getElementById('guessInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitGuess();
+            }
+        });
+
+        // Auto-uppercase input
+        document.getElementById('guessInput').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    </script>
+</body>
+</html>
