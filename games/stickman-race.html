@@ -570,6 +570,11 @@
 
             updateLightDisplay();
             setupControls();
+
+            // Start position sync for online mode
+            if (lobbyType === 'online') {
+                startPositionSync();
+            }
         }
 
         function startLightCycle() {
@@ -623,6 +628,12 @@
         }
 
         function setupControls() {
+            // Remove old listeners to prevent duplicates
+            document.removeEventListener('keydown', handleKeyPress);
+            document.removeEventListener('keyup', handleKeyRelease);
+            document.removeEventListener('mousedown', handleMousePress);
+            
+            // Add new listeners
             document.addEventListener('keydown', handleKeyPress);
             document.addEventListener('keyup', handleKeyRelease);
             document.addEventListener('mousedown', handleMousePress);
@@ -633,7 +644,11 @@
             keysHeld.add(e.code);
 
             if (lobbyType === 'online') {
-                movePlayerOnline();
+                if (gameMode === 'redlight' && lightState === 'red') {
+                    penalizePlayerOnline();
+                } else if (gameMode === 'regular' || lightState === 'green') {
+                    movePlayerOnline();
+                }
             } else {
                 const index = KEYS.indexOf(e.code);
                 if (index !== -1 && index < players.length) {
@@ -646,12 +661,22 @@
             keysHeld.delete(e.code);
         }
 
+        let mouseHeld = false;
         function handleMousePress() {
+            if (mouseHeld) return;
+            mouseHeld = true;
+            
             if (lobbyType === 'online') {
-                movePlayerOnline();
+                if (gameMode === 'redlight' && lightState === 'red') {
+                    penalizePlayerOnline();
+                } else if (gameMode === 'regular' || lightState === 'green') {
+                    movePlayerOnline();
+                }
             } else if (players.length > 0) {
                 movePlayer(0);
             }
+
+            setTimeout(() => { mouseHeld = false; }, 100);
         }
 
         function movePlayer(index) {
@@ -676,18 +701,21 @@
                 const player = snapshot.val();
                 if (!player) return;
 
-                let newPos = player.position;
-                if (gameMode === 'redlight' && lightState === 'red') {
-                    newPos = 0;
-                } else if (gameMode === 'regular' || lightState === 'green') {
-                    newPos = Math.min(player.position + 3 + Math.random() * 2, 88);
-                }
+                const newPos = Math.min(player.position + 3 + Math.random() * 2, 88);
 
                 playerRef.update({ position: newPos });
 
                 if (newPos >= 88) {
                     database.ref(`rooms/${roomCode}`).update({ winner: player });
                 }
+            });
+        }
+
+        function penalizePlayerOnline() {
+            if (!myPlayerId || !roomCode) return;
+
+            database.ref(`rooms/${roomCode}/gameState/players/${myPlayerId}`).update({ 
+                position: 0 
             });
         }
 
@@ -702,18 +730,15 @@
             }
         }
 
-        if (lobbyType === 'online') {
-            setInterval(() => {
-                if (players.length > 0 && document.getElementById('game').classList.contains('hidden') === false) {
-                    database.ref(`rooms/${roomCode}/gameState/players`).once('value', (snapshot) => {
-                        const data = snapshot.val();
-                        if (data) {
-                            players = Object.entries(data).map(([id, p]) => ({...p, id}));
-                            players.forEach(updatePlayerPosition);
-                        }
-                    });
+        function startPositionSync() {
+            // Listen for real-time position updates from Firebase
+            database.ref(`rooms/${roomCode}/gameState/players`).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    players = Object.entries(data).map(([id, p]) => ({...p, id}));
+                    players.forEach(updatePlayerPosition);
                 }
-            }, 100);
+            });
         }
 
         function showWinner(winner) {
