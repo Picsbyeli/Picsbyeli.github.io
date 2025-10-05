@@ -942,8 +942,6 @@
             document.getElementById('save-count').textContent = Object.keys(saveStates).length;
         }
 
-        // Remove duplicate switchTab definition since it's now in global scope
-
         function renderGameList() {
             const gameList = document.getElementById('game-list');
             
@@ -1263,8 +1261,6 @@
                 container.msRequestFullscreen();
             }
         };
-
-        // Remove duplicate filterGames since it's now in global scope
 
         loadFromFirebase();
         loadServerGames();

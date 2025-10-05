@@ -935,21 +935,33 @@
             const roomData = roomSnapshot.val();
             const players = Object.keys(roomData.players || {});
             
-            const detective = players[0];
             const imposter = players[Math.floor(Math.random() * players.length)];
             const words = categories[winningCategory];
             const secretWord = words[Math.floor(Math.random() * words.length)];
+
+            // Create turn order with ALL players
+            const turnOrder = [...players];
+            // Shuffle turn order
+            for (let i = turnOrder.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [turnOrder[i], turnOrder[j]] = [turnOrder[j], turnOrder[i]];
+            }
+
+            const serverTimeOffset = await getServerTimeOffset();
+            const turnEndTime = Date.now() + serverTimeOffset + 25000; // 25 seconds per turn
 
             const newGameState = {
                 phase: 'clue-submission',
                 category: winningCategory,
                 words: words,
                 players: roomData.players,
-                detective: detective,
                 imposter: imposter,
                 secretWord: secretWord,
-                clues: {},
+                clues: [],
                 votes: {},
+                turnOrder: turnOrder,
+                currentTurn: 0,
+                turnEndTime: turnEndTime,
                 startedAt: firebase.database.ServerValue.TIMESTAMP
             };
 
