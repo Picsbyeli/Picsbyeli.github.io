@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="roadGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#666666;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4682B4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e3c72;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="grassGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#90EE90;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#32CD32;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="frogGradient" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#32CD32;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#228B22;stop-opacity:1" />
+    </radialGradient>
+    
+    <radialGradient id="carGradient" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#cc0000;stop-opacity:1" />
+    </radialGradient>
+    
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#87CEEB" stroke="#2d5016" stroke-width="3"/>
+  
+  <!-- Road lanes -->
+  <rect x="10" y="60" width="180" height="25" fill="url(#roadGradient)"/>
+  <rect x="10" y="90" width="180" height="25" fill="url(#roadGradient)"/>
+  
+  <!-- Road lane dividers -->
+  <g fill="#ffffff">
+    <rect x="15" y="72" width="8" height="2"/>
+    <rect x="30" y="72" width="8" height="2"/>
+    <rect x="45" y="72" width="8" height="2"/>
+    <rect x="60" y="72" width="8" height="2"/>
+    <rect x="75" y="72" width="8" height="2"/>
+    <rect x="90" y="72" width="8" height="2"/>
+    <rect x="105" y="72" width="8" height="2"/>
+    <rect x="120" y="72" width="8" height="2"/>
+    <rect x="135" y="72" width="8" height="2"/>
+    <rect x="150" y="72" width="8" height="2"/>
+    <rect x="165" y="72" width="8" height="2"/>
+    
+    <rect x="15" y="102" width="8" height="2"/>
+    <rect x="30" y="102" width="8" height="2"/>
+    <rect x="45" y="102" width="8" height="2"/>
+    <rect x="60" y="102" width="8" height="2"/>
+    <rect x="75" y="102" width="8" height="2"/>
+    <rect x="90" y="102" width="8" height="2"/>
+    <rect x="105" y="102" width="8" height="2"/>
+    <rect x="120" y="102" width="8" height="2"/>
+    <rect x="135" y="102" width="8" height="2"/>
+    <rect x="150" y="102" width="8" height="2"/>
+    <rect x="165" y="102" width="8" height="2"/>
+  </g>
+  
+  <!-- Water lanes -->
+  <rect x="10" y="120" width="180" height="25" fill="url(#waterGradient)"/>
+  <rect x="10" y="150" width="180" height="25" fill="url(#waterGradient)"/>
+  
+  <!-- Water waves -->
+  <g stroke="#ffffff" stroke-width="1" fill="none" opacity="0.6">
+    <path d="M 15 132 Q 25 130 35 132 Q 45 134 55 132 Q 65 130 75 132"/>
+    <path d="M 85 132 Q 95 130 105 132 Q 115 134 125 132 Q 135 130 145 132"/>
+    <path d="M 155 132 Q 165 130 175 132 Q 185 134 195 132"/>
+    
+    <path d="M 15 162 Q 25 160 35 162 Q 45 164 55 162 Q 65 160 75 162"/>
+    <path d="M 85 162 Q 95 160 105 162 Q 115 164 125 162 Q 135 160 145 162"/>
+    <path d="M 155 162 Q 165 160 175 162 Q 185 164 195 162"/>
+  </g>
+  
+  <!-- Safe grass areas -->
+  <rect x="10" y="30" width="180" height="25" fill="url(#grassGradient)"/>
+  <rect x="10" y="180" width="180" height="15" fill="url(#grassGradient)"/>
+  
+  <!-- Car -->
+  <g filter="url(#shadow)" transform="translate(30, 67)">
+    <rect x="0" y="0" width="25" height="12" rx="2" fill="url(#carGradient)"/>
+    <rect x="2" y="2" width="21" height="8" fill="#ffcc00"/>
+    <!-- Wheels -->
+    <circle cx="4" cy="2" r="2" fill="#333333"/>
+    <circle cx="21" cy="2" r="2" fill="#333333"/>
+    <circle cx="4" cy="10" r="2" fill="#333333"/>
+    <circle cx="21" cy="10" r="2" fill="#333333"/>
+  </g>
+  
+  <!-- Log -->
+  <g filter="url(#shadow)" transform="translate(120, 125)">
+    <rect x="0" y="0" width="40" height="10" rx="5" fill="#8B4513"/>
+    <rect x="2" y="2" width="36" height="6" rx="3" fill="#A0522D"/>
+    <!-- Log rings -->
+    <circle cx="8" cy="5" r="3" fill="none" stroke="#654321" stroke-width="1"/>
+    <circle cx="20" cy="5" r="3" fill="none" stroke="#654321" stroke-width="1"/>
+    <circle cx="32" cy="5" r="3" fill="none" stroke="#654321" stroke-width="1"/>
+  </g>
+  
+  <!-- Frog (main character) -->
+  <g filter="url(#shadow)" transform="translate(85, 185)">
+    <!-- Body -->
+    <ellipse cx="7" cy="5" rx="7" ry="5" fill="url(#frogGradient)"/>
+    <!-- Head -->
+    <ellipse cx="7" cy="2" rx="5" ry="4" fill="url(#frogGradient)"/>
+    <!-- Eyes -->
+    <circle cx="4" cy="1" r="1.5" fill="#ffffff"/>
+    <circle cx="10" cy="1" r="1.5" fill="#ffffff"/>
+    <circle cx="4" cy="1" r="0.8" fill="#000000"/>
+    <circle cx="10" cy="1" r="0.8" fill="#000000"/>
+    <!-- Legs -->
+    <ellipse cx="2" cy="7" rx="2" ry="3" fill="url(#frogGradient)"/>
+    <ellipse cx="12" cy="7" rx="2" ry="3" fill="url(#frogGradient)"/>
+    <!-- Arms -->
+    <ellipse cx="1" cy="4" rx="1.5" ry="2" fill="url(#frogGradient)"/>
+    <ellipse cx="13" cy="4" rx="1.5" ry="2" fill="url(#frogGradient)"/>
+  </g>
+  
+  <!-- Lily pad in goal area -->
+  <g transform="translate(150, 35)">
+    <ellipse cx="0" cy="0" rx="12" ry="8" fill="#228B22"/>
+    <path d="M 0 -8 L 8 0" stroke="#006400" stroke-width="1" fill="none"/>
+  </g>
+  
+  <!-- Motion arrows -->
+  <g stroke="#32CD32" stroke-width="2" fill="#32CD32" opacity="0.7">
+    <path d="M 90 180 L 90 175 L 88 177 M 90 175 L 92 177"/>
+    <path d="M 90 175 L 90 170 L 88 172 M 90 170 L 92 172"/>
+  </g>
+  
+  <!-- Game title -->
+  <text x="100" y="15" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2d5016">
+    FROGGER
+  </text>
+</svg>
