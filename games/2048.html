@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048 Game</title>
+    <link rel="stylesheet" href="../css/help-widget.css">
     <style>
         * {
             margin: 0;
@@ -381,6 +382,13 @@
         // Load best score and initialize
         document.getElementById('best').textContent = best;
         initGrid();
+    </script>
+    
+    <script src="../js/help-widget.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initHelpWidget('2048');
+        });
     </script>
 </body>
 </html>

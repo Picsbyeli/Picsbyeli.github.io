@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Evol Questions - E.Vol Games</title>
+    <link rel="stylesheet" href="../css/help-widget.css">
     <style>
         * {
             margin: 0;
@@ -853,6 +854,13 @@
 
         // Initialize game on load
         initGame();
+    </script>
+    
+    <script src="../js/help-widget.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initHelpWidget('Evol Questions');
+        });
     </script>
 </body>
 </html>

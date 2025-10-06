@@ -5,6 +5,7 @@
   <title>E.Vol — Games</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="./styles.css" rel="stylesheet" />
+  <link href="./css/help-widget.css" rel="stylesheet" />
 </head>
 <body>
   <!-- Advanced Music Player -->
@@ -424,10 +425,20 @@
   <!-- Socket.IO client -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
 
+  <!-- Help widget -->
+  <script src="js/help-widget.js"></script>
+
   <!-- Audio player -->
   <script src="js/music.js"></script>
 
   <!-- App scripts -->
   <script type="module" src="./main.js"></script>
+  
+  <!-- Initialize help widget -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      initHelpWidget('E.Vol Games Hub');
+    });
+  </script>
 </body>
 </html>
