@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evol Questions - E.Vol Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .menu-screen {
+            background: white;
+            color: #333;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            padding: 50px;
+            text-align: center;
+        }
+
+        .menu-screen h1 {
+            font-size: 3.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .menu-screen p {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .category-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 30px 20px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .category-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .game-screen {
+            padding: 20px 0;
+        }
+
+        .game-header {
+            background: white;
+            color: #333;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #E3F2FD;
+        }
+
+        .hints-section {
+            background: white;
+            color: #333;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .hints-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hint-item {
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-left: 4px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .hint-number {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .request-hint-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #FFD700, #FFA000);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .request-hint-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+        }
+
+        .request-hint-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .guess-section {
+            background: white;
+            color: #333;
+            border-radius: 20px;
+            padding: 30px;
+        }
+
+        .guess-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .guess-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .guess-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .guess-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .guess-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+        }
+
+        .previous-guesses {
+            margin-top: 20px;
+        }
+
+        .previous-guesses h4 {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .guess-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .guess-tag {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .result-screen {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .result-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .result-title.won {
+            color: #4CAF50;
+        }
+
+        .result-title.lost {
+            color: #F44336;
+        }
+
+        .result-answer {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .result-stats {
+            color: #E3F2FD;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .play-again-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .play-again-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76,175,80,0.3);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .menu-screen {
+                padding: 30px 20px;
+            }
+            
+            .menu-screen h1 {
+                font-size: 2.5rem;
+            }
+            
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .hints-section, .guess-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Menu Screen -->
+        <div id="menu-screen" class="menu-screen">
+            <h1>Evol Questions</h1>
+            <p>
+                Guess the answer based on hints! You have 10 attempts and can request up to 4 additional hints.
+                Choose a category to get started.
+            </p>
+            
+            <div class="category-grid" id="category-grid">
+                <!-- Categories will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="game-screen hidden">
+            <button class="back-btn" onclick="showMenu()">← Back</button>
+            
+            <div class="game-header">
+                <h2 id="current-category">Category</h2>
+            </div>
+            
+            <div class="game-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="remaining-guesses">10</div>
+                    <div class="stat-label">Remaining Guesses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="hint-requests">4</div>
+                    <div class="stat-label">Hint Requests Left</div>
+                </div>
+            </div>
+
+            <div class="hints-section">
+                <div class="hints-title">
+                    💡 Hints
+                </div>
+                <div id="hints-container">
+                    <!-- Hints will be populated here -->
+                </div>
+                
+                <button id="request-hint-btn" class="request-hint-btn" onclick="requestHint()">
+                    💡 Request Additional Hint (Uses 1 Guess)
+                </button>
+            </div>
+
+            <div class="guess-section">
+                <h3 class="guess-title">Make Your Guess</h3>
+                <input type="text" id="guess-input" class="guess-input" placeholder="Enter your answer..." maxlength="50">
+                <button class="guess-btn" onclick="makeGuess()">Guess</button>
+                
+                <div id="previous-guesses" class="previous-guesses hidden">
+                    <h4>Previous Guesses:</h4>
+                    <div id="guess-tags" class="guess-tags">
+                        <!-- Previous guesses will be shown here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="result-screen hidden">
+            <div id="result-icon" class="result-icon">🏆</div>
+            <h2 id="result-title" class="result-title">You Won!</h2>
+            <p>The answer was:</p>
+            <div id="result-answer" class="result-answer">Answer</div>
+            <p id="result-stats" class="result-stats">Guesses used: 5 / 10</p>
+            <button class="play-again-btn" onclick="showMenu()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const GAME_DATA = {
+            "Movies": [
+                {
+                    answer: "Up",
+                    initialHints: [
+                        "It is an animated movie",
+                        "It features a lot of one type of animal",
+                        "It is a Disney/Pixar movie",
+                        "It is often seen as a sad movie",
+                        "Some animals talk in this movie"
+                    ],
+                    additionalHints: [
+                        "The main characters are a duo",
+                        "There is an age gap between the two main characters",
+                        "There was a love interest to one of the main characters",
+                        "Balloons are a significant object in the movie"
+                    ]
+                },
+                {
+                    answer: "The Lion King",
+                    initialHints: [
+                        "It is an animated Disney movie",
+                        "It takes place in Africa",
+                        "The main character is part of a royal family",
+                        "There is a villain who is related to the hero",
+                        "It features a coming-of-age story"
+                    ],
+                    additionalHints: [
+                        "The soundtrack is extremely famous",
+                        "The main character loses someone important early on",
+                        "It was later made into a Broadway show",
+                        "The main character has two funny friends"
+                    ]
+                },
+                {
+                    answer: "Inception",
+                    initialHints: [
+                        "It is a science fiction thriller",
+                        "It involves dreams within dreams",
+                        "The main character is a thief of sorts",
+                        "It was directed by Christopher Nolan",
+                        "The ending leaves viewers debating what happened"
+                    ],
+                    additionalHints: [
+                        "The main character enters people's minds",
+                        "A spinning top is important to the plot",
+                        "Time passes differently in different dream levels",
+                        "The main character misses his children"
+                    ]
+                }
+            ],
+            "Sports": [
+                {
+                    answer: "Basketball",
+                    initialHints: [
+                        "It is played with an orange ball",
+                        "Teams have 5 players on the court at a time",
+                        "Players try to score by getting the ball through an elevated target",
+                        "The court has a line that makes some shots worth more points",
+                        "Players can bounce the ball while moving"
+                    ],
+                    additionalHints: [
+                        "It is very popular in America",
+                        "Games are split into four quarters",
+                        "Being tall is usually an advantage",
+                        "Shooting from far away gives you extra points"
+                    ]
+                },
+                {
+                    answer: "Tennis",
+                    initialHints: [
+                        "It is played with a racket and ball",
+                        "It can be played one-on-one or two-on-two",
+                        "A net divides the court in the middle",
+                        "The scoring goes 15, 30, 40, then game",
+                        "There are four Grand Slam tournaments"
+                    ],
+                    additionalHints: [
+                        "Wimbledon is the most famous tournament",
+                        "Players take turns serving the ball",
+                        "Love means zero in the score",
+                        "Professional matches can go on for hours"
+                    ]
+                }
+            ],
+            "Foods": [
+                {
+                    answer: "Pizza",
+                    initialHints: [
+                        "It originated in Italy",
+                        "It has a dough base that is baked",
+                        "Cheese is almost always on top",
+                        "It is usually round and cut into slices",
+                        "You can add many different toppings"
+                    ],
+                    additionalHints: [
+                        "It is one of the most popular delivery foods",
+                        "Pepperoni is a favorite topping",
+                        "It is cooked in a very hot oven",
+                        "New York and Chicago have famous styles"
+                    ]
+                },
+                {
+                    answer: "Sushi",
+                    initialHints: [
+                        "It is a Japanese dish",
+                        "Rice is a main ingredient",
+                        "It often includes raw fish",
+                        "It is served with soy sauce and wasabi",
+                        "It comes in different forms like rolls and nigiri"
+                    ],
+                    additionalHints: [
+                        "It is typically eaten with chopsticks",
+                        "Seaweed wrapping is common",
+                        "Chefs train for many years to master it",
+                        "Ginger is served on the side"
+                    ]
+                }
+            ],
+            "Vacation Spots": [
+                {
+                    answer: "Paris",
+                    initialHints: [
+                        "It is a European city",
+                        "It is known as the City of Love",
+                        "It is the capital of France",
+                        "A famous iron tower is located here",
+                        "The Louvre museum is in this city"
+                    ],
+                    additionalHints: [
+                        "Croissants and baguettes are everywhere",
+                        "The Seine River runs through it",
+                        "It is a major fashion capital",
+                        "Sidewalk cafes are very common"
+                    ]
+                },
+                {
+                    answer: "Maldives",
+                    initialHints: [
+                        "It is made up of islands",
+                        "It is located in the Indian Ocean",
+                        "The water is incredibly clear and blue",
+                        "Hotels with rooms over the water are popular",
+                        "It is a top honeymoon destination"
+                    ],
+                    additionalHints: [
+                        "Snorkeling and diving are favorite activities",
+                        "Climate change threatens these islands",
+                        "The weather is tropical year-round",
+                        "The beaches have white sand"
+                    ]
+                }
+            ],
+            "Objects": [
+                {
+                    answer: "Smartphone",
+                    initialHints: [
+                        "It is an electronic device",
+                        "Almost everyone has one nowadays",
+                        "It has a touchscreen",
+                        "You can make calls and send messages with it",
+                        "It needs to be charged regularly"
+                    ],
+                    additionalHints: [
+                        "You can take photos and videos with it",
+                        "Apps can be downloaded on it",
+                        "It fits in your pocket or purse",
+                        "People check it constantly throughout the day"
+                    ]
+                },
+                {
+                    answer: "Umbrella",
+                    initialHints: [
+                        "It protects you from rain",
+                        "It can be opened and closed",
+                        "It has a handle you hold",
+                        "It is made with fabric on a frame",
+                        "It has metal pieces that spread out when opened"
+                    ],
+                    additionalHints: [
+                        "People often forget these places",
+                        "Some are made to block sun instead of rain",
+                        "It has a pointed tip at the top",
+                        "Travel-sized ones fold up very small"
+                    ]
+                }
+            ],
+            "Famous Characters": [
+                {
+                    answer: "Sherlock Holmes",
+                    initialHints: [
+                        "This character is a detective",
+                        "They are known for being extremely smart",
+                        "They were created by Arthur Conan Doyle",
+                        "They live in London",
+                        "They have a friend named Watson"
+                    ],
+                    additionalHints: [
+                        "They play the violin",
+                        "They use deduction to solve crimes",
+                        "Their enemy is Professor Moriarty",
+                        "They often smoke a pipe"
+                    ]
+                },
+                {
+                    answer: "Mario",
+                    initialHints: [
+                        "This character is from video games",
+                        "They are a plumber",
+                        "They wear a red hat and overalls",
+                        "They have a brother named Luigi",
+                        "They often rescue Princess Peach"
+                    ],
+                    additionalHints: [
+                        "They can jump really high",
+                        "Eating mushrooms gives them powers",
+                        "They were created by Nintendo",
+                        "Their enemy is Bowser"
+                    ]
+                }
+            ]
+        };
+
+        // Game state
+        let gameState = {
+            currentCategory: null,
+            currentItem: null,
+            visibleHints: [],
+            remainingGuesses: 10,
+            remainingHintRequests: 4,
+            guessHistory: [],
+            hintsUsed: 0,
+            gameOver: false,
+            won: false
+        };
+
+        // Initialize the game
+        function initGame() {
+            showMenu();
+            populateCategories();
+        }
+
+        function populateCategories() {
+            const container = document.getElementById('category-grid');
+            container.innerHTML = '';
+            
+            Object.keys(GAME_DATA).forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'category-btn';
+                button.textContent = category;
+                button.onclick = () => startGame(category);
+                container.appendChild(button);
+            });
+        }
+
+        function showMenu() {
+            document.getElementById('menu-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+        }
+
+        function showGame() {
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+        }
+
+        function showResult() {
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+        }
+
+        function startGame(category) {
+            const items = GAME_DATA[category];
+            const randomItem = items[Math.floor(Math.random() * items.length)];
+            
+            gameState = {
+                currentCategory: category,
+                currentItem: randomItem,
+                visibleHints: [...randomItem.initialHints],
+                remainingGuesses: 10,
+                remainingHintRequests: 4,
+                guessHistory: [],
+                hintsUsed: 0,
+                gameOver: false,
+                won: false
+            };
+
+            updateGameDisplay();
+            showGame();
+            document.getElementById('guess-input').focus();
+        }
+
+        function updateGameDisplay() {
+            document.getElementById('current-category').textContent = `Category: ${gameState.currentCategory}`;
+            document.getElementById('remaining-guesses').textContent = gameState.remainingGuesses;
+            document.getElementById('hint-requests').textContent = gameState.remainingHintRequests;
+            
+            // Update hints
+            updateHintsDisplay();
+            
+            // Update hint button
+            const hintBtn = document.getElementById('request-hint-btn');
+            const canRequestHint = gameState.remainingHintRequests > 0 && 
+                                   gameState.hintsUsed < gameState.currentItem.additionalHints.length;
+            hintBtn.disabled = !canRequestHint;
+            hintBtn.style.display = canRequestHint ? 'block' : 'none';
+            
+            // Update previous guesses
+            updatePreviousGuesses();
+        }
+
+        function updateHintsDisplay() {
+            const container = document.getElementById('hints-container');
+            container.innerHTML = '';
+            
+            gameState.visibleHints.forEach((hint, index) => {
+                const hintDiv = document.createElement('div');
+                hintDiv.className = 'hint-item';
+                hintDiv.innerHTML = `
+                    <span class="hint-number">Hint ${index + 1}:</span> ${hint}
+                `;
+                container.appendChild(hintDiv);
+            });
+        }
+
+        function updatePreviousGuesses() {
+            const container = document.getElementById('previous-guesses');
+            const tagsContainer = document.getElementById('guess-tags');
+            
+            if (gameState.guessHistory.length > 0) {
+                container.classList.remove('hidden');
+                tagsContainer.innerHTML = '';
+                
+                gameState.guessHistory.forEach(guess => {
+                    const tag = document.createElement('span');
+                    tag.className = 'guess-tag';
+                    tag.textContent = guess;
+                    tagsContainer.appendChild(tag);
+                });
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function requestHint() {
+            if (gameState.remainingHintRequests > 0 && gameState.hintsUsed < gameState.currentItem.additionalHints.length) {
+                const nextHint = gameState.currentItem.additionalHints[gameState.hintsUsed];
+                gameState.visibleHints.push(nextHint);
+                gameState.remainingHintRequests--;
+                gameState.remainingGuesses--;
+                gameState.hintsUsed++;
+                
+                if (gameState.remainingGuesses <= 0) {
+                    endGame(false);
+                } else {
+                    updateGameDisplay();
+                }
+            }
+        }
+
+        function makeGuess() {
+            const input = document.getElementById('guess-input');
+            const guess = input.value.trim();
+            
+            if (!guess) {
+                alert('Please enter a guess!');
+                return;
+            }
+            
+            const normalizedGuess = guess.toLowerCase();
+            const normalizedAnswer = gameState.currentItem.answer.toLowerCase();
+            
+            if (normalizedGuess === normalizedAnswer) {
+                endGame(true);
+            } else {
+                gameState.guessHistory.push(guess);
+                gameState.remainingGuesses--;
+                input.value = '';
+                
+                if (gameState.remainingGuesses <= 0) {
+                    endGame(false);
+                } else {
+                    updateGameDisplay();
+                    input.focus();
+                }
+            }
+        }
+
+        function endGame(won) {
+            gameState.gameOver = true;
+            gameState.won = won;
+            
+            const resultIcon = document.getElementById('result-icon');
+            const resultTitle = document.getElementById('result-title');
+            const resultAnswer = document.getElementById('result-answer');
+            const resultStats = document.getElementById('result-stats');
+            
+            if (won) {
+                resultIcon.textContent = '🏆';
+                resultTitle.textContent = 'You Won!';
+                resultTitle.className = 'result-title won';
+                resultStats.textContent = `Guesses used: ${10 - gameState.remainingGuesses} / 10`;
+                
+                // Submit score to leaderboard
+                const score = calculateScore();
+                if (typeof submitScore === 'function') {
+                    submitScore('Evol Questions', score);
+                }
+            } else {
+                resultIcon.textContent = '❌';
+                resultTitle.textContent = 'Game Over!';
+                resultTitle.className = 'result-title lost';
+                resultStats.textContent = 'Better luck next time!';
+            }
+            
+            resultAnswer.textContent = gameState.currentItem.answer;
+            showResult();
+        }
+
+        function calculateScore() {
+            const baseScore = 1000;
+            const guessesUsed = 10 - gameState.remainingGuesses;
+            const bonus = Math.max(0, (10 - guessesUsed) * 100);
+            return baseScore + bonus;
+        }
+
+        // Enter key support
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !document.getElementById('game-screen').classList.contains('hidden')) {
+                makeGuess();
+            }
+        });
+
+        // Initialize game on load
+        initGame();
+    </script>
+</body>
+</html>

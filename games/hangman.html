@@ -384,6 +384,12 @@
                 </div>
             `;
             statusEl.classList.remove('hidden');
+            
+            // Submit score to leaderboard
+            if (typeof submitScore === 'function') {
+                const score = 1000 + (MAX_WRONG - wrongGuesses.length) * 200; // Bonus for fewer wrong guesses
+                submitScore('Hangman', score);
+            }
         }
         
         function showGameOver() {

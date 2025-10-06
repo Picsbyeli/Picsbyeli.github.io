@@ -163,6 +163,15 @@
             if (result) {
                 gameActive = false;
                 document.getElementById('status').textContent = result === 'tie' ? "It's a Tie!" : `Player ${result} Wins!`;
+                
+                // Submit score to leaderboard when player wins
+                if (result === 'X') {
+                    const movesMade = board.filter(cell => cell !== '').length;
+                    const score = Math.max(100, 1000 - (movesMade * 100)); // Higher score for fewer moves
+                    if (typeof submitScore === 'function') {
+                        submitScore('Tic-Tac-Toe', score);
+                    }
+                }
                 return;
             }
             

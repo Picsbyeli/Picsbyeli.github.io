@@ -451,6 +451,15 @@
         function showResults() {
             resultsElement.classList.add('show');
             resultsElement.scrollIntoView({ behavior: 'smooth' });
+            
+            // Submit score to leaderboard
+            if (typeof submitScore === 'function') {
+                const timeElapsed = (endTime - startTime) / 1000 / 60; // in minutes
+                const wpm = Math.round((correctCharacters / 5) / timeElapsed);
+                const accuracy = Math.round((correctCharacters / Math.max(totalCharacters, 1)) * 100);
+                const score = wpm * accuracy; // Score based on WPM and accuracy
+                submitScore('Typing Speed', score);
+            }
         }
 
         function updateStats() {

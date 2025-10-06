@@ -171,6 +171,11 @@
                 highScoreEl.textContent = highScore;
                 localStorage.setItem('snakeHighScore', highScore);
             }
+            
+            // Submit score to leaderboard
+            if (typeof submitScore === 'function') {
+                submitScore('Snake', score);
+            }
         }
 
         function resetGame() {

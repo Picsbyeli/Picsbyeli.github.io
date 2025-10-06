@@ -32,6 +32,13 @@ function dropDisc(col) {
       if (checkWin(row, col)) {
         document.getElementById('status').textContent = `${currentPlayer.toUpperCase()} WINS!`;
         gameActive = false;
+        
+        // Submit score to leaderboard when player (red) wins
+        if (currentPlayer === 'red' && typeof submitScore === 'function') {
+          const moveCount = board.flat().filter(cell => cell !== null).length;
+          const score = 1000 + Math.max(0, (42 - moveCount) * 20); // Bonus for faster wins
+          submitScore('Connect 4', score);
+        }
         return;
       }
       

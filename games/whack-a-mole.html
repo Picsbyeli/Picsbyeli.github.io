@@ -312,6 +312,11 @@
             gameButton.textContent = score > 0 ? `Play Again (Final Score: ${score})` : 'Start Game';
             gameButton.className = 'game-btn start-btn';
             speedWarning.style.display = 'none';
+            
+            // Submit score to leaderboard
+            if (score > 0 && typeof submitScore === 'function') {
+                submitScore('Whack-a-Mole', score);
+            }
         }
 
         function spawnEntity() {

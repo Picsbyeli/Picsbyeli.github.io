@@ -344,6 +344,11 @@
             }
             gameOver = true;
             document.getElementById('message').textContent = 'Game Over!';
+            
+            // Submit score to leaderboard
+            if (typeof submitScore === 'function') {
+                submitScore('2048', score);
+            }
         }
         
         function newGame() {

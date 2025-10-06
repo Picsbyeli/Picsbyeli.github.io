@@ -231,6 +231,11 @@
                                 gameOver = true;
                                 gameOverDisplay.innerHTML = 'YOU WIN!<br><span style="font-size: 24px;">Press SPACE to restart</span>';
                                 gameOverDisplay.style.display = 'block';
+                                
+                                // Submit score to leaderboard
+                                if (typeof submitScore === 'function') {
+                                    submitScore('Brick Breaker', score);
+                                }
                             }
                         }
                     }

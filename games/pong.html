@@ -480,6 +480,12 @@
                 const winner = game.playerScore >= 10 ? 'You Win!' : 'AI Wins!';
                 gameInfoElement.textContent = winner + ' - Press Reset to play again';
                 gameState = 'menu';
+                
+                // Submit score to leaderboard when player wins
+                if (game.playerScore >= 10 && typeof submitScore === 'function') {
+                    const score = 1000 + (game.playerScore - game.aiScore) * 100; // Bonus for winning margin
+                    submitScore('Pong', score);
+                }
             } else {
                 gameInfoElement.textContent = 'First to 10 wins!';
             }

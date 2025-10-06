@@ -347,6 +347,12 @@
                 
                 leaderboard = newLeaderboard;
                 updateLeaderboard();
+                
+                // Submit score to global leaderboard (lower time = higher score)
+                if (typeof submitScore === 'function') {
+                    const score = Math.max(0, 2000 - time); // Higher score for faster reactions
+                    submitScore('Reaction Timer', score);
+                }
             } else if (state === 'result') {
                 reactionTime = null;
                 state = 'waiting';

@@ -449,6 +449,12 @@
                 };
                 leaderboard.unshift(entry);
                 updateLeaderboard();
+                
+                // Submit score to global leaderboard when user wins
+                if (score.user === roundsToWin && typeof submitScore === 'function') {
+                    const gameScore = 1000 + (score.user - score.computer) * 200; // Bonus for winning margin
+                    submitScore('Rock Paper Scissors', gameScore);
+                }
             }
         }
         

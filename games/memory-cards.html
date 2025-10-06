@@ -274,6 +274,14 @@
                     if (matchedPairs === cardEmojis.length) {
                         setTimeout(() => {
                             document.getElementById('winMessage').classList.add('show');
+                            
+                            // Submit score to leaderboard
+                            if (typeof submitScore === 'function') {
+                                const timeBonus = Math.max(0, 300 - gameTime); // Bonus for speed
+                                const moveBonus = Math.max(0, 100 - moves) * 10; // Bonus for fewer moves
+                                const score = 1000 + timeBonus + moveBonus;
+                                submitScore('Memory Cards', score);
+                            }
                         }, 500);
                     }
                 } else {
