@@ -5,6 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏆 Leaderboard - E.Vol Games</title>
     <link rel="stylesheet" href="css/help-widget.css">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
+        import { GameAuth } from './js/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDn2cL3G7YIU5F9pYcwWp3vd6rT8GHfVlE",
+            authDomain: "profile-9e9f9.firebaseapp.com",
+            projectId: "profile-9e9f9",
+            storageBucket: "profile-9e9f9.appspot.com",
+            messagingSenderId: "412374234567",
+            appId: "1:412374234567:web:8a9b5c6d7e8f9g0h1i2j3k4l"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        window.gameAuth = new GameAuth(app);
+        
+        // Load Firebase scores when page loads
+        window.addEventListener('load', async () => {
+            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                // Try to load scores for common games
+                const commonGames = ['Snake', 'Tic-tac-toe', 'Memory Cards', 'Connect 4', 'Pong'];
+                for (const game of commonGames) {
+                    await window.leaderboard?.loadFirebaseScores(game);
+                }
+            }
+        });
+    </script>
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -297,7 +330,7 @@
                     const button = document.createElement('button');
                     button.className = 'game-tab';
                     button.setAttribute('data-game', game);
-                    button.textContent = \`\${emoji} \${game}\`;
+                    button.textContent = emoji + ' ' + game;
                     button.onclick = () => this.selectGame(game);
                     container.appendChild(button);
                 });
@@ -343,7 +376,7 @@
                 const emoji = this.gameEmojis[this.selectedGame] || '🎮';
                 titleEl.textContent = this.selectedGame === 'overall' 
                     ? '🏆 Overall Top Scorers' 
-                    : \`\${emoji} \${this.selectedGame} - Top 10\`;
+                    : emoji + ' ' + this.selectedGame + ' - Top 10';
 
                 const displayScores = this.selectedGame === 'overall' 
                     ? this.getOverallLeaderboard() 
@@ -358,31 +391,27 @@
                 if (displayScores.length > 0) {
                     scoresEl.innerHTML = displayScores.map((entry, index) => {
                         const rank = index + 1;
-                        const medal = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '��' : \`#\${rank}\`;
+                        const medal = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
                         
-                        return \`
-                            <div class="score-entry">
-                                <div class="rank">\${medal}</div>
-                                <div class="player-info">
-                                    <div class="player-name">\${entry.username}</div>
-                                    \${entry.games ? \`<div class="player-stats">\${entry.games} games played</div>\` : ''}
-                                </div>
-                                <div class="score-display">
-                                    <div class="score-value">\${entry.score.toLocaleString()}</div>
-                                    \${entry.date ? \`<div class="score-date">\${new Date(entry.date).toLocaleDateString()}</div>\` : ''}
-                                </div>
-                            </div>
-                        \`;
+                        return '<div class="score-entry">' +
+                            '<div class="rank">' + medal + '</div>' +
+                            '<div class="player-info">' +
+                                '<div class="player-name">' + entry.username + '</div>' +
+                                (entry.games ? '<div class="player-stats">' + entry.games + ' games played</div>' : '') +
+                            '</div>' +
+                            '<div class="score-display">' +
+                                '<div class="score-value">' + entry.score.toLocaleString() + '</div>' +
+                                (entry.date ? '<div class="score-date">' + new Date(entry.date).toLocaleDateString() + '</div>' : '') +
+                            '</div>' +
+                        '</div>';
                     }).join('');
                 } else {
-                    scoresEl.innerHTML = \`
-                        <div class="empty-state">
-                            <h3>🎮 No scores yet!</h3>
-                            <p>\${Object.keys(this.scores).length > 0 
-                                ? 'Be the first to play this game and set a record!' 
-                                : 'Start playing games to appear on the leaderboard!'}</p>
-                        </div>
-                    \`;
+                    scoresEl.innerHTML = '<div class="empty-state">' +
+                        '<h3>🎮 No scores yet!</h3>' +
+                        '<p>' + (Object.keys(this.scores).length > 0 
+                            ? 'Be the first to play this game and set a record!' 
+                            : 'Start playing games to appear on the leaderboard!') + '</p>' +
+                    '</div>';
                 }
             }
 
@@ -394,6 +423,29 @@
 
                 document.getElementById('total-scores').textContent = totalScores;
                 document.getElementById('top-player').textContent = topPlayer;
+            }
+
+            // Load scores from Firebase for a specific game
+            async loadFirebaseScores(gameName) {
+                if (window.gameAuth && window.gameAuth.getGameLeaderboard) {
+                    try {
+                        const firebaseScores = await window.gameAuth.getGameLeaderboard(gameName, 10);
+                        this.scores[gameName] = firebaseScores.map(score => ({
+                            username: score.username,
+                            score: score.score,
+                            date: score.timestamp?.toDate?.()?.toISOString() || new Date().toISOString()
+                        }));
+                        
+                        // Update localStorage as backup
+                        localStorage.setItem('gameLeaderboard', JSON.stringify(this.scores));
+                        
+                        this.renderTabs();
+                        this.renderLeaderboard();
+                        this.updateStats();
+                    } catch (error) {
+                        console.error('Error loading Firebase scores:', error);
+                    }
+                }
             }
 
             submitScore(gameName, playerScore) {
@@ -420,7 +472,7 @@
                     this.renderLeaderboard();
                     this.updateStats();
                     
-                    alert(\`Score submitted! You scored \${parseInt(playerScore).toLocaleString()} in \${gameName}\`);
+                    alert('Score submitted! You scored ' + parseInt(playerScore).toLocaleString() + ' in ' + gameName);
                 } catch (error) {
                     console.error('Failed to submit score:', error);
                     alert('Failed to submit score. Please try again.');
@@ -429,9 +481,35 @@
         }
 
         const leaderboard = new Leaderboard();
+        window.leaderboard = leaderboard;
 
-        function submitScore(gameName, playerScore) {
-            leaderboard.submitScore(gameName, playerScore);
+        // Global submitScore function that integrates with Firebase Auth
+        async function submitScore(gameName, playerScore) {
+            // Check if Firebase auth is available and user is logged in
+            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                try {
+                    const result = await window.gameAuth.submitScore(gameName, playerScore);
+                    if (result.success) {
+                        // Refresh the leaderboard display
+                        await leaderboard.loadFirebaseScores(gameName);
+                        alert('Score submitted! You scored ' + parseInt(playerScore).toLocaleString() + ' in ' + gameName);
+                    } else {
+                        alert('Error submitting score: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error submitting score:', error);
+                    // Fallback to local storage method
+                    leaderboard.submitScore(gameName, playerScore);
+                }
+            } else {
+                // User not logged in - redirect to auth page
+                if (confirm('You need to be logged in to save your score. Would you like to login now?')) {
+                    window.location.href = 'auth.html';
+                } else {
+                    // Fallback to local storage method
+                    leaderboard.submitScore(gameName, playerScore);
+                }
+            }
         }
 
         window.submitScore = submitScore;

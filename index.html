@@ -200,10 +200,14 @@
   <!-- Roblox-Style Game Hub -->
   <main class="hub-container">
     <aside class="sidebar">
-      <h2>E.Vol Hub</h2>
+      <div class="logo-header">
+        <img src="assets/logo.svg" alt="E.Vol Games Logo" class="site-logo">
+        <h2>E.Vol Hub</h2>
+      </div>
       <nav>
         <a href="index.html">🏠 Home</a>
         <a href="leaderboard.html">🏆 Leaderboard</a>
+        <a href="#" id="account-link" data-action="account" onclick="handleAccountClick(event)">👤 Account</a>
         <a href="standalone.html">🎮 Classic Games</a>
       </nav>
     </aside>
@@ -310,6 +314,10 @@
           <img src="assets/cookie-clicker.png" alt="Cookie Clicker" onerror="this.style.display='none'">
           <h3>🍪 Cookie Clicker</h3>
           <p>Click cookies, buy upgrades</p>
+        </a>
+        <a href="games/piano.html" class="game-card">
+          <h3>🎹 Piano</h3>
+          <p>Play virtual piano with sheet music</p>
         </a>
         <a href="games/stickman-race.html" class="game-card">
           <img src="assets/stickman.png" alt="Stick Man Race" onerror="this.style.display='none'">
@@ -418,6 +426,102 @@
     </section>
   </main>
 
+  <!-- Profile Section (hidden by default) -->
+  <div id="profile-section" class="profile-dashboard">
+    <div class="profile-container">
+      <div class="profile-header">
+        <img src="assets/logo.svg" alt="E.Vol Games Logo" class="profile-logo">
+        <h2>Account Dashboard</h2>
+        <button id="close-profile" class="close-btn">×</button>
+      </div>
+      
+      <div class="profile-content">
+        <div class="profile-tabs">
+          <button class="profile-tab active" data-tab="dashboard">📊 Dashboard</button>
+          <button class="profile-tab" data-tab="leaderboard">🏆 Leaderboard</button>
+          <button class="profile-tab" data-tab="settings">⚙️ Settings</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="profile-dashboard-tab" class="profile-tab-content active">
+          <div class="profile-cards">
+            <div class="profile-card">
+              <h3>Profile</h3>
+              <div class="profile-info-section">
+                <div id="profile-pic-display" class="profile-pic">?</div>
+                <div class="profile-details">
+                  <h4 id="profile-username-display">Loading...</h4>
+                  <p id="profile-email-display">Loading...</p>
+                  <p>Member since: <span id="profile-joined-display">Loading...</span></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-card">
+              <h3>Game Statistics</h3>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <div id="total-score-display" class="stat-value">0</div>
+                  <div class="stat-label">Total Score</div>
+                </div>
+                <div class="stat-item">
+                  <div id="games-played-display" class="stat-value">0</div>
+                  <div class="stat-label">Games Played</div>
+                </div>
+                <div class="stat-item">
+                  <div id="wins-count-display" class="stat-value">0</div>
+                  <div class="stat-label">Wins</div>
+                </div>
+                <div class="stat-item">
+                  <div id="rank-position-display" class="stat-value">-</div>
+                  <div class="stat-label">Global Rank</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaderboard Tab -->
+        <div id="profile-leaderboard-tab" class="profile-tab-content">
+          <div class="profile-card">
+            <h3>Global Leaderboard</h3>
+            <div id="profile-leaderboard-content" class="loading">Loading leaderboard...</div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="profile-settings-tab" class="profile-tab-content">
+          <div class="profile-card">
+            <h3>Account Settings</h3>
+            <div class="settings-form">
+              <div class="form-group">
+                <label for="settings-username-display">Username</label>
+                <input type="text" id="settings-username-display" class="form-input">
+              </div>
+              <div class="form-group">
+                <label for="settings-theme-display">Theme</label>
+                <select id="settings-theme-display" class="form-input">
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="settings-language-display">Language</label>
+                <select id="settings-language-display" class="form-input">
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                </select>
+              </div>
+              <button id="save-settings-display" class="save-btn">Save Settings</button>
+              <button id="logout-btn-display" class="logout-btn">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <p>© <span id="year"></span> E.Vol</p>
   </footer>
@@ -430,6 +534,365 @@
 
   <!-- Audio player -->
   <script src="js/music.js"></script>
+
+  <!-- Firebase Authentication -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+    import { GameAuth } from './js/firebase-auth.js';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAQE2mo6RNgwG-WaooCpoZjQ9Z8G2MHvx8",
+        authDomain: "profile-9e9f9.firebaseapp.com",
+        databaseURL: "https://profile-9e9f9-default-rtdb.firebaseio.com",
+        projectId: "profile-9e9f9",
+        storageBucket: "profile-9e9f9.firebasestorage.app",
+        messagingSenderId: "610449223815",
+        appId: "1:610449223815:web:3cdb864b4314d2b901c822",
+        measurementId: "G-7R4Z3ZSZ67"
+    };
+
+    // Initialize tab functionality
+    window.initializeProfileTabs = function() {
+      console.log('Initializing profile tabs...');
+      
+      // Remove existing listeners first
+      const existingTabs = document.querySelectorAll('.profile-tab');
+      existingTabs.forEach(tab => {
+        // Clone and replace to remove all event listeners
+        const newTab = tab.cloneNode(true);
+        tab.parentNode.replaceChild(newTab, tab);
+      });
+      
+      // Add new listeners
+      const profileTabs = document.querySelectorAll('.profile-tab');
+      console.log('Found profile tabs:', profileTabs.length);
+      
+      profileTabs.forEach((tab, index) => {
+        console.log(`Setting up tab ${index}:`, tab.dataset.tab);
+        tab.addEventListener('click', function(e) {
+          console.log('Tab clicked:', tab.dataset.tab);
+          e.preventDefault();
+          e.stopPropagation();
+          const targetTab = tab.dataset.tab;
+          
+          // Update tab buttons
+          document.querySelectorAll('.profile-tab').forEach(t => {
+            t.classList.remove('active');
+          });
+          tab.classList.add('active');
+          console.log('Added active to tab:', targetTab);
+          
+          // Update tab content
+          document.querySelectorAll('.profile-tab-content').forEach(content => {
+            content.classList.remove('active');
+          });
+          const targetContent = document.getElementById(`profile-${targetTab}-tab`);
+          console.log('Looking for content:', `profile-${targetTab}-tab`);
+          if (targetContent) {
+            targetContent.classList.add('active');
+            console.log('Added active to content:', targetContent.id);
+          } else {
+            console.error('Target content not found:', `profile-${targetTab}-tab`);
+          }
+        });
+      });
+    };
+
+    // Direct account link handler
+    window.handleAccountClick = function(e) {
+      console.log('Account link clicked');
+      
+      // Always prevent default link behavior
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Check if modal is already open
+      const profileSection = document.getElementById('profile-section');
+      if (profileSection && profileSection.style.display === 'block') {
+        console.log('Modal already open, ignoring click');
+        return;
+      }
+      
+      // Add a small delay to ensure DOM is ready
+      setTimeout(() => {
+        // Check if Firebase auth is ready
+        if (!window.gameAuth) {
+          console.log('Firebase auth not initialized, redirecting to auth page');
+          window.location.href = 'auth.html';
+          return;
+        }
+        
+        // Wait for auth to be ready
+        window.gameAuth.waitForAuthInit().then(() => {
+          console.log('Auth initialized, checking login status');
+          if (window.gameAuth.isLoggedIn()) {
+            console.log('User is logged in, showing profile');
+            window.showProfileSection();
+          } else {
+            console.log('User not logged in, redirecting to auth');
+            window.location.href = 'auth.html';
+          }
+        }).catch(error => {
+          console.error('Auth initialization error:', error);
+          console.log('Falling back to auth page');
+          window.location.href = 'auth.html';
+        });
+      }, 100);
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    window.gameAuth = new GameAuth(app);
+
+    // Add a backup mechanism in case Firebase fails
+    window.addEventListener('error', (e) => {
+      if (e.message && e.message.includes('firebase')) {
+        console.warn('Firebase error detected, account features may be limited');
+      }
+    });
+
+    // Ensure account link works even if Firebase is slow to load
+    document.addEventListener('DOMContentLoaded', () => {
+      const accountLink = document.getElementById('account-link');
+      if (accountLink) {
+        // Ensure the click handler is attached
+        accountLink.removeEventListener('click', window.handleAccountClick);
+        accountLink.addEventListener('click', window.handleAccountClick);
+      }
+    });
+    
+    // Global functions for profile management
+    window.showProfileSection = function() {
+      console.log('showProfileSection called');
+      const profileSection = document.getElementById('profile-section');
+      console.log('Profile section element:', profileSection);
+      
+      if (profileSection) {
+        console.log('Setting profile section to display block');
+        
+        // Prevent any click events from immediately closing the modal
+        window.modalJustOpened = true;
+        
+        profileSection.style.display = 'block';
+        profileSection.style.zIndex = '10000';
+        document.body.style.overflow = 'hidden';
+        
+        // Force a repaint
+        profileSection.offsetHeight;
+        
+        loadProfileData();
+        console.log('Profile section should now be visible');
+        
+        // Reset the flag after a short delay
+        setTimeout(() => {
+          window.modalJustOpened = false;
+        }, 300);
+        
+      } else {
+        console.error('Profile section not found in DOM');
+        // Try to redirect to auth page if profile section is missing
+        window.location.href = 'auth.html';
+      }
+    };
+
+    window.hideProfileSection = function() {
+      console.log('hideProfileSection called - Stack trace:');
+      console.trace();
+      
+      const profileSection = document.getElementById('profile-section');
+      if (profileSection) {
+        profileSection.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        console.log('Profile section hidden');
+      }
+    };
+
+    window.loadProfileData = function() {
+      console.log('Loading profile data...');
+      if (!window.gameAuth) return;
+      
+      const userData = window.gameAuth.getCurrentUser();
+      if (userData.user && userData.profile) {
+        const profile = userData.profile;
+        
+        // Update profile info
+        const usernameEl = document.getElementById('profile-username-display');
+        const emailEl = document.getElementById('profile-email-display');
+        const picEl = document.getElementById('profile-pic-display');
+        const joinedEl = document.getElementById('profile-joined-display');
+        
+        if (usernameEl) usernameEl.textContent = profile.username || 'Unknown';
+        if (emailEl) emailEl.textContent = profile.email || 'Unknown';
+        if (picEl) picEl.textContent = (profile.username || 'U').charAt(0).toUpperCase();
+        
+        if (joinedEl && profile.createdAt) {
+          const joinDate = new Date(profile.createdAt.seconds * 1000).toLocaleDateString();
+          joinedEl.textContent = joinDate;
+        }
+
+        // Update stats
+        const scoreEl = document.getElementById('total-score-display');
+        const gamesEl = document.getElementById('games-played-display');
+        const winsEl = document.getElementById('wins-count-display');
+        
+        if (scoreEl) scoreEl.textContent = (profile.score || 0).toLocaleString();
+        if (gamesEl) gamesEl.textContent = profile.gamesPlayed || 0;
+        if (winsEl) winsEl.textContent = profile.wins || 0;
+        
+        // Update settings form
+        const settingsUsernameEl = document.getElementById('settings-username-display');
+        const settingsThemeEl = document.getElementById('settings-theme-display');
+        const settingsLanguageEl = document.getElementById('settings-language-display');
+        
+        if (settingsUsernameEl) settingsUsernameEl.value = profile.username || '';
+        if (settingsThemeEl) settingsThemeEl.value = profile.settings?.theme || 'light';
+        if (settingsLanguageEl) settingsLanguageEl.value = profile.settings?.language || 'en';
+      }
+      
+      // Initialize tabs if not already done
+      window.initializeProfileTabs();
+    };
+    
+    // Update navigation based on auth status
+    window.gameAuth.waitForAuthInit().then(() => {
+      console.log('Auth initialized, updating navigation...');
+      const accountLink = document.getElementById('account-link');
+      if (!accountLink) {
+        console.error('Account link not found');
+        return;
+      }
+      
+      // Add click handler as backup to onclick attribute
+      accountLink.addEventListener('click', window.handleAccountClick);
+      
+      if (window.gameAuth.isLoggedIn()) {
+        const userData = window.gameAuth.getCurrentUser();
+        if (userData.profile) {
+          console.log('User is logged in, updating account link text...');
+          accountLink.innerHTML = '👤 ' + userData.profile.username;
+        }
+      } else {
+        console.log('User not logged in, keeping default auth link');
+      }
+    }).catch(error => {
+      console.error('Error in auth initialization:', error);
+      
+      // Even if auth fails, add the click handler
+      const accountLink = document.getElementById('account-link');
+      if (accountLink) {
+        accountLink.addEventListener('click', window.handleAccountClick);
+      }
+    });
+
+    // Profile tab switching
+    document.addEventListener('DOMContentLoaded', () => {
+      // Close profile section
+      const closeBtn = document.getElementById('close-profile');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          hideProfileSection();
+        });
+      }
+      
+      // Tab switching
+      console.log('Setting up tab switching from DOMContentLoaded...');
+      window.initializeProfileTabs();
+
+      // Settings save
+      const saveBtn = document.getElementById('save-settings-display');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const username = document.getElementById('settings-username-display').value;
+          const theme = document.getElementById('settings-theme-display').value;
+          const language = document.getElementById('settings-language-display').value;
+
+          const updates = {
+            username: username,
+            'settings.theme': theme,
+            'settings.language': language
+          };
+
+          try {
+            const result = await window.gameAuth.updateUserProfile(updates);
+            if (result.success) {
+              alert('Settings saved successfully!');
+              loadProfileData(); // Refresh display
+            } else {
+              alert('Error saving settings: ' + result.error);
+            }
+          } catch (error) {
+            console.error('Error saving settings:', error);
+            alert('Error saving settings. Please try again.');
+          }
+        });
+      }
+
+      // Logout button
+      const logoutBtn = document.getElementById('logout-btn-display');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          if (confirm('Are you sure you want to logout?')) {
+            await window.gameAuth.logout();
+            hideProfileSection();
+            location.reload();
+          }
+        });
+      }
+
+      // Close profile when clicking on the overlay background (but not the modal content)
+      const profileSection = document.getElementById('profile-section');
+      if (profileSection) {
+        profileSection.addEventListener('click', function(e) {
+          // Don't close if modal just opened
+          if (window.modalJustOpened) {
+            console.log('Modal just opened, ignoring background click');
+            return;
+          }
+          
+          // Only close if clicking directly on the overlay background
+          if (e.target === profileSection) {
+            console.log('Background clicked, closing modal');
+            hideProfileSection();
+          }
+        });
+      }
+      
+      // Prevent clicks inside the modal from bubbling up
+      const profileContainer = document.querySelector('.profile-container');
+      if (profileContainer) {
+        profileContainer.addEventListener('click', function(e) {
+          console.log('Click inside profile container, stopping propagation');
+          e.stopPropagation();
+        });
+        
+        // Also prevent any child elements from bubbling
+        profileContainer.addEventListener('mousedown', function(e) {
+          e.stopPropagation();
+        });
+      }
+
+      // ESC key to close modal
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const profileSection = document.getElementById('profile-section');
+          if (profileSection && profileSection.style.display === 'block') {
+            hideProfileSection();
+          }
+        }
+      });
+    });
+  </script>
 
   <!-- App scripts -->
   <script type="module" src="./main.js"></script>

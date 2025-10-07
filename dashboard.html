@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - E.Vol Games</title>
+    <link rel="stylesheet" href="css/help-widget.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #ff3742;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 1rem 2rem;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .profile-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-info p {
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            text-decoration: none;
+            color: #333;
+        }
+
+        .game-emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .game-card h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .game-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .settings-form {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input, .form-select {
+            padding: 1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .save-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .save-btn:hover {
+            background: #5a67d8;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .leaderboard-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .current-user {
+            background: #e3f2fd !important;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .tab-buttons {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 0.5rem;
+            }
+            
+            .profile-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="assets/logo.svg" alt="E.Vol Games Logo" style="width: 30px; height: 30px; margin-right: 8px; vertical-align: middle;">
+                E.Vol Games
+            </div>
+            <div class="nav-user">
+                <div class="user-info">
+                    <div id="user-avatar" class="user-avatar">?</div>
+                    <span id="user-name">Loading...</span>
+                </div>
+                <button id="logout-btn" class="logout-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Tab Buttons -->
+        <div class="tab-buttons">
+            <button class="tab-btn active" data-tab="dashboard">
+                📊 Dashboard
+            </button>
+            <button class="tab-btn" data-tab="games">
+                🎮 Games
+            </button>
+            <button class="tab-btn" data-tab="leaderboard">
+                🏆 Leaderboard
+            </button>
+            <button class="tab-btn" data-tab="settings">
+                ⚙️ Settings
+            </button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2 class="card-title">Profile</h2>
+                    <div class="profile-section">
+                        <div id="profile-pic" class="profile-pic">?</div>
+                        <div class="profile-info">
+                            <h3 id="profile-username">Loading...</h3>
+                            <p id="profile-email">Loading...</p>
+                            <p>Member since: <span id="profile-joined">Loading...</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Game Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div id="total-score" class="stat-value">0</div>
+                            <div class="stat-label">Total Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div id="games-played" class="stat-value">0</div>
+                            <div class="stat-label">Games Played</div>
+                        </div>
+                        <div class="stat-item">
+                            <div id="wins-count" class="stat-value">0</div>
+                            <div class="stat-label">Wins</div>
+                        </div>
+                        <div class="stat-item">
+                            <div id="rank-position" class="stat-value">-</div>
+                            <div class="stat-label">Global Rank</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Games Tab -->
+        <div id="games-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Available Games</h2>
+                <div class="games-grid" id="games-grid">
+                    <!-- Games will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Tab -->
+        <div id="leaderboard-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Global Leaderboard</h2>
+                <div id="leaderboard-content" class="loading">Loading leaderboard...</div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Profile Settings</h2>
+                <form id="settings-form" class="settings-form">
+                    <div class="form-group">
+                        <label class="form-label" for="settings-username">Username</label>
+                        <input type="text" id="settings-username" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="settings-theme">Theme</label>
+                        <select id="settings-theme" class="form-select">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="settings-language">Language</label>
+                        <select id="settings-language" class="form-select">
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                            <option value="ja">日本語</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="settings-font-size">Font Size</label>
+                        <select id="settings-font-size" class="form-select">
+                            <option value="small">Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="settings-profile-pic">Profile Picture</label>
+                        <input type="file" id="settings-profile-pic" accept="image/*" class="form-input">
+                    </div>
+
+                    <button type="submit" class="save-btn">Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import gameAuth from './js/firebase-auth.js';
+
+        let currentTab = 'dashboard';
+        let userProfile = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAuth();
+            setupEventListeners();
+            loadGames();
+        });
+
+        async function initializeAuth() {
+            // Wait for Firebase auth to initialize
+            await gameAuth.waitForAuthInit();
+
+            if (!gameAuth.isLoggedIn()) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            const userData = gameAuth.getCurrentUser();
+            if (userData.user && userData.profile) {
+                userProfile = userData.profile;
+                updateUI();
+                await loadLeaderboard();
+            } else if (userData.user) {
+                // User exists but profile not loaded yet, wait for it
+                await gameAuth.loadUserProfile(userData.user.uid);
+                const updatedData = gameAuth.getCurrentUser();
+                if (updatedData.profile) {
+                    userProfile = updatedData.profile;
+                    updateUI();
+                    await loadLeaderboard();
+                }
+            }
+        }
+
+        function updateUI() {
+            if (!userProfile) return;
+
+            // Update navbar
+            document.getElementById('user-name').textContent = userProfile.username;
+            document.getElementById('user-avatar').textContent = userProfile.username.charAt(0).toUpperCase();
+
+            // Update profile section
+            document.getElementById('profile-username').textContent = userProfile.username;
+            document.getElementById('profile-email').textContent = userProfile.email;
+            document.getElementById('profile-pic').textContent = userProfile.username.charAt(0).toUpperCase();
+            
+            if (userProfile.createdAt) {
+                const joinDate = new Date(userProfile.createdAt.seconds * 1000).toLocaleDateString();
+                document.getElementById('profile-joined').textContent = joinDate;
+            }
+
+            // Update stats
+            document.getElementById('total-score').textContent = (userProfile.score || 0).toLocaleString();
+            document.getElementById('games-played').textContent = userProfile.gamesPlayed || 0;
+            document.getElementById('wins-count').textContent = userProfile.wins || 0;
+
+            // Update settings form
+            document.getElementById('settings-username').value = userProfile.username;
+            document.getElementById('settings-theme').value = userProfile.settings?.theme || 'light';
+            document.getElementById('settings-language').value = userProfile.settings?.language || 'en';
+            document.getElementById('settings-font-size').value = userProfile.settings?.fontSize || 'medium';
+        }
+
+        function setupEventListeners() {
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+
+            // Logout
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await gameAuth.logout();
+                window.location.href = 'auth.html';
+            });
+
+            // Settings form
+            document.getElementById('settings-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await saveSettings();
+            });
+        }
+
+        function switchTab(tabName) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            currentTab = tabName;
+
+            // Load tab-specific content
+            if (tabName === 'leaderboard') {
+                loadLeaderboard();
+            }
+        }
+
+        function loadGames() {
+            const games = [
+                { name: 'Brain Riddles', file: 'games/riddles.html', emoji: '🧩', description: 'Solve classic teasers' },
+                { name: 'Trivia', file: 'games/trivia.html', emoji: '🤔', description: 'Test knowledge with multiple-choice' },
+                { name: '20 Questions', file: 'games/twenty-questions.html', emoji: '❓', description: 'Guess what I\'m thinking with yes/no questions' },
+                { name: 'Animal 20 Questions', file: 'games/animal-twenty-questions.html', emoji: '🐾', description: 'Guess the animal I\'m thinking of' },
+                { name: 'Emoji Game', file: 'games/emoji.html', emoji: '😊', description: 'Guess words from emoji clues' },
+                { name: 'Word Game', file: 'games/word.html', emoji: '📝', description: 'Creative word challenges' },
+                { name: 'Chess', file: 'games/chess.html', emoji: '♟️', description: 'Classic strategy board game' },
+                { name: 'Connect 4', file: 'games/connect4.html', emoji: '🔴', description: 'Connect four in a row to win' },
+                { name: 'Imposter', file: 'games/imposter.html', emoji: '🕵️', description: 'Find the imposter among us' },
+                { name: 'School Trivia', file: 'games/school-trivia.html', emoji: '🎓', description: 'Test your academic knowledge' },
+                { name: 'Tic-Tac-Toe', file: 'games/tic-tac-toe.html', emoji: '⭕', description: 'Classic X and O strategy game' },
+                { name: 'Rock Paper Scissors', file: 'games/rock-paper-scissors.html', emoji: '✂️', description: 'Beat the computer in this classic game' },
+                { name: 'Guess the Number', file: 'games/guess-the-number.html', emoji: '🔢', description: 'Guess my number with clever hints' },
+                { name: 'Memory Cards', file: 'games/memory-cards.html', emoji: '🃏', description: 'Match pairs of cards to test your memory' },
+                { name: 'Snake', file: 'games/snake.html', emoji: '🐍', description: 'Classic snake game with growing challenges' },
+                { name: 'Word Scramble', file: 'games/word-scramble.html', emoji: '🔤', description: 'Unscramble the mixed up words' },
+                { name: 'Hangman', file: 'games/hangman.html', emoji: '🎯', description: 'Guess the word before running out of tries' },
+                { name: 'Reaction Timer', file: 'games/reaction-timer.html', emoji: '⚡', description: 'Test your reaction speed' },
+                { name: 'Whack-a-Mole', file: 'games/whack-a-mole.html', emoji: '🔨', description: 'Hit the moles as they pop up' },
+                { name: 'Cookie Clicker', file: 'games/cookie-clicker.html', emoji: '🍪', description: 'Click to bake infinite cookies' },
+                { name: 'Piano', file: 'games/piano.html', emoji: '🎹', description: 'Play virtual piano with sheet music' },
+                { name: '2048', file: 'games/2048.html', emoji: '🎯', description: 'Slide numbers to reach the 2048 tile' },
+                { name: 'Brick Breaker', file: 'games/brick-breaker.html', emoji: '🧱', description: 'Break all the bricks with your ball' },
+                { name: 'Mini Sudoku', file: 'games/mini-sudoku.html', emoji: '🔢', description: 'Solve number puzzles' },
+                { name: 'Lights Out', file: 'games/lights-out.html', emoji: '💡', description: 'Turn off all the lights' },
+                { name: 'Pong', file: 'games/pong.html', emoji: '🏓', description: 'Classic paddle ball game' },
+                { name: 'Typing Speed', file: 'games/typing-speed.html', emoji: '⌨️', description: 'Test and improve your typing speed' },
+                { name: 'Counting Game', file: 'games/counting.html', emoji: '🔢', description: 'Count objects and numbers' },
+                { name: 'Dodge Game', file: 'games/dodge.html', emoji: '🚀', description: 'Dodge obstacles and survive' },
+                { name: 'EvolMon', file: 'games/evolmon.html', emoji: '👾', description: 'Catch and evolve creatures' },
+                { name: 'Flappy Helicopter', file: 'games/flappy-helicopter.html', emoji: '🚁', description: 'Navigate through obstacles' }
+            ];
+
+            const gamesGrid = document.getElementById('games-grid');
+            gamesGrid.innerHTML = games.map(game => `
+                <a href="${game.file}" class="game-card">
+                    <div class="game-emoji">${game.emoji}</div>
+                    <h3>${game.name}</h3>
+                    <p>${game.description}</p>
+                </a>
+            `).join('');
+        }
+
+        async function loadLeaderboard() {
+            const leaderboardContent = document.getElementById('leaderboard-content');
+            leaderboardContent.innerHTML = '<div class="loading">Loading leaderboard...</div>';
+
+            try {
+                const leaderboard = await gameAuth.getGlobalLeaderboard(20);
+                
+                if (leaderboard.length === 0) {
+                    leaderboardContent.innerHTML = '<p>No scores yet. Be the first to play!</p>';
+                    return;
+                }
+
+                const currentUserId = gameAuth.getCurrentUser().user?.uid;
+                
+                const tableHTML = `
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Total Score</th>
+                                <th>Games Played</th>
+                                <th>Wins</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${leaderboard.map((player, index) => `
+                                <tr class="${player.uid === currentUserId ? 'current-user' : ''}">
+                                    <td>#${index + 1}</td>
+                                    <td>${player.username}</td>
+                                    <td>${player.score.toLocaleString()}</td>
+                                    <td>${player.gamesPlayed}</td>
+                                    <td>${player.wins}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                leaderboardContent.innerHTML = tableHTML;
+
+                // Update rank in dashboard
+                const userRank = leaderboard.findIndex(p => p.uid === currentUserId) + 1;
+                document.getElementById('rank-position').textContent = userRank > 0 ? `#${userRank}` : '-';
+
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                leaderboardContent.innerHTML = '<p>Error loading leaderboard. Please try again.</p>';
+            }
+        }
+
+        async function saveSettings() {
+            const username = document.getElementById('settings-username').value;
+            const theme = document.getElementById('settings-theme').value;
+            const language = document.getElementById('settings-language').value;
+            const fontSize = document.getElementById('settings-font-size').value;
+            const profilePicFile = document.getElementById('settings-profile-pic').files[0];
+
+            const updates = {
+                username: username,
+                'settings.theme': theme,
+                'settings.language': language,
+                'settings.fontSize': fontSize
+            };
+
+            try {
+                if (profilePicFile) {
+                    const uploadResult = await gameAuth.uploadProfilePicture(profilePicFile);
+                    if (uploadResult.success) {
+                        updates['settings.profilePicUrl'] = uploadResult.url;
+                    }
+                }
+
+                const result = await gameAuth.updateUserProfile(updates);
+                
+                if (result.success) {
+                    userProfile = { ...userProfile, ...updates };
+                    updateUI();
+                    alert('Settings saved successfully!');
+                } else {
+                    alert('Error saving settings: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('Error saving settings. Please try again.');
+            }
+        }
+    </script>
+
+    <!-- Help Widget -->
+    <script src="js/help-widget.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initHelpWidget('User Dashboard');
+        });
+    </script>
+</body>
+</html>

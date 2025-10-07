@@ -6,6 +6,53 @@
     <title>Snake Game</title>
     <link rel="stylesheet" href="../css/help-widget.css">
     <script src="../js/game-player.js"></script>
+    
+    <!-- Firebase SDK for score saving -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+        import { GameAuth } from '../js/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQE2mo6RNgwG-WaooCpoZjQ9Z8G2MHvx8",
+            authDomain: "profile-9e9f9.firebaseapp.com",
+            databaseURL: "https://profile-9e9f9-default-rtdb.firebaseio.com",
+            projectId: "profile-9e9f9",
+            storageBucket: "profile-9e9f9.firebasestorage.app",
+            messagingSenderId: "610449223815",
+            appId: "1:610449223815:web:3cdb864b4314d2b901c822",
+            measurementId: "G-7R4Z3ZSZ67"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        window.gameAuth = new GameAuth(app);
+        
+        // Global score submission function
+        window.submitScore = async function(gameName, playerScore) {
+            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                try {
+                    const result = await window.gameAuth.submitScore(gameName, playerScore);
+                    if (result.success) {
+                        alert('Score saved! You scored ' + parseInt(playerScore).toLocaleString() + ' in ' + gameName);
+                    } else {
+                        alert('Error saving score: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error submitting score:', error);
+                    alert('Error saving score. Please try again.');
+                }
+            } else {
+                if (confirm('You need to be logged in to save your score. Would you like to login now?')) {
+                    window.location.href = '../auth.html';
+                } else {
+                    alert('Score: ' + parseInt(playerScore).toLocaleString() + ' (not saved)');
+                }
+            }
+        };
+    </script>
     <style>
         body {
             margin: 0;
