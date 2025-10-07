@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Heart shape with gradient -->
+  <defs>
+    <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9b59b6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8e44ad;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6a1b9a;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+  </defs>
+  
+  <!-- Main heart shape -->
+  <path d="M50,85 C50,85 20,60 20,40 C20,25 30,15 45,15 C47,15 50,20 50,20 C50,20 53,15 55,15 C70,15 80,25 80,40 C80,60 50,85 50,85 Z" 
+        fill="url(#heartGradient)" 
+        stroke="#4a148c" 
+        stroke-width="2"
+        filter="url(#shadow)"/>
+  
+  <!-- Eyes -->
+  <circle cx="40" cy="35" r="3" fill="#2c1810"/>
+  <circle cx="60" cy="35" r="3" fill="#2c1810"/>
+  
+  <!-- Eye highlights -->
+  <circle cx="41" cy="34" r="1" fill="#ffffff" opacity="0.8"/>
+  <circle cx="61" cy="34" r="1" fill="#ffffff" opacity="0.8"/>
+  
+  <!-- Smile -->
+  <path d="M35,50 Q50,65 65,50" 
+        fill="none" 
+        stroke="#2c1810" 
+        stroke-width="3" 
+        stroke-linecap="round"/>
+  
+  <!-- Teeth -->
+  <rect x="42" y="52" width="3" height="8" fill="#ffffff" rx="1"/>
+  <rect x="47" y="54" width="3" height="10" fill="#ffffff" rx="1"/>
+  <rect x="52" y="54" width="3" height="10" fill="#ffffff" rx="1"/>
+  <rect x="57" y="52" width="3" height="8" fill="#ffffff" rx="1"/>
+  
+  <!-- Blush/cheek highlights -->
+  <ellipse cx="30" cy="45" rx="4" ry="2" fill="#d1c4e9" opacity="0.6"/>
+  <ellipse cx="70" cy="45" rx="4" ry="2" fill="#d1c4e9" opacity="0.6"/>
+</svg>
