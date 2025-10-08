@@ -134,7 +134,7 @@
                         Time Limit: 45s | Monster Speed: Easy
                     </p>
                     <p class="text-red-400 text-sm">
-                        ⚠️ Monster starts at Back Stairs. Get 2 moves before it wakes up!
+                        ⚠️ Monster starts at Back Stairs. Get 4 moves before it wakes up!
                     </p>
                 </div>
             </div>
@@ -206,11 +206,14 @@
         ];
 
         const LEVEL_CONFIGS = [
-            { level: 1, keyRoom: 14, monsterSpeed: 900, timeLimit: 45, description: 'Easy' },
-            { level: 2, keyRoom: 9, monsterSpeed: 800, timeLimit: 40, description: 'Medium' },
-            { level: 3, keyRoom: 12, monsterSpeed: 700, timeLimit: 38, description: 'Hard' },
-            { level: 4, keyRoom: 13, monsterSpeed: 600, timeLimit: 35, description: 'Very Hard' },
-            { level: 5, keyRoom: 11, monsterSpeed: 500, timeLimit: 32, description: 'Expert' },
+            { level: 1, keyRoom: 6, monsterSpeed: 1800, timeLimit: 90, description: 'Tutorial' },      // Very easy start
+            { level: 2, keyRoom: 9, monsterSpeed: 1500, timeLimit: 75, description: 'Beginner' },     // Still easy 
+            { level: 3, keyRoom: 12, monsterSpeed: 1200, timeLimit: 60, description: 'Easy' },        // Getting comfortable
+            { level: 4, keyRoom: 14, monsterSpeed: 1000, timeLimit: 50, description: 'Normal' },      // Original easy
+            { level: 5, keyRoom: 13, monsterSpeed: 850, timeLimit: 45, description: 'Medium' },       // Slightly harder
+            { level: 6, keyRoom: 11, monsterSpeed: 700, timeLimit: 40, description: 'Hard' },         // Original medium
+            { level: 7, keyRoom: 15, monsterSpeed: 600, timeLimit: 35, description: 'Very Hard' },    // Original hard
+            { level: 8, keyRoom: 14, monsterSpeed: 500, timeLimit: 30, description: 'Expert' },       // Original expert
         ];
 
         // Game state
@@ -230,6 +233,14 @@
 
         function getCurrentConfig() {
             return LEVEL_CONFIGS[currentLevel - 1] || LEVEL_CONFIGS[LEVEL_CONFIGS.length - 1];
+        }
+
+        function getWakeUpThreshold() {
+            // Give beginners more free moves before monster wakes up
+            if (currentLevel <= 2) return 4;      // Tutorial/Beginner: 4 free moves
+            if (currentLevel <= 4) return 3;      // Easy/Normal: 3 free moves  
+            if (currentLevel <= 6) return 2;      // Medium/Hard: 2 free moves
+            return 1;                              // Very Hard/Expert: 1 free move
         }
 
         function getRandomMonsterSpawn() {
@@ -293,7 +304,7 @@
                         Time Limit: ${currentConfig.timeLimit}s | Monster Speed: ${currentConfig.description}
                     </p>
                     <p class="text-red-400 text-sm">
-                        ⚠️ Monster starts at ${currentLevel >= 2 ? 'RANDOM LOCATION' : 'Back Stairs'}. Get 2 moves before it wakes up!
+                        ⚠️ Monster starts at ${currentLevel >= 3 ? 'RANDOM LOCATION' : 'Back Stairs'}. Get ${currentLevel <= 2 ? '4' : currentLevel <= 4 ? '3' : currentLevel <= 6 ? '2' : '1'} moves before it wakes up!
                     </p>
                 `;
             } else if (gameState === 'playing') {
@@ -304,7 +315,8 @@
                 let html = `<p class="text-white text-lg">You're in the <span class="text-blue-400 font-bold">${playerRoomName}</span></p>`;
                 
                 if (!monsterActive) {
-                    html += `<p class="text-green-400 text-sm mt-1 animate-pulse">😴 Monster is sleeping... Move 2 rooms to wake it! (${2 - roomsMoved} more)</p>`;
+                    const wakeUpThreshold = getWakeUpThreshold();
+                    html += `<p class="text-green-400 text-sm mt-1 animate-pulse">😴 Monster is sleeping... Move ${wakeUpThreshold} rooms to wake it! (${wakeUpThreshold - roomsMoved} more)</p>`;
                 } else {
                     html += `<p class="text-purple-400 text-sm mt-1">👻 Monster is in the ${monsterRoomName}!</p>`;
                 }
@@ -344,11 +356,11 @@
                             </div>
                         </div>
                         <p class="text-yellow-400 text-4xl font-bold mb-3 animate-pulse">🏆 CHAMPION! 🏆</p>
-                        <p class="text-green-400 text-2xl font-bold mb-2">YOU DEFEATED ALL 5 LEVELS!</p>
+                        <p class="text-green-400 text-2xl font-bold mb-2">YOU DEFEATED ALL 8 LEVELS!</p>
                         <div class="bg-gray-700 rounded-lg p-4 mt-4 inline-block">
                             <p class="text-white text-lg mb-2">📊 Final Stats</p>
                             <div class="text-left space-y-1">
-                                <p class="text-gray-300">✅ Levels Completed: <span class="text-green-400 font-bold">5/5</span></p>
+                                <p class="text-gray-300">✅ Levels Completed: <span class="text-green-400 font-bold">8/8</span></p>
                                 <p class="text-gray-300">⏱️ Total Time Saved: <span class="text-yellow-400 font-bold">${totalTime}s</span></p>
                                 <p class="text-gray-300">🎯 Difficulty: <span class="text-red-400 font-bold">EXPERT</span></p>
                             </div>
@@ -436,7 +448,7 @@
 
         function startGame() {
             const currentConfig = getCurrentConfig();
-            const spawnRoom = currentLevel >= 2 ? getRandomMonsterSpawn() : 10;
+            const spawnRoom = currentLevel >= 3 ? getRandomMonsterSpawn() : 10;
             
             gameState = 'playing';
             playerRoom = 1;
@@ -493,7 +505,8 @@
                 } else {
                     playerRoom = roomId;
                     roomsMoved++;
-                    if (roomsMoved >= 2 && !monsterActive) {
+                    const wakeUpThreshold = getWakeUpThreshold();
+                    if (roomsMoved >= wakeUpThreshold && !monsterActive) {
                         monsterActive = true;
                         startMonsterMovement();
                     }
@@ -501,7 +514,8 @@
             } else {
                 playerRoom = roomId;
                 roomsMoved++;
-                if (roomsMoved >= 2 && !monsterActive) {
+                const wakeUpThreshold = getWakeUpThreshold();
+                if (roomsMoved >= wakeUpThreshold && !monsterActive) {
                     monsterActive = true;
                     startMonsterMovement();
                 }
@@ -543,8 +557,30 @@
                 const distanceToPlayer = Math.abs(monsterRoomData.x - playerRoomData.x) + 
                                        Math.abs(monsterRoomData.y - playerRoomData.y);
                 
-                // Smart trapping logic when close
-                if (distanceToPlayer <= 3) {
+                // Difficulty-based AI behavior
+                let smartChance = 0.5; // Base intelligence
+                let trapDistance = 3;   // Distance to start trapping
+                
+                if (currentLevel <= 2) {
+                    // Tutorial/Beginner: Very dumb monster
+                    smartChance = 0.3;
+                    trapDistance = 2; // Only trap when very close
+                } else if (currentLevel <= 4) {
+                    // Easy/Normal: Moderate intelligence
+                    smartChance = 0.5;
+                    trapDistance = 3;
+                } else if (currentLevel <= 6) {
+                    // Medium/Hard: Smart monster
+                    smartChance = 0.7;
+                    trapDistance = 4;
+                } else {
+                    // Very Hard/Expert: Genius monster
+                    smartChance = 0.9;
+                    trapDistance = 5;
+                }
+                
+                // Smart trapping logic when close (scaled by difficulty)
+                if (distanceToPlayer <= trapDistance) {
                     const playerEscapeRooms = playerRoomData.connections;
                     
                     const movesWithScore = possibleMoves.map(roomId => {
@@ -564,14 +600,14 @@
                         return { roomId, score: blockScore * 2 - distToPlayer };
                     });
                     
-                    if (Math.random() < 0.9) {
+                    if (Math.random() < smartChance) {
                         movesWithScore.sort((a, b) => b.score - a.score);
                         monsterRoom = movesWithScore[0].roomId;
                     } else {
                         monsterRoom = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
                     }
                 } else {
-                    // Normal hunting behavior
+                    // Normal hunting behavior (also scaled by difficulty)
                     const movesWithDistance = possibleMoves.map(roomId => {
                         const room = ROOMS.find(r => r.id === roomId);
                         const distance = Math.abs(room.x - playerRoomData.x) + 
@@ -579,7 +615,8 @@
                         return { roomId, distance };
                     });
                     
-                    if (Math.random() < 0.85) {
+                    // Hunting intelligence also scales with level
+                    if (Math.random() < smartChance) {
                         movesWithDistance.sort((a, b) => a.distance - b.distance);
                         monsterRoom = movesWithDistance[0].roomId;
                     } else {
