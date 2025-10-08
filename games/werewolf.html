@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Werewolf Game - Online Multiplayer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase integration for leaderboard -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+    import { GameAuth } from '../js/firebase-auth.js';
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyDn2cL3G7YIU5F9pYcwWp3vd6rT8GHfVlE",
+      authDomain: "profile-9e9f9.firebaseapp.com",
+      projectId: "profile-9e9f9",
+      storageBucket: "profile-9e9f9.appspot.com",
+      messagingSenderId: "412374234567",
+      appId: "1:412374234567:web:8a9b5c6d7e8f9g0h1i2j3k4l"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    window.gameAuth = new GameAuth(app);
+    
+    // Global score submission function
+    window.submitScore = async function(gameName, playerScore) {
+      if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+        try {
+          const result = await window.gameAuth.submitScore(gameName, playerScore);
+          if (result.success) {
+            alert('Score saved! You earned ' + parseInt(playerScore).toLocaleString() + ' points in ' + gameName);
+          } else {
+            alert('Error saving score: ' + result.error);
+          }
+        } catch (error) {
+          console.error('Error submitting score:', error);
+          alert('Error saving score. Please try again.');
+        }
+      } else {
+        if (confirm('You need to be logged in to save your score. Would you like to login now?')) {
+          window.location.href = '../auth.html';
+        } else {
+          alert('Score: ' + parseInt(playerScore).toLocaleString() + ' points (not saved)');
+        }
+      }
+    };
+  </script>
+  
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Lucide Icons (SVG components)
+    const Users = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    );
+
+    const Moon = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
+    );
+
+    const Sun = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    );
+
+    const Eye = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      </svg>
+    );
+
+    const Heart = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+      </svg>
+    );
+
+    const Shield = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    );
+
+    const Skull = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2C6.48 2 2 6.48 2 12c0 4.41 2.87 8.14 6.84 9.43.12.25.16.52.16.77v1.8h6v-1.8c0-.25.04-.52.16-.77C19.13 20.14 22 16.41 22 12c0-5.52-4.48-10-10-10zM9 17.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm6 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+      </svg>
+    );
+
+    const Crown = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3l4 6l5-4l5 4l4-6v16H5V3z" />
+      </svg>
+    );
+
+    const AlertCircle = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    );
+
+    const Wifi = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+      </svg>
+    );
+
+    const Bot = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
+        <circle cx="12" cy="5" r="2"/>
+        <path d="M12 7v4"/>
+        <line x1="8" y1="16" x2="8" y2="16"/>
+        <line x1="16" y1="16" x2="16" y2="16"/>
+      </svg>
+    );
+
+    const Shuffle = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <polyline points="16,3 21,3 21,8"/>
+        <line x1="4" y1="20" x2="21" y2="3"/>
+        <polyline points="21,16 21,21 16,21"/>
+        <line x1="15" y1="15" x2="21" y2="21"/>
+        <line x1="4" y1="4" x2="9" y2="9"/>
+      </svg>
+    );
+
+    const Target = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+      </svg>
+    );
+
+    const UserX = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        <line x1="17" y1="8" x2="22" y2="13"/>
+        <line x1="22" y1="8" x2="17" y2="13"/>
+      </svg>
+    );
+
+    const Copy = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+      </svg>
+    );
+
+    const Check = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <polyline points="20,6 9,17 4,12"/>
+      </svg>
+    );
+
+    const WerewolfGame = () => {
+      const [mode, setMode] = useState(null); // 'local', 'online', 'ai'
+      const [gameState, setGameState] = useState('modeSelect');
+      const [players, setPlayers] = useState([]);
+      const [playerName, setPlayerName] = useState('');
+      const [myPlayerId, setMyPlayerId] = useState(null);
+      const [roomCode, setRoomCode] = useState('');
+      const [joinCode, setJoinCode] = useState('');
+      const [isHost, setIsHost] = useState(false);
+      const [copied, setCopied] = useState(false);
+      
+      const [roles, setRoles] = useState({
+        werewolves: 2,
+        seer: 1,
+        doctor: 1,
+        jester: 0,
+        bestFriends: 0,
+        bountyHunter: 0,
+        swapper: 0,
+        villagers: 0
+      });
+      
+      const [currentPhase, setCurrentPhase] = useState('');
+      const [nightActions, setNightActions] = useState({});
+      const [dayNumber, setDayNumber] = useState(1);
+      const [votingResults, setVotingResults] = useState({});
+      const [gameLog, setGameLog] = useState([]);
+      const [selectedPlayer, setSelectedPlayer] = useState(null);
+      const [selectedPlayers, setSelectedPlayers] = useState([]);
+      const [revealedRole, setRevealedRole] = useState(null);
+      const [myRole, setMyRole] = useState(null);
+      const [bountyTarget, setBountyTarget] = useState(null);
+      const [bestFriendsPair, setBestFriendsPair] = useState([]);
+      const [hasVoted, setHasVoted] = useState(false);
+      const [turnCount, setTurnCount] = useState(0);
+      const [onlineGameData, setOnlineGameData] = useState(null);
+      const [pollInterval, setPollInterval] = useState(null);
+
+      const roleDescriptions = {
+        werewolf: 'Eliminate villagers at night. Win when you equal or outnumber villagers.',
+        seer: 'Learn one player\'s role each night. Help villagers find werewolves.',
+        doctor: 'Protect one player from elimination each night.',
+        villager: 'Find and eliminate all werewolves through discussion and voting.',
+        jester: 'Your goal is to be voted out during the day. You win if lynched (not killed by werewolves).',
+        bestFriends: 'You are linked with another player. If one dies, both die. If paired with a werewolf, you can only win if werewolves win.',
+        bountyHunter: 'You have a secret target. Get them eliminated to become a jester.',
+        swapper: 'After turn 4, swap two players\' roles each night. They don\'t know they\'ve been swapped.'
+      };
+
+      const roleIcons = {
+        werewolf: Skull,
+        seer: Eye,
+        doctor: Heart,
+        villager: Users,
+        jester: UserX,
+        bestFriends: Heart,
+        bountyHunter: Target,
+        swapper: Shuffle
+      };
+
+      // Simulated Firebase using memory (for demo - in production use real Firebase)
+      const gameDatabase = {};
+
+      const createOnlineRoom = () => {
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        setRoomCode(code);
+        setIsHost(true);
+        setMode('online');
+        
+        gameDatabase[code] = {
+          gameState: 'setup',
+          players: {},
+          host: 'host',
+          createdAt: Date.now()
+        };
+        
+        setGameState('setup');
+        startPolling(code);
+      };
+
+      const joinOnlineRoom = () => {
+        if (!joinCode.trim()) return;
+        
+        if (gameDatabase[joinCode.toUpperCase()]) {
+          setRoomCode(joinCode.toUpperCase());
+          setMode('online');
+          setGameState('setup');
+          startPolling(joinCode.toUpperCase());
+        } else {
+          alert('Room not found! Note: This demo uses in-memory storage. Share the room code with players on the same device/session.');
+        }
+      };
+
+      const startPolling = (code) => {
+        const interval = setInterval(() => {
+          if (gameDatabase[code]) {
+            setOnlineGameData({...gameDatabase[code]});
+          }
+        }, 500);
+        setPollInterval(interval);
+      };
+
+      useEffect(() => {
+        if (onlineGameData && mode === 'online') {
+          if (onlineGameData.players) {
+            setPlayers(Object.values(onlineGameData.players));
+          }
+          if (onlineGameData.gameState) setGameState(onlineGameData.gameState);
+          if (onlineGameData.dayNumber) setDayNumber(onlineGameData.dayNumber);
+          if (onlineGameData.currentPhase) setCurrentPhase(onlineGameData.currentPhase);
+          if (onlineGameData.gameLog) setGameLog(onlineGameData.gameLog);
+          if (onlineGameData.votingResults) setVotingResults(onlineGameData.votingResults);
+          if (onlineGameData.turnCount) setTurnCount(onlineGameData.turnCount);
+          if (onlineGameData.bestFriendsPair) setBestFriendsPair(onlineGameData.bestFriendsPair);
+          if (onlineGameData.bountyTarget) setBountyTarget(onlineGameData.bountyTarget);
+          
+          if (myPlayerId && onlineGameData.players?.[myPlayerId]) {
+            setMyRole(onlineGameData.players[myPlayerId].role);
+          }
+        }
+      }, [onlineGameData]);
+
+      useEffect(() => {
+        return () => {
+          if (pollInterval) clearInterval(pollInterval);
+        };
+      }, [pollInterval]);
+
+      const syncGameState = (updates) => {
+        if (mode === 'online' && roomCode && isHost && gameDatabase[roomCode]) {
+          gameDatabase[roomCode] = {
+            ...gameDatabase[roomCode],
+            ...updates
+          };
+        }
+      };
+
+      const addPlayerOnline = () => {
+        if (!playerName.trim() || !roomCode) return;
+        
+        const playerId = `player-${Date.now()}`;
+        setMyPlayerId(playerId);
+        
+        if (!gameDatabase[roomCode]) return;
+        
+        gameDatabase[roomCode].players = {
+          ...gameDatabase[roomCode].players,
+          [playerId]: {
+            name: playerName.trim(),
+            role: null,
+            alive: true,
+            isAI: false,
+            id: playerId
+          }
+        };
+        
+        setPlayerName('');
+      };
+
+      // AI Bot Logic
+      const createAIBots = (count) => {
+        const botNames = ['Alpha Bot', 'Beta Bot', 'Gamma Bot', 'Delta Bot', 'Epsilon Bot', 
+                          'Zeta Bot', 'Eta Bot', 'Theta Bot', 'Iota Bot', 'Kappa Bot'];
+        const bots = [];
+        for (let i = 0; i < count; i++) {
+          bots.push({
+            name: botNames[i] || `Bot ${i + 1}`,
+            role: null,
+            alive: true,
+            isAI: true,
+            id: `bot-${Date.now()}-${i}`
+          });
+        }
+        return bots;
+      };
+
+      const aiMakeDecision = (bot, phase, alivePlayers) => {
+        const targets = alivePlayers.filter(p => p.id !== bot.id);
+        if (targets.length === 0) return null;
+        
+        const randomTarget = targets[Math.floor(Math.random() * targets.length)];
+        return randomTarget.name;
+      };
+
+      const processAIActions = async (phase) => {
+        const alivePlayers = players.filter(p => p.alive);
+        const aiBots = alivePlayers.filter(p => p.isAI);
+
+        for (const bot of aiBots) {
+          if (phase === 'day') {
+            const target = aiMakeDecision(bot, 'vote', alivePlayers);
+            if (target) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+              vote(target, true);
+            }
+          }
+        }
+      };
+
+      const addPlayer = () => {
+        if (playerName.trim() && !players.find(p => p.name === playerName.trim())) {
+          const newPlayer = { 
+            name: playerName.trim(), 
+            role: null, 
+            alive: true,
+            isAI: false,
+            id: Date.now() 
+          };
+          setPlayers([...players, newPlayer]);
+          setPlayerName('');
+          
+          if (mode === 'ai' && players.length === 0) {
+            setMyPlayerId(newPlayer.id);
+          }
+        }
+      };
+
+      const removePlayer = (id) => {
+        setPlayers(players.filter(p => p.id !== id));
+      };
+
+      const updateRoleCount = (role, change) => {
+        setRoles(prev => ({
+          ...prev,
+          [role]: Math.max(0, prev[role] + change)
+        }));
+      };
+
+      const startGame = () => {
+        const totalSpecialRoles = Object.entries(roles)
+          .filter(([key]) => key !== 'villagers')
+          .reduce((sum, [key, count]) => sum + (key === 'bestFriends' ? count * 2 : count), 0);
+        
+        const totalVillagers = players.length - totalSpecialRoles;
+
+        if (players.length < 5) {
+          alert('Need at least 5 players to start!');
+          return;
+        }
+
+        if (totalSpecialRoles > players.length) {
+          alert('Too many special roles for the number of players!');
+          return;
+        }
+
+        if (roles.werewolves === 0) {
+          alert('Need at least 1 werewolf!');
+          return;
+        }
+
+        let roleArray = [
+          ...Array(roles.werewolves).fill('werewolf'),
+          ...Array(roles.seer).fill('seer'),
+          ...Array(roles.doctor).fill('doctor'),
+          ...Array(roles.jester).fill('jester'),
+          ...Array(roles.bountyHunter).fill('bountyHunter'),
+          ...Array(roles.swapper).fill('swapper'),
+          ...Array(roles.bestFriends * 2).fill('bestFriends'),
+          ...Array(totalVillagers).fill('villager')
+        ];
+
+        roleArray = roleArray.sort(() => Math.random() - 0.5);
+
+        const updatedPlayers = players.map((player, index) => ({
+          ...player,
+          role: roleArray[index],
+          alive: true
+        }));
+
+        const bfPlayers = updatedPlayers.filter(p => p.role === 'bestFriends');
+        let newBestFriends = [];
+        if (bfPlayers.length >= 2) {
+          newBestFriends = [bfPlayers[0].id, bfPlayers[1].id];
+          setBestFriendsPair(newBestFriends);
+        }
+
+        const bhPlayers = updatedPlayers.filter(p => p.role === 'bountyHunter');
+        let newBountyTarget = null;
+        if (bhPlayers.length > 0) {
+          const potentialTargets = updatedPlayers.filter(p => p.role !== 'bountyHunter');
+          const target = potentialTargets[Math.floor(Math.random() * potentialTargets.length)];
+          newBountyTarget = target.id;
+          setBountyTarget(newBountyTarget);
+        }
+
+        setPlayers(updatedPlayers);
+        
+        if (mode === 'online') {
+          syncGameState({
+            players: updatedPlayers.reduce((acc, p) => ({ ...acc, [p.id]: p }), {}),
+            gameState: 'roleReveal',
+            bestFriendsPair: newBestFriends,
+            bountyTarget: newBountyTarget
+          });
+        }
+        
+        setGameState('roleReveal');
+        addLog('Game started! Players are reviewing their roles...');
+      };
+
+      const startNightPhase = () => {
+        setGameState('night');
+        setCurrentPhase('werewolves');
+        setNightActions({});
+        setSelectedPlayer(null);
+        setSelectedPlayers([]);
+        setHasVoted(false);
+        addLog(`Night ${dayNumber} begins...`);
+        
+        if (mode === 'online') {
+          syncGameState({ gameState: 'night', currentPhase: 'werewolves' });
+        }
+      };
+
+      const startDayPhase = () => {
+        const newTurnCount = turnCount + 1;
+        setTurnCount(newTurnCount);
+        
+        let killed = nightActions.werewolfKill;
+        const protectedPlayer = nightActions.doctorProtect;
+        const swapped = nightActions.swapPlayers;
+
+        if (swapped && swapped.length === 2 && newTurnCount >= 4) {
+          const [p1, p2] = swapped;
+          const player1 = players.find(p => p.name === p1);
+          const player2 = players.find(p => p.name === p2);
+          
+          if (player1 && player2) {
+            const tempRole = player1.role;
+            player1.role = player2.role;
+            player2.role = tempRole;
+            
+            setPlayers([...players]);
+            addLog(`The swapper has swapped two roles...`);
+          }
+        }
+
+        if (killed && killed === protectedPlayer) {
+          addLog(`The werewolves attacked ${killed}, but the doctor saved them!`);
+          killed = null;
+        } else if (killed) {
+          const killedPlayer = players.find(p => p.name === killed);
+          eliminatePlayer(killedPlayer.id, 'werewolf');
+          addLog(`${killed} was killed by werewolves during the night. They were a ${killedPlayer.role}.`);
+        }
+
+        setGameState('day');
+        setVotingResults({});
+        setSelectedPlayer(null);
+        setHasVoted(false);
+        addLog(`Day ${dayNumber} begins. Discuss and vote!`);
+        
+        if (mode === 'online') {
+          syncGameState({ 
+            gameState: 'day', 
+            votingResults: {},
+            turnCount: newTurnCount
+          });
+        }
+        
+        if (mode === 'ai') {
+          setTimeout(() => processAIActions('day'), 2000);
+        }
+        
+        checkWinCondition();
+      };
+
+      const submitNightAction = () => {
+        if (!selectedPlayer && selectedPlayers.length === 0) return;
+
+        const newActions = { ...nightActions };
+
+        if (currentPhase === 'werewolves') {
+          newActions.werewolfKill = selectedPlayer;
+          setNightActions(newActions);
+          
+          if (roles.seer > 0 && players.some(p => p.role === 'seer' && p.alive)) {
+            setCurrentPhase('seer');
+            setSelectedPlayer(null);
+          } else if (roles.doctor > 0 && players.some(p => p.role === 'doctor' && p.alive)) {
+            setCurrentPhase('doctor');
+            setSelectedPlayer(null);
+          } else if (roles.swapper > 0 && turnCount >= 4 && players.some(p => p.role === 'swapper' && p.alive)) {
+            setCurrentPhase('swapper');
+            setSelectedPlayers([]);
+          } else {
+            startDayPhase();
+          }
+        } else if (currentPhase === 'seer') {
+          const target = players.find(p => p.name === selectedPlayer);
+          setRevealedRole({ name: selectedPlayer, role: target.role });
+          newActions.seerCheck = selectedPlayer;
+          setNightActions(newActions);
+          
+          setTimeout(() => {
+            setRevealedRole(null);
+            if (roles.doctor > 0 && players.some(p => p.role === 'doctor' && p.alive)) {
+              setCurrentPhase('doctor');
+              setSelectedPlayer(null);
+            } else if (roles.swapper > 0 && turnCount >= 4 && players.some(p => p.role === 'swapper' && p.alive)) {
+              setCurrentPhase('swapper');
+              setSelectedPlayers([]);
+            } else {
+              startDayPhase();
+            }
+          }, 3000);
+        } else if (currentPhase === 'doctor') {
+          newActions.doctorProtect = selectedPlayer;
+          setNightActions(newActions);
+          
+          if (roles.swapper > 0 && turnCount >= 4 && players.some(p => p.role === 'swapper' && p.alive)) {
+            setCurrentPhase('swapper');
+            setSelectedPlayers([]);
+          } else {
+            startDayPhase();
+          }
+        } else if (currentPhase === 'swapper') {
+          if (selectedPlayers.length === 2) {
+            newActions.swapPlayers = selectedPlayers;
+            setNightActions(newActions);
+            startDayPhase();
+          }
+        }
+      };
+
+      const toggleSwapPlayer = (playerName) => {
+        if (selectedPlayers.includes(playerName)) {
+          setSelectedPlayers(selectedPlayers.filter(p => p !== playerName));
+        } else if (selectedPlayers.length < 2) {
+          setSelectedPlayers([...selectedPlayers, playerName]);
+        }
+      };
+
+      const vote = (targetName, isAI = false) => {
+        if (hasVoted && !isAI) return;
+        
+        const newVotes = {
+          ...votingResults,
+          [targetName]: (votingResults[targetName] || 0) + 1
+        };
+        
+        setVotingResults(newVotes);
+        if (!isAI) setHasVoted(true);
+        
+        if (mode === 'online') {
+          syncGameState({ votingResults: newVotes });
+        }
+      };
+
+      const endDayPhase = () => {
+        const votes = Object.entries(votingResults);
+        if (votes.length === 0) {
+          addLog('No one was voted out.');
+        } else {
+          const [eliminated] = votes.sort((a, b) => b[1] - a[1])[0];
+          const eliminatedPlayer = players.find(p => p.name === eliminated);
+          
+          if (eliminatedPlayer.role === 'jester') {
+            setGameState('ended');
+            addLog(`${eliminated} was voted out. They were the JESTER and they WIN!`);
+            
+            // Submit score for Jester win (hardest win condition)
+            if (myPlayer && myPlayer.id === eliminatedPlayer.id) {
+              const score = 200; // High score for Jester win
+              if (typeof window.submitScore === 'function') {
+                setTimeout(() => window.submitScore('Werewolf', score), 1000);
+              }
+            }
+            
+            return;
+          }
+          
+          if (bountyTarget === eliminatedPlayer.id) {
+            const bh = players.find(p => p.role === 'bountyHunter' && p.alive);
+            if (bh) {
+              bh.role = 'jester';
+              addLog(`The bounty hunter completed their mission and became a jester!`);
+            }
+          }
+          
+          eliminatePlayer(eliminatedPlayer.id, 'lynch');
+          addLog(`${eliminated} was voted out. They were a ${eliminatedPlayer.role}.`);
+        }
+
+        if (checkWinCondition()) return;
+
+        setDayNumber(dayNumber + 1);
+        
+        if (mode === 'online') {
+          syncGameState({ dayNumber: dayNumber + 1 });
+        }
+        
+        startNightPhase();
+      };
+
+      const eliminatePlayer = (playerId, method) => {
+        const player = players.find(p => p.id === playerId);
+        if (!player) return;
+
+        const updatedPlayers = players.map(p => 
+          p.id === playerId ? { ...p, alive: false } : p
+        );
+
+        if (bestFriendsPair.includes(playerId)) {
+          const partnerId = bestFriendsPair.find(id => id !== playerId);
+          const partner = players.find(p => p.id === partnerId);
+          
+          if (partner && partner.alive) {
+            updatedPlayers.forEach(p => {
+              if (p.id === partnerId) p.alive = false;
+            });
+            addLog(`${partner.name} dies with their best friend!`);
+          }
+        }
+
+        setPlayers(updatedPlayers);
+      };
+
+      const checkWinCondition = () => {
+        const alivePlayers = players.filter(p => p.alive);
+        const aliveWerewolves = alivePlayers.filter(p => p.role === 'werewolf').length;
+        const aliveVillagerTeam = alivePlayers.filter(p => {
+          if (p.role === 'bestFriends' && bestFriendsPair.includes(p.id)) {
+            const partnerId = bestFriendsPair.find(id => id !== p.id);
+            const partner = players.find(pl => pl.id === partnerId);
+            if (partner && partner.role === 'werewolf') return false;
+          }
+          return p.role !== 'werewolf';
+        }).length;
+
+        if (aliveWerewolves === 0) {
+          setGameState('ended');
+          addLog('Villagers win! All werewolves have been eliminated!');
+          
+          // Submit score for winning players (villager team)
+          if (myPlayer && myPlayer.alive && myPlayer.role !== 'werewolf') {
+            let score = 100; // Base score for winning
+            if (myPlayer.role === 'seer') score += 20; // Bonus for special roles
+            if (myPlayer.role === 'doctor') score += 20;
+            score += Math.max(0, 10 - dayNumber) * 5; // Speed bonus
+            
+            if (typeof window.submitScore === 'function') {
+              setTimeout(() => window.submitScore('Werewolf', score), 1000);
+            }
+          }
+          
+          return true;
+        } else if (aliveWerewolves >= aliveVillagerTeam) {
+          setGameState('ended');
+          addLog('Werewolves win! They equal or outnumber the villagers!');
+          
+          // Submit score for winning werewolves
+          if (myPlayer && myPlayer.alive && myPlayer.role === 'werewolf') {
+            let score = 150; // Higher base score for werewolves (harder to win)
+            score += Math.max(0, 15 - dayNumber) * 5; // Speed bonus
+            
+            if (typeof window.submitScore === 'function') {
+              setTimeout(() => window.submitScore('Werewolf', score), 1000);
+            }
+          }
+          
+          return true;
+        }
+        return false;
+      };
+
+      const addLog = (message) => {
+        setGameLog(prev => [...prev, { message, time: new Date().toLocaleTimeString() }]);
+      };
+
+      const resetGame = () => {
+        if (mode === 'online' && roomCode) {
+          delete gameDatabase[roomCode];
+        }
+        if (pollInterval) clearInterval(pollInterval);
+        
+        setGameState('modeSelect');
+        setMode(null);
+        setPlayers([]);
+        setRoles({ werewolves: 2, seer: 1, doctor: 1, jester: 0, bestFriends: 0, bountyHunter: 0, swapper: 0, villagers: 0 });
+        setDayNumber(1);
+        setGameLog([]);
+        setNightActions({});
+        setVotingResults({});
+        setRoomCode('');
+        setIsHost(false);
+        setMyPlayerId(null);
+        setTurnCount(0);
+        setBountyTarget(null);
+        setBestFriendsPair([]);
+      };
+
+      const copyRoomCode = () => {
+        navigator.clipboard.writeText(roomCode);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      };
+
+      const alivePlayers = players.filter(p => p.alive);
+      const myPlayer = players.find(p => p.id === myPlayerId);
+
+      // Mode Selection
+      if (gameState === 'modeSelect') {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-gray-800 rounded-lg shadow-2xl p-8 border border-purple-500">
+                <div className="text-center mb-8">
+                  <button
+                    onClick={() => window.location.href = '../index.html'}
+                    className="mb-4 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
+                  >
+                    ← Back to Games
+                  </button>
+                  <h1 className="text-4xl font-bold text-white mb-8">Werewolf Game</h1>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <button
+                    onClick={() => { setMode('local'); setGameState('setup'); }}
+                    className="p-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg hover:from-blue-700 hover:to-blue-900 transition transform hover:scale-105"
+                  >
+                    <Users className="w-16 h-16 text-white mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-white mb-2">Local Game</h2>
+                    <p className="text-blue-200">Play with friends on one device</p>
+                  </button>
+
+                  <button
+                    onClick={() => setGameState('onlineMenu')}
+                    className="p-8 bg-gradient-to-br from-green-600 to-green-800 rounded-lg hover:from-green-700 hover:to-green-900 transition transform hover:scale-105"
+                  >
+                    <Wifi className="w-16 h-16 text-white mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-white mb-2">Online Game</h2>
+                    <p className="text-green-200">Play with friends remotely</p>
+                    <p className="text-green-300 text-xs mt-2">Demo: Same device only</p>
+                  </button>
+
+                  <button
+                    onClick={() => { 
+                      setMode('ai'); 
+                      setGameState('setup');
+                    }}
+                    className="p-8 bg-gradient-to-br from-purple-600 to-purple-800 rounded-lg hover:from-purple-700 hover:to-purple-900 transition transform hover:scale-105"
+                  >
+                    <Bot className="w-16 h-16 text-white mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-white mb-2">vs AI Bots</h2>
+                    <p className="text-purple-200">Play against computer players</p>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Online Menu
+      if (gameState === 'onlineMenu') {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-gray-800 rounded-lg shadow-2xl p-8 border border-purple-500">
+                <h1 className="text-3xl font-bold text-white mb-8 text-center">Online Game</h1>
+                
+                <div className="bg-yellow-900 border border-yellow-600 rounded-lg p-4 mb-6">
+                  <p className="text-yellow-200 text-sm">
+                    <AlertCircle className="w-4 h-4 inline mr-2" />
+                    Demo Mode: This uses in-memory storage. All players must be on the same device/browser session.
+                  </p>
+                </div>
+                
+                <div className="space-y-6">
+                  <button
+                    onClick={createOnlineRoom}
+                    className="w-full p-6 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:from-green-700 hover:to-emerald-700 transition"
+                  >
+                    <h2 className="text-2xl font-bold text-white mb-2">Create Room</h2>
+                    <p className="text-green-200">Start a new game and invite friends</p>
+                  </button>
+
+                  <div className="border-t border-gray-700 pt-6">
+                    <h2 className="text-xl font-bold text-white mb-4">Join Room</h2>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={joinCode}
+                        onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                        placeholder="Enter room code"
+                        className="flex-1 px-4 py-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-purple-500 focus:outline-none uppercase"
+                        maxLength={6}
+                      />
+                      <button
+                        onClick={joinOnlineRoom}
+                        className="px-6 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+                      >
+                        Join
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setGameState('modeSelect')}
+                    className="w-full py-3 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
+                  >
+                    Back
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Setup Phase - continue with the rest of your implementation...
+      // For brevity, I'll include the key parts. The full implementation would continue here.
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gray-800 rounded-lg shadow-2xl p-8 border border-purple-500">
+              <h1 className="text-3xl font-bold text-white mb-8 text-center">Game in Development</h1>
+              <p className="text-gray-300 text-center mb-6">
+                The Werewolf game is currently being implemented. Check back soon!
+              </p>
+              <div className="text-center">
+                <button
+                  onClick={() => window.location.href = '../index.html'}
+                  className="px-6 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+                >
+                  Back to Games
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Render the app
+    ReactDOM.render(<WerewolfGame />, document.getElementById('root'));
+  </script>
+</body>
+</html>

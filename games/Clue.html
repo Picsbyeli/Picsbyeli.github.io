@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLUE - Online Multiplayer Mystery</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Leaderboard integration -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+    import { GameAuth } from '../js/firebase-auth.js';
+    
+    const leaderboardConfig = {
+      apiKey: "AIzaSyDn2cL3G7YIU5F9pYcwWp3vd6rT8GHfVlE",
+      authDomain: "profile-9e9f9.firebaseapp.com", 
+      projectId: "profile-9e9f9",
+      storageBucket: "profile-9e9f9.appspot.com",
+      messagingSenderId: "412374234567",
+      appId: "1:412374234567:web:8a9b5c6d7e8f9g0h1i2j3k4l"
+    };
+    
+    const leaderboardApp = initializeApp(leaderboardConfig, 'leaderboard');
+    window.gameAuth = new GameAuth(leaderboardApp);
+    
+    // Global score submission function
+    window.submitScore = async function(gameName, playerScore) {
+      if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+        try {
+          const result = await window.gameAuth.submitScore(gameName, playerScore);
+          if (result.success) {
+            alert('Score saved! You earned ' + parseInt(playerScore).toLocaleString() + ' points in ' + gameName);
+          } else {
+            alert('Error saving score: ' + result.error);
+          }
+        } catch (error) {
+          console.error('Error submitting score:', error);
+          alert('Error saving score. Please try again.');
+        }
+      } else {
+        if (confirm('You need to be logged in to save your score. Would you like to login now?')) {
+          window.location.href = '../auth.html';
+        } else {
+          alert('Score: ' + parseInt(playerScore).toLocaleString() + ' points (not saved)');
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .5; }
+    }
+    
+    .animate-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAK-02JJzGE9F8xIqFl4PH27_G-8EKMQvY",
+      authDomain: "clue-ea178.firebaseapp.com",
+      databaseURL: "https://clue-ea178-default-rtdb.firebaseio.com",
+      projectId: "clue-ea178",
+      storageBucket: "clue-ea178.firebasestorage.app",
+      messagingSenderId: "532974096807",
+      appId: "1:532974096807:web:9bb31cdaa2cfc4e32ce682",
+      measurementId: "G-SQQ6CYLFVV"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Lucide Icons (SVG components)
+    const Users = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    );
+
+    const Skull = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2C6.48 2 2 6.48 2 12c0 4.41 2.87 8.14 6.84 9.43.12.25.16.52.16.77v1.8h6v-1.8c0-.25.04-.52.16-.77C19.13 20.14 22 16.41 22 12c0-5.52-4.48-10-10-10zM9 17.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm6 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+      </svg>
+    );
+
+    const Eye = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      </svg>
+    );
+
+    const MessageSquare = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+      </svg>
+    );
+
+    const Dices = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="8" height="8" rx="1" strokeWidth={2} />
+        <rect x="13" y="13" width="8" height="8" rx="1" strokeWidth={2} />
+        <circle cx="7" cy="7" r="0.5" fill="currentColor" />
+        <circle cx="17" cy="17" r="0.5" fill="currentColor" />
+      </svg>
+    );
+
+    const BookOpen = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+    );
+
+    const Utensils = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 2v7c0 1.1.9 2 2 2v11h2V11c1.1 0 2-.9 2-2V2H3zm16 0v6h-2V2h-2v6h-2V2h-2v7c0 1.66 1.34 3 3 3v10h2V12c1.66 0 3-1.34 3-3V2h-2z" />
+      </svg>
+    );
+
+    const TestTube = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v18l7-7V3M9 3h6M9 21h6" />
+      </svg>
+    );
+
+    const Music = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+      </svg>
+    );
+
+    const Sofa = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3M2 16h20M4 11v5h16v-5M3 11a2 2 0 012-2h14a2 2 0 012 2" />
+      </svg>
+    );
+
+    const Lamp = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    );
+
+    const DoorOpen = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M3 12h12" />
+      </svg>
+    );
+
+    const Trophy = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a1 1 0 001-1v-4a1 1 0 00-1-1H6a1 1 0 00-1 1v4a1 1 0 001 1zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+    );
+
+    const Flame = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2s-6 5.5-6 10a6 6 0 0012 0c0-4.5-6-10-6-10z" />
+      </svg>
+    );
+
+    const ClipboardCheck = ({ className = "w-6 h-6" }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    );
+
+    // Game Constants
+    const SUSPECTS = ['Miss Scarlet', 'Colonel Mustard', 'Mrs. White', 'Mr. Green', 'Mrs. Peacock', 'Professor Plum'];
+    const WEAPONS = ['Candlestick', 'Knife', 'Lead Pipe', 'Revolver', 'Rope', 'Wrench'];
+    const ROOMS = ['Kitchen', 'Conservatory', 'Ballroom', 'Billiard Room', 'Library', 'Study', 'Hall', 'Lounge', 'Dining Room'];
+
+    const SUSPECT_COLORS = {
+      'Miss Scarlet': '#DC143C',
+      'Colonel Mustard': '#FFD700',
+      'Mrs. White': '#F0F0F0',
+      'Mr. Green': '#228B22',
+      'Mrs. Peacock': '#4169E1',
+      'Professor Plum': '#9370DB'
+    };
+
+    const ROOM_ICONS = {
+      'Kitchen': Utensils,
+      'Conservatory': TestTube,
+      'Ballroom': Music,
+      'Billiard Room': Trophy,
+      'Library': BookOpen,
+      'Study': Lamp,
+      'Hall': DoorOpen,
+      'Lounge': Sofa,
+      'Dining Room': Flame
+    };
+
+    const ROOM_COLORS = {
+      'Kitchen': 'bg-orange-200',
+      'Conservatory': 'bg-green-200',
+      'Ballroom': 'bg-purple-200',
+      'Billiard Room': 'bg-emerald-200',
+      'Library': 'bg-amber-200',
+      'Study': 'bg-yellow-200',
+      'Hall': 'bg-blue-200',
+      'Lounge': 'bg-red-200',
+      'Dining Room': 'bg-pink-200'
+    };
+
+    const SECRET_PASSAGES = {
+      'Study': 'Kitchen',
+      'Kitchen': 'Study',
+      'Conservatory': 'Lounge',
+      'Lounge': 'Conservatory'
+    };
+
+    const BOARD = [
+      ['ST','ST','ST','ST','ST','E','E','HL','HL','HL','E','E','LO','LO','LO','LO','LO'],
+      ['ST','ST','ST','ST','ST','D','C','HL','HL','HL','C','D','LO','LO','LO','LO','LO'],
+      ['ST','ST','ST','ST','ST','C','C','HL','HL','HL','C','C','LO','LO','LO','LO','LO'],
+      ['ST','ST','ST','ST','ST','C','C','D','C','D','C','C','LO','LO','LO','LO','LO'],
+      ['E','D','C','C','C','C','C','C','C','C','C','C','C','C','C','C','E'],
+      ['E','C','C','C','C','C','C','C','C','C','C','C','C','C','C','C','E'],
+      ['LI','LI','LI','LI','D','C','C','C','C','C','C','C','D','BI','BI','BI','BI'],
+      ['LI','LI','LI','LI','C','C','C','C','C','C','C','C','C','BI','BI','BI','BI'],
+      ['LI','LI','LI','LI','C','C','C','C','C','C','C','C','C','BI','BI','BI','BI'],
+      ['LI','LI','LI','LI','D','C','C','C','X','C','C','C','D','BI','BI','BI','BI'],
+      ['LI','LI','LI','LI','C','C','C','C','C','C','C','C','C','BI','BI','BI','BI'],
+      ['E','C','C','C','C','C','C','C','C','C','C','C','C','C','C','D','E'],
+      ['E','D','C','C','C','C','C','C','C','C','C','C','C','C','C','C','E'],
+      ['CO','CO','CO','CO','CO','C','C','D','C','D','C','C','KI','KI','KI','KI','KI'],
+      ['CO','CO','CO','CO','CO','C','C','BA','BA','BA','C','C','KI','KI','KI','KI','KI'],
+      ['CO','CO','CO','CO','CO','D','C','BA','BA','BA','C','D','KI','KI','KI','KI','KI'],
+      ['CO','CO','CO','CO','CO','E','E','BA','BA','BA','E','E','KI','KI','KI','KI','KI']
+    ];
+
+    const ROOM_CODES = {
+      'ST': 'Study',
+      'HL': 'Hall',
+      'LO': 'Lounge',
+      'LI': 'Library',
+      'BI': 'Billiard Room',
+      'DI': 'Dining Room',
+      'CO': 'Conservatory',
+      'BA': 'Ballroom',
+      'KI': 'Kitchen'
+    };
+
+    const STARTING_POSITIONS = {
+      'Miss Scarlet': [3, 8],
+      'Colonel Mustard': [12, 0],
+      'Mrs. White': [4, 0],
+      'Mr. Green': [4, 16],
+      'Mrs. Peacock': [12, 16],
+      'Professor Plum': [8, 0]
+    };
+
+    // Main Game Component
+    const ClueGame = () => {
+      const [gameState, setGameState] = useState('menu');
+      const [playerName, setPlayerName] = useState('');
+      const [roomCode, setRoomCode] = useState('');
+      const [playerId, setPlayerId] = useState('');
+      const [isHost, setIsHost] = useState(false);
+      const [players, setPlayers] = useState([]);
+      const [currentPlayer, setCurrentPlayer] = useState(0);
+      const [solution, setSolution] = useState(null);
+      const [cards, setCards] = useState([]);
+      const [allPlayerCards, setAllPlayerCards] = useState({});
+      const [gameLog, setGameLog] = useState([]);
+      const [suggestion, setSuggestion] = useState({ suspect: '', weapon: '', room: '' });
+      const [accusation, setAccusation] = useState({ suspect: '', weapon: '', room: '' });
+      const [showingSuggestion, setShowingSuggestion] = useState(false);
+      const [showingAccusation, setShowingAccusation] = useState(false);
+      const [showingChecklist, setShowingChecklist] = useState(false);
+      const [shownCard, setShownCard] = useState(null);
+      const [playerPositions, setPlayerPositions] = useState({});
+      const [dice1, setDice1] = useState(null);
+      const [dice2, setDice2] = useState(null);
+      const [movesLeft, setMovesLeft] = useState(0);
+      const [reachableTiles, setReachableTiles] = useState([]);
+      const [hasRolled, setHasRolled] = useState(false);
+      const [checklist, setChecklist] = useState({
+        suspects: {},
+        weapons: {},
+        rooms: {}
+      });
+
+      useEffect(() => {
+        if (roomCode && gameState !== 'menu') {
+          const roomRef = database.ref(`rooms/${roomCode}`);
+          const unsubscribe = roomRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+              if (data.players) {
+                setPlayers(Object.values(data.players));
+              }
+              if (data.gameState) {
+                setGameState(data.gameState);
+              }
+              if (data.currentPlayer !== undefined) {
+                setCurrentPlayer(data.currentPlayer);
+              }
+              if (data.solution) {
+                setSolution(data.solution);
+              }
+              if (data.playerPositions) {
+                setPlayerPositions(data.playerPositions);
+              }
+              if (data.gameLog) {
+                setGameLog(Object.values(data.gameLog));
+              }
+              if (data.dice) {
+                setDice1(data.dice.dice1);
+                setDice2(data.dice.dice2);
+                setMovesLeft(data.dice.movesLeft || 0);
+              }
+              if (data.allPlayerCards) {
+                setAllPlayerCards(data.allPlayerCards);
+                if (playerId && data.allPlayerCards[playerId]) {
+                  setCards(data.allPlayerCards[playerId]);
+                }
+              }
+            }
+          });
+
+          return () => roomRef.off('value', unsubscribe);
+        }
+      }, [roomCode, gameState, playerId]);
+
+      const addLog = (message) => {
+        if (roomCode) {
+          const logRef = database.ref(`rooms/${roomCode}/gameLog`).push();
+          logRef.set({ time: new Date().toLocaleTimeString(), message });
+        }
+      };
+
+      const createRoom = () => {
+        if (!playerName.trim()) {
+          alert('Please enter your name');
+          return;
+        }
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const pId = SUSPECTS[0];
+        setRoomCode(code);
+        setIsHost(true);
+        setPlayerId(pId);
+        
+        const roomRef = database.ref(`rooms/${code}`);
+        roomRef.set({
+          gameState: 'lobby',
+          host: pId,
+          players: {
+            [pId]: { 
+              id: pId,
+              name: playerName, 
+              character: SUSPECTS[0], 
+              isAI: false 
+            }
+          }
+        });
+        
+        setGameState('lobby');
+      };
+
+      const joinRoom = () => {
+        if (!playerName.trim() || !roomCode.trim()) {
+          alert('Please enter your name and room code');
+          return;
+        }
+        
+        const roomRef = database.ref(`rooms/${roomCode}`);
+        roomRef.once('value', (snapshot) => {
+          const data = snapshot.val();
+          if (!data) {
+            alert('Room not found!');
+            return;
+          }
+          
+          const existingPlayers = data.players ? Object.values(data.players) : [];
+          const availableCharacters = SUSPECTS.filter(
+            s => !existingPlayers.some(p => p.character === s)
+          );
+          
+          if (availableCharacters.length === 0) {
+            alert('Room is full!');
+            return;
+          }
+          
+          const pId = availableCharacters[0];
+          setPlayerId(pId);
+          setIsHost(false);
+          
+          const playerRef = database.ref(`rooms/${roomCode}/players/${pId}`);
+          playerRef.set({
+            id: pId,
+            name: playerName,
+            character: availableCharacters[0],
+            isAI: false
+          });
+          
+          setGameState('lobby');
+        });
+      };
+
+      const addAIPlayer = () => {
+        const availableCharacters = SUSPECTS.filter(
+          s => !players.some(p => p.character === s)
+        );
+        if (availableCharacters.length > 0) {
+          const aiId = availableCharacters[0];
+          const aiName = `AI ${players.filter(p => p.isAI).length + 1}`;
+          const playerRef = database.ref(`rooms/${roomCode}/players/${aiId}`);
+          playerRef.set({
+            id: aiId,
+            name: aiName,
+            character: availableCharacters[0],
+            isAI: true
+          });
+        }
+      };
+
+      const startGame = () => {
+        if (players.length < 3) {
+          alert('Need at least 3 players to start');
+          return;
+        }
+
+        const sol = {
+          suspect: SUSPECTS[Math.floor(Math.random() * SUSPECTS.length)],
+          weapon: WEAPONS[Math.floor(Math.random() * WEAPONS.length)],
+          room: ROOMS[Math.floor(Math.random() * ROOMS.length)]
+        };
+
+        const allCards = [
+          ...SUSPECTS.filter(s => s !== sol.suspect),
+          ...WEAPONS.filter(w => w !== sol.weapon),
+          ...ROOMS.filter(r => r !== sol.room)
+        ].sort(() => Math.random() - 0.5);
+
+        const playerCardMap = {};
+        players.forEach((player) => {
+          playerCardMap[player.id] = [];
+        });
+
+        allCards.forEach((card, idx) => {
+          const playerIdx = idx % players.length;
+          playerCardMap[players[playerIdx].id].push(card);
+        });
+
+        const positions = {};
+        players.forEach(player => {
+          positions[player.character] = STARTING_POSITIONS[player.character];
+        });
+
+        const roomRef = database.ref(`rooms/${roomCode}`);
+        roomRef.update({
+          gameState: 'playing',
+          solution: sol,
+          allPlayerCards: playerCardMap,
+          playerPositions: positions,
+          currentPlayer: 0,
+          dice: { dice1: null, dice2: null, movesLeft: 0 }
+        });
+
+        const initialChecklist = {
+          suspects: {},
+          weapons: {},
+          rooms: {}
+        };
+        SUSPECTS.forEach(s => initialChecklist.suspects[s] = false);
+        WEAPONS.forEach(w => initialChecklist.weapons[w] = false);
+        ROOMS.forEach(r => initialChecklist.rooms[r] = false);
+        
+        if (playerCardMap[playerId]) {
+          playerCardMap[playerId].forEach(card => {
+            if (SUSPECTS.includes(card)) initialChecklist.suspects[card] = true;
+            if (WEAPONS.includes(card)) initialChecklist.weapons[card] = true;
+            if (ROOMS.includes(card)) initialChecklist.rooms[card] = true;
+          });
+        }
+        setChecklist(initialChecklist);
+
+        addLog('Game started! Roll the dice to move.');
+      };
+
+      const getCurrentRoom = (pos) => {
+        if (!pos) return null;
+        const [row, col] = pos;
+        const cell = BOARD[row]?.[col];
+        const roomName = ROOM_CODES[cell];
+        return roomName || null;
+      };
+
+      const isInRoom = (row, col) => {
+        const cell = BOARD[row]?.[col];
+        return ROOM_CODES[cell] !== undefined;
+      };
+
+      const canMoveTo = (fromPos, toPos) => {
+        const [fromRow, fromCol] = fromPos;
+        const [toRow, toCol] = toPos;
+        
+        const rowDiff = Math.abs(toRow - fromRow);
+        const colDiff = Math.abs(toCol - fromCol);
+        if (rowDiff + colDiff !== 1) return false;
+        
+        if (toRow < 0 || toRow >= BOARD.length || toCol < 0 || toCol >= BOARD[0].length) return false;
+        
+        const targetCell = BOARD[toRow][toCol];
+        if (targetCell === 'E' || targetCell === 'X') return false;
+        
+        if (!isInRoom(fromRow, fromCol)) {
+          return targetCell === 'C' || targetCell === 'D' || ROOM_CODES[targetCell];
+        }
+        
+        if (isInRoom(fromRow, fromCol)) {
+          const currentRoomCode = BOARD[fromRow][fromCol];
+          if (ROOM_CODES[targetCell] === ROOM_CODES[currentRoomCode]) return true;
+          if (targetCell === 'D' || targetCell === 'C') return true;
+        }
+        
+        return false;
+      };
+
+      const calculateReachableTiles = (startPos, moves) => {
+        const reachable = new Set();
+        const queue = [[startPos, moves]];
+        const visited = new Set();
+        visited.add(`${startPos[0]},${startPos[1]}`);
+        
+        while (queue.length > 0) {
+          const [[row, col], remainingMoves] = queue.shift();
+          
+          if (remainingMoves >= 0) {
+            reachable.add(`${row},${col}`);
+          }
+          
+          if (remainingMoves > 0) {
+            const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+            for (const [dr, dc] of directions) {
+              const newPos = [row + dr, col + dc];
+              const key = `${newPos[0]},${newPos[1]}`;
+              
+              if (!visited.has(key) && canMoveTo([row, col], newPos)) {
+                visited.add(key);
+                queue.push([newPos, remainingMoves - 1]);
+              }
+            }
+          }
+        }
+        
+        return Array.from(reachable).map(s => s.split(',').map(Number));
+      };
+
+      const rollDice = () => {
+        const currentPlayerId = players[currentPlayer]?.id;
+        if (currentPlayerId !== playerId) {
+          alert("It's not your turn!");
+          return;
+        }
+        
+        if (hasRolled) {
+          alert('You already rolled this turn!');
+          return;
+        }
+        
+        const d1 = Math.floor(Math.random() * 6) + 1;
+        const d2 = Math.floor(Math.random() * 6) + 1;
+        const total = d1 + d2;
+        
+        setHasRolled(true);
+        
+        const diceRef = database.ref(`rooms/${roomCode}/dice`);
+        diceRef.update({
+          dice1: d1,
+          dice2: d2,
+          movesLeft: total
+        });
+        
+        const currentPos = playerPositions[players[currentPlayer].character];
+        const reachable = calculateReachableTiles(currentPos, total);
+        setReachableTiles(reachable);
+        
+        addLog(`${players[currentPlayer].name} rolled ${d1} + ${d2} = ${total}`);
+      };
+
+      const useSecretPassage = () => {
+        const currentPlayerId = players[currentPlayer]?.id;
+        if (currentPlayerId !== playerId) {
+          alert("It's not your turn!");
+          return;
+        }
+        
+        const currentPos = playerPositions[players[currentPlayer].character];
+        const currentRoom = getCurrentRoom(currentPos);
+        
+        if (!currentRoom || !SECRET_PASSAGES[currentRoom]) {
+          alert('No secret passage in this room!');
+          return;
+        }
+        
+        const targetRoom = SECRET_PASSAGES[currentRoom];
+        let targetPos = null;
+        for (let row = 0; row < BOARD.length; row++) {
+          for (let col = 0; col < BOARD[0].length; col++) {
+            if (ROOM_CODES[BOARD[row][col]] === targetRoom) {
+              targetPos = [row, col];
+              break;
+            }
+          }
+          if (targetPos) break;
+        }
+        
+        if (targetPos) {
+          const posRef = database.ref(`rooms/${roomCode}/playerPositions/${players[currentPlayer].character}`);
+          posRef.set(targetPos);
+          
+          const diceRef = database.ref(`rooms/${roomCode}/dice/movesLeft`);
+          diceRef.set(0);
+          
+          addLog(`${players[currentPlayer].name} used secret passage to ${targetRoom}`);
+          setReachableTiles([]);
+        }
+      };
+
+      const movePlayer = (newPos) => {
+        const currentPlayerId = players[currentPlayer]?.id;
+        if (currentPlayerId !== playerId) {
+          return;
+        }
+        
+        if (movesLeft <= 0) return;
+        
+        const currentPos = playerPositions[players[currentPlayer].character];
+        if (!canMoveTo(currentPos, newPos)) return;
+        
+        const posRef = database.ref(`rooms/${roomCode}/playerPositions/${players[currentPlayer].character}`);
+        posRef.set(newPos);
+        
+        const newMovesLeft = movesLeft - 1;
+        const diceRef = database.ref(`rooms/${roomCode}/dice/movesLeft`);
+        diceRef.set(newMovesLeft);
+        
+        const room = getCurrentRoom(newPos);
+        if (room) {
+          addLog(`${players[currentPlayer].name} entered ${room}`);
+          if (newMovesLeft > 0) {
+            const reachable = calculateReachableTiles(newPos, newMovesLeft);
+            setReachableTiles(reachable);
+          } else {
+            setReachableTiles([]);
+          }
+        } else {
+          if (newMovesLeft > 0) {
+            const reachable = calculateReachableTiles(newPos, newMovesLeft);
+            setReachableTiles(reachable);
+          } else {
+            setReachableTiles([]);
+          }
+        }
+      };
+
+      const makeSuggestion = () => {
+        const currentPos = playerPositions[players[currentPlayer].character];
+        const room = getCurrentRoom(currentPos);
+        
+        if (!room) {
+          alert('You must be in a room to make a suggestion!');
+          return;
+        }
+        
+        if (!suggestion.suspect || !suggestion.weapon) {
+          alert('Please select a suspect and weapon');
+          return;
+        }
+
+        const msg = `${players[currentPlayer].name} suggests: ${suggestion.suspect} with the ${suggestion.weapon} in ${room}`;
+        addLog(msg);
+
+        let foundCard = null;
+        let disproverName = null;
+        
+        for (let i = 1; i < players.length; i++) {
+          const playerIndex = (currentPlayer + i) % players.length;
+          const otherPlayerId = players[playerIndex].id;
+          const otherPlayerCards = allPlayerCards[otherPlayerId] || [];
+          const matchingCards = otherPlayerCards.filter(card => 
+            card === suggestion.suspect || 
+            card === suggestion.weapon || 
+            card === room
+          );
+          
+          if (matchingCards.length > 0) {
+            foundCard = matchingCards[Math.floor(Math.random() * matchingCards.length)];
+            disproverName = players[playerIndex].name;
+            break;
+          }
+        }
+
+        if (foundCard) {
+          setShownCard(foundCard);
+          addLog(`${disproverName} showed you the ${foundCard} card to disprove your suggestion.`);
+          setTimeout(() => setShownCard(null), 4000);
+        } else {
+          addLog('🔍 No one could disprove your suggestion! This is a strong clue!');
+        }
+
+        setShowingSuggestion(false);
+        
+        setTimeout(() => {
+          nextTurn();
+        }, 1000);
+      };
+
+      const makeAccusation = () => {
+        if (!accusation.suspect || !accusation.weapon || !accusation.room) {
+          alert('Please select suspect, weapon, and room');
+          return;
+        }
+
+        const msg = `${players[currentPlayer].name} accuses: ${accusation.suspect} with the ${accusation.weapon} in the ${accusation.room}`;
+        addLog(msg);
+
+        const isCorrect = 
+          accusation.suspect === solution.suspect &&
+          accusation.weapon === solution.weapon &&
+          accusation.room === solution.room;
+
+        if (isCorrect) {
+          addLog(`🎉 CORRECT! ${players[currentPlayer].name} wins!`);
+          addLog(`Solution was: ${solution.suspect} with the ${solution.weapon} in the ${solution.room}`);
+          const roomRef = database.ref(`rooms/${roomCode}/gameState`);
+          roomRef.set('gameover');
+          
+          // Submit score if this player won
+          if (players[currentPlayer].name === playerName) {
+            let score = 100; // Base score for solving the mystery
+            score += Math.max(0, 20 - Object.keys(gameLog).length) * 5; // Speed bonus
+            score += players.filter(p => p.name !== players[currentPlayer].name).length * 10; // Multiplayer bonus
+            
+            if (typeof window.submitScore === 'function') {
+              setTimeout(() => window.submitScore('CLUE', score), 1000);
+            }
+          }
+        } else {
+          addLog(`❌ Wrong! ${players[currentPlayer].name} is eliminated!`);
+          setShowingAccusation(false);
+          nextTurn();
+        }
+      };
+
+      const toggleChecklistItem = (category, item) => {
+        setChecklist(prev => ({
+          ...prev,
+          [category]: {
+            ...prev[category],
+            [item]: !prev[category][item]
+          }
+        }));
+      };
+
+      const nextTurn = () => {
+        setHasRolled(false);
+        setReachableTiles([]);
+        
+        const nextPlayerIndex = (currentPlayer + 1) % players.length;
+        
+        const roomRef = database.ref(`rooms/${roomCode}`);
+        roomRef.update({
+          currentPlayer: nextPlayerIndex,
+          dice: { dice1: null, dice2: null, movesLeft: 0 }
+        });
+        
+        addLog(`It's now ${players[nextPlayerIndex].name}'s turn`);
+      };
+
+      const DiceVisual = ({ value }) => {
+        const dots = {
+          1: [[1, 1]],
+          2: [[0, 0], [2, 2]],
+          3: [[0, 0], [1, 1], [2, 2]],
+          4: [[0, 0], [0, 2], [2, 0], [2, 2]],
+          5: [[0, 0], [0, 2], [1, 1], [2, 0], [2, 2]],
+          6: [[0, 0], [0, 2], [1, 0], [1, 2], [2, 0], [2, 2]]
+        };
+
+        return (
+          <div className="w-16 h-16 bg-white rounded-lg border-2 border-gray-800 p-2 shadow-lg">
+            <div className="grid grid-cols-3 gap-1 h-full">
+              {[0, 1, 2].map(row => 
+                [0, 1, 2].map(col => {
+                  const hasDot = dots[value]?.some(([r, c]) => r === row && c === col);
+                  return (
+                    <div key={`${row}-${col}`} className="flex items-center justify-center">
+                      {hasDot && <div className="w-2 h-2 bg-gray-800 rounded-full" />}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      const renderBoard = () => {
+        const currentPlayerId = players[currentPlayer]?.id;
+        const isMyTurn = currentPlayerId === playerId;
+        const currentPos = playerPositions[players[currentPlayer]?.character];
+        
+        return (
+          <div className="bg-yellow-700 p-2 rounded-lg border-4 border-red-900 shadow-2xl">
+            <div className="grid gap-0.5" style={{ gridTemplateColumns: 'repeat(17, minmax(0, 1fr))' }}>
+              {BOARD.map((row, rowIdx) => (
+                row.map((cell, colIdx) => {
+                  const playersHere = Object.entries(playerPositions).filter(
+                    ([char, pos]) => pos && pos[0] === rowIdx && pos[1] === colIdx
+                  );
+                  
+                  const roomName = ROOM_CODES[cell];
+                  const isRoom = roomName !== undefined;
+                  const isCorridor = cell === 'C';
+                  const isDoor = cell === 'D';
+                  const isEmpty = cell === 'E';
+                  const isCenter = cell === 'X';
+                  const isReachable = isMyTurn && reachableTiles.some(([r, c]) => r === rowIdx && c === colIdx);
+                  const canClick = isMyTurn && isReachable && movesLeft > 0 && canMoveTo(currentPos, [rowIdx, colIdx]);
+                  
+                  const RoomIcon = isRoom ? ROOM_ICONS[roomName] : null;
+                  const roomColor = isRoom ? ROOM_COLORS[roomName] : '';
+                  
+                  return (
+                    <div
+                      key={`${rowIdx}-${colIdx}`}
+                      onClick={() => canClick && movePlayer([rowIdx, colIdx])}
+                      className={`
+                        aspect-square flex items-center justify-center text-[6px] font-bold relative
+                        ${isRoom ? `${roomColor} border border-gray-400` : ''}
+                        ${isCorridor ? 'bg-yellow-600 border border-yellow-700' : ''}
+                        ${isDoor ? 'bg-yellow-500 border-2 border-yellow-900' : ''}
+                        ${isEmpty ? 'bg-gray-900' : ''}
+                        ${isCenter ? 'bg-orange-600' : ''}
+                        ${isReachable && !isRoom ? 'ring-2 ring-green-400 ring-inset' : ''}
+                        ${isReachable && isRoom ? 'ring-2 ring-blue-400 ring-inset' : ''}
+                        ${canClick ? 'cursor-pointer hover:brightness-110' : ''}
+                      `}
+                    >
+                      {isRoom && RoomIcon && rowIdx % 3 === 1 && colIdx % 3 === 2 && (
+                        <RoomIcon className="w-3 h-3 text-gray-700 opacity-30" />
+                      )}
+                      
+                      {isCenter && <span className="text-white text-[6px]">CLUE</span>}
+                      
+                      {isDoor && <div className="w-1 h-1 bg-yellow-900 rounded-full" />}
+                      
+                      {playersHere.length > 0 && (
+                        <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-0.5 p-0.5">
+                          {playersHere.map(([char]) => (
+                            <div
+                              key={char}
+                              className="w-2 h-2 rounded-full border border-white shadow-lg"
+                              style={{ backgroundColor: SUSPECT_COLORS[char] }}
+                              title={char}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      const renderChecklist = () => (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <ClipboardCheck className="w-6 h-6" />
+                Detective Checklist
+              </h3>
+              <button
+                onClick={() => setShowingChecklist(false)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-lg font-semibold text-purple-400 mb-2">Suspects</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {SUSPECTS.map(suspect => (
+                    <label key={suspect} className="flex items-center gap-2 bg-gray-700 p-2 rounded cursor-pointer hover:bg-gray-600">
+                      <input
+                        type="checkbox"
+                        checked={checklist.suspects[suspect] || false}
+                        onChange={() => toggleChecklistItem('suspects', suspect)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-white text-sm">{suspect}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold text-purple-400 mb-2">Weapons</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {WEAPONS.map(weapon => (
+                    <label key={weapon} className="flex items-center gap-2 bg-gray-700 p-2 rounded cursor-pointer hover:bg-gray-600">
+                      <input
+                        type="checkbox"
+                        checked={checklist.weapons[weapon] || false}
+                        onChange={() => toggleChecklistItem('weapons', weapon)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-white text-sm">{weapon}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold text-purple-400 mb-2">Rooms</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {ROOMS.map(room => (
+                    <label key={room} className="flex items-center gap-2 bg-gray-700 p-2 rounded cursor-pointer hover:bg-gray-600">
+                      <input
+                        type="checkbox"
+                        checked={checklist.rooms[room] || false}
+                        onChange={() => toggleChecklistItem('rooms', room)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-white text-sm">{room}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowingChecklist(false)}
+              className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      );
+
+      const renderMenu = () => (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-lg shadow-2xl p-8 max-w-md w-full border-2 border-purple-500">
+            <div className="text-center mb-8">
+              <Skull className="w-16 h-16 mx-auto mb-4 text-purple-400" />
+              <h1 className="text-4xl font-bold text-white mb-2">CLUE</h1>
+              <p className="text-gray-400">Online Multiplayer Mystery</p>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Your Name"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              className="w-full px-4 py-3 rounded bg-gray-700 text-white mb-4 border border-gray-600 focus:border-purple-500 focus:outline-none"
+            />
+
+            <button
+              onClick={createRoom}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded mb-3 transition-colors"
+            >
+              Create Room
+            </button>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gray-800 text-gray-400">OR</span>
+              </div>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Room Code"
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              className="w-full px-4 py-3 rounded bg-gray-700 text-white mb-3 border border-gray-600 focus:border-purple-500 focus:outline-none"
+            />
+
+            <button
+              onClick={joinRoom}
+              className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded transition-colors"
+            >
+              Join Room
+            </button>
+          </div>
+        </div>
+      );
+
+      const renderLobby = () => (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gray-800 rounded-lg shadow-2xl p-6 border-2 border-purple-500">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Game Lobby</h2>
+                <div className="bg-purple-600 px-4 py-2 rounded text-white font-mono">
+                  {roomCode}
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+                  <Users className="mr-2" /> Players ({players.length})
+                </h3>
+                <div className="space-y-2">
+                  {players.map((player, idx) => (
+                    <div key={idx} className="bg-gray-800 p-3 rounded flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div 
+                          className="w-8 h-8 rounded-full mr-3 border-2 border-white"
+                          style={{ backgroundColor: SUSPECT_COLORS[player.character] }}
+                        />
+                        <div>
+                          <div className="text-white font-semibold">{player.name}</div>
+                          <div className="text-gray-400 text-sm">{player.character}</div>
+                        </div>
+                      </div>
+                      {player.isAI && (
+                        <span className="text-xs bg-blue-600 px-2 py-1 rounded text-white">AI</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {isHost && (
+                <div className="space-y-3">
+                  <button
+                    onClick={addAIPlayer}
+                    disabled={players.length >= 6}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-3 rounded transition-colors"
+                  >
+                    Add AI Player
+                  </button>
+                  <button
+                    onClick={startGame}
+                    disabled={players.length < 3}
+                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-bold py-3 rounded transition-colors"
+                  >
+                    Start Game
+                  </button>
+                </div>
+              )}
+
+              {!isHost && (
+                <div className="text-center text-gray-400">
+                  Waiting for host to start the game...
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+
+      const renderGame = () => {
+        const currentPlayerId = players[currentPlayer]?.id;
+        const isMyTurn = currentPlayerId === playerId;
+        const currentPos = playerPositions[players[currentPlayer]?.character];
+        const currentRoom = getCurrentRoom(currentPos);
+        const hasSecretPassage = currentRoom && SECRET_PASSAGES[currentRoom];
+        
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-4">
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
+              
+              <div className="lg:col-span-2 space-y-4">
+                <div className="bg-gray-800 rounded-lg p-4 border-2 border-purple-500">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-white">
+                        {players[currentPlayer]?.name}'s Turn
+                      </h3>
+                      <p className="text-gray-400">{players[currentPlayer]?.character}</p>
+                      {isMyTurn && <p className="text-green-400 text-sm">🎮 Your turn!</p>}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-400">Location</div>
+                      <div className="text-lg font-semibold text-white">
+                        {currentRoom || 'Corridor'}
+                      </div>
+                      {hasSecretPassage && (
+                        <div className="text-xs text-purple-400">
+                          🚪 Secret passage to {SECRET_PASSAGES[currentRoom]}
+                        </div>
+                      )}
+                    </div>
+                    {dice1 && dice2 && (
+                      <div className="flex gap-2 items-center">
+                        <DiceVisual value={dice1} />
+                        <DiceVisual value={dice2} />
+                        <div className="ml-2 text-center">
+                          <div className="text-xs text-gray-300">Total</div>
+                          <div className="text-3xl font-bold text-white">{dice1 + dice2}</div>
+                          <div className="text-xs text-gray-300">Moves: {movesLeft}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {renderBoard()}
+
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-white mb-2">Room Legend</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {ROOMS.map(room => {
+                      const Icon = ROOM_ICONS[room];
+                      const color = ROOM_COLORS[room];
+                      return (
+                        <div key={room} className={`${color} p-2 rounded flex items-center gap-1`}>
+                          <Icon className="w-3 h-3" />
+                          <span className="text-[10px] font-semibold">{room}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-2 text-xs text-gray-400">
+                    🟢 Green highlight = Reachable tiles | 🔵 Blue highlight = Reachable rooms
+                  </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+                    <Eye className="mr-2" /> Your Cards
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {cards.map((card, idx) => (
+                      <div key={idx} className="bg-gray-700 p-2 rounded text-center text-white text-xs">
+                        {card}
+                      </div>
+                    ))}
+                  </div>
+                  {shownCard && (
+                    <div className="mt-3 bg-yellow-600 p-3 rounded text-white font-semibold text-center animate-pulse">
+                      Card Shown: {shownCard}
+                    </div>
+                  )}
+                </div>
+
+                {isMyTurn && (
+                  <div className="bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3">Actions</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={rollDice}
+                        disabled={hasRolled}
+                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-bold py-3 rounded transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Dices className="w-5 h-5" />
+                        Roll Dice
+                      </button>
+                      <button
+                        onClick={() => setShowingChecklist(true)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded transition-colors flex items-center justify-center gap-2"
+                      >
+                        <ClipboardCheck className="w-5 h-5" />
+                        Checklist
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!currentRoom) {
+                            alert('You must be in a room to make a suggestion!');
+                            return;
+                          }
+                          setShowingSuggestion(true);
+                        }}
+                        disabled={!currentRoom}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-3 rounded transition-colors"
+                      >
+                        Suggest
+                      </button>
+                      {hasSecretPassage && (
+                        <button
+                          onClick={useSecretPassage}
+                          className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded transition-colors"
+                        >
+                          Secret Passage
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setShowingAccusation(true)}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded transition-colors"
+                      >
+                        Accuse
+                      </button>
+                      <button
+                        onClick={nextTurn}
+                        className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded transition-colors"
+                      >
+                        End Turn
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-gray-800 rounded-lg p-4 h-96 overflow-y-auto">
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center sticky top-0 bg-gray-800">
+                    <MessageSquare className="mr-2" /> Game Log
+                  </h3>
+                  <div className="space-y-2">
+                    {gameLog.map((log, idx) => (
+                      <div key={idx} className="text-sm">
+                        <span className="text-gray-500">{log.time}</span>
+                        <p className="text-gray-300">{log.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Players</h3>
+                  <div className="space-y-2">
+                    {players.map((player, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`p-2 rounded ${idx === currentPlayer ? 'bg-purple-700' : 'bg-gray-700'}`}
+                      >
+                        <div className="text-white text-sm">{player.name}</div>
+                        <div className="text-gray-400 text-xs">{player.character}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {showingChecklist && renderChecklist()}
+
+            {showingSuggestion && (
+              <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+                <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+                  <h3 className="text-xl font-bold text-white mb-4">Make Suggestion</h3>
+                  <p className="text-gray-400 mb-4">Current Room: {currentRoom}</p>
+                  <div className="space-y-3">
+                    <select
+                      value={suggestion.suspect}
+                      onChange={(e) => setSuggestion({...suggestion, suspect: e.target.value})}
+                      className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600"
+                    >
+                      <option value="">Select Suspect</option>
+                      {SUSPECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <select
+                      value={suggestion.weapon}
+                      onChange={(e) => setSuggestion({...suggestion, weapon: e.target.value})}
+                      className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600"
+                    >
+                      <option value="">Select Weapon</option>
+                      {WEAPONS.map(w => <option key={w} value={w}>{w}</option>)}
+                    </select>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={makeSuggestion}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded"
+                      >
+                        Suggest
+                      </button>
+                      <button
+                        onClick={() => setShowingSuggestion(false)}
+                        className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {showingAccusation && (
+              <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+                <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+                  <h3 className="text-xl font-bold text-white mb-4">Make Accusation</h3>
+                  <div className="bg-red-900 border border-red-600 rounded p-3 mb-4">
+                    <p className="text-red-200 text-sm">⚠️ Warning: Wrong accusation eliminates you!</p>
+                  </div>
+                  <div className="space-y-3">
+                    <select
+                      value={accusation.suspect}
+                      onChange={(e) => setAccusation({...accusation, suspect: e.target.value})}
+                      className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600"
+                    >
+                      <option value="">Select Suspect</option>
+                      {SUSPECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <select
+                      value={accusation.weapon}
+                      onChange={(e) => setAccusation({...accusation, weapon: e.target.value})}
+                      className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600"
+                    >
+                      <option value="">Select Weapon</option>
+                      {WEAPONS.map(w => <option key={w} value={w}>{w}</option>)}
+                    </select>
+                    <select
+                      value={accusation.room}
+                      onChange={(e) => setAccusation({...accusation, room: e.target.value})}
+                      className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600"
+                    >
+                      <option value="">Select Room</option>
+                      {ROOMS.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={makeAccusation}
+                        className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded"
+                      >
+                        Accuse
+                      </button>
+                      <button
+                        onClick={() => setShowingAccusation(false)}
+                        className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      const renderGameOver = () => (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-lg shadow-2xl p-8 max-w-md w-full border-2 border-purple-500 text-center">
+            <h1 className="text-4xl font-bold text-white mb-4">Game Over!</h1>
+            <div className="bg-gray-700 rounded p-4 mb-6">
+              <h3 className="text-lg font-semibold text-white mb-2">Solution:</h3>
+              <p className="text-gray-300">{solution.suspect}</p>
+              <p className="text-gray-300">with the {solution.weapon}</p>
+              <p className="text-gray-300">in the {solution.room}</p>
+            </div>
+            <button
+              onClick={() => {
+                if (roomCode) {
+                  const roomRef = database.ref(`rooms/${roomCode}`);
+                  roomRef.remove();
+                }
+                setGameState('menu');
+                setRoomCode('');
+                setPlayerId('');
+                setPlayers([]);
+                setGameLog([]);
+                setCards([]);
+                setSolution(null);
+                setPlayerPositions({});
+                setDice1(null);
+                setDice2(null);
+                setMovesLeft(0);
+                setReachableTiles([]);
+                setHasRolled(false);
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded transition-colors"
+            >
+              Back to Menu
+            </button>
+          </div>
+        </div>
+      );
+
+      return (
+        <>
+          {gameState === 'menu' && renderMenu()}
+          {gameState === 'lobby' && renderLobby()}
+          {gameState === 'playing' && renderGame()}
+          {gameState === 'gameover' && renderGameOver()}
+        </>
+      );
+    };
+
+    // Render the app
+    ReactDOM.render(<ClueGame />, document.getElementById('root'));
+  </script>
+</body>
+</html>

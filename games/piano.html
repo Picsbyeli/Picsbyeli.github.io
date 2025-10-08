@@ -62,7 +62,10 @@
         .keyboard-layout {
             display: flex;
             gap: 0;
+            /* Fallback for Samsung Internet 5.0+ and other WebKit-based browsers */
             min-width: -webkit-fill-available;
+            /* Provide additional fallbacks for broader support, then the standard value */
+            min-width: -moz-fit-content;
             min-width: fit-content;
             height: 224px;
             position: relative;
