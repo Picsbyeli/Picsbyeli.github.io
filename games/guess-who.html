@@ -287,6 +287,18 @@
                     <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
                         <h2 class="text-4xl font-bold text-center mb-6 text-green-600">🌐 Online Mode</h2>
                         
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                            <div class="flex">
+                                <div class="text-yellow-400 mr-3">⚠️</div>
+                                <div>
+                                    <p class="text-sm text-yellow-700">
+                                        <strong>Note:</strong> Online multiplayer requires Firebase connection. 
+                                        If you experience issues, try the single player mode instead!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="space-y-6">
                             <button id="create-room-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
                                 ➕ Create New Room
@@ -309,6 +321,19 @@
                                 </button>
                             </div>
                             
+                            <div class="relative">
+                                <div class="absolute inset-0 flex items-center">
+                                    <div class="w-full border-t border-gray-300"></div>
+                                </div>
+                                <div class="relative flex justify-center text-sm">
+                                    <span class="px-2 bg-white text-gray-500 font-semibold">OR</span>
+                                </div>
+                            </div>
+                            
+                            <button id="play-offline-btn" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-xl transition-all">
+                                🤖 Play vs Bot Instead
+                            </button>
+                            
                             <button id="back-to-menu-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all">
                                 ⬅️ Back to Menu
                             </button>
@@ -319,6 +344,7 @@
             
             document.getElementById('create-room-btn').onclick = createRoom;
             document.getElementById('join-room-btn').onclick = joinRoom;
+            document.getElementById('play-offline-btn').onclick = () => startGame('singlePlayer');
             document.getElementById('back-to-menu-btn').onclick = () => {
                 gameState.phase = 'menu';
                 render();
@@ -520,36 +546,70 @@
         }
 
         async function createRoom() {
-            const newRoomRef = database.ref('games').push();
-            const newRoomId = newRoomRef.key;
-            const newPlayerId = Math.random().toString(36).substring(7);
-            
-            await newRoomRef.set({
-                roomId: newRoomId,
-                phase: 'waiting',
-                player1: { id: newPlayerId, ready: false },
-                createdAt: Date.now()
-            });
-            
-            gameState.roomId = newRoomId;
-            gameState.playerId = newPlayerId;
-            gameState.playerNumber = 1;
-            gameState.waitingForOpponent = true;
-            gameState.phase = 'waitingRoom';
-            render();
+            try {
+                console.log('Attempting to create room...');
+                
+                // Test Firebase connection first
+                const testRef = database.ref('.info/connected');
+                testRef.once('value', (snapshot) => {
+                    console.log('Firebase connection status:', snapshot.val());
+                });
+                
+                const newRoomRef = database.ref('games').push();
+                const newRoomId = newRoomRef.key;
+                const newPlayerId = Math.random().toString(36).substring(7);
+                
+                console.log('Generated room ID:', newRoomId);
+                console.log('Generated player ID:', newPlayerId);
+                
+                await newRoomRef.set({
+                    roomId: newRoomId,
+                    phase: 'waiting',
+                    player1: { id: newPlayerId, ready: false },
+                    createdAt: Date.now()
+                });
+                
+                console.log('Room created successfully!');
+                
+                gameState.roomId = newRoomId;
+                gameState.playerId = newPlayerId;
+                gameState.playerNumber = 1;
+                gameState.waitingForOpponent = true;
+                gameState.phase = 'waitingRoom';
+                render();
+            } catch (error) {
+                console.error('Error creating room:', error);
+                alert('Failed to create room. Error: ' + error.message + '\n\nThis might be due to Firebase configuration issues. You can still play single player mode!');
+            }
         }
 
         async function joinRoom() {
-            if (!gameState.roomCode.trim()) return;
-            
-            const gameRef = database.ref(`games/${gameState.roomCode}`);
-            const newPlayerId = Math.random().toString(36).substring(7);
+            if (!gameState.roomCode.trim()) {
+                alert('Please enter a room code first!');
+                return;
+            }
             
             try {
+                console.log('Attempting to join room:', gameState.roomCode);
+                
+                const gameRef = database.ref(`games/${gameState.roomCode}`);
+                const newPlayerId = Math.random().toString(36).substring(7);
+                
+                // Check if room exists first
+                const roomSnapshot = await gameRef.once('value');
+                if (!roomSnapshot.exists()) {
+                    alert('Room not found! Please check the code and try again.');
+                    return;
+                }
+                
+                console.log('Room found, joining...');
+                
                 await gameRef.update({
                     player2: { id: newPlayerId, ready: false },
                     phase: 'selectCharacter'
                 });
+                
+                console.log('Successfully joined room!');
                 
                 gameState.roomId = gameState.roomCode;
                 gameState.playerId = newPlayerId;
@@ -559,7 +619,8 @@
                 render();
                 startCharacterTimer();
             } catch (error) {
-                alert('Room not found! Please check the code and try again.');
+                console.error('Error joining room:', error);
+                alert('Failed to join room. Error: ' + error.message);
             }
         }
 
@@ -737,6 +798,28 @@
         }
 
         // Initialize the game
+        console.log('Initializing Guess Who game...');
+        
+        // Test Firebase initialization
+        try {
+            console.log('Firebase config:', firebaseConfig);
+            console.log('Firebase app initialized:', firebase.app());
+            console.log('Database reference:', database);
+            
+            // Test connection
+            const connectedRef = database.ref('.info/connected');
+            connectedRef.on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    console.log('✅ Connected to Firebase!');
+                } else {
+                    console.log('❌ Disconnected from Firebase');
+                }
+            });
+            
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+        }
+        
         render();
     </script>
 </body>
