@@ -235,6 +235,26 @@
             return LEVEL_CONFIGS[currentLevel - 1] || LEVEL_CONFIGS[LEVEL_CONFIGS.length - 1];
         }
 
+        function checkCollision() {
+            // Only check collision if both player and monster are active and in the same room
+            // Also ensure monster has been active for at least one move to prevent instant collision
+            if (gameState === 'playing' && monsterActive && playerRoom === monsterRoom) {
+                console.log(`COLLISION DETECTED! Player in room ${playerRoom}, Monster in room ${monsterRoom}`);
+                console.log(`Player room name: ${ROOMS.find(r => r.id === playerRoom)?.name}`);
+                console.log(`Monster room name: ${ROOMS.find(r => r.id === monsterRoom)?.name}`);
+                clearInterval(intervalRef);
+                clearInterval(timerRef);
+                lostOnLevel = currentLevel;
+                currentLevel = 1;
+                totalTime = 0;
+                gameState = 'lost';
+                updateDisplay();
+                updateControls();
+                return true;
+            }
+            return false;
+        }
+
         function getWakeUpThreshold() {
             // Give beginners more free moves before monster wakes up
             if (currentLevel <= 2) return 4;      // Tutorial/Beginner: 4 free moves
@@ -505,18 +525,22 @@
                 } else {
                     playerRoom = roomId;
                     roomsMoved++;
+                    console.log(`Player moved to room ${roomId} (${ROOMS.find(r => r.id === roomId)?.name}) - exit without key. Total moves: ${roomsMoved}`);
                     const wakeUpThreshold = getWakeUpThreshold();
                     if (roomsMoved >= wakeUpThreshold && !monsterActive) {
                         monsterActive = true;
+                        console.log(`Monster wakes up after ${roomsMoved} moves!`);
                         startMonsterMovement();
                     }
                 }
             } else {
                 playerRoom = roomId;
                 roomsMoved++;
+                console.log(`Player moved to room ${roomId} (${ROOMS.find(r => r.id === roomId)?.name}). Total moves: ${roomsMoved}`);
                 const wakeUpThreshold = getWakeUpThreshold();
                 if (roomsMoved >= wakeUpThreshold && !monsterActive) {
                     monsterActive = true;
+                    console.log(`Monster wakes up after ${roomsMoved} moves!`);
                     startMonsterMovement();
                 }
             }
@@ -527,16 +551,8 @@
                 keyCollected = true;
             }
             
-            // Check if monster caught player
-            if (playerRoom === monsterRoom) {
-                clearInterval(intervalRef);
-                clearInterval(timerRef);
-                lostOnLevel = currentLevel;
-                currentLevel = 1;
-                totalTime = 0;
-                gameState = 'lost';
-                updateDisplay();
-                updateControls();
+            // Check for collision with monster
+            if (checkCollision()) {
                 return;
             }
             
@@ -602,9 +618,13 @@
                     
                     if (Math.random() < smartChance) {
                         movesWithScore.sort((a, b) => b.score - a.score);
+                        const oldRoom = monsterRoom;
                         monsterRoom = movesWithScore[0].roomId;
+                        console.log(`Monster moved strategically from room ${oldRoom} to ${monsterRoom} (${ROOMS.find(r => r.id === monsterRoom)?.name})`);
                     } else {
+                        const oldRoom = monsterRoom;
                         monsterRoom = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        console.log(`Monster moved randomly from room ${oldRoom} to ${monsterRoom} (${ROOMS.find(r => r.id === monsterRoom)?.name})`);
                     }
                 } else {
                     // Normal hunting behavior (also scaled by difficulty)
@@ -618,22 +638,18 @@
                     // Hunting intelligence also scales with level
                     if (Math.random() < smartChance) {
                         movesWithDistance.sort((a, b) => a.distance - b.distance);
+                        const oldRoom = monsterRoom;
                         monsterRoom = movesWithDistance[0].roomId;
+                        console.log(`Monster hunted from room ${oldRoom} to ${monsterRoom} (${ROOMS.find(r => r.id === monsterRoom)?.name})`);
                     } else {
+                        const oldRoom = monsterRoom;
                         monsterRoom = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        console.log(`Monster wandered from room ${oldRoom} to ${monsterRoom} (${ROOMS.find(r => r.id === monsterRoom)?.name})`);
                     }
                 }
                 
-                // Check if monster caught player
-                if (playerRoom === monsterRoom) {
-                    clearInterval(intervalRef);
-                    clearInterval(timerRef);
-                    lostOnLevel = currentLevel;
-                    currentLevel = 1;
-                    totalTime = 0;
-                    gameState = 'lost';
-                    updateDisplay();
-                    updateControls();
+                // Check for collision with player
+                if (checkCollision()) {
                     return;
                 }
                 
