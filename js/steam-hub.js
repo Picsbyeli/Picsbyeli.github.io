@@ -79,8 +79,16 @@ class GameHub {
         const navItems = document.querySelectorAll('.steam-nav-item');
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleNavigation(e.target.dataset.section);
+                // Don't prevent default for external links (like leaderboard.html)
+                if (item.getAttribute('href') && item.getAttribute('href') !== '#') {
+                    return; // Allow normal navigation
+                }
+                
+                // Only prevent default and handle internally for section navigation
+                if (e.target.dataset.section) {
+                    e.preventDefault();
+                    this.handleNavigation(e.target.dataset.section);
+                }
             });
         });
     }
