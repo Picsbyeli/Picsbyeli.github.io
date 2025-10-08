@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E.Vol Games - Account Dashboard</title>
+    <link rel="stylesheet" href="steam-layout.css">
+    <link rel="stylesheet" href="css/help-widget.css">
+    <style>
+        .account-container {
+            background: linear-gradient(135deg, #1b2838 0%, #171a21 50%, #1b2838 100%);
+            min-height: 100vh;
+            color: #c7d5e0;
+            font-family: "Motiva Sans", Arial, sans-serif;
+        }
+
+        .account-header {
+            background: linear-gradient(180deg, #1e2328 0%, #171a21 100%);
+            border-bottom: 1px solid #316282;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .account-header h1 {
+            color: #66c0f4;
+            font-size: 36px;
+            margin: 0 0 10px 0;
+            font-weight: 300;
+        }
+
+        .account-header p {
+            color: #8f98a0;
+            margin: 0;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: #2a475e;
+            border: 1px solid #417a9b;
+            color: #c7d5e0;
+            padding: 10px 20px;
+            border-radius: 3px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #66c0f4;
+            color: #fff;
+            border-color: #66c0f4;
+        }
+
+        .account-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .account-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #316282;
+        }
+
+        .account-tab {
+            background: none;
+            border: none;
+            color: #8f98a0;
+            padding: 15px 25px;
+            cursor: pointer;
+            border-radius: 3px 3px 0 0;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .account-tab.active {
+            background: #2a475e;
+            color: #66c0f4;
+            border-bottom: 2px solid #66c0f4;
+        }
+
+        .account-tab:hover:not(.active) {
+            background: rgba(42, 71, 94, 0.5);
+            color: #c7d5e0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .profile-section {
+            background: linear-gradient(180deg, #2a475e 0%, #1e2328 100%);
+            border: 1px solid #417a9b;
+            border-radius: 5px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .profile-section h3 {
+            color: #66c0f4;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #417a9b 0%, #2a475e 100%);
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #66c0f4;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #8f98a0;
+            font-size: 14px;
+        }
+
+        .settings-section {
+            background: linear-gradient(180deg, #2a475e 0%, #1e2328 100%);
+            border: 1px solid #417a9b;
+            border-radius: 5px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #316282;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            color: #c7d5e0;
+            font-weight: 500;
+        }
+
+        .settings-control {
+            background: #1e2328;
+            border: 1px solid #417a9b;
+            border-radius: 3px;
+            padding: 8px 12px;
+            color: #c7d5e0;
+            font-size: 14px;
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            background: #5c7e10;
+            border: none;
+            color: #b8d631;
+            padding: 12px 24px;
+            border-radius: 3px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-btn:hover {
+            background: #6f9a1c;
+        }
+
+        .action-btn.secondary {
+            background: #2a475e;
+            color: #c7d5e0;
+        }
+
+        .action-btn.secondary:hover {
+            background: #417a9b;
+        }
+
+        .empty-favorites {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8f98a0;
+        }
+
+        .empty-favorites-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="account-container">
+        <div class="account-header">
+            <a href="index.html" class="back-btn">← Back to Games</a>
+            <h1>Account Dashboard</h1>
+            <p>Manage your gaming profile and preferences</p>
+        </div>
+
+        <div class="account-content">
+            <div class="account-tabs">
+                <button class="account-tab active" data-tab="profile">Profile</button>
+                <button class="account-tab" data-tab="favorites">Favorites</button>
+                <button class="account-tab" data-tab="settings">Settings</button>
+                <button class="account-tab" data-tab="auth">Login/Register</button>
+            </div>
+
+            <!-- Profile Tab -->
+            <div class="tab-content active" id="profile-tab">
+                <div class="profile-section">
+                    <h3>Profile Overview</h3>
+                    <p>Welcome to your gaming dashboard! Here you can track your progress and manage your account.</p>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="total-favorites">0</div>
+                            <div class="stat-label">Favorite Games</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="games-played">0</div>
+                            <div class="stat-label">Games Played</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="total-playtime">0h</div>
+                            <div class="stat-label">Total Playtime</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Favorites Tab -->
+            <div class="tab-content" id="favorites-tab">
+                <div class="profile-section">
+                    <h3>Your Favorite Games</h3>
+                    <p>Games you've marked as favorites will appear here. Use the ⭐ button on any game to add it to your favorites!</p>
+                </div>
+                
+                <div class="favorites-grid" id="favorites-display">
+                    <div class="empty-favorites">
+                        <div class="empty-favorites-icon">⭐</div>
+                        <h3>No favorites yet!</h3>
+                        <p>Start by clicking the star button on games you love</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings-tab">
+                <div class="settings-section">
+                    <h3>Game Preferences</h3>
+                    
+                    <div class="settings-item">
+                        <span class="settings-label">Default View</span>
+                        <select class="settings-control" id="default-view">
+                            <option value="grid">Grid View</option>
+                            <option value="list">List View</option>
+                        </select>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <span class="settings-label">Default Sort</span>
+                        <select class="settings-control" id="default-sort">
+                            <option value="name">Name</option>
+                            <option value="recent">Recently Added</option>
+                        </select>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <span class="settings-label">Auto-play Background Music</span>
+                        <select class="settings-control" id="auto-music">
+                            <option value="off">Off</option>
+                            <option value="on">On</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auth Tab -->
+            <div class="tab-content" id="auth-tab">
+                <div class="profile-section">
+                    <h3>Account Management</h3>
+                    <p>Sign in to save your progress, access leaderboards, and sync your favorites across devices.</p>
+                    
+                    <div class="auth-actions">
+                        <a href="auth.html" class="action-btn">Login / Register</a>
+                        <button class="action-btn secondary" onclick="clearAllData()">Clear Local Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AccountDashboard {
+            constructor() {
+                this.favorites = this.loadFavorites();
+                this.settings = this.loadSettings();
+                this.setupEventListeners();
+                this.loadGamesData();
+                this.updateStats();
+                this.renderFavorites();
+                this.loadSettings();
+            }
+
+            setupEventListeners() {
+                // Tab switching
+                document.querySelectorAll('.account-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        this.switchTab(e.target.dataset.tab);
+                    });
+                });
+
+                // Settings
+                document.getElementById('default-view').addEventListener('change', (e) => {
+                    this.updateSetting('defaultView', e.target.value);
+                });
+
+                document.getElementById('default-sort').addEventListener('change', (e) => {
+                    this.updateSetting('defaultSort', e.target.value);
+                });
+
+                document.getElementById('auto-music').addEventListener('change', (e) => {
+                    this.updateSetting('autoMusic', e.target.value);
+                });
+            }
+
+            switchTab(tabName) {
+                // Update tab buttons
+                document.querySelectorAll('.account-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            }
+
+            loadGamesData() {
+                // This would normally fetch from your games data
+                this.games = [
+                    { id: 'riddles', title: '🧩 Brain Riddles', description: 'Solve classic teasers', href: 'games/riddles.html', emoji: '🧩' },
+                    // Add more games as needed
+                ];
+            }
+
+            updateStats() {
+                document.getElementById('total-favorites').textContent = this.favorites.length;
+                document.getElementById('games-played').textContent = this.getGamesPlayed();
+                document.getElementById('total-playtime').textContent = this.getTotalPlaytime();
+            }
+
+            renderFavorites() {
+                const container = document.getElementById('favorites-display');
+                
+                if (this.favorites.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-favorites">
+                            <div class="empty-favorites-icon">⭐</div>
+                            <h3>No favorites yet!</h3>
+                            <p>Start by clicking the star button on games you love</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // This would render favorite games similar to the main page
+                container.innerHTML = this.favorites.map(gameId => {
+                    // Find game data and render card
+                    return `
+                        <div class="steam-game-card">
+                            <div class="game-image">🎮</div>
+                            <div class="game-info">
+                                <h3 class="game-title">Game ${gameId}</h3>
+                                <p class="game-description">Favorite game</p>
+                                <div class="game-actions">
+                                    <button class="favorite-btn favorited" onclick="account.removeFavorite('${gameId}')">★</button>
+                                    <button class="play-btn">Play</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            removeFavorite(gameId) {
+                const index = this.favorites.indexOf(gameId);
+                if (index > -1) {
+                    this.favorites.splice(index, 1);
+                    this.saveFavorites();
+                    this.updateStats();
+                    this.renderFavorites();
+                }
+            }
+
+            updateSetting(key, value) {
+                this.settings[key] = value;
+                this.saveSettings();
+            }
+
+            getGamesPlayed() {
+                const recentlyPlayed = this.loadRecentlyPlayed();
+                return recentlyPlayed.length;
+            }
+
+            getTotalPlaytime() {
+                // This would calculate based on actual play data
+                return Math.floor(Math.random() * 50) + 'h';
+            }
+
+            // Storage methods
+            loadFavorites() {
+                const stored = localStorage.getItem('gameHub_favorites');
+                return stored ? JSON.parse(stored) : [];
+            }
+
+            saveFavorites() {
+                localStorage.setItem('gameHub_favorites', JSON.stringify(this.favorites));
+            }
+
+            loadRecentlyPlayed() {
+                const stored = localStorage.getItem('gameHub_recentlyPlayed');
+                return stored ? JSON.parse(stored) : [];
+            }
+
+            loadSettings() {
+                const stored = localStorage.getItem('gameHub_settings');
+                const defaultSettings = {
+                    defaultView: 'grid',
+                    defaultSort: 'name',
+                    autoMusic: 'off'
+                };
+                this.settings = stored ? { ...defaultSettings, ...JSON.parse(stored) } : defaultSettings;
+                
+                // Apply settings to UI
+                document.getElementById('default-view').value = this.settings.defaultView;
+                document.getElementById('default-sort').value = this.settings.defaultSort;
+                document.getElementById('auto-music').value = this.settings.autoMusic;
+                
+                return this.settings;
+            }
+
+            saveSettings() {
+                localStorage.setItem('gameHub_settings', JSON.stringify(this.settings));
+            }
+        }
+
+        // Global functions
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all local data? This will remove favorites, settings, and recently played games.')) {
+                localStorage.removeItem('gameHub_favorites');
+                localStorage.removeItem('gameHub_recentlyPlayed');
+                localStorage.removeItem('gameHub_settings');
+                location.reload();
+            }
+        }
+
+        // Initialize
+        let account;
+        document.addEventListener('DOMContentLoaded', () => {
+            account = new AccountDashboard();
+        });
+    </script>
+
+    <script src="js/help-widget.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initHelpWidget('Account Dashboard');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>E.Vol — Games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="./styles.css" rel="stylesheet" />
+  <link href="./css/help-widget.css" rel="stylesheet" />
+</head>
+<body>
+  <!-- Advanced Music Player -->
+  <div id="music-player" class="music-player">
+    <!-- Header -->
+    <div class="music-header drag-handle">
+      <div class="header-info">
+        <span class="music-icon">🎵</span>
+        <span class="player-title">Music Player</span>
+      </div>
+      <div class="header-controls">
+        <button id="minimize-btn" class="header-btn" title="Minimize">−</button>
+        <button id="close-btn" class="header-btn" title="Close" style="display: none;">×</button>
+      </div>
+    </div>
+
+    <div id="player-content" class="player-content">
+      <!-- Navigation -->
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-view="player">Player</button>
+        <button class="nav-tab" data-view="search">Search</button>
+        <button class="nav-tab" data-view="playlists">Playlists</button>
+        <button class="nav-tab" data-view="queue">Queue</button>
+        <button class="nav-tab" data-view="settings">Settings</button>
+      </div>
+
+      <!-- Content Area -->
+      <div class="content-area">
+        <!-- Player View -->
+        <div id="player-view" class="view active">
+          <div id="current-song-display" class="current-song">
+            <div class="song-artwork">🎵</div>
+            <div class="song-info">
+              <div class="song-title">No song playing</div>
+              <div class="song-artist">Search for music to get started</div>
+            </div>
+          </div>
+          
+          <!-- Progress Bar (for local files) -->
+          <div id="progress-section" class="progress-section" style="display: none;">
+            <input type="range" id="progress-slider" min="0" max="100" value="0" class="progress-slider">
+            <div class="time-display">
+              <span id="current-time">0:00</span>
+              <span id="total-time">0:00</span>
+            </div>
+          </div>
+
+          <!-- Embed Container -->
+          <div id="embed-container" class="embed-container"></div>
+          
+          <!-- Volume Control -->
+          <div class="volume-control">
+            <span class="volume-icon">🔊</span>
+            <input type="range" id="volume-slider" min="0" max="100" value="50" class="volume-slider">
+          </div>
+
+          <!-- Controls -->
+          <div class="player-controls">
+            <button id="shuffle-btn" class="control-btn" onclick="musicPlayer.toggleShuffle()" title="Shuffle">🔀</button>
+            <button id="prev-btn" class="control-btn">⏮</button>
+            <button id="play-pause-btn" class="play-btn">▶️</button>
+            <button id="next-btn" class="control-btn">⏭</button>
+            <button id="queue-btn" class="control-btn" onclick="musicPlayer.setActiveTab('queue')" title="View Queue">📋</button>
+          </div>
+
+          <!-- Upload and Add Options -->
+          <div class="add-music-section">
+            <input type="file" id="audio-upload" accept="audio/*" multiple style="display: none;">
+            <button onclick="document.getElementById('audio-upload').click()" class="add-btn">📁 Upload Files</button>
+            <div class="link-input-group">
+              <input type="text" id="link-input" placeholder="Paste streaming link..." class="link-input">
+              <button onclick="addLink()" class="add-btn">➕ Add Link</button>
+            </div>
+          </div>
+
+          <!-- Queue -->
+          <div id="queue-section" class="queue-section">
+            <h4 class="queue-title">🎵 Up Next (<span id="queue-count">0</span>)</h4>
+            <div id="queue-list" class="queue-list scrollable"></div>
+          </div>
+        </div>
+
+        <!-- Search View -->
+        <div id="search-view" class="view">
+          <div class="search-section">
+            <div class="platform-selector">
+              <button id="youtube-btn" class="platform-btn active" onclick="selectPlatform('youtube')">📺 YouTube</button>
+              <button id="spotify-btn" class="platform-btn" onclick="selectPlatform('spotify')">🎵 Spotify</button>
+            </div>
+            <div class="search-bar">
+              <input type="text" id="search-input" placeholder="Search songs, artists..." class="search-input">
+              <button id="search-btn" class="search-button">🔍</button>
+            </div>
+            <button onclick="musicPlayer?.loginSpotify()" class="spotify-login-btn">🎵 Login to Spotify</button>
+          </div>
+          <div id="search-results" class="search-results scrollable"></div>
+        </div>
+
+        <!-- Playlists View -->
+        <div id="playlists-view" class="view">
+          <div class="playlist-header">
+            <select id="playlist-selector" class="playlist-selector" title="Select playlist">
+              <option value="">Select Playlist</option>
+            </select>
+            <button id="create-playlist-btn" class="create-playlist-btn">➕ Create New Playlist</button>
+          </div>
+          <div id="playlists-list" class="playlists-list scrollable"></div>
+        </div>
+
+        <!-- Queue View -->
+        <div id="queue-view" class="view">
+          <div class="queue-header">
+            <h3>🎵 Up Next (<span id="queue-count">0</span> songs)</h3>
+            <button id="clear-queue-btn" class="clear-queue-btn" onclick="musicPlayer.clearQueue()">🗑️ Clear Queue</button>
+          </div>
+          <div id="queue-content" class="queue-content scrollable">
+            <div class="empty-queue">
+              <p>🎵 Queue is empty</p>
+              <p class="queue-hint">Add songs from search to play them next</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settings-view" class="view">
+          <div class="settings-section">
+            <h3>🎵 Music API Configuration</h3>
+            <p>To enable music search and playback, you need to configure API credentials:</p>
+            
+            <div class="api-config">
+              <h4>📺 YouTube Data API v3</h4>
+              <div class="config-info">
+                <p>1. Visit <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></p>
+                <p>2. Create a new project or select existing one</p>
+                <p>3. Enable "YouTube Data API v3"</p>
+                <p>4. Create credentials (API Key)</p>
+                <p>5. Add your API key below:</p>
+                <input type="text" id="youtube-api-key" placeholder="Your YouTube API Key" class="api-input">
+                <button id="save-youtube-key" class="save-btn">💾 Save YouTube Key</button>
+                <div id="youtube-status" class="api-status"></div>
+              </div>
+            </div>
+
+            <div class="api-config">
+              <h4>🎵 Spotify Web API</h4>
+              <div class="config-info">
+                <p>1. Visit <a href="https://developer.spotify.com/dashboard" target="_blank">Spotify Developer Dashboard</a></p>
+                <p>2. Create a new app</p>
+                <p>3. Note your Client ID and Client Secret</p>
+                <p>4. Add your credentials below:</p>
+                <input type="text" id="spotify-client-id" placeholder="Your Spotify Client ID" class="api-input">
+                <input type="password" id="spotify-client-secret" placeholder="Your Spotify Client Secret" class="api-input">
+                <button id="save-spotify-keys" class="save-btn">💾 Save Spotify Keys</button>
+                <div id="spotify-status" class="api-status"></div>
+              </div>
+            </div>
+
+            <div class="api-config">
+              <h4>ℹ️ Important Notes</h4>
+              <ul>
+                <li>API keys are stored locally in your browser</li>
+                <li>Keys are not shared or transmitted to any external servers</li>
+                <li>You can test the login functions to verify your setup</li>
+                <li>Clear your browser data to reset stored keys</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Minimized View -->
+    <div id="minimized-view" class="minimized-view hidden">
+      <div class="minimized-content">
+        <div class="minimized-controls">
+          <button id="minimized-prev-btn" class="minimized-control-btn">⏮</button>
+          <button id="minimized-play-btn" class="minimized-play-btn">▶️</button>
+          <button id="minimized-next-btn" class="minimized-control-btn">⏭</button>
+        </div>
+        <div class="minimized-info">
+          <div class="minimized-title">No song playing</div>
+          <div class="minimized-artist">Music Player</div>
+        </div>
+        <button id="expand-btn" class="expand-btn" title="Expand Player">🔼</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- YouTube Player (Hidden) -->
+  <div id="youtube-player" style="display: none;"></div>
+
+  <!-- Roblox-Style Game Hub -->
+  <main class="hub-container">
+    <aside class="sidebar">
+      <div class="logo-header">
+        <img src="assets/logo.svg" alt="E.Vol Games Logo" class="site-logo">
+        <h2>E.Vol Hub</h2>
+      </div>
+      <nav>
+        <a href="index.html">🏠 Home</a>
+        <a href="leaderboard.html">🏆 Leaderboard</a>
+        <a href="#" id="account-link" data-action="account" onclick="handleAccountClick(event)">👤 Account</a>
+        <a href="standalone.html">🎮 Classic Games</a>
+      </nav>
+    </aside>
+
+    <section class="game-grid">
+      <h2>My Games</h2>
+      <div class="grid">
+        <a href="games/riddles.html" class="game-card">
+          <img src="assets/riddles.png" alt="Riddles" onerror="this.style.display='none'">
+          <h3>🧩 Brain Riddles</h3>
+          <p>Solve classic teasers</p>
+        </a>
+        <a href="games/trivia.html" class="game-card">
+          <img src="assets/trivia.png" alt="Trivia" onerror="this.style.display='none'">
+          <h3>🤔 Trivia</h3>
+          <p>Test knowledge with multiple-choice</p>
+        </a>
+        <a href="games/twenty-questions.html" class="game-card">
+          <img src="assets/twenty-questions.png" alt="20 Questions" onerror="this.style.display='none'">
+          <h3>❓ 20 Questions</h3>
+          <p>Guess what I'm thinking with yes/no questions</p>
+        </a>
+        <a href="games/animal-twenty-questions.html" class="game-card">
+          <img src="assets/twenty-questions.svg" alt="Animal 20 Questions" onerror="this.style.display='none'">
+          <h3>🐾 Animal 20 Questions</h3>
+          <p>Think of an animal and I'll guess it!</p>
+        </a>
+        <a href="games/emoji.html" class="game-card">
+          <img src="assets/emoji.png" alt="Emoji Guess" onerror="this.style.display='none'">
+          <h3>😂 Emoji Guess</h3>
+          <p>Decode emoji puzzles</p>
+        </a>
+        <a href="games/word.html" class="game-card">
+          <img src="assets/word.png" alt="Word Game" onerror="this.style.display='none'">
+          <h3>🔤 Word Game</h3>
+          <p>Guess the hidden word</p>
+        </a>
+        <a href="games/chess.html" class="game-card">
+          <img src="assets/chess.png" alt="Chess" onerror="this.style.display='none'">
+          <h3>♟️ Chess & Checkers</h3>
+          <p>Play vs AI or online</p>
+        </a>
+        <a href="games/connect4.html" class="game-card">
+          <img src="assets/connect4.png" alt="Connect 4" onerror="this.style.display='none'">
+          <h3>⭕ Connect 4</h3>
+          <p>Classic 4-in-a-row</p>
+        </a>
+        <a href="games/imposter.html" class="game-card">
+          <img src="assets/imposter.png" alt="Imposter" onerror="this.style.display='none'">
+          <h3>🕵️ Imposter</h3>
+          <p>Find the faker!</p>
+        </a>
+        <a href="games/school-trivia.html" class="game-card">
+          <img src="assets/school.png" alt="School Trivia" onerror="this.style.display='none'">
+          <h3>🎓 School Trivia</h3>
+          <p>Educational quiz fun</p>
+        </a>
+        <a href="games/tic-tac-toe.html" class="game-card">
+          <img src="assets/tic-tac-toe.png" alt="Tic-Tac-Toe" onerror="this.style.display='none'">
+          <h3>❌ Tic-Tac-Toe</h3>
+          <p>Classic 3-in-a-row game</p>
+        </a>
+        <a href="games/rock-paper-scissors.html" class="game-card">
+          <img src="assets/rock-paper-scissors.png" alt="Rock Paper Scissors" onerror="this.style.display='none'">
+          <h3>✂️ Rock Paper Scissors</h3>
+          <p>Battle against the computer</p>
+        </a>
+        <a href="games/guess-the-number.html" class="game-card">
+          <img src="assets/guess-number.png" alt="Guess the Number" onerror="this.style.display='none'">
+          <h3>🎲 Guess the Number</h3>
+          <p>Can you find the hidden number?</p>
+        </a>
+        <a href="games/memory-cards.html" class="game-card">
+          <img src="assets/memory.png" alt="Memory Cards" onerror="this.style.display='none'">
+          <h3>🧠 Memory Cards</h3>
+          <p>Test your memory skills</p>
+        </a>
+        <a href="games/snake.html" class="game-card">
+          <img src="assets/snake.png" alt="Snake Game" onerror="this.style.display='none'">
+          <h3>🐍 Snake</h3>
+          <p>Classic arcade snake game</p>
+        </a>
+        <a href="games/word-scramble.html" class="game-card">
+          <img src="assets/word-scramble.png" alt="Word Scramble" onerror="this.style.display='none'">
+          <h3>🔀 Word Scramble</h3>
+          <p>Unscramble the letters</p>
+        </a>
+        <a href="games/hangman.html" class="game-card">
+          <img src="assets/hangman.png" alt="Hangman" onerror="this.style.display='none'">
+          <h3>🎯 Hangman</h3>
+          <p>Guess the word letter by letter</p>
+        </a>
+        <a href="games/reaction-timer.html" class="game-card">
+          <img src="assets/reaction.png" alt="Reaction Timer" onerror="this.style.display='none'">
+          <h3>⚡ Reaction Timer</h3>
+          <p>Test your reflexes</p>
+        </a>
+        <a href="games/whack-a-mole.html" class="game-card">
+          <img src="assets/whack-a-mole.png" alt="Whack-a-Mole" onerror="this.style.display='none'">
+          <h3>🔨 Whack-a-Mole</h3>
+          <p>Hit the moles, avoid the bombs</p>
+        </a>
+        <a href="games/cookie-clicker.html" class="game-card">
+          <img src="assets/cookie-clicker.png" alt="Cookie Clicker" onerror="this.style.display='none'">
+          <h3>🍪 Cookie Clicker</h3>
+          <p>Click cookies, buy upgrades</p>
+        </a>
+        <a href="games/piano.html" class="game-card">
+          <h3>🎹 Piano</h3>
+          <p>Play virtual piano with sheet music</p>
+        </a>
+        <a href="games/hide-and-seek.html" class="game-card">
+          <h3>👻 Hide and Seek</h3>
+          <p>Escape the monster in a haunted house</p>
+        </a>
+        <a href="games/guess-who.html" class="game-card">
+          <h3>🎭 Guess Who?</h3>
+          <p>Classic guessing game with online multiplayer</p>
+        </a>
+        <a href="games/stickman-race.html" class="game-card">
+          <img src="assets/stickman.png" alt="Stick Man Race" onerror="this.style.display='none'">
+          <h3>🏃 Stick Man Race</h3>
+          <p>Multiplayer racing with stick figures</p>
+        </a>
+        <a href="games/chain-link.html" class="game-card">
+          <img src="assets/word.png" alt="Chain Link" onerror="this.style.display='none'">
+          <h3>🔗 Chain Link</h3>
+          <p>Connect words to complete chains</p>
+        </a>
+        <a href="games/evol-band.html" class="game-card">
+          <img src="assets/audio/speaker.png" alt="Evol Band" onerror="this.style.display='none'">
+          <h3>🎵 Evol Band</h3>
+          <p>Professional beat maker with 25+ instruments</p>
+        </a>
+        <a href="games/2048.html" class="game-card">
+          <img src="assets/2048.png" alt="2048" onerror="this.style.display='none'">
+          <h3>🔢 2048</h3>
+          <p>Combine tiles to reach 2048</p>
+        </a>
+        <a href="games/brick-breaker.html" class="game-card">
+          <img src="assets/brick-breaker.png" alt="Brick Breaker" onerror="this.style.display='none'">
+          <h3>🧱 Brick Breaker</h3>
+          <p>Break all the colorful bricks</p>
+        </a>
+        <a href="games/pong.html" class="game-card">
+          <img src="assets/pong.png" alt="Pong" onerror="this.style.display='none'">
+          <h3>🏓 Pong</h3>
+          <p>Classic paddle game with power-ups</p>
+        </a>
+        <a href="games/counting.html" class="game-card">
+          <img src="assets/counting.png" alt="Counting Game" onerror="this.style.display='none'">
+          <h3>🔢 Counting Game</h3>
+          <p>Count the falling objects</p>
+        </a>
+        <a href="games/dodge.html" class="game-card">
+          <img src="assets/dodge.png" alt="Dodge Game" onerror="this.style.display='none'">
+          <h3>🏃 Dodge Game</h3>
+          <p>Avoid blocks, collect coins</p>
+        </a>
+        <a href="games/flappy-helicopter.html" class="game-card">
+          <img src="assets/flappy-helicopter.png" alt="Flappy Helicopter" onerror="this.style.display='none'">
+          <h3>🚁 Flappy Helicopter</h3>
+          <p>Fly through the pipes</p>
+        </a>
+        <a href="games/lights-out.html" class="game-card">
+          <img src="assets/lights-out.png" alt="Lights Out" onerror="this.style.display='none'">
+          <h3>💡 Lights Out</h3>
+          <p>Turn all the lights off</p>
+        </a>
+        <a href="games/typing-speed.html" class="game-card">
+          <img src="assets/typing-speed.png" alt="Typing Speed Test" onerror="this.style.display='none'">
+          <h3>⌨️ Typing Speed</h3>
+          <p>Test your typing skills</p>
+        </a>
+        <a href="games/color-dash.html" class="game-card">
+          <h3>🌈 Color Dash</h3>
+          <p>Match colors under pressure</p>
+        </a>
+        <a href="games/quick-draw-duel.html" class="game-card">
+          <h3>⚡ Quick Draw Duel</h3>
+          <p>Fast reflexes in western showdown</p>
+        </a>
+        <a href="games/tower-balance.html" class="game-card">
+          <h3>🏗️ Tower Balance</h3>
+          <p>Stack blocks with perfect timing</p>
+        </a>
+        <a href="games/mini-battle-arena.html" class="game-card">
+          <h3>⚔️ Mini Battle Arena</h3>
+          <p>Combat arena with AI and multiplayer</p>
+        </a>
+        <a href="games/escape-room.html" class="game-card">
+          <h3>🔒 Escape the Haunted Room</h3>
+          <p>Solve puzzles to escape the haunted room</p>
+        </a>
+        <a href="games/digital-sketchbook.html" class="game-card">
+          <h3>🎨 Digital Sketchbook</h3>
+          <p>Draw and create animations with digital art tools</p>
+        </a>
+        <a href="games/escape-room-challenge.html" class="game-card">
+          <h3>🔐 Escape Room Challenge</h3>
+          <p>Multi-themed puzzle escape rooms with time challenges</p>
+        </a>
+        <a href="games/evolmon.html" class="game-card">
+          <img src="assets/evolmon.svg" alt="Evolmon" onerror="this.style.display='none'">
+          <h3>🎮 Evolmon</h3>
+          <p>Free HTML5 remake of the original Pokemon game</p>
+        </a>
+        <a href="games/Clue.html" class="game-card">
+          <img src="assets/clue.svg" alt="CLUE" onerror="this.style.display='none'">
+          <h3>🔍 CLUE</h3>
+          <p>Online multiplayer mystery detective game</p>
+        </a>
+        <a href="games/werewolf.html" class="game-card">
+          <img src="assets/werewolf.svg" alt="Werewolf" onerror="this.style.display='none'">
+          <h3>🐺 Werewolf</h3>
+          <p>Social deduction game - find the werewolves!</p>
+        </a>
+        <a href="leaderboard.html" class="game-card special-card">
+          <div class="special-icon">🏆</div>
+          <h3>🏆 Leaderboard</h3>
+          <p>Top player scores across all games</p>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Profile Section (hidden by default) -->
+  <div id="profile-section" class="profile-dashboard">
+    <div class="profile-container">
+      <div class="profile-header">
+        <img src="assets/logo.svg" alt="E.Vol Games Logo" class="profile-logo">
+        <h2>Account Dashboard</h2>
+        <button id="close-profile" class="close-btn">×</button>
+      </div>
+      
+      <div class="profile-content">
+        <div class="profile-tabs">
+          <button class="profile-tab active" data-tab="dashboard">📊 Dashboard</button>
+          <button class="profile-tab" data-tab="leaderboard">🏆 Leaderboard</button>
+          <button class="profile-tab" data-tab="settings">⚙️ Settings</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="profile-dashboard-tab" class="profile-tab-content active">
+          <div class="profile-cards">
+            <div class="profile-card">
+              <h3>Profile</h3>
+              <div class="profile-info-section">
+                <div id="profile-pic-display" class="profile-pic">?</div>
+                <div class="profile-details">
+                  <h4 id="profile-username-display">Loading...</h4>
+                  <p id="profile-email-display">Loading...</p>
+                  <p>Member since: <span id="profile-joined-display">Loading...</span></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-card">
+              <h3>Game Statistics</h3>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <div id="total-score-display" class="stat-value">0</div>
+                  <div class="stat-label">Total Score</div>
+                </div>
+                <div class="stat-item">
+                  <div id="games-played-display" class="stat-value">0</div>
+                  <div class="stat-label">Games Played</div>
+                </div>
+                <div class="stat-item">
+                  <div id="wins-count-display" class="stat-value">0</div>
+                  <div class="stat-label">Wins</div>
+                </div>
+                <div class="stat-item">
+                  <div id="rank-position-display" class="stat-value">-</div>
+                  <div class="stat-label">Global Rank</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaderboard Tab -->
+        <div id="profile-leaderboard-tab" class="profile-tab-content">
+          <div class="profile-card">
+            <h3>Global Leaderboard</h3>
+            <div id="profile-leaderboard-content" class="loading">Loading leaderboard...</div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="profile-settings-tab" class="profile-tab-content">
+          <div class="profile-card">
+            <h3>Account Settings</h3>
+            <div class="settings-form">
+              <div class="form-group">
+                <label for="settings-username-display">Username</label>
+                <input type="text" id="settings-username-display" class="form-input">
+              </div>
+              <div class="form-group">
+                <label for="settings-theme-display">Theme</label>
+                <select id="settings-theme-display" class="form-input">
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="settings-language-display">Language</label>
+                <select id="settings-language-display" class="form-input">
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                </select>
+              </div>
+              <button id="save-settings-display" class="save-btn">Save Settings</button>
+              <button id="logout-btn-display" class="logout-btn">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© <span id="year"></span> E.Vol</p>
+  </footer>
+
+  <!-- Socket.IO client -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+
+  <!-- Help widget -->
+  <script src="js/help-widget.js"></script>
+
+  <!-- Audio player -->
+  <script src="js/music.js"></script>
+
+  <!-- Firebase Authentication -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+    import { GameAuth } from './js/firebase-auth.js';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAQE2mo6RNgwG-WaooCpoZjQ9Z8G2MHvx8",
+        authDomain: "profile-9e9f9.firebaseapp.com",
+        databaseURL: "https://profile-9e9f9-default-rtdb.firebaseio.com",
+        projectId: "profile-9e9f9",
+        storageBucket: "profile-9e9f9.firebasestorage.app",
+        messagingSenderId: "610449223815",
+        appId: "1:610449223815:web:3cdb864b4314d2b901c822",
+        measurementId: "G-7R4Z3ZSZ67"
+    };
+
+    // Initialize tab functionality
+    window.initializeProfileTabs = function() {
+      console.log('Initializing profile tabs...');
+      
+      // Remove existing listeners first
+      const existingTabs = document.querySelectorAll('.profile-tab');
+      existingTabs.forEach(tab => {
+        // Clone and replace to remove all event listeners
+        const newTab = tab.cloneNode(true);
+        tab.parentNode.replaceChild(newTab, tab);
+      });
+      
+      // Add new listeners
+      const profileTabs = document.querySelectorAll('.profile-tab');
+      console.log('Found profile tabs:', profileTabs.length);
+      
+      profileTabs.forEach((tab, index) => {
+        console.log(`Setting up tab ${index}:`, tab.dataset.tab);
+        tab.addEventListener('click', function(e) {
+          console.log('Tab clicked:', tab.dataset.tab);
+          e.preventDefault();
+          e.stopPropagation();
+          const targetTab = tab.dataset.tab;
+          
+          // Update tab buttons
+          document.querySelectorAll('.profile-tab').forEach(t => {
+            t.classList.remove('active');
+          });
+          tab.classList.add('active');
+          console.log('Added active to tab:', targetTab);
+          
+          // Update tab content
+          document.querySelectorAll('.profile-tab-content').forEach(content => {
+            content.classList.remove('active');
+          });
+          const targetContent = document.getElementById(`profile-${targetTab}-tab`);
+          console.log('Looking for content:', `profile-${targetTab}-tab`);
+          if (targetContent) {
+            targetContent.classList.add('active');
+            console.log('Added active to content:', targetContent.id);
+          } else {
+            console.error('Target content not found:', `profile-${targetTab}-tab`);
+          }
+        });
+      });
+    };
+
+    // Direct account link handler
+    window.handleAccountClick = function(e) {
+      console.log('Account link clicked');
+      
+      // Always prevent default link behavior
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Check if modal is already open
+      const profileSection = document.getElementById('profile-section');
+      if (profileSection && profileSection.style.display === 'block') {
+        console.log('Modal already open, ignoring click');
+        return;
+      }
+      
+      // Add a small delay to ensure DOM is ready
+      setTimeout(() => {
+        // Check if Firebase auth is ready
+        if (!window.gameAuth) {
+          console.log('Firebase auth not initialized, redirecting to auth page');
+          window.location.href = 'auth.html';
+          return;
+        }
+        
+        // Wait for auth to be ready
+        window.gameAuth.waitForAuthInit().then(() => {
+          console.log('Auth initialized, checking login status');
+          if (window.gameAuth.isLoggedIn()) {
+            console.log('User is logged in, showing profile');
+            window.showProfileSection();
+          } else {
+            console.log('User not logged in, redirecting to auth');
+            window.location.href = 'auth.html';
+          }
+        }).catch(error => {
+          console.error('Auth initialization error:', error);
+          console.log('Falling back to auth page');
+          window.location.href = 'auth.html';
+        });
+      }, 100);
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    window.gameAuth = new GameAuth(app);
+
+    // Add a backup mechanism in case Firebase fails
+    window.addEventListener('error', (e) => {
+      if (e.message && e.message.includes('firebase')) {
+        console.warn('Firebase error detected, account features may be limited');
+      }
+    });
+
+    // Ensure account link works even if Firebase is slow to load
+    document.addEventListener('DOMContentLoaded', () => {
+      const accountLink = document.getElementById('account-link');
+      if (accountLink) {
+        // Ensure the click handler is attached
+        accountLink.removeEventListener('click', window.handleAccountClick);
+        accountLink.addEventListener('click', window.handleAccountClick);
+      }
+    });
+    
+    // Global functions for profile management
+    window.showProfileSection = function() {
+      console.log('showProfileSection called');
+      const profileSection = document.getElementById('profile-section');
+      console.log('Profile section element:', profileSection);
+      
+      if (profileSection) {
+        console.log('Setting profile section to display block');
+        
+        // Prevent any click events from immediately closing the modal
+        window.modalJustOpened = true;
+        
+        profileSection.style.display = 'block';
+        profileSection.style.zIndex = '10000';
+        document.body.style.overflow = 'hidden';
+        
+        // Force a repaint
+        profileSection.offsetHeight;
+        
+        loadProfileData();
+        console.log('Profile section should now be visible');
+        
+        // Reset the flag after a short delay
+        setTimeout(() => {
+          window.modalJustOpened = false;
+        }, 300);
+        
+      } else {
+        console.error('Profile section not found in DOM');
+        // Try to redirect to auth page if profile section is missing
+        window.location.href = 'auth.html';
+      }
+    };
+
+    window.hideProfileSection = function() {
+      console.log('hideProfileSection called - Stack trace:');
+      console.trace();
+      
+      const profileSection = document.getElementById('profile-section');
+      if (profileSection) {
+        profileSection.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        console.log('Profile section hidden');
+      }
+    };
+
+    window.loadProfileData = function() {
+      console.log('Loading profile data...');
+      if (!window.gameAuth) return;
+      
+      const userData = window.gameAuth.getCurrentUser();
+      if (userData.user && userData.profile) {
+        const profile = userData.profile;
+        
+        // Update profile info
+        const usernameEl = document.getElementById('profile-username-display');
+        const emailEl = document.getElementById('profile-email-display');
+        const picEl = document.getElementById('profile-pic-display');
+        const joinedEl = document.getElementById('profile-joined-display');
+        
+        if (usernameEl) usernameEl.textContent = profile.username || 'Unknown';
+        if (emailEl) emailEl.textContent = profile.email || 'Unknown';
+        if (picEl) picEl.textContent = (profile.username || 'U').charAt(0).toUpperCase();
+        
+        if (joinedEl && profile.createdAt) {
+          const joinDate = new Date(profile.createdAt.seconds * 1000).toLocaleDateString();
+          joinedEl.textContent = joinDate;
+        }
+
+        // Update stats
+        const scoreEl = document.getElementById('total-score-display');
+        const gamesEl = document.getElementById('games-played-display');
+        const winsEl = document.getElementById('wins-count-display');
+        
+        if (scoreEl) scoreEl.textContent = (profile.score || 0).toLocaleString();
+        if (gamesEl) gamesEl.textContent = profile.gamesPlayed || 0;
+        if (winsEl) winsEl.textContent = profile.wins || 0;
+        
+        // Update settings form
+        const settingsUsernameEl = document.getElementById('settings-username-display');
+        const settingsThemeEl = document.getElementById('settings-theme-display');
+        const settingsLanguageEl = document.getElementById('settings-language-display');
+        
+        if (settingsUsernameEl) settingsUsernameEl.value = profile.username || '';
+        if (settingsThemeEl) settingsThemeEl.value = profile.settings?.theme || 'light';
+        if (settingsLanguageEl) settingsLanguageEl.value = profile.settings?.language || 'en';
+      }
+      
+      // Initialize tabs if not already done
+      window.initializeProfileTabs();
+    };
+    
+    // Update navigation based on auth status
+    window.gameAuth.waitForAuthInit().then(() => {
+      console.log('Auth initialized, updating navigation...');
+      const accountLink = document.getElementById('account-link');
+      if (!accountLink) {
+        console.error('Account link not found');
+        return;
+      }
+      
+      // Add click handler as backup to onclick attribute
+      accountLink.addEventListener('click', window.handleAccountClick);
+      
+      if (window.gameAuth.isLoggedIn()) {
+        const userData = window.gameAuth.getCurrentUser();
+        if (userData.profile) {
+          console.log('User is logged in, updating account link text...');
+          accountLink.innerHTML = '👤 ' + userData.profile.username;
+        }
+      } else {
+        console.log('User not logged in, keeping default auth link');
+      }
+    }).catch(error => {
+      console.error('Error in auth initialization:', error);
+      
+      // Even if auth fails, add the click handler
+      const accountLink = document.getElementById('account-link');
+      if (accountLink) {
+        accountLink.addEventListener('click', window.handleAccountClick);
+      }
+    });
+
+    // Profile tab switching
+    document.addEventListener('DOMContentLoaded', () => {
+      // Close profile section
+      const closeBtn = document.getElementById('close-profile');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          hideProfileSection();
+        });
+      }
+      
+      // Tab switching
+      console.log('Setting up tab switching from DOMContentLoaded...');
+      window.initializeProfileTabs();
+
+      // Settings save
+      const saveBtn = document.getElementById('save-settings-display');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const username = document.getElementById('settings-username-display').value;
+          const theme = document.getElementById('settings-theme-display').value;
+          const language = document.getElementById('settings-language-display').value;
+
+          const updates = {
+            username: username,
+            'settings.theme': theme,
+            'settings.language': language
+          };
+
+          try {
+            const result = await window.gameAuth.updateUserProfile(updates);
+            if (result.success) {
+              alert('Settings saved successfully!');
+              loadProfileData(); // Refresh display
+            } else {
+              alert('Error saving settings: ' + result.error);
+            }
+          } catch (error) {
+            console.error('Error saving settings:', error);
+            alert('Error saving settings. Please try again.');
+          }
+        });
+      }
+
+      // Logout button
+      const logoutBtn = document.getElementById('logout-btn-display');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          if (confirm('Are you sure you want to logout?')) {
+            await window.gameAuth.logout();
+            hideProfileSection();
+            location.reload();
+          }
+        });
+      }
+
+      // Close profile when clicking on the overlay background (but not the modal content)
+      const profileSection = document.getElementById('profile-section');
+      if (profileSection) {
+        profileSection.addEventListener('click', function(e) {
+          // Don't close if modal just opened
+          if (window.modalJustOpened) {
+            console.log('Modal just opened, ignoring background click');
+            return;
+          }
+          
+          // Only close if clicking directly on the overlay background
+          if (e.target === profileSection) {
+            console.log('Background clicked, closing modal');
+            hideProfileSection();
+          }
+        });
+      }
+      
+      // Prevent clicks inside the modal from bubbling up
+      const profileContainer = document.querySelector('.profile-container');
+      if (profileContainer) {
+        profileContainer.addEventListener('click', function(e) {
+          console.log('Click inside profile container, stopping propagation');
+          e.stopPropagation();
+        });
+        
+        // Also prevent any child elements from bubbling
+        profileContainer.addEventListener('mousedown', function(e) {
+          e.stopPropagation();
+        });
+      }
+
+      // ESC key to close modal
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const profileSection = document.getElementById('profile-section');
+          if (profileSection && profileSection.style.display === 'block') {
+            hideProfileSection();
+          }
+        }
+      });
+    });
+  </script>
+
+  <!-- App scripts -->
+  <script type="module" src="./main.js"></script>
+  
+  <!-- Initialize help widget -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      initHelpWidget('E.Vol Games Hub');
+    });
+  </script>
+</body>
+</html>
