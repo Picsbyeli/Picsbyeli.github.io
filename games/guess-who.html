@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess Who? - Online Multiplayer Game</title>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSjGQQn-JnyeKRhSH332llWNxXQOX-daM",
+            authDomain: "guesswho-3bb4b.firebaseapp.com",
+            databaseURL: "https://guesswho-3bb4b-default-rtdb.firebaseio.com",
+            projectId: "guesswho-3bb4b",
+            storageBucket: "guesswho-3bb4b.firebasestorage.app",
+            messagingSenderId: "401302326549",
+            appId: "1:401302326549:web:d6b1360739c322633fed1c",
+            measurementId: "G-Q26MNS8TFC"
+        };
+    </script>
+    
+    <!-- External Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            overflow-x: hidden;
+        }
+        * { box-sizing: border-box; }
+        
+        .character-card {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        .character-card:not(.eliminated):not(.disabled):hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+        
+        .character-card.eliminated {
+            opacity: 0.4;
+            filter: grayscale(1);
+        }
+        
+        .character-card.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Game will be rendered here -->
+    </div>
+
+    <script>
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Game Characters Data
+        const CHARACTERS = [
+            { id: 1, name: "Alex", gender: "male", glasses: true, hat: false, hairColor: "brown", hairStyle: "short", facialHair: true, eyeColor: "blue", skinTone: "light", bgColor: "#FF9500" },
+            { id: 2, name: "Beth", gender: "female", glasses: false, hat: true, hairColor: "blonde", hairStyle: "long", facialHair: false, eyeColor: "green", skinTone: "light", bgColor: "#FFD700" },
+            { id: 3, name: "Charlie", gender: "male", glasses: false, hat: false, hairColor: "black", hairStyle: "bald", facialHair: false, eyeColor: "brown", skinTone: "dark", bgColor: "#9ACD32" },
+            { id: 4, name: "Diana", gender: "female", glasses: true, hat: false, hairColor: "red", hairStyle: "short", facialHair: false, eyeColor: "blue", skinTone: "light", bgColor: "#00CED1" },
+            { id: 5, name: "Eric", gender: "male", glasses: false, hat: true, hairColor: "brown", hairStyle: "short", facialHair: true, eyeColor: "green", skinTone: "dark", bgColor: "#FFB347" },
+            { id: 6, name: "Fiona", gender: "female", glasses: false, hat: false, hairColor: "black", hairStyle: "long", facialHair: false, eyeColor: "brown", skinTone: "dark", bgColor: "#FF69B4" },
+            { id: 7, name: "George", gender: "male", glasses: true, hat: false, hairColor: "blonde", hairStyle: "bald", facialHair: false, eyeColor: "blue", skinTone: "light", bgColor: "#98FB98" },
+            { id: 8, name: "Hannah", gender: "female", glasses: false, hat: true, hairColor: "brown", hairStyle: "long", facialHair: false, eyeColor: "green", skinTone: "medium", bgColor: "#FF6347" },
+            { id: 9, name: "Ivan", gender: "male", glasses: false, hat: false, hairColor: "red", hairStyle: "short", facialHair: true, eyeColor: "blue", skinTone: "light", bgColor: "#87CEEB" },
+            { id: 10, name: "Julia", gender: "female", glasses: true, hat: false, hairColor: "blonde", hairStyle: "long", facialHair: false, eyeColor: "brown", skinTone: "light", bgColor: "#DDA0DD" },
+            { id: 11, name: "Kevin", gender: "male", glasses: false, hat: true, hairColor: "black", hairStyle: "short", facialHair: false, eyeColor: "green", skinTone: "medium", bgColor: "#20B2AA" },
+            { id: 12, name: "Laura", gender: "female", glasses: false, hat: false, hairColor: "brown", hairStyle: "short", facialHair: false, eyeColor: "blue", skinTone: "light", bgColor: "#FFD700" },
+            { id: 13, name: "Mike", gender: "male", glasses: true, hat: false, hairColor: "brown", hairStyle: "bald", facialHair: true, eyeColor: "brown", skinTone: "light", bgColor: "#FF9500" },
+            { id: 14, name: "Nina", gender: "female", glasses: false, hat: true, hairColor: "red", hairStyle: "long", facialHair: false, eyeColor: "green", skinTone: "dark", bgColor: "#FF1493" },
+            { id: 15, name: "Oscar", gender: "male", glasses: false, hat: false, hairColor: "blonde", hairStyle: "short", facialHair: false, eyeColor: "blue", skinTone: "light", bgColor: "#9ACD32" },
+            { id: 16, name: "Paula", gender: "female", glasses: true, hat: false, hairColor: "black", hairStyle: "bald", facialHair: false, eyeColor: "brown", skinTone: "medium", bgColor: "#00CED1" },
+            { id: 17, name: "Quinn", gender: "male", glasses: false, hat: true, hairColor: "brown", hairStyle: "short", facialHair: true, eyeColor: "green", skinTone: "dark", bgColor: "#FFB347" },
+            { id: 18, name: "Rachel", gender: "female", glasses: false, hat: false, hairColor: "blonde", hairStyle: "long", facialHair: false, eyeColor: "blue", skinTone: "light", bgColor: "#98FB98" },
+            { id: 19, name: "Sam", gender: "male", glasses: true, hat: false, hairColor: "red", hairStyle: "bald", facialHair: false, eyeColor: "brown", skinTone: "light", bgColor: "#87CEEB" },
+            { id: 20, name: "Tina", gender: "female", glasses: false, hat: true, hairColor: "black", hairStyle: "short", facialHair: false, eyeColor: "green", skinTone: "light", bgColor: "#DDA0DD" },
+            { id: 21, name: "Uma", gender: "female", glasses: true, hat: false, hairColor: "brown", hairStyle: "long", facialHair: false, eyeColor: "blue", skinTone: "dark", bgColor: "#FFD700" },
+            { id: 22, name: "Victor", gender: "male", glasses: false, hat: false, hairColor: "blonde", hairStyle: "short", facialHair: true, eyeColor: "green", skinTone: "medium", bgColor: "#FF6347" },
+            { id: 23, name: "Wendy", gender: "female", glasses: false, hat: true, hairColor: "red", hairStyle: "short", facialHair: false, eyeColor: "brown", skinTone: "light", bgColor: "#FF9500" },
+            { id: 24, name: "Xander", gender: "male", glasses: true, hat: false, hairColor: "black", hairStyle: "bald", facialHair: false, eyeColor: "blue", skinTone: "medium", bgColor: "#98FB98" }
+        ];
+
+        const QUESTIONS = [
+            { id: 1, text: "Does your character wear glasses?", attribute: "glasses", value: true },
+            { id: 2, text: "Does your character wear a hat?", attribute: "hat", value: true },
+            { id: 3, text: "Is your character male?", attribute: "gender", value: "male" },
+            { id: 4, text: "Is your character female?", attribute: "gender", value: "female" },
+            { id: 5, text: "Does your character have brown hair?", attribute: "hairColor", value: "brown" },
+            { id: 6, text: "Does your character have blonde hair?", attribute: "hairColor", value: "blonde" },
+            { id: 7, text: "Does your character have black hair?", attribute: "hairColor", value: "black" },
+            { id: 8, text: "Does your character have red hair?", attribute: "hairColor", value: "red" },
+            { id: 9, text: "Does your character have facial hair?", attribute: "facialHair", value: true },
+            { id: 10, text: "Does your character have blue eyes?", attribute: "eyeColor", value: "blue" },
+            { id: 11, text: "Does your character have green eyes?", attribute: "eyeColor", value: "green" },
+            { id: 12, text: "Does your character have brown eyes?", attribute: "eyeColor", value: "brown" },
+            { id: 13, text: "Does your character have long hair?", attribute: "hairStyle", value: "long" },
+            { id: 14, text: "Does your character have short hair?", attribute: "hairStyle", value: "short" },
+            { id: 15, text: "Is your character bald?", attribute: "hairStyle", value: "bald" }
+        ];
+
+        // Game state
+        let gameState = {
+            mode: null, // 'singlePlayer' or 'online'
+            phase: 'menu', // 'menu', 'onlineSetup', 'waitingRoom', 'selectCharacter', 'playing', 'gameOver'
+            myCharacter: null,
+            opponentCharacter: null,
+            eliminated: [],
+            currentTurn: 'player',
+            selectedQuestion: null,
+            lastAnswer: null,
+            gameLog: [],
+            timer: 20,
+            winner: null,
+            
+            // Online mode
+            roomId: null,
+            playerId: null,
+            playerNumber: null,
+            roomCode: '',
+            waitingForOpponent: false,
+            copied: false
+        };
+
+        // Character Avatar SVG generation
+        function createCharacterAvatar(character, size = 120) {
+            const hairColors = { brown: '#6B4423', blonde: '#F4C542', black: '#2C2C2C', red: '#C44536' };
+            const skinTones = { light: '#FCCFA1', medium: '#D9A066', dark: '#9B6B47' };
+            const eyeColors = { blue: '#4A90E2', green: '#50C878', brown: '#6F4E37' };
+
+            const hairColor = hairColors[character.hairColor];
+            const skinColor = skinTones[character.skinTone];
+            const eyeColor = eyeColors[character.eyeColor];
+            const isBald = character.hairStyle === 'bald';
+            const isLongHair = character.hairStyle === 'long';
+
+            return `
+                <svg width="${size}" height="${size}" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="120" height="140" fill="${character.bgColor}" />
+                    ${character.hat ? `
+                        <g>
+                            <ellipse cx="60" cy="25" rx="28" ry="7" fill="#1a1a1a" />
+                            <rect x="42" y="18" width="36" height="12" fill="#2a2a2a" rx="2" />
+                        </g>
+                    ` : ''}
+                    ${!isBald ? `
+                        ${isLongHair ? `
+                            <ellipse cx="60" cy="${character.hat ? "38" : "30"}" rx="30" ry="22" fill="${hairColor}" />
+                            <ellipse cx="35" cy="55" rx="14" ry="30" fill="${hairColor}" />
+                            <ellipse cx="85" cy="55" rx="14" ry="30" fill="${hairColor}" />
+                            <rect x="46" y="35" width="28" height="10" fill="${hairColor}" />
+                        ` : `
+                            <ellipse cx="60" cy="${character.hat ? "35" : "28"}" rx="26" ry="${character.hat ? "14" : "18"}" fill="${hairColor}" />
+                            <rect x="34" y="${character.hat ? "30" : "20"}" width="52" height="18" fill="${hairColor}" />
+                        `}
+                    ` : ''}
+                    ${isBald && !character.hat ? `<ellipse cx="55" cy="25" rx="8" ry="6" fill="white" opacity="0.4" />` : ''}
+                    <rect x="50" y="75" width="20" height="15" fill="${skinColor}" />
+                    <ellipse cx="60" cy="58" rx="24" ry="28" fill="${skinColor}" />
+                    <ellipse cx="36" cy="58" rx="6" ry="10" fill="${skinColor}" />
+                    <ellipse cx="84" cy="58" rx="6" ry="10" fill="${skinColor}" />
+                    <ellipse cx="50" cy="54" rx="5" ry="6" fill="white" />
+                    <ellipse cx="70" cy="54" rx="5" ry="6" fill="white" />
+                    <circle cx="50" cy="55" r="3" fill="${eyeColor}" />
+                    <circle cx="70" cy="55" r="3" fill="${eyeColor}" />
+                    <circle cx="49" cy="54" r="1.5" fill="black" />
+                    <circle cx="69" cy="54" r="1.5" fill="black" />
+                    <path d="M 44 48 Q 50 46 56 48" stroke="#3a2a1a" stroke-width="2" fill="none" stroke-linecap="round" />
+                    <path d="M 64 48 Q 70 46 76 48" stroke="#3a2a1a" stroke-width="2" fill="none" stroke-linecap="round" />
+                    ${character.glasses ? `
+                        <g>
+                            <circle cx="50" cy="54" r="9" fill="none" stroke="#333" stroke-width="2.5" />
+                            <circle cx="70" cy="54" r="9" fill="none" stroke="#333" stroke-width="2.5" />
+                            <line x1="59" y1="54" x2="61" y2="54" stroke="#333" stroke-width="2.5" />
+                            <line x1="41" y1="54" x2="36" y2="52" stroke="#333" stroke-width="2" />
+                            <line x1="79" y1="54" x2="84" y2="52" stroke="#333" stroke-width="2" />
+                        </g>
+                    ` : ''}
+                    <path d="M 60 58 L 58 66 L 60 67 L 62 66 Z" fill="${skinColor}" stroke="${skinColor}" stroke-width="0.5" opacity="0.8" />
+                    <ellipse cx="58" cy="67" rx="1.5" ry="1" fill="#00000020" />
+                    <ellipse cx="62" cy="67" rx="1.5" ry="1" fill="#00000020" />
+                    <path d="M 52 72 Q 60 76 68 72" stroke="#D5524A" stroke-width="2" fill="none" stroke-linecap="round" />
+                    <path d="M 52 72 Q 60 74 68 72" fill="#FFE0E0" opacity="0.6" />
+                    ${character.facialHair ? `
+                        <g>
+                            <ellipse cx="52" cy="70" rx="8" ry="3" fill="${hairColor}" />
+                            <ellipse cx="68" cy="70" rx="8" ry="3" fill="${hairColor}" />
+                            <ellipse cx="60" cy="80" rx="10" ry="7" fill="${hairColor}" />
+                            <rect x="52" y="73" width="16" height="8" fill="${hairColor}" />
+                        </g>
+                    ` : ''}
+                    <path d="M 30 90 L 30 140 L 90 140 L 90 90 Q 75 95 60 95 Q 45 95 30 90 Z" fill="${character.gender === 'male' ? '#5DADE2' : '#EC7063'}" />
+                    ${character.gender === 'male' ? `
+                        <path d="M 60 90 L 55 100 L 50 90 Z" fill="white" />
+                        <path d="M 60 90 L 65 100 L 70 90 Z" fill="white" />
+                        <rect x="58" y="100" width="4" height="15" fill="#34495E" />
+                    ` : ''}
+                    ${character.gender === 'female' && !character.facialHair ? `
+                        <circle cx="60" cy="88" r="3" fill="#FFD700" stroke="#FFA500" stroke-width="1" />
+                    ` : ''}
+                </svg>
+            `;
+        }
+
+        // Character Card Component
+        function createCharacterCard(character, isEliminated, onClickHandler, onDoubleClickHandler, disabled) {
+            const cardClasses = ['character-card'];
+            if (isEliminated) cardClasses.push('eliminated');
+            if (disabled) cardClasses.push('disabled');
+            
+            const card = document.createElement('button');
+            card.className = cardClasses.join(' ');
+            card.onclick = disabled ? null : onClickHandler;
+            card.ondblclick = disabled ? null : onDoubleClickHandler;
+            card.disabled = disabled;
+            
+            card.innerHTML = `
+                ${createCharacterAvatar(character, 120)}
+                <div class="bg-white py-2">
+                    <p class="font-bold text-center text-sm ${isEliminated ? 'line-through text-gray-500' : 'text-gray-800'}">
+                        ${character.name}
+                    </p>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Render functions
+        function renderMainMenu() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="min-h-screen bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
+                        <h1 class="text-5xl font-bold text-center mb-4 text-purple-600">Guess Who?</h1>
+                        <p class="text-gray-600 text-center mb-8">Choose your game mode!</p>
+                        
+                        <div class="space-y-4">
+                            <button id="single-player-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+                                🤖 Single Player (vs Bot)
+                            </button>
+                            
+                            <button id="online-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+                                🌐 Online Multiplayer
+                            </button>
+                        </div>
+                        
+                        <div class="mt-8 p-4 bg-purple-50 rounded-xl">
+                            <h3 class="font-bold text-purple-700 mb-2">How to Play:</h3>
+                            <ul class="text-sm text-gray-700 space-y-1">
+                                <li>• Choose a secret character</li>
+                                <li>• Ask yes/no questions</li>
+                                <li>• Click to eliminate characters</li>
+                                <li>• Double-click to make final guess!</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('single-player-btn').onclick = () => startGame('singlePlayer');
+            document.getElementById('online-btn').onclick = () => startGame('online');
+        }
+
+        function renderOnlineSetup() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="min-h-screen bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
+                        <h2 class="text-4xl font-bold text-center mb-6 text-green-600">🌐 Online Mode</h2>
+                        
+                        <div class="space-y-6">
+                            <button id="create-room-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+                                ➕ Create New Room
+                            </button>
+                            
+                            <div class="relative">
+                                <div class="absolute inset-0 flex items-center">
+                                    <div class="w-full border-t border-gray-300"></div>
+                                </div>
+                                <div class="relative flex justify-center text-sm">
+                                    <span class="px-2 bg-white text-gray-500 font-semibold">OR</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <input type="text" id="room-code-input" placeholder="Enter Room Code" 
+                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-3 text-center text-xl font-mono uppercase focus:outline-none focus:border-blue-500" />
+                                <button id="join-room-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+                                    🚪 Join Room
+                                </button>
+                            </div>
+                            
+                            <button id="back-to-menu-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all">
+                                ⬅️ Back to Menu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('create-room-btn').onclick = createRoom;
+            document.getElementById('join-room-btn').onclick = joinRoom;
+            document.getElementById('back-to-menu-btn').onclick = () => {
+                gameState.phase = 'menu';
+                render();
+            };
+            
+            document.getElementById('room-code-input').oninput = (e) => {
+                gameState.roomCode = e.target.value.toUpperCase();
+            };
+        }
+
+        function renderWaitingRoom() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="min-h-screen bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
+                        <h2 class="text-3xl font-bold mb-6 text-green-600">⏳ Waiting for Opponent...</h2>
+                        
+                        <div class="mb-6">
+                            <div class="text-6xl mb-4">👥</div>
+                            <p class="text-gray-600 mb-4 text-lg">Share this room code with your friend:</p>
+                            <div class="bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-6 mb-4 border-2 border-green-400">
+                                <p class="text-4xl font-bold font-mono text-green-700">${gameState.roomId}</p>
+                            </div>
+                            <button id="copy-code-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-all transform hover:scale-105 shadow-lg">
+                                ${gameState.copied ? '✅ Copied!' : '📋 Copy Code'}
+                            </button>
+                        </div>
+                        
+                        <button id="cancel-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-xl transition-all">
+                            ❌ Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('copy-code-btn').onclick = copyRoomCode;
+            document.getElementById('cancel-btn').onclick = leaveRoom;
+        }
+
+        function renderCharacterSelection() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="min-h-screen bg-gradient-to-br from-purple-500 to-pink-500 p-4">
+                    <div class="max-w-6xl mx-auto">
+                        <div class="bg-white rounded-3xl shadow-2xl p-6 mb-4">
+                            <h2 class="text-3xl font-bold text-center text-purple-600 mb-2">
+                                🎭 Select Your Character
+                            </h2>
+                            ${gameState.mode === 'online' ? `
+                                <div class="text-center">
+                                    <p class="text-xl font-bold text-red-500">⏰ Time: ${gameState.timer} seconds</p>
+                                    <p class="text-sm text-gray-600">Choose quickly before time runs out!</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="grid grid-cols-4 md:grid-cols-6 gap-3" id="character-grid">
+                            <!-- Characters will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const characterGrid = document.getElementById('character-grid');
+            CHARACTERS.forEach(character => {
+                const card = createCharacterCard(character, false, 
+                    () => selectCharacter(character), 
+                    null, 
+                    false);
+                characterGrid.appendChild(card);
+            });
+        }
+
+        function renderPlaying() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="min-h-screen bg-gradient-to-br from-blue-400 to-purple-500 p-4">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="bg-white rounded-2xl shadow-xl p-4 mb-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-purple-600">🎮 Guess Who?</h2>
+                                    <p class="text-sm text-gray-600">Your character: <span class="font-bold text-purple-600">${gameState.myCharacter?.name}</span></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-lg font-bold ${gameState.currentTurn === 'player' ? 'text-green-600' : 'text-red-600'}">
+                                        ${gameState.currentTurn === 'player' ? "✅ Your Turn" : "⏳ Opponent's Turn"}
+                                    </p>
+                                    <p class="text-sm text-gray-600">📊 Remaining: ${CHARACTERS.filter(c => !gameState.eliminated.includes(c.id)).length}/24</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <div class="lg:col-span-2">
+                                <div class="bg-white rounded-2xl shadow-xl p-4">
+                                    <h3 class="text-xl font-bold mb-3 text-center text-purple-600">👥 Character Board</h3>
+                                    <div class="grid grid-cols-4 md:grid-cols-6 gap-2" id="character-board">
+                                        <!-- Characters will be rendered here -->
+                                    </div>
+                                    <p class="text-xs text-gray-500 text-center mt-3 bg-purple-50 p-2 rounded">
+                                        💡 <strong>Click</strong> to eliminate • <strong>Double-click</strong> to make final guess
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="bg-white rounded-2xl shadow-xl p-4">
+                                    <h3 class="text-xl font-bold mb-3 text-purple-600">❓ Questions</h3>
+                                    ${gameState.lastAnswer !== null ? `
+                                        <div class="mb-3 p-4 rounded-xl ${gameState.lastAnswer ? 'bg-green-100 border-3 border-green-500' : 'bg-red-100 border-3 border-red-500'}">
+                                            <p class="font-bold text-center text-2xl">${gameState.lastAnswer ? '✅ YES' : '❌ NO'}</p>
+                                        </div>
+                                    ` : ''}
+                                    <div class="space-y-2 max-h-96 overflow-y-auto" id="questions-list">
+                                        <!-- Questions will be rendered here -->
+                                    </div>
+                                </div>
+
+                                <div class="bg-white rounded-2xl shadow-xl p-4">
+                                    <h3 class="text-xl font-bold mb-3 text-purple-600">📜 Game Log</h3>
+                                    <div class="space-y-1 max-h-48 overflow-y-auto" id="game-log">
+                                        ${gameState.gameLog.length === 0 ? 
+                                            '<p class="text-sm text-gray-400 text-center italic py-4">No actions yet...</p>' :
+                                            gameState.gameLog.map(log => `<p class="text-xs text-gray-700 p-2 bg-purple-50 rounded">${log}</p>`).join('')
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Render character board
+            const characterBoard = document.getElementById('character-board');
+            CHARACTERS.forEach(character => {
+                const isEliminated = gameState.eliminated.includes(character.id);
+                const card = createCharacterCard(character, isEliminated,
+                    () => toggleEliminate(character.id),
+                    () => makeGuess(character),
+                    gameState.currentTurn !== 'player');
+                characterBoard.appendChild(card);
+            });
+            
+            // Render questions
+            const questionsList = document.getElementById('questions-list');
+            QUESTIONS.forEach(question => {
+                const button = document.createElement('button');
+                button.className = `w-full text-left p-3 rounded-lg transition-all ${
+                    gameState.currentTurn === 'player' && !gameState.selectedQuestion
+                        ? 'bg-purple-100 hover:bg-purple-200 border-2 border-purple-400 hover:shadow-md'
+                        : 'bg-gray-100 cursor-not-allowed opacity-50'
+                }`;
+                button.disabled = gameState.currentTurn !== 'player' || gameState.selectedQuestion !== null;
+                button.onclick = () => askQuestion(question);
+                button.innerHTML = `<p class="text-sm font-medium">${question.text}</p>`;
+                questionsList.appendChild(button);
+            });
+        }
+
+        function renderGameOver() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="min-h-screen bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-3xl w-full text-center">
+                        <h1 class="text-6xl font-bold mb-6">
+                            ${gameState.winner === 'player' ? '🎉 You Win! 🎉' : '😔 You Lose! 😔'}
+                        </h1>
+                        <div class="grid grid-cols-2 gap-8 mb-8">
+                            <div class="bg-gradient-to-b from-blue-50 to-purple-50 p-6 rounded-2xl">
+                                <p class="text-xl font-bold text-gray-700 mb-4">Your Character</p>
+                                ${gameState.myCharacter ? createCharacterAvatar(gameState.myCharacter, 180) : ''}
+                            </div>
+                            <div class="bg-gradient-to-b from-pink-50 to-red-50 p-6 rounded-2xl">
+                                <p class="text-xl font-bold text-gray-700 mb-4">Opponent's Character</p>
+                                ${gameState.opponentCharacter ? createCharacterAvatar(gameState.opponentCharacter, 180) : ''}
+                            </div>
+                        </div>
+                        <button id="back-to-menu-final-btn" class="w-full max-w-md mx-auto bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg text-xl">
+                            🏠 Back to Menu
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('back-to-menu-final-btn').onclick = leaveRoom;
+        }
+
+        // Game logic functions
+        function startGame(mode) {
+            gameState.mode = mode;
+            if (mode === 'online') {
+                gameState.phase = 'onlineSetup';
+            } else {
+                gameState.phase = 'selectCharacter';
+            }
+            render();
+        }
+
+        async function createRoom() {
+            const newRoomRef = database.ref('games').push();
+            const newRoomId = newRoomRef.key;
+            const newPlayerId = Math.random().toString(36).substring(7);
+            
+            await newRoomRef.set({
+                roomId: newRoomId,
+                phase: 'waiting',
+                player1: { id: newPlayerId, ready: false },
+                createdAt: Date.now()
+            });
+            
+            gameState.roomId = newRoomId;
+            gameState.playerId = newPlayerId;
+            gameState.playerNumber = 1;
+            gameState.waitingForOpponent = true;
+            gameState.phase = 'waitingRoom';
+            render();
+        }
+
+        async function joinRoom() {
+            if (!gameState.roomCode.trim()) return;
+            
+            const gameRef = database.ref(`games/${gameState.roomCode}`);
+            const newPlayerId = Math.random().toString(36).substring(7);
+            
+            try {
+                await gameRef.update({
+                    player2: { id: newPlayerId, ready: false },
+                    phase: 'selectCharacter'
+                });
+                
+                gameState.roomId = gameState.roomCode;
+                gameState.playerId = newPlayerId;
+                gameState.playerNumber = 2;
+                gameState.phase = 'selectCharacter';
+                gameState.timer = 20;
+                render();
+                startCharacterTimer();
+            } catch (error) {
+                alert('Room not found! Please check the code and try again.');
+            }
+        }
+
+        function copyRoomCode() {
+            navigator.clipboard.writeText(gameState.roomId);
+            gameState.copied = true;
+            render();
+            setTimeout(() => {
+                gameState.copied = false;
+                render();
+            }, 2000);
+        }
+
+        function startCharacterTimer() {
+            if (gameState.mode === 'online' && gameState.phase === 'selectCharacter' && !gameState.myCharacter) {
+                const interval = setInterval(() => {
+                    gameState.timer--;
+                    if (gameState.timer <= 0 || gameState.myCharacter) {
+                        clearInterval(interval);
+                        if (!gameState.myCharacter) {
+                            autoSelectCharacter();
+                        }
+                    }
+                    render();
+                }, 1000);
+            }
+        }
+
+        function autoSelectCharacter() {
+            const randomChar = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
+            selectCharacter(randomChar);
+        }
+
+        function selectCharacter(character) {
+            if (gameState.mode === 'online') {
+                gameState.myCharacter = character;
+                database.ref(`games/${gameState.roomId}/player${gameState.playerNumber}`).update({
+                    character: character.id,
+                    characterSelected: true
+                });
+                
+                setTimeout(() => {
+                    if (gameState.playerNumber === 1) {
+                        database.ref(`games/${gameState.roomId}`).update({
+                            phase: 'playing',
+                            currentTurn: 1,
+                            gameLog: ['Game started! Both players ready.']
+                        });
+                    }
+                }, 2000);
+                
+                gameState.phase = 'playing';
+            } else {
+                // Single player mode
+                gameState.myCharacter = character;
+                const botChar = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
+                gameState.opponentCharacter = botChar;
+                gameState.phase = 'playing';
+                gameState.gameLog = [`Game started! You chose ${character.name}.`];
+            }
+            render();
+        }
+
+        function askQuestion(question) {
+            if (gameState.currentTurn !== 'player') return;
+            
+            gameState.selectedQuestion = question;
+            
+            if (gameState.mode === 'online') {
+                database.ref(`games/${gameState.roomId}`).update({
+                    currentQuestion: question,
+                    currentTurn: gameState.playerNumber === 1 ? 2 : 1,
+                    gameLog: [...gameState.gameLog, `Player ${gameState.playerNumber} asked: "${question.text}"`]
+                });
+            } else {
+                // Single player bot response
+                const answer = gameState.opponentCharacter[question.attribute] === question.value;
+                gameState.lastAnswer = answer;
+                gameState.gameLog.push(`You asked: "${question.text}" - ${answer ? 'YES' : 'NO'}`);
+                setTimeout(() => {
+                    gameState.selectedQuestion = null;
+                    gameState.lastAnswer = null;
+                    render();
+                }, 2000);
+            }
+            render();
+        }
+
+        function makeGuess(character) {
+            if (gameState.currentTurn !== 'player') return;
+            
+            if (gameState.mode === 'online') {
+                const opponentNum = gameState.playerNumber === 1 ? 2 : 1;
+                database.ref(`games/${gameState.roomId}`).once('value').then((snapshot) => {
+                    const data = snapshot.val();
+                    const opponentCharId = data[`player${opponentNum}`]?.character;
+                    const isCorrect = character.id === opponentCharId;
+                    
+                    database.ref(`games/${gameState.roomId}`).update({
+                        phase: 'gameOver',
+                        winner: isCorrect ? gameState.playerNumber : opponentNum,
+                        gameLog: [...gameState.gameLog, `Player ${gameState.playerNumber} guessed ${character.name}! ${isCorrect ? 'CORRECT!' : 'WRONG!'}`]
+                    });
+                });
+            } else {
+                const isCorrect = character.id === gameState.opponentCharacter.id;
+                gameState.winner = isCorrect ? 'player' : 'opponent';
+                gameState.phase = 'gameOver';
+                gameState.gameLog.push(`You guessed ${character.name}! ${isCorrect ? 'CORRECT! 🎉' : 'WRONG! 😔'}`);
+                render();
+            }
+        }
+
+        function toggleEliminate(characterId) {
+            if (gameState.currentTurn !== 'player') return;
+            if (gameState.eliminated.includes(characterId)) {
+                gameState.eliminated = gameState.eliminated.filter(id => id !== characterId);
+            } else {
+                gameState.eliminated.push(characterId);
+            }
+            render();
+        }
+
+        async function leaveRoom() {
+            if (gameState.roomId) {
+                await database.ref(`games/${gameState.roomId}`).remove();
+            }
+            
+            // Reset game state
+            gameState = {
+                mode: null,
+                phase: 'menu',
+                myCharacter: null,
+                opponentCharacter: null,
+                eliminated: [],
+                currentTurn: 'player',
+                selectedQuestion: null,
+                lastAnswer: null,
+                gameLog: [],
+                timer: 20,
+                winner: null,
+                roomId: null,
+                playerId: null,
+                playerNumber: null,
+                roomCode: '',
+                waitingForOpponent: false,
+                copied: false
+            };
+            
+            render();
+        }
+
+        // Main render function
+        function render() {
+            switch (gameState.phase) {
+                case 'menu':
+                    renderMainMenu();
+                    break;
+                case 'onlineSetup':
+                    renderOnlineSetup();
+                    break;
+                case 'waitingRoom':
+                    renderWaitingRoom();
+                    break;
+                case 'selectCharacter':
+                    renderCharacterSelection();
+                    break;
+                case 'playing':
+                    renderPlaying();
+                    break;
+                case 'gameOver':
+                    renderGameOver();
+                    break;
+            }
+        }
+
+        // Initialize the game
+        render();
+    </script>
+</body>
+</html>
