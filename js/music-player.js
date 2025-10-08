@@ -10,78 +10,91 @@ class MusicPlayer {
         this.repeat = 'none'; // 'none', 'one', 'all'
         this.userPlaylists = {};
         
-        // Music library - in a real app, this would come from an API
+        // YouTube API configuration
+        this.youtubeApiKey = "AIzaSyDn2cL3G7YIU5F9pYcwWp3vd6rT8GHfVlE";
+        this.youtubeSearchResults = [];
+        this.isYouTubeAPILoaded = false;
+        
+        // Music library - enhanced with YouTube integration capability
         this.musicLibrary = [
             {
                 id: 1,
-                title: "Chill Vibes",
-                artist: "Lo-Fi Beats",
+                title: "Chill Lofi Gaming",
+                artist: "Lofi Hip Hop",
                 duration: "3:24",
                 genre: "Chill",
-                url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                type: "youtube",
+                videoId: "jfKfPfyJRdk", // lofi hip hop radio
                 cover: "🎵"
             },
             {
                 id: 2,
-                title: "Gaming Focus",
-                artist: "Electronic Dreams",
+                title: "Gaming Focus Mix",
+                artist: "Electronic Beats",
                 duration: "4:12",
                 genre: "Electronic",
-                url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                type: "youtube",
+                videoId: "4xDzrJKXOOY", // electronic gaming music
                 cover: "🎮"
             },
             {
                 id: 3,
-                title: "Retro Arcade",
-                artist: "8-Bit Heroes",
+                title: "8-Bit Arcade",
+                artist: "Chiptune Heroes",
                 duration: "2:56",
                 genre: "Chiptune",
-                url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                type: "youtube",
+                videoId: "UE6jKOUwojU", // 8-bit music mix
                 cover: "👾"
             },
             {
                 id: 4,
-                title: "Puzzle Solver",
-                artist: "Mind Games",
+                title: "Ambient Study",
+                artist: "Peaceful Sounds",
                 duration: "3:48",
                 genre: "Ambient",
-                url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                type: "youtube",
+                videoId: "DWcJFNfaw9c", // ambient study music
                 cover: "🧩"
             },
             {
                 id: 5,
-                title: "Victory March",
-                artist: "Epic Orchestral",
+                title: "Epic Gaming",
+                artist: "Orchestral Power",
                 duration: "5:23",
                 genre: "Orchestral",
-                url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                type: "youtube",
+                videoId: "iqAWgtxtTnI", // epic orchestral gaming
                 cover: "🏆"
             },
             {
                 id: 6,
                 title: "Synthwave Drive",
-                artist: "Neon Lights",
+                artist: "Retro Wave",
                 duration: "4:05",
                 genre: "Synthwave",
-                url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                type: "youtube",
+                videoId: "MV_3Dpw-BRY", // synthwave mix
                 cover: "🌃"
             },
             {
                 id: 7,
-                title: "Forest Sounds",
-                artist: "Nature Ambience",
+                title: "Nature Sounds",
+                artist: "Ambient World",
                 duration: "6:00",
                 genre: "Nature",
-                url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                type: "youtube",
+                videoId: "eKFTSSKCzWA", // nature sounds
                 cover: "🌲"
             },
             {
                 id: 8,
-                title: "Space Journey",
-                artist: "Cosmic Sounds",
+                title: "Space Ambient",
+                artist: "Cosmic Vibes",
                 duration: "7:15",
                 genre: "Ambient",
-                url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                type: "youtube",
+                videoId: "1-RodASLNtE", // space ambient
                 cover: "🚀"
             }
         ];
@@ -101,6 +114,88 @@ class MusicPlayer {
         
         // Load saved playlist and position
         this.loadPlaylistState();
+        
+        // Initialize YouTube API
+        this.initYouTubeAPI();
+    }
+    
+    // Initialize YouTube API
+    initYouTubeAPI() {
+        // Load YouTube IFrame API
+        if (!window.YT) {
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            
+            // YouTube API ready callback
+            window.onYouTubeIframeAPIReady = () => {
+                this.isYouTubeAPILoaded = true;
+                console.log('YouTube API loaded successfully');
+            };
+        }
+    }
+    
+    // Search YouTube for music
+    async searchYouTube(query, maxResults = 10) {
+        if (!query.trim()) return [];
+        
+        try {
+            const response = await fetch(
+                `https://www.googleapis.com/youtube/v3/search?` +
+                `part=snippet&type=video&videoCategoryId=10&` +
+                `q=${encodeURIComponent(query + ' music')}&` +
+                `maxResults=${maxResults}&` +
+                `key=${this.youtubeApiKey}`
+            );
+            
+            if (!response.ok) {
+                throw new Error('YouTube API request failed');
+            }
+            
+            const data = await response.json();
+            
+            return data.items.map(item => ({
+                id: `yt_${item.id.videoId}`,
+                title: item.snippet.title,
+                artist: item.snippet.channelTitle,
+                duration: "Unknown", // YouTube API v3 doesn't provide duration in search
+                genre: "YouTube",
+                type: "youtube",
+                videoId: item.id.videoId,
+                cover: "▶️",
+                thumbnail: item.snippet.thumbnails.default.url
+            }));
+        } catch (error) {
+            console.error('YouTube search error:', error);
+            return [];
+        }
+    }
+    
+    // Get YouTube video audio URL (simplified approach)
+    async getYouTubeAudioUrl(videoId) {
+        // Note: Direct YouTube audio extraction requires server-side implementation
+        // For now, we'll use a placeholder approach
+        
+        // In a production environment, you would need:
+        // 1. A backend service to extract audio URLs using youtube-dl or similar
+        // 2. Or use YouTube's embedded player (which we'll implement as fallback)
+        
+        // For demo purposes, we'll use a YouTube to MP3 API service
+        // This is a simplified example - in production use proper YouTube API compliance
+        
+        try {
+            // Placeholder: In real implementation, use your backend service
+            // const response = await fetch(`/api/youtube-audio/${videoId}`);
+            // const data = await response.json();
+            // return data.audioUrl;
+            
+            // For now, return a placeholder URL and handle YouTube videos differently
+            return `https://www.youtube.com/watch?v=${videoId}`;
+        } catch (error) {
+            console.error('Error getting YouTube audio URL:', error);
+            return null;
+        }
     }
     
     loadSettings() {
@@ -234,17 +329,29 @@ class MusicPlayer {
                     </div>
                     
                     <div class="search-section">
-                        <input type="text" class="search-input" id="musicSearch" placeholder="Search music...">
+                        <input type="text" class="search-input" id="musicSearch" placeholder="Search music or YouTube...">
+                        <div class="search-info">
+                            <small>🔍 Search local library and YouTube</small>
+                        </div>
                     </div>
                     
                     <div class="music-tabs">
                         <button class="music-tab active" data-tab="library">Library</button>
+                        <button class="music-tab" data-tab="youtube">YouTube</button>
                         <button class="music-tab" data-tab="playlists">Playlists</button>
                         <button class="music-tab" data-tab="queue">Queue</button>
                     </div>
                     
                     <div class="tab-content" id="libraryTab">
                         <div class="music-list" id="musicList"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="youtubeTab" style="display: none;">
+                        <div class="youtube-search-info">
+                            <p>🎵 Search for music on YouTube</p>
+                            <small>Use the search bar above to find YouTube music videos</small>
+                        </div>
+                        <div class="music-list" id="youtubeList"></div>
                     </div>
                     
                     <div class="tab-content" id="playlistsTab" style="display: none;">
@@ -386,18 +493,38 @@ class MusicPlayer {
             return;
         }
         
-        if (this.isPlaying) {
-            this.audio.pause();
+        // Handle YouTube player
+        if (this.currentTrack.type === 'youtube' && this.youtubePlayer) {
+            if (this.isPlaying) {
+                this.youtubePlayer.pauseVideo();
+            } else {
+                this.youtubePlayer.playVideo();
+            }
         } else {
-            this.audio.play();
+            // Handle regular audio
+            if (this.isPlaying) {
+                this.audio.pause();
+            } else {
+                this.audio.play();
+            }
         }
     }
     
-    playTrack(track) {
+    async playTrack(track) {
         this.currentTrack = track;
-        this.audio.src = track.url;
-        this.audio.load();
-        this.audio.play();
+        
+        // Handle YouTube tracks differently
+        if (track.type === 'youtube' && track.videoId) {
+            await this.playYouTubeTrack(track);
+        } else if (track.url) {
+            // Regular audio file
+            this.audio.src = track.url;
+            this.audio.load();
+            this.audio.play();
+        } else {
+            console.error('No playable source for track:', track);
+            return;
+        }
         
         // Add to queue if not already there
         if (!this.playlist.find(t => t.id === track.id)) {
@@ -409,6 +536,95 @@ class MusicPlayer {
         
         this.updateCurrentTrackDisplay();
         this.savePlaylistState();
+    }
+    
+    async playYouTubeTrack(track) {
+        // For YouTube tracks, we'll embed a hidden YouTube player
+        // This maintains compliance with YouTube's Terms of Service
+        
+        if (!this.youtubePlayer) {
+            this.createYouTubePlayer();
+        }
+        
+        if (this.youtubePlayer && this.youtubePlayer.loadVideoById) {
+            this.youtubePlayer.loadVideoById(track.videoId);
+            this.isPlaying = true;
+            this.updatePlayerControls();
+            this.updateMusicButton();
+        } else {
+            // Fallback: open YouTube link in new tab (not ideal for continuous play)
+            console.log('Opening YouTube video:', `https://www.youtube.com/watch?v=${track.videoId}`);
+            // window.open(`https://www.youtube.com/watch?v=${track.videoId}`, '_blank');
+        }
+    }
+    
+    createYouTubePlayer() {
+        // Create hidden YouTube player container
+        if (document.getElementById('youtube-player-container')) {
+            return;
+        }
+        
+        const container = document.createElement('div');
+        container.id = 'youtube-player-container';
+        container.style.cssText = 'position: fixed; top: -200px; left: -200px; width: 150px; height: 150px; pointer-events: none; opacity: 0.01;';
+        document.body.appendChild(container);
+        
+        const playerDiv = document.createElement('div');
+        playerDiv.id = 'youtube-player';
+        container.appendChild(playerDiv);
+        
+        if (window.YT && window.YT.Player) {
+            this.youtubePlayer = new window.YT.Player('youtube-player', {
+                height: '150',
+                width: '150',
+                videoId: '',
+                playerVars: {
+                    autoplay: 0,
+                    controls: 0,
+                    disablekb: 1,
+                    fs: 0,
+                    modestbranding: 1,
+                    rel: 0,
+                    showinfo: 0
+                },
+                events: {
+                    onReady: (event) => {
+                        console.log('YouTube player ready');
+                    },
+                    onStateChange: (event) => {
+                        this.onYouTubeStateChange(event);
+                    }
+                }
+            });
+        }
+    }
+    
+    onYouTubeStateChange(event) {
+        // YouTube player state constants
+        const states = {
+            UNSTARTED: -1,
+            ENDED: 0,
+            PLAYING: 1,
+            PAUSED: 2,
+            BUFFERING: 3,
+            CUED: 5
+        };
+        
+        switch (event.data) {
+            case states.PLAYING:
+                this.isPlaying = true;
+                this.updatePlayerControls();
+                this.updateMusicButton();
+                break;
+            case states.PAUSED:
+                this.isPlaying = false;
+                this.updatePlayerControls();
+                this.updateMusicButton();
+                break;
+            case states.ENDED:
+                this.handleTrackEnd();
+                break;
+        }
     }
     
     nextTrack() {
@@ -484,13 +700,31 @@ class MusicPlayer {
         }
     }
     
-    searchMusic(query) {
+    async searchMusic(query) {
         this.searchQuery = query.toLowerCase();
+        
+        // Search local library
         this.filteredMusic = this.musicLibrary.filter(track => 
             track.title.toLowerCase().includes(this.searchQuery) ||
             track.artist.toLowerCase().includes(this.searchQuery) ||
             track.genre.toLowerCase().includes(this.searchQuery)
         );
+        
+        // If search query is not empty, also search YouTube
+        if (query.trim()) {
+            try {
+                const youtubeResults = await this.searchYouTube(query, 5);
+                this.youtubeSearchResults = youtubeResults;
+                
+                // Add YouTube results to filtered music
+                this.filteredMusic = [...this.filteredMusic, ...youtubeResults];
+            } catch (error) {
+                console.error('YouTube search failed:', error);
+            }
+        } else {
+            this.youtubeSearchResults = [];
+        }
+        
         this.renderMusicList();
     }
     
@@ -516,6 +750,9 @@ class MusicPlayer {
             case 'library':
                 this.renderMusicList();
                 break;
+            case 'youtube':
+                this.renderYouTubeResults();
+                break;
             case 'playlists':
                 this.renderPlaylists();
                 break;
@@ -523,6 +760,42 @@ class MusicPlayer {
                 this.renderQueue();
                 break;
         }
+    }
+    
+    renderYouTubeResults() {
+        const container = document.getElementById('youtubeList');
+        
+        if (this.youtubeSearchResults.length === 0) {
+            container.innerHTML = `
+                <div class="no-music">
+                    <div class="no-music-icon">🔍</div>
+                    <p>Search for music on YouTube</p>
+                    <small>Enter a search term to find YouTube music videos</small>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = this.youtubeSearchResults.map(track => `
+            <div class="music-item ${this.currentTrack?.id === track.id ? 'playing' : ''}" data-track-id="${track.id}">
+                <div class="music-item-icon">${track.cover}</div>
+                <div class="music-item-info">
+                    <div class="music-item-title">${track.title}</div>
+                    <div class="music-item-artist">${track.artist}</div>
+                </div>
+                <div class="music-item-duration">${track.duration}</div>
+            </div>
+        `).join('');
+        
+        // Add click listeners
+        container.querySelectorAll('.music-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const trackId = item.dataset.trackId;
+                const track = this.youtubeSearchResults.find(t => t.id === trackId);
+                this.playTrack(track);
+                this.renderYouTubeResults(); // Re-render to update playing state
+            });
+        });
     }
     
     renderMusicList() {

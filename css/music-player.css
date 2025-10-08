@@ -253,6 +253,45 @@
     border-color: #FF6B6B;
 }
 
+.search-info {
+    text-align: center;
+    margin-top: 8px;
+    opacity: 0.7;
+}
+
+.search-info small {
+    font-size: 11px;
+    color: #666;
+}
+
+/* YouTube Integration */
+.youtube-search-info {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 15px;
+}
+
+.youtube-search-info p {
+    margin: 0 0 5px 0;
+    font-weight: 500;
+}
+
+.youtube-search-info small {
+    color: #999;
+    font-size: 12px;
+}
+
+.music-item .youtube-badge {
+    background: #FF0000;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 5px;
+}
+
 /* Tabs */
 .music-tabs {
     display: flex;
