@@ -362,11 +362,102 @@ class GameHub {
     }
 }
 
+// Authentication handling
+function handleAccountClick() {
+    // Check if user is logged in by checking for authentication token or user data
+    const isLoggedIn = checkUserAuthStatus();
+    
+    if (isLoggedIn) {
+        // User is logged in, go to account dashboard
+        window.location.href = 'account.html';
+    } else {
+        // User is not logged in, go to login/register page
+        window.location.href = 'auth.html';
+    }
+}
+
+function checkUserAuthStatus() {
+    // Check multiple sources for authentication status
+    
+    // 1. Check if Firebase auth is available and user is logged in
+    if (window.gameAuth && typeof window.gameAuth.isLoggedIn === 'function') {
+        return window.gameAuth.isLoggedIn();
+    }
+    
+    // 2. Check localStorage for auth tokens or user data
+    const authToken = localStorage.getItem('authToken') || localStorage.getItem('user_token');
+    const userData = localStorage.getItem('userData') || localStorage.getItem('currentUser');
+    
+    if (authToken || userData) {
+        try {
+            // Verify the token/data is valid JSON and not expired
+            if (userData) {
+                const user = JSON.parse(userData);
+                return user && user.email; // Basic check for valid user data
+            }
+            return !!authToken;
+        } catch (e) {
+            return false;
+        }
+    }
+    
+    // 3. Check sessionStorage
+    const sessionAuth = sessionStorage.getItem('isLoggedIn') || sessionStorage.getItem('authToken');
+    if (sessionAuth) {
+        return sessionAuth === 'true' || sessionAuth.length > 0;
+    }
+    
+    // 4. Default to not logged in
+    return false;
+}
+
+// Initialize Firebase auth if available
+function initializeFirebaseAuth() {
+    // This will be called when the page loads to set up Firebase auth
+    if (typeof window.gameAuth !== 'undefined') {
+        // Firebase auth is available, set up auth state listener
+        console.log('Firebase auth detected');
+    } else {
+        // Import Firebase auth if not already loaded
+        loadFirebaseAuth();
+    }
+}
+
+function loadFirebaseAuth() {
+    // Dynamically load Firebase auth if needed
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.innerHTML = `
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { GameAuth } from './js/firebase-auth.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDn2cL3G7YIU5F9pYcwWp3vd6rT8GHfVlE",
+            authDomain: "profile-9e9f9.firebaseapp.com",
+            projectId: "profile-9e9f9",
+            storageBucket: "profile-9e9f9.appspot.com",
+            messagingSenderId: "412374234567",
+            appId: "1:412374234567:web:8a9b5c6d7e8f9g0h1i2j3k4l"
+        };
+        
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.gameAuth = new GameAuth(app);
+            console.log('Firebase auth initialized');
+        } catch (error) {
+            console.log('Firebase auth not available:', error);
+        }
+    `;
+    document.head.appendChild(script);
+}
+
 // Initialize when DOM is loaded
 let gameHub;
 document.addEventListener('DOMContentLoaded', () => {
     gameHub = new GameHub();
+    initializeFirebaseAuth();
 });
 
 // Export for global access
 window.gameHub = gameHub;
+window.handleAccountClick = handleAccountClick;

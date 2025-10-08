@@ -6,6 +6,53 @@
     <title>E.Vol Games - Account Dashboard</title>
     <link rel="stylesheet" href="steam-layout.css">
     <link rel="stylesheet" href="css/help-widget.css">
+    
+    <!-- Firebase Integration -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { GameAuth } from './js/firebase-auth.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDn2cL3G7YIU5F9pYcwWp3vd6rT8GHfVlE",
+            authDomain: "profile-9e9f9.firebaseapp.com",
+            projectId: "profile-9e9f9",
+            storageBucket: "profile-9e9f9.appspot.com",
+            messagingSenderId: "412374234567",
+            appId: "1:412374234567:web:8a9b5c6d7e8f9g0h1i2j3k4l"
+        };
+        
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.gameAuth = new GameAuth(app);
+            
+            // Check auth status on page load
+            window.gameAuth.waitForAuthInit().then(() => {
+                if (!window.gameAuth.isLoggedIn()) {
+                    // Redirect to login if not authenticated
+                    setTimeout(() => {
+                        window.location.href = 'auth.html?redirect=account.html';
+                    }, 1000);
+                } else {
+                    // User is logged in, load their data
+                    window.dispatchEvent(new Event('userAuthenticated'));
+                }
+            });
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            // Fallback: check local storage for auth
+            setTimeout(() => {
+                if (!checkLocalAuth()) {
+                    window.location.href = 'auth.html?redirect=account.html';
+                }
+            }, 1000);
+        }
+        
+        function checkLocalAuth() {
+            const authToken = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('userData');
+            return !!(authToken || userData);
+        }
+    </script>
     <style>
         .account-container {
             background: linear-gradient(135deg, #1b2838 0%, #171a21 50%, #1b2838 100%);
@@ -221,6 +268,127 @@
             margin-bottom: 20px;
             opacity: 0.5;
         }
+
+        .scores-section {
+            background: linear-gradient(180deg, #2a475e 0%, #1e2328 100%);
+            border: 1px solid #417a9b;
+            border-radius: 5px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .scores-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .scores-header h3 {
+            color: #66c0f4;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .refresh-scores-btn {
+            background: #5c7e10;
+            border: none;
+            color: #b8d631;
+            padding: 8px 16px;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .refresh-scores-btn:hover {
+            background: #6f9a1c;
+        }
+
+        .user-scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, #417a9b 0%, #2a475e 100%);
+            border: 1px solid #66c0f4;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .score-card .game-name {
+            color: #66c0f4;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score-card .score-value {
+            color: #b8d631;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .score-card .score-rank {
+            color: #8f98a0;
+            font-size: 12px;
+        }
+
+        .no-scores {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8f98a0;
+            grid-column: 1 / -1;
+        }
+
+        .no-scores .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+            display: block;
+        }
+
+        .play-games-btn {
+            background: #5c7e10;
+            color: #b8d631;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+
+        .play-games-btn:hover {
+            background: #6f9a1c;
+        }
+
+        .leaderboard-link {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #316282;
+        }
+
+        .view-leaderboard-btn {
+            background: linear-gradient(135deg, #417a9b 0%, #2a475e 100%);
+            color: #66c0f4;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .view-leaderboard-btn:hover {
+            background: linear-gradient(135deg, #66c0f4 0%, #417a9b 100%);
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -235,6 +403,7 @@
             <div class="account-tabs">
                 <button class="account-tab active" data-tab="profile">Profile</button>
                 <button class="account-tab" data-tab="favorites">Favorites</button>
+                <button class="account-tab" data-tab="scores">Scores</button>
                 <button class="account-tab" data-tab="settings">Settings</button>
                 <button class="account-tab" data-tab="auth">Login/Register</button>
             </div>
@@ -263,22 +432,38 @@
             </div>
 
             <!-- Favorites Tab -->
-            <div class="tab-content" id="favorites-tab">
-                <div class="profile-section">
-                    <h3>Your Favorite Games</h3>
-                    <p>Games you've marked as favorites will appear here. Use the ⭐ button on any game to add it to your favorites!</p>
-                </div>
-                
-                <div class="favorites-grid" id="favorites-display">
-                    <div class="empty-favorites">
-                        <div class="empty-favorites-icon">⭐</div>
-                        <h3>No favorites yet!</h3>
-                        <p>Start by clicking the star button on games you love</p>
+                    <div class="tab-content" data-tab="favorites">
+                        <div class="favorites-grid" id="favorites-grid">
+                            <div class="no-favorites">
+                                <span class="icon">💫</span>
+                                <h3>No Favorites Yet</h3>
+                                <p>Add games to your favorites by clicking the ⭐ icon on game cards</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Settings Tab -->
+                    <div class="tab-content" data-tab="scores">
+                        <div class="scores-section">
+                            <div class="scores-header">
+                                <h3>🏆 Your Game Scores</h3>
+                                <button class="refresh-scores-btn" onclick="refreshUserScores()">🔄 Refresh</button>
+                            </div>
+                            <div class="user-scores-grid" id="user-scores-grid">
+                                <div class="no-scores">
+                                    <span class="icon">🎮</span>
+                                    <h3>No Scores Yet</h3>
+                                    <p>Start playing games to see your scores here!</p>
+                                    <a href="index.html" class="play-games-btn">Play Games</a>
+                                </div>
+                            </div>
+                            <div class="leaderboard-link">
+                                <a href="leaderboard.html" class="view-leaderboard-btn">
+                                    <span class="icon">🏆</span>
+                                    View Full Leaderboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>            <!-- Settings Tab -->
             <div class="tab-content" id="settings-tab">
                 <div class="settings-section">
                     <h3>Game Preferences</h3>
@@ -369,7 +554,36 @@
                 document.querySelectorAll('.tab-content').forEach(content => {
                     content.classList.remove('active');
                 });
-                document.getElementById(`${tabName}-tab`).classList.add('active');
+                
+                // Handle different tab content IDs
+                let tabElement;
+                if (tabName === 'scores') {
+                    tabElement = document.querySelector(`[data-tab="${tabName}"]`);
+                    if (tabElement) {
+                        tabElement.style.display = 'block';
+                        // Load scores when tab is opened
+                        this.renderUserScores();
+                    }
+                } else {
+                    tabElement = document.getElementById(`${tabName}-tab`);
+                    if (tabElement) {
+                        tabElement.classList.add('active');
+                    }
+                }
+                
+                // Hide other tab contents
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    if (content !== tabElement) {
+                        content.classList.remove('active');
+                        content.style.display = 'none';
+                    }
+                });
+                
+                // Show the selected tab
+                if (tabElement) {
+                    tabElement.classList.add('active');
+                    tabElement.style.display = 'block';
+                }
             }
 
             loadGamesData() {
@@ -479,9 +693,98 @@
             saveSettings() {
                 localStorage.setItem('gameHub_settings', JSON.stringify(this.settings));
             }
+
+            // Load user scores from Firebase and localStorage
+            async loadUserScores() {
+                const userScores = [];
+                
+                // Try to load from Firebase if user is logged in
+                if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                    try {
+                        const firebaseScores = await window.gameAuth.getUserScores();
+                        userScores.push(...firebaseScores);
+                    } catch (error) {
+                        console.error('Error loading Firebase scores:', error);
+                    }
+                }
+                
+                // Also check localStorage for backup scores
+                try {
+                    const localScores = localStorage.getItem('gameLeaderboard');
+                    if (localScores) {
+                        const scores = JSON.parse(localScores);
+                        // Get current user's name from auth or prompt
+                        const userName = window.gameAuth?.getCurrentUser()?.displayName || 
+                                       localStorage.getItem('currentPlayer') || 'You';
+                        
+                        Object.entries(scores).forEach(([game, gameScores]) => {
+                            const userGameScores = gameScores.filter(score => 
+                                score.username === userName || score.username === 'You'
+                            );
+                            if (userGameScores.length > 0) {
+                                const bestScore = userGameScores.reduce((best, current) => 
+                                    current.score > best.score ? current : best
+                                );
+                                userScores.push({
+                                    game,
+                                    score: bestScore.score,
+                                    date: bestScore.date,
+                                    rank: gameScores.findIndex(s => s.score === bestScore.score) + 1
+                                });
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading local scores:', error);
+                }
+                
+                return userScores;
+            }
+
+            // Render user scores in the account dashboard
+            async renderUserScores() {
+                const container = document.getElementById('user-scores-grid');
+                const userScores = await this.loadUserScores();
+                
+                if (userScores.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-scores">
+                            <span class="icon">🎮</span>
+                            <h3>No Scores Yet</h3>
+                            <p>Start playing games to see your scores here!</p>
+                            <a href="index.html" class="play-games-btn">Play Games</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = userScores.map(scoreData => {
+                    return `
+                        <div class="score-card">
+                            <div class="game-name">${scoreData.game}</div>
+                            <div class="score-value">${scoreData.score.toLocaleString()}</div>
+                            <div class="score-rank">Rank #${scoreData.rank || '?'}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         // Global functions
+        async function refreshUserScores() {
+            const refreshBtn = document.querySelector('.refresh-scores-btn');
+            refreshBtn.textContent = '🔄 Loading...';
+            refreshBtn.disabled = true;
+            
+            try {
+                await account.renderUserScores();
+            } catch (error) {
+                console.error('Error refreshing scores:', error);
+            } finally {
+                refreshBtn.textContent = '🔄 Refresh';
+                refreshBtn.disabled = false;
+            }
+        }
         function clearAllData() {
             if (confirm('Are you sure you want to clear all local data? This will remove favorites, settings, and recently played games.')) {
                 localStorage.removeItem('gameHub_favorites');
@@ -495,6 +798,14 @@
         let account;
         document.addEventListener('DOMContentLoaded', () => {
             account = new AccountDashboard();
+        });
+
+        // Listen for user authentication events
+        window.addEventListener('userAuthenticated', () => {
+            // Refresh scores when user logs in
+            if (account) {
+                account.renderUserScores();
+            }
         });
     </script>
 
