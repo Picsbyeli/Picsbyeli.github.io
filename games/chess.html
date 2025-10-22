@@ -316,9 +316,11 @@
     
     .piece {
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-      font-family: 'Arial Unicode MS', 'Lucida Grande', 'Segoe UI Symbol', 'DejaVu Sans', sans-serif;
-      font-size: 24px;
+      font-family: 'Segoe UI Symbol', 'Apple Color Emoji', 'Noto Color Emoji', 'Arial Unicode MS', 'Lucida Grande', 'DejaVu Sans', sans-serif;
+      font-size: 28px;
       line-height: 1;
+      font-weight: normal;
+      text-rendering: optimizeLegibility;
     }
     
     .piece-black {
@@ -592,8 +594,7 @@
       if (!piece) return '';
       const names = {
         'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟',
-        'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
-        'w': '⚫', 'b': '⚪', 'W': '⚫', 'B': '⚪'
+        'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙'
       };
       return names[piece] || piece;
     }
