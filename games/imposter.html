@@ -957,7 +957,7 @@
                 players: roomData.players,
                 imposter: imposter,
                 secretWord: secretWord,
-                clues: [],
+                clues: {},
                 votes: {},
                 turnOrder: turnOrder,
                 currentTurn: 0,
@@ -1022,7 +1022,7 @@
                         }
                     }
 
-                    if (gameState.clues && gameState.clues.length > 0) {
+                    if (gameState.clues && Object.keys(gameState.clues).length > 0) {
                         displayClues();
                     }
                     break;
@@ -1100,7 +1100,8 @@
 
                 // Check if all non-detective players have submitted clues
                 const playerCount = Object.keys(gameState.players).length;
-                const clueCount = Object.keys(gameState.clues || {}).length + 1; // +1 for current submission
+                const currentClues = gameState.clues || {};
+                const clueCount = Object.keys(currentClues).length + 1; // +1 for current submission
                 
                 // All non-detective players have submitted (playerCount - 1 for detective)
                 if (clueCount >= playerCount - 1) {
@@ -1131,12 +1132,22 @@
             if (!container || !gameState.clues) return;
 
             container.innerHTML = '';
-            gameState.clues.forEach(clueData => {
-                const clueEl = document.createElement('div');
-                clueEl.className = 'clue-item';
-                clueEl.innerHTML = `<strong>${clueData.playerName}:</strong> "${clueData.clue}"`;
-                container.appendChild(clueEl);
-            });
+            
+            // Handle clues as either array or object
+            const cluesList = Array.isArray(gameState.clues) 
+                ? gameState.clues 
+                : Object.values(gameState.clues);
+            
+            if (cluesList.length === 0) {
+                container.innerHTML = '<p>No clues submitted yet...</p>';
+            } else {
+                cluesList.forEach(clueData => {
+                    const clueEl = document.createElement('div');
+                    clueEl.className = 'clue-item';
+                    clueEl.innerHTML = `<strong>${clueData.playerName}:</strong> "${clueData.clue}"`;
+                    container.appendChild(clueEl);
+                });
+            }
 
             display.style.display = 'block';
         }

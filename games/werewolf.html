@@ -9,21 +9,41 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Firebase integration for leaderboard -->
+  <!-- Firebase integration for leaderboard and online features -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+    import { getAnalytics } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js';
+    import { getDatabase, ref, set, get, onValue, push, remove } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js';
     import { GameAuth } from '../js/firebase-auth.js';
     
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
     const firebaseConfig = {
-      apiKey: "AIzaSyDn2cL3G7YIU5F9pYcwWp3vd6rT8GHfVlE",
-      authDomain: "profile-9e9f9.firebaseapp.com",
-      projectId: "profile-9e9f9",
-      storageBucket: "profile-9e9f9.appspot.com",
-      messagingSenderId: "412374234567",
-      appId: "1:412374234567:web:8a9b5c6d7e8f9g0h1i2j3k4l"
+      apiKey: "AIzaSyDPY3k2EeG7cuuPm9qRdYr3Eigh4wcKjBE",
+      authDomain: "werewolf-e3c92.firebaseapp.com",
+      databaseURL: "https://werewolf-e3c92-default-rtdb.firebaseio.com",
+      projectId: "werewolf-e3c92",
+      storageBucket: "werewolf-e3c92.firebasestorage.app",
+      messagingSenderId: "366404700023",
+      appId: "1:366404700023:web:2d555ac569149d89aac372",
+      measurementId: "G-SDZ8WCR7NV"
     };
     
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const database = getDatabase(app);
+    
+    // Make Firebase services available globally
+    window.firebaseApp = app;
+    window.firebaseDatabase = database;
+    window.firebaseRef = ref;
+    window.firebaseSet = set;
+    window.firebaseGet = get;
+    window.firebaseOnValue = onValue;
+    window.firebasePush = push;
+    window.firebaseRemove = remove;
+    
     window.gameAuth = new GameAuth(app);
     
     // Global score submission function
@@ -238,46 +258,61 @@
         swapper: Shuffle
       };
 
-      // Simulated Firebase using memory (for demo - in production use real Firebase)
-      const gameDatabase = {};
-
-      const createOnlineRoom = () => {
+      // Firebase-based game database
+      const createOnlineRoom = async () => {
         const code = Math.random().toString(36).substring(2, 8).toUpperCase();
         setRoomCode(code);
         setIsHost(true);
         setMode('online');
         
-        gameDatabase[code] = {
-          gameState: 'setup',
-          players: {},
-          host: 'host',
-          createdAt: Date.now()
-        };
-        
-        setGameState('setup');
-        startPolling(code);
+        try {
+          const roomRef = window.firebaseRef(window.firebaseDatabase, `games/${code}`);
+          await window.firebaseSet(roomRef, {
+            gameState: 'setup',
+            players: {},
+            host: 'host',
+            createdAt: Date.now()
+          });
+          
+          setGameState('setup');
+          startPolling(code);
+        } catch (error) {
+          console.error('Error creating room:', error);
+          alert('Failed to create room. Please try again.');
+        }
       };
 
-      const joinOnlineRoom = () => {
+      const joinOnlineRoom = async () => {
         if (!joinCode.trim()) return;
         
-        if (gameDatabase[joinCode.toUpperCase()]) {
-          setRoomCode(joinCode.toUpperCase());
-          setMode('online');
-          setGameState('setup');
-          startPolling(joinCode.toUpperCase());
-        } else {
-          alert('Room not found! Note: This demo uses in-memory storage. Share the room code with players on the same device/session.');
+        try {
+          const roomRef = window.firebaseRef(window.firebaseDatabase, `games/${joinCode.toUpperCase()}`);
+          const snapshot = await window.firebaseGet(roomRef);
+          
+          if (snapshot.exists()) {
+            setRoomCode(joinCode.toUpperCase());
+            setMode('online');
+            setGameState('setup');
+            startPolling(joinCode.toUpperCase());
+          } else {
+            alert('Room not found! Please check the room code.');
+          }
+        } catch (error) {
+          console.error('Error joining room:', error);
+          alert('Failed to join room. Please try again.');
         }
       };
 
       const startPolling = (code) => {
-        const interval = setInterval(() => {
-          if (gameDatabase[code]) {
-            setOnlineGameData({...gameDatabase[code]});
+        const roomRef = window.firebaseRef(window.firebaseDatabase, `games/${code}`);
+        const unsubscribe = window.firebaseOnValue(roomRef, (snapshot) => {
+          if (snapshot.exists()) {
+            setOnlineGameData(snapshot.val());
           }
-        }, 500);
-        setPollInterval(interval);
+        });
+        
+        // Store unsubscribe function for cleanup
+        setPollInterval(unsubscribe);
       };
 
       useEffect(() => {
@@ -302,39 +337,52 @@
 
       useEffect(() => {
         return () => {
-          if (pollInterval) clearInterval(pollInterval);
+          if (pollInterval && typeof pollInterval === 'function') {
+            pollInterval(); // Unsubscribe from Firebase listener
+          } else if (pollInterval) {
+            clearInterval(pollInterval); // Legacy cleanup for intervals
+          }
         };
       }, [pollInterval]);
 
-      const syncGameState = (updates) => {
-        if (mode === 'online' && roomCode && isHost && gameDatabase[roomCode]) {
-          gameDatabase[roomCode] = {
-            ...gameDatabase[roomCode],
-            ...updates
-          };
+      const syncGameState = async (updates) => {
+        if (mode === 'online' && roomCode && isHost) {
+          try {
+            const roomRef = window.firebaseRef(window.firebaseDatabase, `games/${roomCode}`);
+            const snapshot = await window.firebaseGet(roomRef);
+            const currentData = snapshot.exists() ? snapshot.val() : {};
+            
+            await window.firebaseSet(roomRef, {
+              ...currentData,
+              ...updates
+            });
+          } catch (error) {
+            console.error('Error syncing game state:', error);
+          }
         }
       };
 
-      const addPlayerOnline = () => {
+      const addPlayerOnline = async () => {
         if (!playerName.trim() || !roomCode) return;
         
         const playerId = `player-${Date.now()}`;
         setMyPlayerId(playerId);
         
-        if (!gameDatabase[roomCode]) return;
-        
-        gameDatabase[roomCode].players = {
-          ...gameDatabase[roomCode].players,
-          [playerId]: {
+        try {
+          const playerRef = window.firebaseRef(window.firebaseDatabase, `games/${roomCode}/players/${playerId}`);
+          await window.firebaseSet(playerRef, {
             name: playerName.trim(),
             role: null,
             alive: true,
             isAI: false,
             id: playerId
-          }
-        };
-        
-        setPlayerName('');
+          });
+          
+          setPlayerName('');
+        } catch (error) {
+          console.error('Error adding player:', error);
+          alert('Failed to join game. Please try again.');
+        }
       };
 
       // AI Bot Logic
@@ -748,11 +796,21 @@
         setGameLog(prev => [...prev, { message, time: new Date().toLocaleTimeString() }]);
       };
 
-      const resetGame = () => {
+      const resetGame = async () => {
         if (mode === 'online' && roomCode) {
-          delete gameDatabase[roomCode];
+          try {
+            const roomRef = window.firebaseRef(window.firebaseDatabase, `games/${roomCode}`);
+            await window.firebaseRemove(roomRef);
+          } catch (error) {
+            console.error('Error cleaning up room:', error);
+          }
         }
-        if (pollInterval) clearInterval(pollInterval);
+        
+        if (pollInterval && typeof pollInterval === 'function') {
+          pollInterval(); // Unsubscribe from Firebase listener
+        } else if (pollInterval) {
+          clearInterval(pollInterval);
+        }
         
         setGameState('modeSelect');
         setMode(null);
@@ -841,10 +899,10 @@
               <div className="bg-gray-800 rounded-lg shadow-2xl p-8 border border-purple-500">
                 <h1 className="text-3xl font-bold text-white mb-8 text-center">Online Game</h1>
                 
-                <div className="bg-yellow-900 border border-yellow-600 rounded-lg p-4 mb-6">
-                  <p className="text-yellow-200 text-sm">
-                    <AlertCircle className="w-4 h-4 inline mr-2" />
-                    Demo Mode: This uses in-memory storage. All players must be on the same device/browser session.
+                <div className="bg-blue-900 border border-blue-600 rounded-lg p-4 mb-6">
+                  <p className="text-blue-200 text-sm">
+                    <Wifi className="w-4 h-4 inline mr-2" />
+                    Online Mode: Real-time multiplayer using Firebase. Share room codes with friends!
                   </p>
                 </div>
                 
