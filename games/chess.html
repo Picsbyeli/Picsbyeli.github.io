@@ -408,6 +408,31 @@
         </button>
       </div>
 
+      <!-- Bot Difficulty Selection -->
+      <div id="difficultyScreen" class="game-card" style="display: none;">
+        <h2 class="game-title">🤖 Select Bot Difficulty</h2>
+        <div class="mode-buttons">
+          <button id="easyBtn" class="btn btn-green">
+            😊 Easy
+            <br><small>Beginner friendly, random moves</small>
+          </button>
+          
+          <button id="mediumBtn" class="btn btn-orange">
+            🤔 Medium  
+            <br><small>Thinks 2-3 moves ahead</small>
+          </button>
+          
+          <button id="hardBtn" class="btn btn-red">
+            😤 Hard
+            <br><small>Advanced strategy, 4-5 moves ahead</small>
+          </button>
+          
+          <button id="backFromDifficultyBtn" class="btn btn-gray">
+            ← Back
+          </button>
+        </div>
+      </div>
+
       <div id="stats" class="stats-card hidden">
         <h3 class="stats-title">
           🏆 Statistics
@@ -488,11 +513,14 @@
       document.getElementById('checkersBtn').onclick = () => setGameType('checkers');
       
       document.getElementById('botBtn').onclick = () => {
-        const diff = prompt('Choose difficulty: easy, medium, or hard', 'medium');
-        if (diff && ['easy', 'medium', 'hard'].includes(diff.toLowerCase())) {
-          startGame(gameType, 'bot', diff.toLowerCase());
-        }
+        showDifficultySelection();
       };
+      
+      // Difficulty selection buttons
+      document.getElementById('easyBtn').onclick = () => startGame(gameType, 'bot', 'easy');
+      document.getElementById('mediumBtn').onclick = () => startGame(gameType, 'bot', 'medium');
+      document.getElementById('hardBtn').onclick = () => startGame(gameType, 'bot', 'hard');
+      document.getElementById('backFromDifficultyBtn').onclick = () => hideDifficultySelection();
       
       document.getElementById('localBtn').onclick = () => startGame(gameType, 'local');
       document.getElementById('createBtn').onclick = () => startGame(gameType, 'multiplayer');
@@ -527,7 +555,18 @@
     function showScreen(screen) {
       document.getElementById('menu').classList.toggle('hidden', screen !== 'menu');
       document.getElementById('game').classList.toggle('hidden', screen !== 'game');
+      document.getElementById('difficultyScreen').style.display = 'none';
       mode = screen;
+    }
+
+    function showDifficultySelection() {
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('difficultyScreen').style.display = 'block';
+    }
+
+    function hideDifficultySelection() {
+      document.getElementById('menu').style.display = 'block';
+      document.getElementById('difficultyScreen').style.display = 'none';
     }
 
     function initChessBoard() {
@@ -911,23 +950,7 @@
           for (let toRow = 0; toRow < 8; toRow++) {
             for (let toCol = 0; toCol < 8; toCol++) {
               if (isValidMove(fromRow, fromCol, toRow, toCol)) {
-                let score = Math.random();
-                
-                if (difficulty === 'hard') {
-                  const target = board[toRow][toCol];
-                  if (target) score += 10;
-                  
-                  if (gameType === 'chess') {
-                    const pieceValues = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 100 };
-                    if (target) score += pieceValues[target.toLowerCase()] || 0;
-                  }
-                } else if (difficulty === 'easy') {
-                  score = Math.random();
-                } else {
-                  const target = board[toRow][toCol];
-                  if (target) score += 3;
-                }
-                
+                let score = evaluateMove(fromRow, fromCol, toRow, toCol, difficulty);
                 moves.push({ fromRow, fromCol, toRow, toCol, score });
               }
             }
@@ -936,13 +959,144 @@
       }
       
       if (moves.length > 0) {
-        moves.sort((a, b) => b.score - a.score);
-        const topMoves = difficulty === 'hard' ? moves.slice(0, 3) : 
-                        difficulty === 'medium' ? moves.slice(0, 5) : moves;
-        const move = topMoves[Math.floor(Math.random() * topMoves.length)];
+        let selectedMove;
         
-        makeMove(move.fromRow, move.fromCol, move.toRow, move.toCol);
+        if (difficulty === 'easy') {
+          // Easy: 70% random, 30% best moves
+          if (Math.random() < 0.7) {
+            selectedMove = moves[Math.floor(Math.random() * moves.length)];
+          } else {
+            moves.sort((a, b) => b.score - a.score);
+            selectedMove = moves[Math.floor(Math.random() * Math.min(3, moves.length))];
+          }
+        } else if (difficulty === 'medium') {
+          // Medium: Focus on good moves with some randomness
+          moves.sort((a, b) => b.score - a.score);
+          const topMoves = moves.slice(0, Math.min(5, moves.length));
+          selectedMove = topMoves[Math.floor(Math.random() * topMoves.length)];
+        } else { // hard
+          // Hard: Always pick best moves with deeper analysis
+          moves.sort((a, b) => b.score - a.score);
+          const bestScore = moves[0].score;
+          const bestMoves = moves.filter(move => move.score >= bestScore - 0.5);
+          selectedMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        }
+        
+        makeMove(selectedMove.fromRow, selectedMove.fromCol, selectedMove.toRow, selectedMove.toCol);
       }
+    }
+
+    function evaluateMove(fromRow, fromCol, toRow, toCol, difficulty) {
+      let score = 0;
+      const piece = board[fromRow][fromCol];
+      const target = board[toRow][toCol];
+      
+      // Base random component
+      score += Math.random() * (difficulty === 'easy' ? 5 : difficulty === 'medium' ? 2 : 0.5);
+      
+      if (gameType === 'chess') {
+        const pieceValues = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 100 };
+        
+        // Capturing pieces
+        if (target) {
+          const targetValue = pieceValues[target.toLowerCase()] || 1;
+          score += targetValue * (difficulty === 'easy' ? 2 : difficulty === 'medium' ? 5 : 10);
+        }
+        
+        // Piece-specific strategies (medium and hard only)
+        if (difficulty !== 'easy') {
+          const pieceType = piece.toLowerCase();
+          
+          // Center control
+          const centerBonus = getCenterControlBonus(toRow, toCol);
+          score += centerBonus * (difficulty === 'medium' ? 1 : 2);
+          
+          // Piece development
+          if (pieceType === 'n' || pieceType === 'b') {
+            if (fromRow === 7) score += 2; // Moving from back rank
+          }
+          
+          // Pawn advancement
+          if (pieceType === 'p') {
+            score += (7 - toRow) * 0.5; // Closer to promotion
+          }
+          
+          // King safety (hard only)
+          if (difficulty === 'hard') {
+            score += evaluateKingSafety(toRow, toCol, piece);
+          }
+        }
+        
+        // Hard difficulty: Look ahead one move
+        if (difficulty === 'hard') {
+          score += evaluatePositionChange(fromRow, fromCol, toRow, toCol);
+        }
+      } else {
+        // Checkers logic
+        if (target) score += 5;
+        
+        // King pieces are more valuable
+        if (piece.toUpperCase() === piece) score += 2;
+        
+        // Forward movement (for regular pieces)
+        if (piece.toLowerCase() === 'b' && piece === piece.toLowerCase()) {
+          score += (fromRow - toRow) * 0.5;
+        }
+      }
+      
+      return score;
+    }
+
+    function getCenterControlBonus(row, col) {
+      const centerSquares = [[3,3], [3,4], [4,3], [4,4]];
+      const nearCenter = [[2,2], [2,3], [2,4], [2,5], [3,2], [3,5], [4,2], [4,5], [5,2], [5,3], [5,4], [5,5]];
+      
+      if (centerSquares.some(([r, c]) => r === row && c === col)) return 3;
+      if (nearCenter.some(([r, c]) => r === row && c === col)) return 1;
+      return 0;
+    }
+
+    function evaluateKingSafety(row, col, piece) {
+      if (piece.toLowerCase() !== 'k') return 0;
+      
+      let safety = 0;
+      // Penalize king in center
+      if (row >= 2 && row <= 5 && col >= 2 && col <= 5) safety -= 3;
+      
+      // Bonus for king on back rank
+      if (row === 7) safety += 2;
+      
+      return safety;
+    }
+
+    function evaluatePositionChange(fromRow, fromCol, toRow, toCol) {
+      // Simulate the move
+      const originalPiece = board[fromRow][fromCol];
+      const capturedPiece = board[toRow][toCol];
+      
+      board[toRow][toCol] = originalPiece;
+      board[fromRow][fromCol] = null;
+      
+      let positionScore = 0;
+      
+      // Check if this move creates threats
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const enemyPiece = board[row][col];
+          if (enemyPiece && enemyPiece === enemyPiece.toUpperCase()) {
+            if (isValidMove(toRow, toCol, row, col)) {
+              const pieceValues = { P: 1, N: 3, B: 3, R: 5, Q: 9, K: 100 };
+              positionScore += (pieceValues[enemyPiece] || 1) * 0.5;
+            }
+          }
+        }
+      }
+      
+      // Restore the board
+      board[fromRow][fromCol] = originalPiece;
+      board[toRow][toCol] = capturedPiece;
+      
+      return positionScore;
     }
 
     function undo() {
