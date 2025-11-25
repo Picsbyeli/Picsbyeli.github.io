@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Legends Survival - 2D Platformer</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: #eee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    #ui {
+      padding: 8px 12px;
+      background: #181818;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #333;
+    }
+    #ui label {
+      font-size: 14px;
+    }
+    #gameContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px;
+    }
+    canvas {
+      border: 2px solid #333;
+      background: linear-gradient(#1a1a2e, #222);
+      image-rendering: pixelated;
+    }
+    #info {
+      font-size: 12px;
+      color: #aaa;
+      padding: 0 12px 8px;
+    }
+    button, select {
+      background: #222;
+      color: #eee;
+      border: 1px solid #555;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    button:hover, select:hover {
+      border-color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <label>Class:
+      <select id="classSelect">
+        <option value="Hunter">Hunter (Rifle)</option>
+        <option value="Knight">Knight (Throwing Sword)</option>
+        <option value="Assassin">Assassin (Knives)</option>
+        <option value="Summoner">Summoner (Minions)</option>
+        <option value="DarkMagician">Dark Magician (Spells)</option>
+      </select>
+    </label>
+    <button id="startBtn">Start Game</button>
+    <span id="statusText"></span>
+  </div>
+  <div id="info">
+    Controls: A/D or Left/Right = move, Space = jump.  
+    T = toggle Auto-Shoot, Y = toggle Auto-Aim.  
+    Classes are drawn as simple concept-art blocks you can later replace with sprites.
+  </div>
+  <div id="gameContainer">
+    <canvas id="game" width="900" height="500"></canvas>
+  </div>
+
+  <script>
+    // ===============================
+    // GAME CONFIG & DATA
+    // ===============================
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const statusText = document.getElementById("statusText");
+    const classSelect = document.getElementById("classSelect");
+    const startBtn = document.getElementById("startBtn");
+
+    const GROUND_Y = 420;
+    const GRAVITY = 0.6;
+    const FRICTION = 0.8;
+
+    let keys = {};
+    let lastTime = 0;
+    let gameRunning = false;
+
+    // XP curve: grows faster each level
+    function xpForLevel(level) {
+      // base 50, scaling ~ level^1.5
+      return Math.floor(50 * Math.pow(level, 1.5));
+    }
+
+    // Class definitions / stats
+    const CLASS_DATA = {
+      Hunter: {
+        maxHP: 100,
+        moveSpeed: 3.3,
+        jumpPower: 11,
+        fireRate: 0.35,
+        damage: 12,
+        range: 600,
+        projectileSpeed: 7,
+        color: "#1e90ff",          // body color
+        accent: "#ffff66",         // rifle strip
+        bulletColor: "#ffd700"
+      },
+      Knight: {
+        maxHP: 140,
+        moveSpeed: 2.8,
+        jumpPower: 10.5,
+        fireRate: 0.7,
+        damage: 24,
+        range: 240,
+        projectileSpeed: 6,
+        color: "#c0c0c0",
+        accent: "#ffdede",         // cape tone
+        bulletColor: "#ffffff"
+      },
+      Assassin: {
+        maxHP: 90,
+        moveSpeed: 4.1,
+        jumpPower: 12,
+        fireRate: 0.18,
+        damage: 8,
+        range: 380,
+        projectileSpeed: 8.5,
+        color: "#8a2be2",
+        accent: "#ff66ff",
+        bulletColor: "#ffb3ff"
+      },
+      Summoner: {
+        maxHP: 110,
+        moveSpeed: 3.0,
+        jumpPower: 11,
+        fireRate: 0.6,
+        damage: 10,
+        range: 420,
+        projectileSpeed: 6.5,
+        color: "#3cb371",
+        accent: "#a0ffb0",
+        bulletColor: "#a0ffa0"
+      },
+      DarkMagician: {
+        maxHP: 80,
+        moveSpeed: 2.9,
+        jumpPower: 11,
+        fireRate: 0.9,
+        damage: 30,
+        range: 520,
+        projectileSpeed: 5,
+        color: "#4b0082",
+        accent: "#b19cd9",
+        bulletColor: "#ff00ff"
+      }
+    };
+
+    // ===============================
+    // GAME STATE
+    // ===============================
+    let player;
+    let enemies = [];
+    let projectiles = [];
+    let minions = []; // for Summoner
+    let particles = [];
+
+    let autoShoot = true;
+    let autoAim = true;
+
+    let shootTimer = 0;
+    let wave = 1;
+    let enemiesToSpawn = 0;
+    let spawnTimer = 0;
+
+    // ===============================
+    // ENTITY HELPERS
+    // ===============================
+    function resetGame() {
+      const clsName = classSelect.value;
+      const cls = CLASS_DATA[clsName];
+
+      player = {
+        className: clsName,
+        x: 100,
+        y: GROUND_Y - 40,
+        vx: 0,
+        vy: 0,
+        w: 32,
+        h: 40,
+        onGround: true,
+        maxHP: cls.maxHP,
+        hp: cls.maxHP,
+        moveSpeed: cls.moveSpeed,
+        jumpPower: cls.jumpPower,
+        fireRate: cls.fireRate,          // seconds between shots
+        damage: cls.damage,
+        range: cls.range,
+        projectileSpeed: cls.projectileSpeed,
+        color: cls.color,
+        accent: cls.accent,
+        bulletColor: cls.bulletColor,
+        xp: 0,
+        level: 1,
+        xpToNext: xpForLevel(1),
+        alive: true
+      };
+
+      enemies = [];
+      projectiles = [];
+      minions = [];
+      particles = [];
+      shootTimer = 0;
+      wave = 1;
+      enemiesToSpawn = calcEnemiesForWave(wave);
+      spawnTimer = 0;
+      autoShoot = true;
+      autoAim = true;
+
+      // Summoner starts with 1 minion
+      if (player.className === "Summoner") {
+        spawnMinion();
+      }
+    }
+
+    function calcEnemiesForWave(w) {
+      return 6 + w * 2;
+    }
+
+    function spawnEnemy() {
+      const size = 28 + Math.random() * 14;
+      const baseHP = 35 + wave * 10;
+      enemies.push({
+        x: canvas.width + 20,
+        y: GROUND_Y - size,
+        vx: - (1.5 + Math.random() * (0.3 + wave * 0.1)),
+        vy: 0,
+        w: size,
+        h: size,
+        maxHP: baseHP,
+        hp: baseHP,
+        color: "#ff5555",
+        type: "grunt"
+      });
+    }
+
+    function spawnMinion() {
+      // Orbs that orbit the player and auto-damage enemies
+      const radius = 40 + minions.length * 10;
+      minions.push({
+        angle: Math.random() * Math.PI * 2,
+        radius,
+        damage: 6 + minions.length * 2,
+        tickTimer: 0
+      });
+    }
+
+    function spawnHitParticles(x, y, color) {
+      for (let i = 0; i < 6; i++) {
+        particles.push({
+          x,
+          y,
+          vx: (Math.random() - 0.5) * 3,
+          vy: (Math.random() - 0.5) * 3,
+          life: 0.5,
+          color
+        });
+      }
+    }
+
+    // ===============================
+    // INPUT
+    // ===============================
+    window.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+      if (e.key === " " || e.code === "Space") e.preventDefault();
+
+      if (e.key === "t" || e.key === "T") {
+        autoShoot = !autoShoot;
+      }
+      if (e.key === "y" || e.key === "Y") {
+        autoAim = !autoAim;
+      }
+    });
+    window.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    // ===============================
+    // GAME LOOP
+    // ===============================
+    function gameLoop(timestamp) {
+      if (!gameRunning) {
+        draw();
+        return;
+      }
+      const dt = (timestamp - lastTime) / 1000 || 0;
+      lastTime = timestamp;
+
+      update(dt);
+      draw();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function update(dt) {
+      if (!player.alive) return;
+
+      handlePlayerMovement(dt);
+      handleShooting(dt);
+      handleSpawning(dt);
+      updateProjectiles(dt);
+      updateEnemies(dt);
+      updateMinions(dt);
+      updateParticles(dt);
+
+      if (enemiesToSpawn <= 0 && enemies.length === 0) {
+        // Wave cleared
+        wave++;
+        enemiesToSpawn = calcEnemiesForWave(wave);
+        spawnTimer = 0;
+        // Summoner grows stronger on wave clear
+        if (player.className === "Summoner") {
+          spawnMinion();
+        }
+      }
+    }
+
+    function handlePlayerMovement(dt) {
+      const speed = player.moveSpeed;
+
+      if (keys["a"] || keys["ArrowLeft"]) {
+        player.vx -= speed * 0.5;
+      }
+      if (keys["d"] || keys["ArrowRight"]) {
+        player.vx += speed * 0.5;
+      }
+
+      // Jump
+      if ((keys[" "] || keys["w"] || keys["ArrowUp"]) && player.onGround) {
+        player.vy = -player.jumpPower;
+        player.onGround = false;
+      }
+
+      // Gravity
+      player.vy += GRAVITY;
+
+      // Apply velocities
+      player.x += player.vx;
+      player.y += player.vy;
+
+      // Ground collision
+      if (player.y + player.h >= GROUND_Y) {
+        player.y = GROUND_Y - player.h;
+        player.vy = 0;
+        player.onGround = true;
+      }
+
+      // World bounds
+      if (player.x < 10) player.x = 10;
+      if (player.x + player.w > canvas.width - 10)
+        player.x = canvas.width - 10 - player.w;
+
+      // Friction on ground
+      if (player.onGround) {
+        player.vx *= FRICTION;
+      }
+    }
+
+    function handleShooting(dt) {
+      shootTimer += dt;
+
+      const target = getTargetEnemy();
+      const canShoot = autoShoot || keys["j"] || keys["J"];
+
+      if (!canShoot || !target) return;
+
+      const fireInterval = player.fireRate;
+      if (shootTimer >= fireInterval) {
+        shootTimer = 0;
+        shootProjectile(target);
+      }
+    }
+
+    function getTargetEnemy() {
+      if (enemies.length === 0) return null;
+
+      // Auto-aim selects closest enemy in range
+      if (autoAim) {
+        let best = null;
+        let bestDist = Infinity;
+        for (const e of enemies) {
+          const cx = e.x + e.w / 2;
+          const cy = e.y + e.h / 2;
+          const px = player.x + player.w / 2;
+          const py = player.y + player.h / 2;
+          const dx = cx - px;
+          const dy = cy - py;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < bestDist && dist <= player.range) {
+            bestDist = dist;
+            best = e;
+          }
+        }
+        return best;
+      } else {
+        // Manual-ish: aim at first enemy in front of player horizontally
+        let inFront = enemies.filter(e => e.x > player.x);
+        return inFront.length > 0 ? inFront[0] : enemies[0];
+      }
+    }
+
+    function shootProjectile(target) {
+      const px = player.x + player.w / 2;
+      const py = player.y + player.h / 2;
+      const tx = target.x + target.w / 2;
+      const ty = target.y + target.h / 2;
+
+      let dx = tx - px;
+      let dy = ty - py;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      dx /= dist;
+      dy /= dist;
+
+      let speed = player.projectileSpeed;
+
+      // Slight variations per class (flavor)
+      if (player.className === "Knight") {
+        // Throwing sword: slight arc
+        dy -= 0.2;
+      } else if (player.className === "DarkMagician") {
+        // Dark orb slower but stronger
+        speed *= 0.7;
+      }
+
+      projectiles.push({
+        x: px,
+        y: py,
+        vx: dx * speed,
+        vy: dy * speed,
+        radius: player.className === "DarkMagician" ? 8 : 4,
+        damage: player.damage,
+        color: player.bulletColor,
+        life: 3 // seconds
+      });
+    }
+
+    function handleSpawning(dt) {
+      if (enemiesToSpawn <= 0) return;
+
+      spawnTimer += dt;
+      const spawnInterval = Math.max(0.7 - wave * 0.03, 0.25);
+      if (spawnTimer >= spawnInterval) {
+        spawnTimer = 0;
+        enemiesToSpawn--;
+        spawnEnemy();
+      }
+    }
+
+    function updateProjectiles(dt) {
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        const p = projectiles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= dt;
+
+        // Lifetime / offscreen
+        if (
+          p.life <= 0 ||
+          p.x < -50 ||
+          p.x > canvas.width + 50 ||
+          p.y < -50 ||
+          p.y > canvas.height + 50
+        ) {
+          projectiles.splice(i, 1);
+          continue;
+        }
+
+        // Collision with enemies
+        for (let j = enemies.length - 1; j >= 0; j--) {
+          const e = enemies[j];
+          if (
+            p.x > e.x &&
+            p.x < e.x + e.w &&
+            p.y > e.y &&
+            p.y < e.y + e.h
+          ) {
+            e.hp -= p.damage;
+            spawnHitParticles(p.x, p.y, p.color);
+            projectiles.splice(i, 1);
+            if (e.hp <= 0) {
+              giveXP(15 + 5 * wave);
+              enemies.splice(j, 1);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    function giveXP(amount) {
+      player.xp += amount;
+      while (player.xp >= player.xpToNext) {
+        player.xp -= player.xpToNext;
+        player.level++;
+        player.xpToNext = xpForLevel(player.level);
+        // Small stat bump each level
+        player.maxHP += 5;
+        player.hp = player.maxHP;
+        player.damage *= 1.06;
+      }
+    }
+
+    function updateEnemies(dt) {
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const e = enemies[i];
+        e.x += e.vx;
+
+        // Hit player
+        if (
+          player.alive &&
+          e.x < player.x + player.w &&
+          e.x + e.w > player.x &&
+          e.y < player.y + player.h &&
+          e.y + e.h > player.y
+        ) {
+          player.hp -= 15 * dt;
+          if (player.hp <= 0) {
+            player.hp = 0;
+            player.alive = false;
+            statusText.textContent = "You died on Wave " + wave + " at Level " + player.level;
+          }
+        }
+
+        // Remove if offscreen far left
+        if (e.x + e.w < -50) {
+          enemies.splice(i, 1);
+        }
+      }
+    }
+
+    function updateMinions(dt) {
+      if (player.className !== "Summoner") return;
+
+      const px = player.x + player.w / 2;
+      const py = player.y + player.h / 2 - 10;
+
+      for (const m of minions) {
+        m.angle += dt * 2; // orbit speed
+        m.tickTimer += dt;
+
+        // Damage tick every 0.35s
+        if (m.tickTimer >= 0.35) {
+          m.tickTimer = 0;
+          // Hit nearest enemy
+          let best = null;
+          let bestDist = 90;
+          for (const e of enemies) {
+            const ex = e.x + e.w / 2;
+            const ey = e.y + e.h / 2;
+            const dx = ex - px;
+            const dy = ey - py;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < bestDist) {
+              bestDist = dist;
+              best = e;
+            }
+          }
+          if (best) {
+            best.hp -= m.damage;
+            spawnHitParticles(best.x + best.w / 2, best.y + best.h / 2, "#a0ffa0");
+            if (best.hp <= 0) {
+              giveXP(18 + 6 * wave);
+              enemies.splice(enemies.indexOf(best), 1);
+            }
+          }
+        }
+
+        // Store position for drawing
+        m.drawX = px + Math.cos(m.angle) * m.radius;
+        m.drawY = py + Math.sin(m.angle) * m.radius;
+      }
+    }
+
+    function updateParticles(dt) {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= dt;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    // ===============================
+    // RENDERING (CONCEPT ART STYLE)
+    // ===============================
+    function drawGround() {
+      ctx.fillStyle = "#202020";
+      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+
+      // Simple platform edge shading
+      ctx.fillStyle = "#2b2b2b";
+      ctx.fillRect(0, GROUND_Y - 8, canvas.width, 8);
+    }
+
+    function drawPlayer() {
+      if (!player) return;
+      const { x, y, w, h } = player;
+
+      // Body (concept art)
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x, y, w, h);
+
+      // Accent band (like armor/coat/cape)
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x, y + h / 3, w, h / 6);
+
+      // Head
+      ctx.fillStyle = "#f4e1c1";
+      ctx.fillRect(x + w * 0.2, y - h * 0.35, w * 0.6, h * 0.35);
+
+      // Weapon silhouette (simple)
+      ctx.strokeStyle = player.bulletColor;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      if (player.className === "Hunter") {
+        // Rifle
+        ctx.moveTo(x + w, y + h * 0.6);
+        ctx.lineTo(x + w + 18, y + h * 0.55);
+      } else if (player.className === "Knight") {
+        // Throwing sword
+        ctx.moveTo(x + w, y + h * 0.4);
+        ctx.lineTo(x + w + 14, y + h * 0.3);
+      } else if (player.className === "Assassin") {
+        // Dual knives
+        ctx.moveTo(x + w, y + h * 0.2);
+        ctx.lineTo(x + w + 12, y + h * 0.1);
+        ctx.moveTo(x + w, y + h * 0.5);
+        ctx.lineTo(x + w + 12, y + h * 0.4);
+      } else if (player.className === "Summoner") {
+        // Staff
+        ctx.moveTo(x + w + 4, y);
+        ctx.lineTo(x + w + 4, y - 16);
+      } else if (player.className === "DarkMagician") {
+        // Spell tome
+        ctx.rect(x + w + 2, y + h * 0.2, 10, 8);
+      }
+      ctx.stroke();
+    }
+
+    function drawEnemies() {
+      for (const e of enemies) {
+        // Enemy body
+        ctx.fillStyle = e.color;
+        ctx.fillRect(e.x, e.y, e.w, e.h);
+
+        // Eyes (tiny)
+        ctx.fillStyle = "#000";
+        ctx.fillRect(e.x + e.w * 0.2, e.y + e.h * 0.2, 4, 4);
+        ctx.fillRect(e.x + e.w * 0.6, e.y + e.h * 0.2, 4, 4);
+
+        // HP bar
+        const hpRatio = e.hp / e.maxHP;
+        const barWidth = e.w;
+        ctx.fillStyle = "#440000";
+        ctx.fillRect(e.x, e.y - 6, barWidth, 4);
+        ctx.fillStyle = "#ff3333";
+        ctx.fillRect(e.x, e.y - 6, barWidth * hpRatio, 4);
+      }
+    }
+
+    function drawProjectiles() {
+      for (const p of projectiles) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawMinions() {
+      if (player.className !== "Summoner") return;
+      for (const m of minions) {
+        ctx.fillStyle = "#a0ffa0";
+        ctx.beginPath();
+        ctx.arc(m.drawX, m.drawY, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#004400";
+        ctx.fillRect(m.drawX - 2, m.drawY - 2, 2, 2);
+        ctx.fillRect(m.drawX + 0, m.drawY - 2, 2, 2);
+      }
+    }
+
+    function drawParticles() {
+      for (const p of particles) {
+        const alpha = Math.max(p.life * 2, 0);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = alpha;
+        ctx.fillRect(p.x, p.y, 3, 3);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function drawHUD() {
+      if (!player) return;
+
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(10, 10, 260, 70);
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "12px system-ui";
+      ctx.fillText("Class: " + player.className, 20, 26);
+      ctx.fillText("Wave: " + wave, 20, 42);
+      ctx.fillText("Level: " + player.level, 20, 58);
+
+      // HP bar
+      const hpRatio = player.hp / player.maxHP;
+      ctx.fillText("HP", 140, 26);
+      ctx.fillStyle = "#440000";
+      ctx.fillRect(160, 18, 100, 8);
+      ctx.fillStyle = "#ff3333";
+      ctx.fillRect(160, 18, 100 * hpRatio, 8);
+
+      // XP bar
+      const xpRatio = player.xp / player.xpToNext;
+      ctx.fillStyle = "#003366";
+      ctx.fillRect(140, 38, 120, 6);
+      ctx.fillStyle = "#3399ff";
+      ctx.fillRect(140, 38, 120 * xpRatio, 6);
+      ctx.fillStyle = "#fff";
+      ctx.fillText("XP " + player.xp + " / " + player.xpToNext, 140, 56);
+
+      // Auto modes
+      ctx.fillStyle = "#ccc";
+      ctx.fillText("AutoShoot [T]: " + (autoShoot ? "ON" : "OFF"), 20, 80);
+      ctx.fillText("AutoAim [Y]: " + (autoAim ? "ON" : "OFF"), 150, 80);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // simple gradient bg already from CSS, just add distant silhouettes
+      ctx.fillStyle = "#151533";
+      ctx.fillRect(0, 0, canvas.width, canvas.height * 0.4);
+      ctx.fillStyle = "#101020";
+      ctx.fillRect(0, canvas.height * 0.4, canvas.width, canvas.height * 0.6);
+
+      drawGround();
+      if (player) drawPlayer();
+      drawEnemies();
+      drawProjectiles();
+      drawMinions();
+      drawParticles();
+      drawHUD();
+    }
+
+    // ===============================
+    // START BUTTON
+    // ===============================
+    startBtn.addEventListener("click", () => {
+      resetGame();
+      gameRunning = true;
+      statusText.textContent = "";
+      lastTime = performance.now();
+      requestAnimationFrame(gameLoop);
+    });
+
+    // Initial static draw
+    draw();
+  </script>
+</body>
+</html>
