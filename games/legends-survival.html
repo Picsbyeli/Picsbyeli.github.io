@@ -1,80 +1,1946 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Legends Survival - 2D Platformer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVOL LEGENDS - Tower Defense</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #111;
-      color: #eee;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    #ui {
-      padding: 8px 12px;
-      background: #181818;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid #333;
-    }
-    #ui label {
-      font-size: 14px;
-    }
-    #gameContainer {
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 8px;
+      min-height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+      overflow: hidden;
+    }
+    #gameContainer {
+      position: relative;
+      background: #111;
+      box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
     }
     canvas {
-      border: 2px solid #333;
-      background: linear-gradient(#1a1a2e, #222);
+      display: block;
       image-rendering: pixelated;
+      image-rendering: crisp-edges;
     }
-    #info {
+    
+    /* Title Screen */
+    #titleScreen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #0a0015 0%, #1a0030 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    #titleScreen.hidden { display: none; }
+    
+    .title {
+      font-size: 72px;
+      font-weight: bold;
+      color: #00ffff;
+      text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+      margin-bottom: 20px;
+      animation: glow 2s ease-in-out infinite;
+    }
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff; }
+      50% { text-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff, 0 0 80px #00ffff; }
+    }
+    
+    .subtitle {
+      font-size: 24px;
+      color: #ff00ff;
+      margin-bottom: 40px;
+      text-shadow: 0 0 10px #ff00ff;
+    }
+    
+    .start-btn {
+      padding: 20px 60px;
+      font-size: 28px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #ff0080 0%, #ff8c00 100%);
+      color: #fff;
+      border: 4px solid #00ffff;
+      border-radius: 15px;
+      cursor: pointer;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+      transition: all 0.3s;
+    }
+    .start-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+    }
+    
+    /* Class Selection Screen */
+    #classSelection {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #0a0015 0%, #1a0030 100%);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    #classSelection.active { display: flex; }
+    
+    .class-title {
+      font-size: 42px;
+      color: #00ffff;
+      text-shadow: 0 0 20px #00ffff;
+      margin-bottom: 10px;
+    }
+    
+    .class-subtitle {
+      font-size: 16px;
+      color: #ffff00;
+      margin-bottom: 30px;
+    }
+    
+    .class-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      width: 100%;
+    }
+    
+    .class-card {
+      background: linear-gradient(135deg, #1a1a3a 0%, #2a1a3a 100%);
+      border: 3px solid #00ffff;
+      border-radius: 15px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .class-card:hover:not(.locked) {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+      border-color: #ffff00;
+    }
+    .class-card.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: #666;
+    }
+    .class-card.locked::after {
+      content: "🔒";
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 32px;
+    }
+    
+    .class-icon {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .class-name {
+      font-size: 22px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .class-stats {
       font-size: 12px;
       color: #aaa;
-      padding: 0 12px 8px;
+      line-height: 1.6;
     }
-    button, select {
-      background: #222;
-      color: #eee;
-      border: 1px solid #555;
-      padding: 4px 8px;
-      border-radius: 4px;
+    .class-unlock {
+      font-size: 12px;
+      color: #ff8800;
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    
+    /* Shop Screen */
+    #shopScreen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 90;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    #shopScreen.active { display: flex; }
+    
+    .shop-header {
+      width: 100%;
+      max-width: 900px;
+      background: linear-gradient(135deg, #1a1a3a 0%, #2a1a3a 100%);
+      border: 3px solid #00ffff;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .shop-title {
+      font-size: 36px;
+      color: #ffff00;
+      text-shadow: 0 0 20px #ffff00;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .shop-currency {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      font-size: 20px;
+      color: #00ffff;
+    }
+    
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      max-width: 900px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    .shop-item {
+      background: linear-gradient(135deg, #2a1a3a 0%, #3a2a4a 100%);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .shop-item:hover:not(.maxed) {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    }
+    .shop-item.maxed {
+      opacity: 0.6;
+      cursor: not-allowed;
+      border-color: #666;
+    }
+    
+    .shop-item-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffff00;
+      margin-bottom: 5px;
+    }
+    .shop-item-desc {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+    .shop-item-level {
+      font-size: 14px;
+      color: #00ff00;
+      margin-bottom: 5px;
+    }
+    .shop-item-cost {
+      font-size: 16px;
+      color: #ff8800;
+      font-weight: bold;
+    }
+    
+    .shop-close-btn {
+      padding: 15px 40px;
+      font-size: 20px;
+      background: #ff0000;
+      color: #fff;
+      border: 2px solid #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .shop-close-btn:hover {
+      background: #cc0000;
+      transform: scale(1.05);
+    }
+    
+    /* Upgrade Screen */
+    #upgradeScreen {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #1a0030 0%, #2a0050 100%);
+      border: 4px solid #00ffff;
+      border-radius: 20px;
+      padding: 30px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 90;
+      box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+    }
+    #upgradeScreen.active { display: flex; }
+    
+    .upgrade-title {
+      font-size: 32px;
+      color: #ffff00;
+      text-shadow: 0 0 20px #ffff00;
+      margin-bottom: 10px;
+    }
+    .upgrade-subtitle {
+      font-size: 16px;
+      color: #00ffff;
+      margin-bottom: 20px;
+    }
+    
+    #upgradeOptions {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .upgrade-card {
+      background: linear-gradient(135deg, #2a1a3a 0%, #3a2a4a 100%);
+      border: 3px solid #00ffff;
+      border-radius: 15px;
+      padding: 20px;
+      width: 200px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .upgrade-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+      border-color: #ffff00;
+    }
+    
+    .upgrade-card-icon {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .upgrade-card-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffff00;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .upgrade-card-desc {
       font-size: 13px;
+      color: #aaa;
+      text-align: center;
     }
-    button:hover, select:hover {
-      border-color: #999;
+    
+    /* Round Break Screen */
+    #roundBreakScreen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 80;
+    }
+    #roundBreakScreen.active { display: flex; }
+    
+    .break-title {
+      font-size: 48px;
+      color: #00ffff;
+      text-shadow: 0 0 20px #00ffff;
+      margin-bottom: 20px;
+    }
+    .break-info {
+      font-size: 20px;
+      color: #ffff00;
+      text-align: center;
+      line-height: 1.8;
+    }
+    .break-timer {
+      font-size: 72px;
+      color: #ff00ff;
+      text-shadow: 0 0 30px #ff00ff;
+      margin: 20px 0;
+    }
+    
+    #gameOverScreen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      color: white;
+    }
+    #gameOverScreen.active { display: flex; }
+    
+    .gameover-title {
+      font-size: 64px;
+      color: #ff0000;
+      text-shadow: 0 0 30px #ff0000;
+      margin-bottom: 30px;
+      animation: pulse 2s infinite;
+    }
+    
+    .gameover-stats {
+      background: rgba(20, 20, 20, 0.8);
+      border: 3px solid #00ffff;
+      border-radius: 15px;
+      padding: 30px 50px;
+      margin: 20px 0;
+      min-width: 500px;
+    }
+    
+    .gameover-stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+      font-size: 20px;
+    }
+    
+    .gameover-stat-row:last-child {
+      border-bottom: none;
+    }
+    
+    .gameover-stat-label {
+      color: #00ffff;
+      font-weight: bold;
+    }
+    
+    .gameover-stat-value {
+      color: #ffff00;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .gameover-earnings {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(0, 255, 255, 0.2));
+      border: 3px solid #ffff00;
+      border-radius: 15px;
+      padding: 25px 50px;
+      margin: 20px 0;
+      min-width: 500px;
+    }
+    
+    .gameover-earnings-title {
+      font-size: 28px;
+      color: #ffff00;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #ffff00;
+    }
+    
+    .gameover-continue {
+      margin-top: 30px;
+      padding: 15px 40px;
+      font-size: 20px;
+      background: linear-gradient(135deg, #ff0000, #ff8800);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
+      transition: all 0.3s;
+    }
+    
+    .gameover-continue:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(255, 0, 0, 0.7);
+    }
+    
+    #statusText {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-weight: bold;
+      color: #ff0000;
+      text-shadow: 0 0 10px #ff0000;
+      text-align: center;
+      z-index: 70;
+      display: none;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border: 2px solid #ff0000;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <div id="ui">
-    <label>Class:
-      <select id="classSelect">
-        <option value="Hunter">Hunter (Rifle)</option>
-        <option value="Knight">Knight (Throwing Sword)</option>
-        <option value="Assassin">Assassin (Knives)</option>
-        <option value="Summoner">Summoner (Minions)</option>
-        <option value="DarkMagician">Dark Magician (Spells)</option>
-      </select>
-    </label>
-    <button id="startBtn">Start Game</button>
-    <span id="statusText"></span>
-  </div>
-  <div id="info">
-    Controls: A/D or Left/Right = move, Space = jump.  
-    T = toggle Auto-Shoot, Y = toggle Auto-Aim.  
-    Classes are drawn as simple concept-art blocks you can later replace with sprites.
-  </div>
   <div id="gameContainer">
-    <canvas id="game" width="900" height="500"></canvas>
+    <canvas id="gameCanvas" width="1000" height="550"></canvas>
+    
+    <!-- Title Screen -->
+    <div id="titleScreen">
+      <div class="title">EVOL LEGENDS</div>
+      <div class="subtitle">⚔️ TOWER DEFENSE ⚔️</div>
+      <button class="start-btn" id="startBtn">START GAME</button>
+      <div style="margin-top: 30px; font-size: 14px; color: #888;">
+        <div>🏆 Highest Wave: <span id="highestWaveDisplay">1</span></div>
+        <div style="margin-top: 10px;">💰 <span id="totalCoinsDisplay">0</span> Coins | 💎 <span id="totalGemsDisplay">0</span> Gems</div>
+      </div>
+      <button class="start-btn" id="shopBtn" style="margin-top: 20px; font-size: 20px; padding: 15px 40px;">🛒 SHOP</button>
+    </div>
+    
+    <!-- Class Selection Screen -->
+    <div id="classSelection">
+      <div class="class-title">SELECT YOUR LEGEND</div>
+      <div class="class-subtitle">Choose your class to defend the tower!</div>
+      <div class="class-grid" id="classGrid"></div>
+    </div>
+    
+    <!-- Shop Screen -->
+    <div id="shopScreen">
+      <div class="shop-header">
+        <div class="shop-title">🛒 PERMANENT UPGRADES</div>
+        <div class="shop-currency">
+          <div>💰 Coins: <span id="shopCoins">0</span></div>
+          <div>💎 Gems: <span id="shopGems">0</span></div>
+        </div>
+      </div>
+      <div class="shop-grid" id="shopGrid"></div>
+      <button class="shop-close-btn" id="shopCloseBtn">CLOSE SHOP</button>
+    </div>
+    
+    <!-- Upgrade Screen -->
+    <div id="upgradeScreen">
+      <div class="upgrade-title">🎉 LEVEL UP!</div>
+      <div class="upgrade-subtitle" id="upgradeSubtitle">Choose Your Power-Up</div>
+      <div id="upgradeOptions"></div>
+      <button class="shop-close-btn" id="shuffleBtn" style="margin-top: 20px; background: #0088ff; font-size: 16px; padding: 10px 30px;">
+        🔄 SHUFFLE (<span id="shuffleCount">4</span> left)
+      </button>
+    </div>
+    
+    <!-- Round Break Screen -->
+    <div id="roundBreakScreen">
+      <div class="break-title" id="breakTitle">WAVE COMPLETE!</div>
+      <div class="break-timer" id="breakTimer">20</div>
+      <div class="break-info" id="breakInfo">
+        Prepare for the next wave!<br>
+        <br>Press SPACE to start immediately
+      </div>
+    </div>
+    
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen">
+      <div class="gameover-title">💀 GAME OVER 💀</div>
+      
+      <div class="gameover-stats">
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">🌊 Wave Reached:</span>
+          <span class="gameover-stat-value" id="finalWave">1</span>
+        </div>
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">⭐ Level Reached:</span>
+          <span class="gameover-stat-value" id="finalLevel">1</span>
+        </div>
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">💀 Enemies Killed:</span>
+          <span class="gameover-stat-value" id="finalKills">0</span>
+        </div>
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">🔥 Max Combo:</span>
+          <span class="gameover-stat-value" id="finalCombo">0</span>
+        </div>
+      </div>
+      
+      <div class="gameover-earnings">
+        <div class="gameover-earnings-title">💰 RUN EARNINGS 💰</div>
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">💰 Coins Earned:</span>
+          <span class="gameover-stat-value" style="color: #ffff00;" id="earnedCoins">0</span>
+        </div>
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">💎 Gems Earned:</span>
+          <span class="gameover-stat-value" style="color: #00ffff;" id="earnedGems">0</span>
+        </div>
+        <div class="gameover-stat-row" style="border-top: 2px solid rgba(255, 255, 255, 0.3); margin-top: 10px; padding-top: 15px;">
+          <span class="gameover-stat-label">💰 Total Coins:</span>
+          <span class="gameover-stat-value" style="color: #ffff00;" id="totalCoinsNow">0</span>
+        </div>
+        <div class="gameover-stat-row">
+          <span class="gameover-stat-label">💎 Total Gems:</span>
+          <span class="gameover-stat-value" style="color: #00ffff;" id="totalGemsNow">0</span>
+        </div>
+      </div>
+      
+      <button class="gameover-continue" id="continueBtn">RETURN TO MENU</button>
+    </div>
+    
+    <div id="statusText"></div>
   </div>
 
   <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    
+    const titleScreen = document.getElementById("titleScreen");
+    const startBtn = document.getElementById("startBtn");
+    const shopBtn = document.getElementById("shopBtn");
+    const classSelection = document.getElementById("classSelection");
+    const classGrid = document.getElementById("classGrid");
+    const shopScreen = document.getElementById("shopScreen");
+    const shopGrid = document.getElementById("shopGrid");
+    const shopCloseBtn = document.getElementById("shopCloseBtn");
+    const upgradeScreen = document.getElementById("upgradeScreen");
+    const upgradeSubtitle = document.getElementById("upgradeSubtitle");
+    const upgradeOptions = document.getElementById("upgradeOptions");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const shuffleCount = document.getElementById("shuffleCount");
+    const roundBreakScreen = document.getElementById("roundBreakScreen");
+    const breakTitle = document.getElementById("breakTitle");
+    const breakTimer = document.getElementById("breakTimer");
+    const breakInfo = document.getElementById("breakInfo");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const finalWave = document.getElementById("finalWave");
+    const finalLevel = document.getElementById("finalLevel");
+    const finalKills = document.getElementById("finalKills");
+    const finalCombo = document.getElementById("finalCombo");
+    const earnedCoins = document.getElementById("earnedCoins");
+    const earnedGems = document.getElementById("earnedGems");
+    const totalCoinsNow = document.getElementById("totalCoinsNow");
+    const totalGemsNow = document.getElementById("totalGemsNow");
+    const continueBtn = document.getElementById("continueBtn");
+    const statusText = document.getElementById("statusText");
+    const highestWaveDisplay = document.getElementById("highestWaveDisplay");
+    const totalCoinsDisplay = document.getElementById("totalCoinsDisplay");
+    const totalGemsDisplay = document.getElementById("totalGemsDisplay");
+    const shopCoins = document.getElementById("shopCoins");
+    const shopGems = document.getElementById("shopGems");
+
+    // GAME CONSTANTS
+    const GROUND_Y = 470;
+    const ROUND_BREAK_TIME = 20;
+    const PLAYER_X = 100; // Fixed position
+
+    // PERSISTENT DATA (localStorage)
+    let gameData = {
+      highestWave: 1,
+      totalCoins: 0,
+      totalGems: 0,
+      permanentUpgrades: {
+        damage: 0,
+        health: 0,
+        fireRate: 0,
+        critChance: 0,
+        startLevel: 0
+      },
+      unlockedClasses: ["Hunter"],
+      purchasedClasses: [] // Track purchased classes separately
+    };
+
+    // Load saved data
+    function loadGameData() {
+      const saved = localStorage.getItem("evolLegendsData");
+      if (saved) {
+        gameData = JSON.parse(saved);
+      }
+      updateTitleScreenDisplay();
+    }
+
+    function saveGameData() {
+      localStorage.setItem("evolLegendsData", JSON.stringify(gameData));
+      updateTitleScreenDisplay();
+    }
+
+    function updateTitleScreenDisplay() {
+      highestWaveDisplay.textContent = gameData.highestWave;
+      totalCoinsDisplay.textContent = gameData.totalCoins;
+      totalGemsDisplay.textContent = gameData.totalGems;
+      shopCoins.textContent = gameData.totalCoins;
+      shopGems.textContent = gameData.totalGems;
+    }
+
+    // CLASS DEFINITIONS
+    const CLASSES = {
+      Hunter: {
+        icon: "🏹",
+        color: "#00ff88",
+        accent: "#88ffaa",
+        bulletColor: "#00ff88",
+        glowColor: "#00ff88",
+        unlockWave: 0,
+        purchasable: false,
+        stats: {
+          maxHP: 120,
+          damage: 14,
+          fireRate: 0.3,
+          range: 650,
+          projectileSpeed: 8
+        },
+        description: "Balanced ranged fighter"
+      },
+      Knight: {
+        icon: "⚔️",
+        color: "#4488ff",
+        accent: "#88aaff",
+        bulletColor: "#4488ff",
+        glowColor: "#4488ff",
+        unlockWave: 5,
+        purchasable: false,
+        stats: {
+          maxHP: 160,
+          damage: 28,
+          fireRate: 0.65,
+          range: 260,
+          projectileSpeed: 6.5
+        },
+        description: "High damage, low range tank"
+      },
+      Assassin: {
+        icon: "🗡️",
+        color: "#ff00ff",
+        accent: "#ff88ff",
+        bulletColor: "#ff00ff",
+        glowColor: "#ff00ff",
+        unlockWave: 35,
+        purchasable: false,
+        stats: {
+          maxHP: 95,
+          damage: 9,
+          fireRate: 0.15,
+          range: 400,
+          projectileSpeed: 9.5
+        },
+        description: "Ultra-fast glass cannon"
+      },
+      Summoner: {
+        icon: "✨",
+        color: "#88ff88",
+        accent: "#aaffaa",
+        bulletColor: "#88ff88",
+        glowColor: "#88ff88",
+        unlockWave: 65,
+        purchasable: false,
+        stats: {
+          maxHP: 110,
+          damage: 12,
+          fireRate: 0.55,
+          range: 450,
+          projectileSpeed: 7
+        },
+        description: "Summons spirit helpers"
+      },
+      DarkMagician: {
+        icon: "🔮",
+        color: "#8800ff",
+        accent: "#aa88ff",
+        bulletColor: "#8800ff",
+        glowColor: "#8800ff",
+        unlockWave: 95,
+        purchasable: false,
+        stats: {
+          maxHP: 85,
+          damage: 35,
+          fireRate: 0.85,
+          range: 550,
+          projectileSpeed: 5.5
+        },
+        description: "Powerful but slow caster"
+      },
+      // NEW PURCHASABLE CLASSES
+      Bomber: {
+        icon: "💣",
+        color: "#ff8800",
+        accent: "#ffaa44",
+        bulletColor: "#ff8800",
+        glowColor: "#ff8800",
+        unlockWave: 0,
+        purchasable: true,
+        cost: { coins: 500, gems: 10 },
+        stats: {
+          maxHP: 130,
+          damage: 20,
+          fireRate: 0.75,
+          range: 500,
+          projectileSpeed: 6,
+          alwaysExplosive: true // Special trait
+        },
+        description: "Every shot explodes! Area damage specialist"
+      },
+      Sniper: {
+        icon: "🎯",
+        color: "#00ffff",
+        accent: "#88ffff",
+        bulletColor: "#00ffff",
+        glowColor: "#00ffff",
+        unlockWave: 0,
+        purchasable: true,
+        cost: { coins: 800, gems: 15 },
+        stats: {
+          maxHP: 100,
+          damage: 45,
+          fireRate: 1.2,
+          range: 900,
+          projectileSpeed: 12,
+          alwaysCrit: true // Special trait: 50% base crit
+        },
+        description: "Long range, high damage, slow fire rate"
+      },
+      Necromancer: {
+        icon: "💀",
+        color: "#9933ff",
+        accent: "#bb66ff",
+        bulletColor: "#9933ff",
+        glowColor: "#9933ff",
+        unlockWave: 0,
+        purchasable: true,
+        cost: { coins: 1000, gems: 20 },
+        stats: {
+          maxHP: 105,
+          damage: 15,
+          fireRate: 0.45,
+          range: 550,
+          projectileSpeed: 7,
+          alwaysPoison: true, // Special trait
+          spawnSkeletonsOnKill: true // Spawns minions
+        },
+        description: "Poisons enemies, raises skeleton minions"
+      }
+    };
+
+    // PERMANENT UPGRADES (Shop)
+    const SHOP_UPGRADES = {
+      damage: {
+        name: "💥 Base Damage",
+        desc: "Increase starting damage",
+        maxLevel: 10,
+        getBonus: (level) => level * 3,
+        getCost: (level) => ({ coins: 50 + level * 30, gems: 0 })
+      },
+      health: {
+        name: "❤️ Base Health",
+        desc: "Increase starting HP",
+        maxLevel: 10,
+        getBonus: (level) => level * 15,
+        getCost: (level) => ({ coins: 40 + level * 25, gems: 0 })
+      },
+      fireRate: {
+        name: "⚡ Fire Rate",
+        desc: "Shoot faster (reduces fire delay)",
+        maxLevel: 5,
+        getBonus: (level) => level * 0.05,
+        getCost: (level) => ({ coins: 100 + level * 50, gems: level * 2 })
+      },
+      critChance: {
+        name: "💢 Crit Chance",
+        desc: "Start with critical hit chance",
+        maxLevel: 5,
+        getBonus: (level) => level * 0.05,
+        getCost: (level) => ({ coins: 150 + level * 75, gems: level * 3 })
+      },
+      startLevel: {
+        name: "⭐ Starting Level",
+        desc: "Begin at higher level",
+        maxLevel: 3,
+        getBonus: (level) => level,
+        getCost: (level) => ({ coins: 300 + level * 200, gems: level * 10 })
+      }
+    };
+
+    // TEMPORARY UPGRADES (Level-up)
+    const UPGRADE_TYPES = {
+      damage: {
+        icon: "⚔️",
+        name: "Power Strike",
+        desc: "Increase damage by 25%",
+        apply: (player) => { player.damage *= 1.25; }
+      },
+      fireRate: {
+        icon: "⚡",
+        name: "Rapid Fire",
+        desc: "Attack 20% faster",
+        apply: (player) => { player.fireRate *= 0.8; }
+      },
+      hp: {
+        icon: "❤️",
+        name: "Vitality Boost",
+        desc: "Gain +30 Max HP and heal fully",
+        apply: (player) => { 
+          player.maxHP += 30; 
+          player.hp = player.maxHP; 
+        }
+      },
+      range: {
+        icon: "🎯",
+        name: "Extended Range",
+        desc: "Increase attack range by 30%",
+        apply: (player) => { player.range *= 1.3; }
+      },
+      projectileSpeed: {
+        icon: "🚀",
+        name: "Bullet Velocity",
+        desc: "Projectiles fly 30% faster",
+        apply: (player) => { player.projectileSpeed *= 1.3; }
+      },
+      multiShot: {
+        icon: "🌟",
+        name: "Multi-Shot",
+        desc: "Fire 2 additional projectiles",
+        apply: (player) => { 
+          player.multiShot = (player.multiShot || 0) + 2; 
+        }
+      },
+      pierce: {
+        icon: "🔱",
+        name: "Piercing Shots",
+        desc: "Projectiles pierce through enemies",
+        apply: (player) => { player.pierce = true; }
+      },
+      lifesteal: {
+        icon: "🩸",
+        name: "Life Drain",
+        desc: "Heal 15% of damage dealt",
+        apply: (player) => { player.lifesteal = (player.lifesteal || 0) + 0.15; }
+      },
+      explosive: {
+        icon: "💥",
+        name: "Explosive Rounds",
+        desc: "Shots explode, damaging nearby enemies",
+        apply: (player) => { player.explosive = true; }
+      },
+      criticalHit: {
+        icon: "💢",
+        name: "Critical Strike",
+        desc: "20% chance to deal 2x damage",
+        apply: (player) => { 
+          player.critChance = (player.critChance || 0) + 0.2;
+          player.critMultiplier = 2.0;
+        }
+      },
+      shield: {
+        icon: "🛡️",
+        name: "Energy Shield",
+        desc: "Gain a shield that absorbs 50 damage",
+        apply: (player) => { 
+          player.shield = (player.shield || 0) + 50;
+          player.maxShield = (player.maxShield || 0) + 50;
+        }
+      },
+      regeneration: {
+        icon: "💚",
+        name: "Regeneration",
+        desc: "Heal 2 HP per second",
+        apply: (player) => { player.regen = (player.regen || 0) + 2; }
+      },
+      chainLightning: {
+        icon: "⚡",
+        name: "Chain Lightning",
+        desc: "Damage chains to 2 nearby enemies",
+        apply: (player) => { player.chainLightning = 2; }
+      },
+      damageAura: {
+        icon: "🔥",
+        name: "Flame Aura",
+        desc: "Damage nearby enemies constantly",
+        apply: (player) => { 
+          player.aura = { damage: 3, radius: 80 };
+        }
+      }
+    };
+
+    // BOSS PATTERNS
+    const BOSS_PATTERNS = [
+      {
+        name: "The Charger",
+        color: "#ff00ff",
+        pattern: "charge", // Speeds up periodically
+        speed: 0.8,
+        attackInterval: 2,
+        specialAbility: "Speed Burst"
+      },
+      {
+        name: "The Sniper",
+        color: "#ff4444",
+        pattern: "ranged", // Shoots multiple projectiles
+        speed: 0.5,
+        attackInterval: 3,
+        specialAbility: "Triple Shot"
+      },
+      {
+        name: "The Tank",
+        color: "#4444ff",
+        pattern: "tank", // Extra HP and shield
+        speed: 0.6,
+        attackInterval: 2.5,
+        specialAbility: "Shield Regen"
+      },
+      {
+        name: "The Summoner",
+        color: "#88ff88",
+        pattern: "summon", // Spawns extra enemies
+        speed: 0.7,
+        attackInterval: 4,
+        specialAbility: "Spawn Minions"
+      },
+      {
+        name: "The Berserker",
+        color: "#ff8800",
+        pattern: "berserk", // Gets faster as HP lowers
+        speed: 0.9,
+        attackInterval: 1.5,
+        specialAbility: "Rage Mode"
+      }
+    ];
+
+    // GAME STATE
+    let keys = {};
+    let lastTime = 0;
+    let gameRunning = false;
+    let screenShake = 0;
+    let gameState = "playing";
+    let roundBreakTimer = 0;
+
+    let player = null;
+    let enemies = [];
+    let projectiles = [];
+    let minions = [];
+    let particles = [];
+    let floatingTexts = [];
+    let currencyDrops = [];
+
+    let shootTimer = 0;
+    let wave = 1;
+    let enemiesToSpawn = 0;
+    let spawnTimer = 0;
+    let autoShoot = true;
+    let autoAim = true;
+    let combo = 0;
+    let comboTimer = 0;
+    let maxCombo = 0;
+    
+    let sessionCoins = 0;
+    let sessionGems = 0;
+    
+    // New features
+    let shufflesRemaining = 4; // Shuffle counter for upgrades
+    let currentMap = 1; // Map tracking
+    let mapsCompleted = 0;
+    let enemiesKilled = 0; // Track kills for stats
+
+    // Initialize
+    loadGameData();
+    updateShopDisplay();
+
+    // EVENT LISTENERS
+    startBtn.addEventListener("click", () => {
+      titleScreen.classList.add("hidden");
+      showClassSelection();
+    });
+
+    shopBtn.addEventListener("click", () => {
+      titleScreen.classList.add("hidden");
+      showShop();
+    });
+
+    shopCloseBtn.addEventListener("click", () => {
+      shopScreen.classList.remove("active");
+      titleScreen.classList.remove("hidden");
+    });
+
+    window.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        if (gameState === "roundBreak") {
+          endRoundBreak();
+        }
+      }
+      if (e.key === "t" || e.key === "T") {
+        autoShoot = !autoShoot;
+      }
+      if (e.key === "y" || e.key === "Y") {
+        autoAim = !autoAim;
+      }
+    });
+    
+    window.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    // CLASS SELECTION
+    function showClassSelection() {
+      classSelection.classList.add("active");
+      classGrid.innerHTML = "";
+      
+      Object.entries(CLASSES).forEach(([className, classData]) => {
+        const card = document.createElement("div");
+        card.className = "class-card";
+        
+        let isUnlocked = false;
+        let lockReason = "";
+        
+        if (classData.purchasable) {
+          // Purchasable class
+          isUnlocked = gameData.purchasedClasses.includes(className);
+          if (!isUnlocked) {
+            lockReason = `💰 ${classData.cost.coins} coins, 💎 ${classData.cost.gems} gems`;
+          }
+        } else {
+          // Wave-unlock class
+          isUnlocked = gameData.unlockedClasses.includes(className);
+          if (!isUnlocked && gameData.highestWave < classData.unlockWave) {
+            lockReason = `Unlock at Wave ${classData.unlockWave}`;
+          }
+        }
+        
+        const isLocked = !isUnlocked;
+        
+        if (isLocked) {
+          card.classList.add("locked");
+        }
+        
+        card.innerHTML = `
+          <div class="class-icon">${classData.icon}</div>
+          <div class="class-name" style="color: ${classData.color}">${className}</div>
+          <div class="class-stats">
+            HP: ${classData.stats.maxHP}<br>
+            DMG: ${classData.stats.damage}<br>
+            ${classData.description}
+          </div>
+          ${isLocked ? `<div class="class-unlock">${lockReason}</div>` : ""}
+          ${classData.purchasable && isLocked ? '<div class="class-unlock" style="color: #00ff00; margin-top: 5px;">Available in Shop!</div>' : ""}
+        `;
+        
+        if (!isLocked) {
+          card.onclick = () => selectClass(className);
+        }
+        
+        classGrid.appendChild(card);
+      });
+    }
+
+    function selectClass(className) {
+      classSelection.classList.remove("active");
+      startGame(className);
+    }
+
+    // SHOP
+    function showShop() {
+      shopScreen.classList.add("active");
+      updateShopDisplay();
+    }
+
+    function updateShopDisplay() {
+      shopGrid.innerHTML = "";
+      shopCoins.textContent = gameData.totalCoins;
+      shopGems.textContent = gameData.totalGems;
+      
+      // PURCHASABLE CLASSES SECTION
+      const classesHeader = document.createElement("div");
+      classesHeader.style.gridColumn = "1 / -1";
+      classesHeader.style.fontSize = "24px";
+      classesHeader.style.color = "#ff00ff";
+      classesHeader.style.fontWeight = "bold";
+      classesHeader.style.marginTop = "10px";
+      classesHeader.style.marginBottom = "10px";
+      classesHeader.textContent = "🎯 UNLOCK CLASSES";
+      shopGrid.appendChild(classesHeader);
+      
+      Object.entries(CLASSES).forEach(([className, classData]) => {
+        if (!classData.purchasable) return;
+        
+        const isPurchased = gameData.purchasedClasses.includes(className);
+        
+        const card = document.createElement("div");
+        card.className = "shop-item";
+        if (isPurchased) card.classList.add("maxed");
+        
+        card.innerHTML = `
+          <div class="shop-item-name">${classData.icon} ${className}</div>
+          <div class="shop-item-desc">${classData.description}</div>
+          <div class="shop-item-level">HP: ${classData.stats.maxHP} | DMG: ${classData.stats.damage}</div>
+          ${!isPurchased ? `
+            <div class="shop-item-cost">
+              💰 ${classData.cost.coins} | 💎 ${classData.cost.gems}
+            </div>
+          ` : '<div class="shop-item-cost" style="color: #00ff00;">✅ OWNED</div>'}
+        `;
+        
+        if (!isPurchased) {
+          card.onclick = () => purchaseClass(className);
+        }
+        
+        shopGrid.appendChild(card);
+      });
+      
+      // PERMANENT UPGRADES SECTION
+      const upgradesHeader = document.createElement("div");
+      upgradesHeader.style.gridColumn = "1 / -1";
+      upgradesHeader.style.fontSize = "24px";
+      upgradesHeader.style.color = "#ffff00";
+      upgradesHeader.style.fontWeight = "bold";
+      upgradesHeader.style.marginTop = "20px";
+      upgradesHeader.style.marginBottom = "10px";
+      upgradesHeader.textContent = "⬆️ PERMANENT UPGRADES";
+      shopGrid.appendChild(upgradesHeader);
+      
+      Object.entries(SHOP_UPGRADES).forEach(([key, upgrade]) => {
+        const currentLevel = gameData.permanentUpgrades[key];
+        const isMaxed = currentLevel >= upgrade.maxLevel;
+        const cost = isMaxed ? null : upgrade.getCost(currentLevel);
+        const bonus = upgrade.getBonus(currentLevel);
+        const nextBonus = isMaxed ? 0 : upgrade.getBonus(currentLevel + 1);
+        
+        const card = document.createElement("div");
+        card.className = "shop-item";
+        if (isMaxed) card.classList.add("maxed");
+        
+        card.innerHTML = `
+          <div class="shop-item-name">${upgrade.name}</div>
+          <div class="shop-item-desc">${upgrade.desc}</div>
+          <div class="shop-item-level">Level: ${currentLevel}/${upgrade.maxLevel}</div>
+          <div class="shop-item-level">Current: +${bonus}${key === 'fireRate' ? 's faster' : ''}</div>
+          ${!isMaxed ? `
+            <div class="shop-item-level" style="color: #00ff00;">Next: +${nextBonus}</div>
+            <div class="shop-item-cost">
+              ${cost.coins > 0 ? `💰 ${cost.coins}` : ''}
+              ${cost.gems > 0 ? ` 💎 ${cost.gems}` : ''}
+            </div>
+          ` : '<div class="shop-item-cost" style="color: #00ff00;">MAX LEVEL</div>'}
+        `;
+        
+        if (!isMaxed) {
+          card.onclick = () => purchaseUpgrade(key);
+        }
+        
+        shopGrid.appendChild(card);
+      });
+    }
+
+    function purchaseClass(className) {
+      const classData = CLASSES[className];
+      const cost = classData.cost;
+      
+      if (gameData.totalCoins >= cost.coins && gameData.totalGems >= cost.gems) {
+        gameData.totalCoins -= cost.coins;
+        gameData.totalGems -= cost.gems;
+        gameData.purchasedClasses.push(className);
+        gameData.unlockedClasses.push(className); // Also add to unlocked
+        
+        saveGameData();
+        updateShopDisplay();
+        
+        alert(`✅ Unlocked ${className}! You can now play as this class!`);
+      } else {
+        alert("❌ Not enough currency!");
+      }
+    }
+
+    function purchaseUpgrade(upgradeKey) {
+      const upgrade = SHOP_UPGRADES[upgradeKey];
+      const currentLevel = gameData.permanentUpgrades[upgradeKey];
+      
+      if (currentLevel >= upgrade.maxLevel) return;
+      
+      const cost = upgrade.getCost(currentLevel);
+      
+      if (gameData.totalCoins >= cost.coins && gameData.totalGems >= cost.gems) {
+        gameData.totalCoins -= cost.coins;
+        gameData.totalGems -= cost.gems;
+        gameData.permanentUpgrades[upgradeKey]++;
+        
+        saveGameData();
+        updateShopDisplay();
+        
+        // Visual feedback
+        alert(`✅ Upgraded ${upgrade.name} to level ${gameData.permanentUpgrades[upgradeKey]}!`);
+      } else {
+        alert("❌ Not enough currency!");
+      }
+    }
+
+    // GAME INITIALIZATION
+    function startGame(className) {
+      const cls = CLASSES[className];
+      
+      // Apply permanent upgrades
+      const baseDamage = cls.stats.damage + SHOP_UPGRADES.damage.getBonus(gameData.permanentUpgrades.damage);
+      const baseHP = cls.stats.maxHP + SHOP_UPGRADES.health.getBonus(gameData.permanentUpgrades.health);
+      const fireRateBonus = SHOP_UPGRADES.fireRate.getBonus(gameData.permanentUpgrades.fireRate);
+      const startCrit = SHOP_UPGRADES.critChance.getBonus(gameData.permanentUpgrades.critChance);
+      const startLevel = 1 + SHOP_UPGRADES.startLevel.getBonus(gameData.permanentUpgrades.startLevel);
+      
+      player = {
+        className: className,
+        x: PLAYER_X,
+        y: GROUND_Y - 44,
+        w: 36,
+        h: 44,
+        maxHP: baseHP,
+        hp: baseHP,
+        fireRate: cls.stats.fireRate * (1 - fireRateBonus),
+        damage: baseDamage,
+        range: cls.stats.range,
+        projectileSpeed: cls.stats.projectileSpeed,
+        color: cls.color,
+        accent: cls.accent,
+        bulletColor: cls.bulletColor,
+        glowColor: cls.glowColor,
+        xp: 0,
+        level: startLevel,
+        xpToNext: xpForLevel(startLevel),
+        alive: true,
+        // Upgrades
+        multiShot: 0,
+        pierce: false,
+        lifesteal: 0,
+        explosive: cls.stats.alwaysExplosive || false, // Bomber gets this
+        critChance: cls.stats.alwaysCrit ? 0.5 : startCrit, // Sniper gets 50% base crit
+        critMultiplier: 1.0,
+        shield: 0,
+        maxShield: 0,
+        regen: 0,
+        chainLightning: 0,
+        aura: null,
+        // Necromancer traits
+        poison: cls.stats.alwaysPoison ? { damage: 5, duration: 3 } : null,
+        spawnSkeletonsOnKill: cls.stats.spawnSkeletonsOnKill || false
+      };
+
+      enemies = [];
+      projectiles = [];
+      minions = [];
+      particles = [];
+      floatingTexts = [];
+      currencyDrops = [];
+      shootTimer = 0;
+      wave = 1;
+      enemiesToSpawn = calcEnemiesForWave(wave);
+      spawnTimer = 0;
+      combo = 0;
+      comboTimer = 0;
+      maxCombo = 0;
+      screenShake = 0;
+      gameState = "playing";
+      roundBreakTimer = 0;
+      sessionCoins = 0;
+      sessionGems = 0;
+      shufflesRemaining = 4; // Reset shuffle counter
+      currentMap = 1;
+      mapsCompleted = 0;
+      enemiesKilled = 0; // Reset kill counter
+
+      if (className === "Summoner") {
+        spawnMinion();
+        spawnMinion();
+      }
+
+      gameRunning = true;
+      statusText.style.display = "none";
+      lastTime = performance.now();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function xpForLevel(level) {
+      return Math.floor(60 * Math.pow(level, 2.1));
+    }
+
+    function calcEnemiesForWave(w) {
+      if (w === 1) return 5;
+      if (w === 2) return 7;
+      if (w === 3) return 9;
+      if (w === 4) return 11;
+      
+      const base = 11;
+      const increment = Math.floor(w / 3) * 2;
+      const waveBonus = Math.floor(w / 10) * 8;
+      return base + increment + waveBonus;
+    }
+
+    function getEnemyHP(wave, isBoss = false, isMiniBoss = false) {
+      const baseHP = 40;
+      const linearGrowth = wave * 8;
+      const exponentialGrowth = Math.pow(wave, 1.8) * 0.8;
+      let hp = baseHP + linearGrowth + exponentialGrowth;
+      
+      if (isBoss) hp *= 10;
+      else if (isMiniBoss) hp *= 4;
+      
+      return Math.floor(hp);
+    }
+
+    // Basic placeholder functions for the complex game logic
+    function handleSpawning(dt) {
+      if (enemiesToSpawn <= 0) return;
+      spawnTimer += dt;
+      let spawnInterval = 2.0 - (wave * 0.05);
+      spawnInterval = Math.max(spawnInterval, 0.2);
+      if (spawnTimer >= spawnInterval) {
+        spawnTimer = 0;
+        enemiesToSpawn--;
+        spawnEnemy();
+      }
+    }
+
+    function spawnEnemy() {
+      const size = 32 + Math.random() * 16;
+      const hp = getEnemyHP(wave);
+      const speed = 1.2 + (wave * 0.03) + Math.random() * 0.4;
+      
+      enemies.push({
+        x: canvas.width + 30,
+        y: GROUND_Y - size,
+        vx: -speed,
+        w: size,
+        h: size,
+        maxHP: hp,
+        hp: hp,
+        color: "#ff4444",
+        glowColor: "#ff0000",
+        type: "grunt"
+      });
+    }
+
+    function updateEnemies(dt) {
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const e = enemies[i];
+        e.x += e.vx;
+
+        // Check collision with player
+        if (player.alive &&
+          e.x < player.x + player.w &&
+          e.x + e.w > player.x &&
+          e.y < player.y + player.h &&
+          e.y + e.h > player.y) {
+          
+          let damage = 20;
+          if (player.shield > 0) {
+            if (player.shield >= damage) {
+              player.shield -= damage;
+              damage = 0;
+            } else {
+              damage -= player.shield;
+              player.shield = 0;
+            }
+          }
+          
+          player.hp -= damage;
+          screenShake += 2;
+          
+          if (player.hp <= 0) {
+            player.hp = 0;
+            player.alive = false;
+            endGame();
+          }
+        }
+
+        if (e.hp <= 0) {
+          giveXP(18 + 7 * wave);
+          dropCurrency(e.x + e.w / 2, e.y + e.h / 2, 5 + wave * 2, 0);
+          spawnExplosion(e.x + e.w / 2, e.y + e.h / 2, e.color, 15);
+          combo++;
+          comboTimer = 2.0;
+          if (combo > maxCombo) maxCombo = combo;
+          enemiesKilled++;
+          enemies.splice(i, 1);
+          continue;
+        }
+
+        if (e.x + e.w < -50) {
+          enemies.splice(i, 1);
+        }
+      }
+    }
+
+    function handleShooting(dt) {
+      shootTimer += dt;
+      const target = getTargetEnemy();
+      
+      if (!autoShoot || !target) return;
+
+      if (shootTimer >= player.fireRate) {
+        shootTimer = 0;
+        shootProjectile(target);
+      }
+    }
+
+    function getTargetEnemy() {
+      if (enemies.length === 0) return null;
+      
+      let closestInRange = null;
+      let closestDist = player.range;
+      
+      for (const e of enemies) {
+        const dx = (e.x + e.w / 2) - (player.x + player.w / 2);
+        const dy = (e.y + e.h / 2) - (player.y + player.h / 2);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestInRange = e;
+        }
+      }
+      
+      return closestInRange;
+    }
+
+    function shootProjectile(target) {
+      const px = player.x + player.w / 2;
+      const py = player.y + player.h / 2;
+      const tx = target.x + target.w / 2;
+      const ty = target.y + target.h / 2;
+
+      let dx = tx - px;
+      let dy = ty - py;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      dx /= dist;
+      dy /= dist;
+
+      let isCrit = false;
+      if (player.critChance && Math.random() < player.critChance) {
+        isCrit = true;
+      }
+
+      projectiles.push({
+        x: px, y: py,
+        vx: dx * player.projectileSpeed,
+        vy: dy * player.projectileSpeed,
+        radius: 5,
+        damage: player.damage,
+        color: isCrit ? "#ff0000" : player.bulletColor,
+        glowColor: isCrit ? "#ff0000" : player.glowColor,
+        life: 3.5,
+        trail: [],
+        explosive: player.explosive,
+        isCrit: isCrit
+      });
+    }
+
+    function updateProjectiles(dt) {
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        const p = projectiles[i];
+        
+        if (p.trail.length > 8) p.trail.shift();
+        p.trail.push({ x: p.x, y: p.y });
+        
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= dt;
+
+        if (p.life <= 0 || p.x < -50 || p.x > canvas.width + 50) {
+          projectiles.splice(i, 1);
+          continue;
+        }
+
+        // Hit enemies
+        for (let j = enemies.length - 1; j >= 0; j--) {
+          const e = enemies[j];
+          if (p.x > e.x && p.x < e.x + e.w && p.y > e.y && p.y < e.y + e.h) {
+            let actualDamage = p.damage;
+            if (p.isCrit) {
+              actualDamage *= 2.0;
+              addFloatingText(e.x + e.w / 2, e.y - 30, "CRIT!", "#ff0000");
+            }
+            
+            e.hp -= actualDamage;
+            spawnHitParticles(p.x, p.y, p.color, p.isCrit ? 12 : 6);
+            screenShake += p.isCrit ? 4 : 2;
+            
+            // Explosion
+            if (p.explosive) {
+              for (const otherEnemy of enemies) {
+                if (otherEnemy === e) continue;
+                const dx = (otherEnemy.x + otherEnemy.w / 2) - p.x;
+                const dy = (otherEnemy.y + otherEnemy.h / 2) - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 60) {
+                  otherEnemy.hp -= actualDamage * 0.5;
+                }
+              }
+              spawnExplosion(p.x, p.y, "#ff8800", 15);
+              screenShake += 6;
+            }
+            
+            projectiles.splice(i, 1);
+            break;
+          }
+        }
+      }
+    }
+
+    function giveXP(amount) {
+      player.xp += amount;
+      if (player.xp >= player.xpToNext) {
+        player.level++;
+        player.xp -= player.xpToNext;
+        player.xpToNext = xpForLevel(player.level);
+        showUpgradeScreen();
+      }
+    }
+
+    function showUpgradeScreen() {
+      gameState = "upgrading";
+      upgradeScreen.classList.add("active");
+      upgradeSubtitle.textContent = `Level ${player.level} - Choose Your Power-Up`;
+      
+      generateUpgradeOptions();
+      
+      shuffleCount.textContent = shufflesRemaining;
+      if (shufflesRemaining > 0) {
+        shuffleBtn.style.opacity = "1";
+        shuffleBtn.disabled = false;
+      } else {
+        shuffleBtn.style.opacity = "0.5";
+        shuffleBtn.disabled = true;
+      }
+    }
+
+    function generateUpgradeOptions() {
+      const availableUpgrades = Object.keys(UPGRADE_TYPES);
+      const shuffled = availableUpgrades.sort(() => Math.random() - 0.5);
+      currentUpgradeOptions = shuffled.slice(0, 3);
+      
+      upgradeOptions.innerHTML = "";
+      currentUpgradeOptions.forEach(key => {
+        const upgrade = UPGRADE_TYPES[key];
+        const card = document.createElement("div");
+        card.className = "upgrade-card";
+        card.innerHTML = `
+          <div class="upgrade-card-icon">${upgrade.icon}</div>
+          <div class="upgrade-card-title">${upgrade.name}</div>
+          <div class="upgrade-card-desc">${upgrade.desc}</div>
+        `;
+        card.onclick = () => selectUpgrade(key);
+        upgradeOptions.appendChild(card);
+      });
+    }
+
+    function selectUpgrade(upgradeKey) {
+      const upgrade = UPGRADE_TYPES[upgradeKey];
+      upgrade.apply(player);
+      
+      upgradeScreen.classList.remove("active");
+      gameState = "playing";
+      
+      addFloatingText(player.x + player.w / 2, player.y - 30, upgrade.name + "!", "#ffff00");
+      spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, player.glowColor, 20);
+    }
+
+    // Placeholder functions
+    function spawnMinion() {}
+    function updateMinions() {}
+    function updateCombo(dt) {
+      if (combo > 0) {
+        comboTimer -= dt;
+        if (comboTimer <= 0) {
+          combo = 0;
+        }
+      }
+    }
+    function updateCurrencyDrops() {}
+    function dropCurrency() {}
+    function spawnHitParticles() {}
+    function spawnExplosion() {}
+    function updateParticles() {}
+    function addFloatingText() {}
+    function updateFloatingTexts() {}
+
+    function endGame() {
+      spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, player.color, 30);
+      
+      let newClassUnlocked = false;
+      if (wave > gameData.highestWave) {
+        gameData.highestWave = wave;
+        
+        Object.entries(CLASSES).forEach(([name, data]) => {
+          if (!data.purchasable && wave >= data.unlockWave && !gameData.unlockedClasses.includes(name)) {
+            gameData.unlockedClasses.push(name);
+            newClassUnlocked = true;
+          }
+        });
+      }
+      
+      saveGameData();
+      
+      finalWave.textContent = wave;
+      finalLevel.textContent = player.level;
+      finalKills.textContent = enemiesKilled;
+      finalCombo.textContent = maxCombo + "x";
+      earnedCoins.textContent = sessionCoins;
+      earnedGems.textContent = sessionGems;
+      totalCoinsNow.textContent = gameData.totalCoins;
+      totalGemsNow.textContent = gameData.totalGems;
+      
+      gameOverScreen.classList.add("active");
+      
+      if (newClassUnlocked) {
+        setTimeout(() => {
+          alert("🔓 NEW CLASS UNLOCKED! Check the class selection!");
+        }, 500);
+      }
+    }
+    
+    continueBtn.addEventListener("click", () => {
+      gameOverScreen.classList.remove("active");
+      titleScreen.classList.remove("hidden");
+      updateTitleScreenDisplay();
+    });
+
+    shuffleBtn.addEventListener("click", () => {
+      if (shufflesRemaining > 0) {
+        shufflesRemaining--;
+        generateUpgradeOptions();
+        shuffleCount.textContent = shufflesRemaining;
+        
+        if (shufflesRemaining === 0) {
+          shuffleBtn.style.opacity = "0.5";
+          shuffleBtn.disabled = true;
+        }
+      }
+    });
+
+    // MAIN UPDATE LOOP
+    function update(dt) {
+      if (!player || !player.alive) return;
+
+      if (gameState === "upgrading") {
+        return;
+      }
+
+      handleShooting(dt);
+      handleSpawning(dt);
+      updateProjectiles(dt);
+      updateEnemies(dt);
+      updateMinions(dt);
+      updateCombo(dt);
+      
+      if (player.regen > 0) {
+        player.hp = Math.min(player.hp + player.regen * dt, player.maxHP);
+      }
+      
+      screenShake *= 0.9;
+      if (screenShake < 0.1) screenShake = 0;
+
+      if (enemiesToSpawn <= 0 && enemies.length === 0) {
+        wave++;
+        
+        if (wave % 20 === 1 && wave > 1) {
+          currentMap++;
+          mapsCompleted++;
+          shufflesRemaining = 4;
+          
+          addFloatingText(canvas.width / 2, 200, `🗺️ MAP ${currentMap} 🗺️`, "#ff00ff");
+          addFloatingText(canvas.width / 2, 230, "SHUFFLES RESET!", "#00ffff");
+          screenShake += 15;
+        }
+        
+        const waveBonus = 50 + wave * 10;
+        giveXP(waveBonus);
+        addFloatingText(canvas.width / 2, 150, "WAVE BONUS: +" + waveBonus + " XP", "#00ffff");
+        
+        enemiesToSpawn = calcEnemiesForWave(wave);
+        spawnTimer = 0;
+      }
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = "#0a0015";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      const time = Date.now() * 0.0001;
+      for (let i = 0; i < 50; i++) {
+        const x = (i * 123.456 % canvas.width);
+        const y = ((i * 78.9 + time * 20) % canvas.height);
+        const brightness = (Math.sin(i + time * 3) + 1) * 0.5;
+        ctx.fillStyle = `rgba(255, 255, 255, ${brightness * 0.5})`;
+        ctx.fillRect(x, y, 2, 2);
+      }
+    }
+
+    function drawGround() {
+      ctx.fillStyle = "#2a1a3a";
+      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+      ctx.strokeStyle = "#00ffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND_Y);
+      ctx.lineTo(canvas.width, GROUND_Y);
+      ctx.stroke();
+    }
+
+    function drawPlayer() {
+      if (!player) return;
+      
+      const x = player.x;
+      const y = player.y;
+      const w = player.w;
+      const h = player.h;
+
+      ctx.shadowColor = player.glowColor;
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x, y, w, h);
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+
+      ctx.fillStyle = "#ffd4a3";
+      ctx.fillRect(x + w * 0.25, y - h * 0.3, w * 0.5, h * 0.3);
+
+      ctx.fillStyle = player.glowColor;
+      ctx.fillRect(x + w * 0.35, y - h * 0.18, 4, 4);
+      ctx.fillRect(x + w * 0.55, y - h * 0.18, 4, 4);
+
+      ctx.shadowBlur = 0;
+    }
+
+    function drawEnemies() {
+      for (const e of enemies) {
+        ctx.shadowColor = e.glowColor;
+        ctx.shadowBlur = 12;
+
+        ctx.fillStyle = e.color;
+        ctx.fillRect(e.x + 2, e.y, e.w - 4, e.h - 4);
+
+        ctx.shadowBlur = 0;
+        
+        ctx.fillStyle = "#ffff00";
+        const eyeSize = 5;
+        ctx.fillRect(e.x + e.w * 0.25, e.y + e.h * 0.2, eyeSize, eyeSize);
+        ctx.fillRect(e.x + e.w * 0.65, e.y + e.h * 0.2, eyeSize, eyeSize);
+
+        const hpRatio = e.hp / e.maxHP;
+        const barWidth = e.w;
+        const barHeight = 5;
+        ctx.fillStyle = "rgba(60, 0, 0, 0.8)";
+        ctx.fillRect(e.x, e.y - 8, barWidth, barHeight);
+        
+        const hpColor = hpRatio > 0.5 ? "#44ff44" : hpRatio > 0.25 ? "#ffaa44" : "#ff4444";
+        ctx.fillStyle = hpColor;
+        ctx.fillRect(e.x, e.y - 8, barWidth * hpRatio, barHeight);
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function drawProjectiles() {
+      for (const p of projectiles) {
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = p.radius;
+        ctx.beginPath();
+        for (let i = 0; i < p.trail.length; i++) {
+          const t = p.trail[i];
+          if (i === 0) ctx.moveTo(t.x, t.y);
+          else ctx.lineTo(t.x, t.y);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        ctx.shadowColor = p.glowColor;
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function drawHUD() {
+      if (!player) return;
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.fillRect(10, 10, 300, 110);
+      
+      ctx.strokeStyle = "#00ffff";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(10, 10, 300, 110);
+
+      ctx.fillStyle = "#00ffff";
+      ctx.font = "bold 14px 'Courier New'";
+      ctx.fillText("⚔️ " + player.className, 20, 30);
+      ctx.fillText("🗺️ Map: " + currentMap, 20, 50);
+      ctx.fillText("🌊 Wave: " + wave, 130, 50);
+      ctx.fillText("⭐ Level: " + player.level, 230, 50);
+
+      const hpRatio = player.hp / player.maxHP;
+      const hpY = 70;
+      const hpBarY = 60;
+      ctx.fillStyle = "#00ffff";
+      ctx.fillText("❤️ HP", 20, hpY);
+      ctx.fillStyle = "rgba(60, 0, 0, 0.8)";
+      ctx.fillRect(70, hpBarY, 230, 12);
+      
+      ctx.fillStyle = hpRatio > 0.5 ? "#44ff44" : hpRatio > 0.25 ? "#ffaa44" : "#ff4444";
+      ctx.fillRect(70, hpBarY, 230 * hpRatio, 12);
+      
+      ctx.strokeStyle = "#ff4444";
+      ctx.strokeRect(70, hpBarY, 230, 12);
+
+      const xpRatio = player.xp / player.xpToNext;
+      ctx.fillStyle = "#00ffff";
+      ctx.fillText("✨ XP: " + Math.floor(player.xp) + "/" + player.xpToNext, 20, 102);
+      ctx.fillStyle = "rgba(0, 50, 80, 0.8)";
+      ctx.fillRect(70, 92, 230, 10);
+      
+      ctx.fillStyle = "#0088ff";
+      ctx.fillRect(70, 92, 230 * xpRatio, 10);
+      
+      ctx.strokeStyle = "#00ffff";
+      ctx.strokeRect(70, 92, 230, 10);
+
+      if (combo > 0) {
+        ctx.fillStyle = "#ff8800";
+        ctx.font = "bold 16px 'Courier New'";
+        ctx.fillText("🔥 COMBO: " + combo + "x", canvas.width - 200, 80);
+      }
+    }
+
+    function draw() {
+      ctx.save();
+      if (screenShake > 0) {
+        const shakeX = (Math.random() - 0.5) * screenShake;
+        const shakeY = (Math.random() - 0.5) * screenShake;
+        ctx.translate(shakeX, shakeY);
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      drawBackground();
+      drawGround();
+      if (player) drawPlayer();
+      drawEnemies();
+      drawProjectiles();
+      drawHUD();
+
+      ctx.restore();
+    }
+
+    function gameLoop(timestamp) {
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+      lastTime = timestamp;
+
+      if (gameRunning) {
+        update(dt);
+      }
+      
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+  </script>
+</body>
+</html>
     // ===============================
     // GAME CONFIG & DATA
     // ===============================
