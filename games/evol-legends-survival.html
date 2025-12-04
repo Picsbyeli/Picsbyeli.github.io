@@ -390,6 +390,171 @@
     }
     #upgradeScreen.active { display: flex; }
     
+    /* BTD-Style Upgrade Tree */
+    #upgradeTreeScreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: linear-gradient(135deg, #0a0015 0%, #1a0030 100%);
+      display: none;
+      flex-direction: column;
+      z-index: 95;
+      overflow-y: auto;
+    }
+    #upgradeTreeScreen.active { display: flex; }
+    
+    .upgrade-tree-header {
+      padding: 20px;
+      background: linear-gradient(135deg, #2a0050 0%, #3a1060 100%);
+      border-bottom: 3px solid #00ffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .upgrade-tree-title {
+      font-size: 36px;
+      color: #ffff00;
+      text-shadow: 0 0 20px #ffff00;
+    }
+    
+    .upgrade-tree-info {
+      display: flex;
+      gap: 30px;
+      font-size: 20px;
+      color: #00ffff;
+    }
+    
+    .upgrade-tree-container {
+      flex: 1;
+      display: flex;
+      gap: 20px;
+      padding: 30px;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    
+    .upgrade-path {
+      flex: 1;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .path-header {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ffff;
+      text-align: center;
+      padding: 15px;
+      background: linear-gradient(135deg, #2a1a3a 0%, #3a2a4a 100%);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    
+    .path-upgrades {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .upgrade-node {
+      background: linear-gradient(135deg, #2a1a3a 0%, #3a2a4a 100%);
+      border: 3px solid #666;
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    
+    .upgrade-node.available {
+      border-color: #00ff00;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+    }
+    
+    .upgrade-node.available:hover {
+      transform: translateY(-5px);
+      border-color: #00ffff;
+      box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    }
+    
+    .upgrade-node.purchased {
+      border-color: #ffff00;
+      background: linear-gradient(135deg, #3a2a1a 0%, #4a3a2a 100%);
+      box-shadow: 0 0 15px rgba(255, 255, 0, 0.3);
+    }
+    
+    .upgrade-node.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .upgrade-node.master {
+      border: 4px solid #ff00ff;
+      background: linear-gradient(135deg, #3a1a4a 0%, #4a2a5a 100%);
+      box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+    }
+    
+    .upgrade-node-tier {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      font-size: 12px;
+      color: #888;
+      font-weight: bold;
+    }
+    
+    .upgrade-node-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    
+    .upgrade-node.master .upgrade-node-name {
+      color: #ff00ff;
+      text-shadow: 0 0 10px #ff00ff;
+    }
+    
+    .upgrade-node-desc {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    
+    .upgrade-node-cost {
+      font-size: 14px;
+      color: #00ffff;
+      font-weight: bold;
+    }
+    
+    .upgrade-node.purchased .upgrade-node-cost {
+      color: #ffff00;
+    }
+    
+    .upgrade-tree-close {
+      margin: 20px auto;
+      padding: 15px 50px;
+      font-size: 24px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #ff0080 0%, #ff8c00 100%);
+      color: #fff;
+      border: 4px solid #00ffff;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    }
+    
+    .upgrade-tree-close:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+    }
+    
     .upgrade-title {
       font-size: 32px;
       color: #ffff00;
@@ -1072,16 +1237,37 @@
     </div>
     
     <!-- Upgrade Screen -->
-    <div id="upgradeScreen">
-      <div class="upgrade-title">🎉 LEVEL UP!</div>
-      <div class="upgrade-subtitle" id="upgradeSubtitle">Choose Your Power-Up</div>
-      <div id="upgradeOptions"></div>
-      <button class="shop-close-btn" id="shuffleBtn" style="margin-top: 20px; background: #0088ff; font-size: 16px; padding: 10px 30px;">
-        🔄 SHUFFLE (<span id="shuffleCount">4</span> left)
-      </button>
-      <button class="shop-close-btn" id="skipUpgradeBtn" style="margin-top: 10px; background: #ff4444; font-size: 14px; padding: 8px 20px; display: none;">
-        ❌ SKIP / CLOSE
-      </button>
+    <!-- BTD-Style Upgrade Tree Screen -->
+    <div id="upgradeTreeScreen">
+      <div class="upgrade-tree-header">
+        <div class="upgrade-tree-title">⚡ UPGRADE TREE ⚡</div>
+        <div class="upgrade-tree-info">
+          <span>Level: <span id="treePlayerLevel">1</span></span>
+          <span>Upgrade Points: <span id="upgradePoints">0</span></span>
+        </div>
+      </div>
+      
+      <div class="upgrade-tree-container">
+        <!-- Left Path -->
+        <div class="upgrade-path">
+          <div class="path-header">PATH A</div>
+          <div id="pathA" class="path-upgrades"></div>
+        </div>
+        
+        <!-- Middle Path -->
+        <div class="upgrade-path">
+          <div class="path-header">PATH B</div>
+          <div id="pathB" class="path-upgrades"></div>
+        </div>
+        
+        <!-- Right Path -->
+        <div class="upgrade-path">
+          <div class="path-header">PATH C</div>
+          <div id="pathC" class="path-upgrades"></div>
+        </div>
+      </div>
+      
+      <button class="upgrade-tree-close" id="closeUpgradeTree">✓ CONTINUE</button>
     </div>
     
     <!-- Pause Menu -->
@@ -1608,6 +1794,216 @@
           }
         });
       }
+    }
+    
+    function updatePoisonClouds(dt) {
+      const classStats = CLASSES[player.class]?.stats || {};
+      
+      for (let i = poisonClouds.length - 1; i >= 0; i--) {
+        const cloud = poisonClouds[i];
+        cloud.life -= dt;
+        
+        if (cloud.life <= 0) {
+          poisonClouds.splice(i, 1);
+          continue;
+        }
+        
+        // Affect enemies in cloud
+        enemies.forEach(e => {
+          const dx = (e.x + e.w / 2) - cloud.x;
+          const dy = (e.y + e.h / 2) - cloud.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < cloud.radius) {
+            // Poison damage
+            e.hp -= cloud.poisonDPS * dt;
+            
+            // Slow
+            if (cloud.slowAmount) {
+              e.slowAmount = (e.slowAmount || 0) + cloud.slowAmount;
+              e.slowDuration = 1.0;
+            }
+            
+            // Confusion (random direction changes)
+            if (Math.random() < cloud.confusionChance * dt) {
+              e.vx = (Math.random() - 0.5) * 2;
+              e.vy = (Math.random() - 0.5) * 2;
+            }
+            
+            // Stun
+            if (Math.random() < cloud.stunChance * dt) {
+              e.stunned = true;
+              e.stunDuration = 1.0;
+            }
+          }
+        });
+      }
+    }
+    
+    function updateIceShards(dt) {
+      for (let i = iceShards.length - 1; i >= 0; i--) {
+        const shard = iceShards[i];
+        shard.life -= dt;
+        
+        if (shard.life <= 0) {
+          iceShards.splice(i, 1);
+          continue;
+        }
+        
+        // Check collision with enemies
+        enemies.forEach(e => {
+          const dx = (e.x + e.w / 2) - shard.x;
+          const dy = (e.y + e.h / 2) - shard.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < 20 && !shard.hit) {
+            e.hp -= shard.damage;
+            e.slowAmount = (e.slowAmount || 0) + shard.slowAmount;
+            e.slowDuration = 2.0;
+            shard.hit = true;
+            iceShards.splice(i, 1);
+            
+            // Ice particles
+            for (let j = 0; j < 10; j++) {
+              particles.push({
+                x: shard.x,
+                y: shard.y,
+                vx: Math.random() * 4 - 2,
+                vy: Math.random() * 4 - 2,
+                radius: 2,
+                color: "#00bfff",
+                life: 0.5
+              });
+            }
+          }
+        });
+      }
+    }
+    
+    function updateTurrets(dt) {
+      for (let i = turrets.length - 1; i >= 0; i--) {
+        const turret = turrets[i];
+        
+        if (turret.hp <= 0) {
+          turrets.splice(i, 1);
+          continue;
+        }
+        
+        // Turret shooting logic
+        turret.shootTimer -= dt;
+        if (turret.shootTimer <= 0) {
+          turret.shootTimer = turret.fireRate;
+          
+          // Find nearest enemy in range
+          let nearest = null;
+          let minDist = Infinity;
+          enemies.forEach(e => {
+            const dx = (e.x + e.w / 2) - turret.x;
+            const dy = (e.y + e.h / 2) - turret.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < turret.range && dist < minDist) {
+              minDist = dist;
+              nearest = e;
+            }
+          });
+          
+          if (nearest) {
+            const dx = (nearest.x + nearest.w / 2) - turret.x;
+            const dy = (nearest.y + nearest.h / 2) - turret.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            projectiles.push({
+              x: turret.x,
+              y: turret.y,
+              vx: (dx / dist) * 8,
+              vy: (dy / dist) * 8,
+              damage: turret.damage,
+              color: "#FF8C00",
+              radius: 3,
+              pierce: false
+            });
+          }
+        }
+      }
+    }
+    
+    function updateRootBarriers(dt) {
+      for (let i = rootBarriers.length - 1; i >= 0; i--) {
+        const barrier = rootBarriers[i];
+        
+        if (barrier.hp <= 0) {
+          rootBarriers.splice(i, 1);
+          continue;
+        }
+        
+        // Check collision with enemies
+        enemies.forEach(e => {
+          const dx = (e.x + e.w / 2) - barrier.x;
+          const dy = (e.y + e.h / 2) - barrier.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < 40) {
+            // Deal thorn damage
+            e.hp -= barrier.thornDamage * dt;
+            barrier.hp -= 5 * dt;
+            
+            // Heal player
+            player.hp = Math.min(player.hp + barrier.healAmount * dt, player.maxHP);
+            
+            // Knock back enemy
+            const angle = Math.atan2(dy, dx);
+            e.x += Math.cos(angle) * 2;
+            e.y += Math.sin(angle) * 2;
+          }
+        });
+      }
+    }
+    
+    function updateHelperStars(dt) {
+      helperStars.forEach(star => {
+        star.shootTimer -= dt;
+        
+        if (star.shootTimer <= 0) {
+          star.shootTimer = star.fireRate;
+          
+          // Find nearest enemy in range
+          let nearest = null;
+          let minDist = Infinity;
+          enemies.forEach(e => {
+            const dx = (e.x + e.w / 2) - star.x;
+            const dy = (e.y + e.h / 2) - star.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < star.range && dist < minDist) {
+              minDist = dist;
+              nearest = e;
+            }
+          });
+          
+          if (nearest) {
+            const dx = (nearest.x + nearest.w / 2) - star.x;
+            const dy = (nearest.y + nearest.h / 2) - star.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            projectiles.push({
+              x: star.x,
+              y: star.y,
+              vx: (dx / dist) * 8,
+              vy: (dy / dist) * 8,
+              damage: star.damage,
+              color: "#9400d3",
+              radius: 3,
+              pierce: false
+            });
+          }
+        }
+        
+        // Helper star orbits around player
+        star.angle += dt * 2;
+        star.x = player.x + Math.cos(star.angle) * 80;
+        star.y = player.y + Math.sin(star.angle) * 80;
+      });
     }
     
     function updatePotionEffects(dt) {
@@ -2399,6 +2795,11 @@
     }
     
     function updateVecnaMonsters(dt) {
+      const classStats = CLASSES[player.class]?.stats || {};
+      const attackSpeedMultiplier = classStats.monsterAttackSpeed || 1;
+      const slowEffect = classStats.monsterSlowEffect || 0;
+      const slowDuration = classStats.monsterSlowDuration || 0;
+      
       vecnaMonsters.forEach((monster, idx) => {
         if (monster.hp <= 0) {
           vecnaMonsters.splice(idx, 1);
@@ -2426,9 +2827,22 @@
           if (dist > 30) {
             monster.x += (dx / dist) * monster.speed;
             monster.y += (dy / dist) * monster.speed;
+            
+            // Apply slow on touch (within 30 units)
+            if (dist <= 30 && slowEffect > 0) {
+              nearest.slowAmount = (nearest.slowAmount || 0) + slowEffect;
+              nearest.slowDuration = slowDuration;
+            }
           } else {
-            // Attack
-            nearest.hp -= monster.damage * dt;
+            // Attack with 10x speed multiplier
+            nearest.hp -= monster.damage * dt * attackSpeedMultiplier;
+            
+            // Apply slow effect on attack
+            if (slowEffect > 0) {
+              nearest.slowAmount = (nearest.slowAmount || 0) + slowEffect;
+              nearest.slowDuration = slowDuration;
+            }
+            
             if (nearest.hp <= 0 && !nearest.dead) {
               nearest.dead = true;
               onEnemyKilled(nearest);
@@ -2639,10 +3053,13 @@
           range: 600,
           projectileSpeed: 7.5,
           summonMonsters: true,
+          monsterAttackSpeed: 10, // Monsters attack 10x faster
+          monsterSlowEffect: 0.8, // 80% slow on touch
+          monsterSlowDuration: 2.0, // 2 seconds
           shieldOnKills: 10,
           enemyConversionChance: 0.2
         },
-        description: "Converts enemies, summons monsters"
+        description: "Summons ultra-fast monsters that slow enemies by 80% on touch"
       },
       // NEW CLASSES
       Pyromancer: {
@@ -2659,9 +3076,14 @@
           fireRate: 0.909, // 1.1/sec
           range: 550,
           projectileSpeed: 7,
-          burnDamageOverTime: true // Burns enemies
+          burnDamageOverTime: true, // Burns enemies
+          fireZones: true, // Sets floor on fire
+          fireZoneDuration: 5.0, // Fire zones last 5 seconds
+          fireZoneDamage: 10, // Damage per second in fire zones
+          burnDuration: 4.0, // Burn lasts 4 seconds
+          burnDamagePerSec: 8 // Burn damage per second
         },
-        description: "Burns enemies over time with flame shots"
+        description: "Sets floor and enemies on fire, dealing massive burn damage over time"
       },
       CryoSentinel: {
         icon: "❄️",
@@ -2679,9 +3101,14 @@
           range: 500,
           projectileSpeed: 6.5,
           slowOnHit: 0.5, // 50% slow
-          freezeChance: 0.1 // 10% chance to freeze
+          freezeChance: 0.1, // 10% chance to freeze
+          iceShards: true, // Ice shards stick in ground
+          maxIceShards: 8, // Maximum 8 shards on field
+          iceShardDamage: 20, // Damage when enemy touches shard
+          iceShardDuration: 15.0, // Shards last 15 seconds
+          iceShardSlowAmount: 0.3 // 30% additional slow
         },
-        description: "Ice shots slow enemies and add control"
+        description: "Ice shards stick in ground and damage enemies that touch them"
       },
       PlagueDoctor: {
         icon: "🦠",
@@ -2699,9 +3126,17 @@
           range: 500,
           projectileSpeed: 7,
           stackingPoison: true, // Stacking poison
-          poisonSpread: true // Spreads between enemies
+          poisonSpread: true, // Spreads between enemies
+          placeableClouds: true, // Can place poison clouds with mouse click
+          maxClouds: 3, // Maximum 3 clouds at once
+          cloudRadius: 150, // Cloud effect radius
+          cloudDuration: 10.0, // Clouds last 10 seconds
+          cloudPoisonDPS: 5, // Poison damage per second
+          cloudSlowAmount: 0.4, // 40% slow
+          cloudConfusionChance: 0.2, // 20% chance to confuse
+          cloudStunChance: 0.1 // 10% chance to stun
         },
-        description: "Applies stacking poison that spreads"
+        description: "Place poison clouds that confuse, slow, stun, and poison enemies"
       },
       LightningRanger: {
         icon: "⚡",
@@ -2736,10 +3171,12 @@
           fireRate: 1.0, // 1.0/sec
           range: 450,
           projectileSpeed: 7,
-          lifestealPercent: 0.25, // 25% lifesteal
-          bleedDamage: true // Applies bleed
+          lifestealPercent: 0.15, // 15% lifesteal to start
+          bleedDamage: true, // Applies bleed
+          bleedDuration: 5.0, // Bleed lasts 5 seconds
+          bleedDamagePerSec: 6 // Bleed damage per second
         },
-        description: "Lifesteal and bleed-based DPS"
+        description: "Starts with 15% lifesteal and applies bleeding to enemies"
       },
       CrystalGuardian: {
         icon: "💎",
@@ -2756,9 +3193,12 @@
           fireRate: 1.25, // 0.8/sec
           range: 500,
           projectileSpeed: 6,
-          reflectDamage: 0.15 // 15% reflect
+          startingShield: 200, // Starts with 200 shield
+          reflectProjectiles: true, // Reflects enemy projectiles
+          reflectDamageMultiplier: 2.0, // Reflects at 2x damage
+          reflectDamage: 0.15 // 15% passive reflect
         },
-        description: "Crystal energy bolts and reflect defense"
+        description: "Starts with 200 shield, reflects enemy projectiles at 2x damage"
       },
       ShadowMonk: {
         icon: "🥋",
@@ -2772,11 +3212,12 @@
           maxHP: 110,
           damage: 20,
           fireRate: 0.714, // 1.4/sec
-          range: 400,
+          range: 300, // Low range for close combat
           projectileSpeed: 8,
+          knockback: 60, // Medium knockback
           critBonus: 0.5 // +50% crit damage
         },
-        description: "Crit-focused martial artist"
+        description: "Low-range martial artist with medium knockback and crit damage"
       },
       ArcWarden: {
         icon: "⚡",
@@ -2812,9 +3253,14 @@
           fireRate: 0.909, // 1.1/sec
           range: 500,
           projectileSpeed: 6.5,
-          healOnHit: 2 // Heals 2 HP per hit
+          healOnHit: 2, // Heals 2 HP per hit
+          autoHealSpell: true, // 30s auto-healing spell
+          autoHealInterval: 30.0, // Triggers every 30 seconds
+          autoHealAmount: 40, // Heals 40 HP
+          autoHealRadius: 200, // 200 radius
+          autoHealKnockback: 50 // Knockback enemies in radius
         },
-        description: "Healing and radiant beam damage"
+        description: "Auto-heals 40 HP every 30s with knockback in 200 radius"
       },
       TrickshotRogue: {
         icon: "🎲",
@@ -2830,9 +3276,10 @@
           fireRate: 1.0, // 1.0/sec
           range: 600,
           projectileSpeed: 9,
-          ricochetShots: 2 // Ricochets 2 times
+          ricochetShots: 5, // Bounces 5 times between enemies
+          ricochetDamageIncrease: 0.25 // +25% damage per bounce
         },
-        description: "Ricocheting shots with burst potential"
+        description: "Shots bounce 5x between enemies, increasing damage each bounce"
       },
       Starcaller: {
         icon: "🌟",
@@ -2849,9 +3296,13 @@
           fireRate: 1.0, // 1.0/sec
           range: 550,
           projectileSpeed: 7,
-          gravityPull: true // Pulls enemies
+          gravityPull: true, // Pulls enemies
+          helperStar: true, // Mini helper star
+          helperStarDamage: 12, // Helper star damage
+          helperStarFireRate: 0.6, // Helper shoots at 1.67/sec
+          helperStarRange: 400 // Helper star range
         },
-        description: "Cosmic caster with gravity effects"
+        description: "Mini helper star shoots alongside player with gravity effects"
       },
       VoidAssassin: {
         icon: "🌑",
@@ -2902,14 +3353,15 @@
         unlockWave: 120,
         purchasable: false,
         stats: {
-          maxHP: 180,
+          maxHP: 400, // Massive HP pool
           damage: 22,
           fireRate: 1.818, // 0.55/sec - Very slow
           range: 500,
           projectileSpeed: 5,
+          damageReduction: 0.30, // 30% damage reduction
           heavyProjectiles: true // Heavy star projectiles
         },
-        description: "Heavy star projectiles and tanky build"
+        description: "400 HP tank with 30% damage reduction and heavy projectiles"
       },
       Engineer: {
         icon: "🔧",
@@ -2926,13 +3378,14 @@
           range: 450,
           projectileSpeed: 7,
           turretClass: true, // Special flag for turret mechanics
-          maxTurrets: 3, // Can place up to 3 basic turrets
-          turretDamage: 5, // Base turret damage
-          turretRange: 300, // Turret attack range
+          maxTurrets: 2, // Can place 2 turrets at round start
+          turretDamage: 8, // Base turret damage
+          turretRange: 350, // Turret attack range
           turretFireRate: 0.5, // 2.0/sec
-          turretHP: 100 // Base turret health
+          turretHP: 150, // Base turret health
+          placeAtRoundStart: true // Place turrets at round start
         },
-        description: "Deploys defensive turrets with specialized abilities"
+        description: "Place 2 defensive turrets at round start with specialized abilities"
       },
       TheForsakenOne: {
         icon: "💀",
@@ -2992,9 +3445,115 @@
           range: 500,       // Decent range
           projectileSpeed: 4.5, // Slow but strong
           knockback: 80,    // Pushes enemies back
+          autoKnockback: 0.20, // 20% automatic knockback
           projectileSize: 24 // Giant shield visual
         },
-        description: "Throws massive shields with high damage and knockback. Unlock: 5 shield upgrades + HP > 200"
+        description: "Massive shields with 20% automatic knockback. Unlock: 5 shield upgrades + HP > 200"
+      },
+      Berserk: {
+        icon: "🪓",
+        color: "#8B0000",
+        accent: "#DC143C",
+        bulletColor: "#8B0000",
+        glowColor: "#DC143C",
+        unlockWave: 50,
+        purchasable: false,
+        stats: {
+          maxHP: 150,
+          damage: 15, // Base damage
+          fireRate: 0.625, // 1.6/sec
+          range: 350,
+          projectileSpeed: 9,
+          berserkMode: true, // Damage scales with low HP
+          maxDamageMultiplier: 3.0, // 3x damage at low HP
+          lowHPThreshold: 0.25 // Starts scaling below 25% HP
+        },
+        description: "Damage scales up to 3x when at low HP - high risk, high reward"
+      },
+      Samurai: {
+        icon: "⚔️",
+        color: "#C41E3A",
+        accent: "#FF4500",
+        bulletColor: "#C41E3A",
+        glowColor: "#FF4500",
+        unlockWave: 70,
+        purchasable: false,
+        stats: {
+          maxHP: 120,
+          damage: 25,
+          fireRate: 1.2, // 0.83/sec
+          range: 999999, // Screen-wide slashes
+          projectileSpeed: 15,
+          screenWideSlash: true, // Screen-wide attack
+          slashKnockback: 0.02, // 2% knockback
+          chainReaction: true, // Chain reaction on kills
+          chainDamageBonus: 0.5 // +50% damage per chain
+        },
+        description: "Screen-wide slashes with 2% knockback, chain reactions on kills"
+      },
+      Warlock: {
+        icon: "🔮",
+        color: "#4B0082",
+        accent: "#9370DB",
+        bulletColor: "#4B0082",
+        glowColor: "#9370DB",
+        unlockWave: 60,
+        purchasable: false,
+        stats: {
+          maxHP: 95,
+          damage: 30,
+          fireRate: 1.5, // 0.67/sec
+          range: 600,
+          projectileSpeed: 6,
+          ignoreShields: true, // Ignores enemy shields
+          weakenEnemies: true, // Weakens enemies
+          weakenAmount: 0.25, // 25% weaken
+          weakenDuration: 5.0 // 5 second weaken
+        },
+        description: "Dark magic ignores shields and weakens enemies by 25%"
+      },
+      Druid: {
+        icon: "🌿",
+        color: "#228B22",
+        accent: "#32CD32",
+        bulletColor: "#228B22",
+        glowColor: "#32CD32",
+        unlockWave: 55,
+        purchasable: false,
+        stats: {
+          maxHP: 130,
+          damage: 18,
+          fireRate: 1.0, // 1.0/sec
+          range: 500,
+          projectileSpeed: 7,
+          rootBarriers: true, // Can place root barriers
+          maxBarriers: 4, // Maximum 4 barriers
+          barrierHP: 200, // Barrier health
+          barrierThornDamage: 15, // Damage to enemies touching barrier
+          barrierHealAmount: 3 // Heals player per thorn hit
+        },
+        description: "Place root barriers that block enemies, deal thorn damage, and heal you"
+      },
+      Gunslinger: {
+        icon: "🔫",
+        color: "#FFD700",
+        accent: "#FFA500",
+        bulletColor: "#FFD700",
+        glowColor: "#FFA500",
+        unlockWave: 40,
+        purchasable: false,
+        stats: {
+          maxHP: 100,
+          damage: 12,
+          fireRate: 0.4, // 2.5/sec - Fast dual guns
+          range: 550,
+          projectileSpeed: 10,
+          dualGuns: true, // Fires from both guns
+          ricochetOffWalls: true, // Ricochets off walls/floor
+          maxRicochets: 2, // Bounces 2 times
+          ricochetDamageMultiplier: 1.0 // Same damage on ricochet
+        },
+        description: "Dual guns fire rapidly, shots ricochet 2x off floor and walls"
       }
     };
 
@@ -3926,6 +4485,171 @@
     // Dragon beam fire zones
     let fireZones = [];
     
+    // New BTD-style mechanic zones
+    let poisonClouds = [];
+    let iceShards = [];
+    let turrets = [];
+    let rootBarriers = [];
+    let helperStars = [];
+    
+    // BTD-Style Upgrade Tree System
+    let upgradePoints = 0;
+    let purchasedUpgrades = {
+      pathA: [],
+      pathB: [],
+      pathC: []
+    };
+    
+    // Universal Upgrade Tree (works for all classes)
+    const UPGRADE_TREE = {
+      pathA: [ // Attack/Damage Path
+        {
+          id: 'damage1',
+          tier: 1,
+          name: 'Enhanced Damage',
+          desc: '+15% damage',
+          cost: 1,
+          effect: (player) => { player.damage *= 1.15; }
+        },
+        {
+          id: 'damage2',
+          tier: 2,
+          name: 'Superior Firepower',
+          desc: '+25% damage, +10% fire rate',
+          cost: 1,
+          requires: ['damage1'],
+          effect: (player) => { player.damage *= 1.25; player.fireRate *= 0.90; }
+        },
+        {
+          id: 'damage3',
+          tier: 3,
+          name: 'Devastating Force',
+          desc: '+40% damage, all shots pierce once',
+          cost: 1,
+          requires: ['damage2'],
+          effect: (player) => { player.damage *= 1.40; player.pierce = true; }
+        },
+        {
+          id: 'masterA',
+          tier: 4,
+          name: '⭐ ASSASSIN MASTER',
+          desc: '+100% crit damage, 25% crit chance, every 5th shot guaranteed crit',
+          cost: 2,
+          requires: ['damage3'],
+          master: true,
+          effect: (player) => { 
+            player.critMultiplier = 2.0;
+            player.critChance = Math.max(player.critChance, 0.25);
+            player.masterClass = 'Assassin';
+          }
+        }
+      ],
+      pathB: [ // Defense/Survival Path
+        {
+          id: 'health1',
+          tier: 1,
+          name: 'Fortified Health',
+          desc: '+40 max HP',
+          cost: 1,
+          effect: (player) => { player.maxHP += 40; player.hp += 40; }
+        },
+        {
+          id: 'health2',
+          tier: 2,
+          name: 'Shield Generator',
+          desc: '+50 max HP, +75 max shield, gain 50 shield',
+          cost: 1,
+          requires: ['health1'],
+          effect: (player) => { 
+            player.maxHP += 50;
+            player.hp += 50;
+            player.maxShield += 75;
+            player.shield += 75;
+          }
+        },
+        {
+          id: 'health3',
+          tier: 3,
+          name: 'Regeneration Field',
+          desc: '+60 max HP, regenerate 5 HP/sec',
+          cost: 1,
+          requires: ['health2'],
+          effect: (player) => { 
+            player.maxHP += 60;
+            player.hp += 60;
+            player.regen = (player.regen || 0) + 5;
+          }
+        },
+        {
+          id: 'masterB',
+          tier: 4,
+          name: '⭐ GUARDIAN MASTER',
+          desc: '+100 max HP, +150 max shield, 50% lifesteal, immune to first fatal hit per wave',
+          cost: 2,
+          requires: ['health3'],
+          master: true,
+          effect: (player) => { 
+            player.maxHP += 100;
+            player.hp += 100;
+            player.maxShield += 150;
+            player.shield += 150;
+            player.lifesteal = Math.max(player.lifesteal, 0.50);
+            player.lastStandActive = true;
+            player.masterClass = 'Guardian';
+          }
+        }
+      ],
+      pathC: [ // Utility/Special Path
+        {
+          id: 'utility1',
+          tier: 1,
+          name: 'Rapid Fire',
+          desc: '+25% fire rate',
+          cost: 1,
+          effect: (player) => { player.fireRate *= 0.75; }
+        },
+        {
+          id: 'utility2',
+          tier: 2,
+          name: 'Multishot',
+          desc: '+30% fire rate, shoot 1 additional projectile',
+          cost: 1,
+          requires: ['utility1'],
+          effect: (player) => { 
+            player.fireRate *= 0.70;
+            player.multiShot = (player.multiShot || 0) + 1;
+          }
+        },
+        {
+          id: 'utility3',
+          tier: 3,
+          name: 'Chain Lightning',
+          desc: 'Shots chain to 3 nearby enemies at 60% damage',
+          cost: 1,
+          requires: ['utility2'],
+          effect: (player) => { 
+            player.chainLightning = 3;
+          }
+        },
+        {
+          id: 'masterC',
+          tier: 4,
+          name: '⭐ ARCHMAGE MASTER',
+          desc: 'All projectiles explode in 150 radius, chains to 5 enemies, +50% range',
+          cost: 2,
+          requires: ['utility3'],
+          master: true,
+          effect: (player) => { 
+            player.explosive = true;
+            player.explosionRadius = 150;
+            player.chainLightning = 5;
+            player.range *= 1.5;
+            player.masterClass = 'Archmage';
+          }
+        }
+      ]
+    };
+    
     // Potion system
     let potions = {
       heal: 3,
@@ -4074,6 +4798,58 @@
     // Ability button click handlers
     document.getElementById('ability1Btn').addEventListener('click', () => activateAbility1());
     document.getElementById('ability2Btn').addEventListener('click', () => activateAbility2());
+    
+    // Canvas click handler for placeable abilities
+    canvas.addEventListener('click', (e) => {
+      if (!player || !player.alive || gameState !== "playing") return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      
+      const classStats = CLASSES[player.class]?.stats || {};
+      
+      // Plague Doctor - Place poison cloud
+      if (classStats.placeableClouds && poisonClouds.length < classStats.maxClouds) {
+        poisonClouds.push({
+          x: clickX,
+          y: clickY,
+          radius: classStats.cloudRadius,
+          life: classStats.cloudDuration,
+          poisonDPS: classStats.cloudPoisonDPS,
+          slowAmount: classStats.cloudSlowAmount,
+          confusionChance: classStats.cloudConfusionChance,
+          stunChance: classStats.cloudStunChance
+        });
+        addFloatingText(clickX, clickY, "☠️ POISON CLOUD", "#32cd32");
+      }
+      
+      // Engineer - Place turret
+      if (classStats.turretClass && turrets.length < classStats.maxTurrets) {
+        turrets.push({
+          x: clickX,
+          y: clickY,
+          hp: classStats.turretHP,
+          damage: classStats.turretDamage,
+          range: classStats.turretRange,
+          fireRate: classStats.turretFireRate,
+          shootTimer: 0
+        });
+        addFloatingText(clickX, clickY, "🔧 TURRET", "#FF8C00");
+      }
+      
+      // Druid - Place root barrier
+      if (classStats.rootBarriers && rootBarriers.length < classStats.maxBarriers) {
+        rootBarriers.push({
+          x: clickX,
+          y: clickY,
+          hp: classStats.barrierHP,
+          thornDamage: classStats.barrierThornDamage,
+          healAmount: classStats.barrierHealAmount
+        });
+        addFloatingText(clickX, clickY, "🌿 ROOT BARRIER", "#228B22");
+      }
+    });
     
     // Pause menu button listeners
     document.getElementById('resumeBtn').addEventListener('click', () => {
@@ -6004,10 +6780,45 @@
       waveTimer = 0; // Reset wave timer
       waveTimerActive = false; // Wave timer not active yet
       shieldUpgradesChosen = 0; // Reset shield upgrade counter for Guardian Tank unlock
+      
+      // Reset BTD upgrade tree
+      upgradePoints = 0;
+      purchasedUpgrades = {
+        pathA: [],
+        pathB: [],
+        pathC: []
+      };
 
       if (className === "Summoner") {
         spawnMinion();
         spawnMinion();
+      }
+      
+      // Initialize class-specific mechanics
+      const classStats = cls.stats;
+      
+      // CrystalGuardian - Start with shield
+      if (classStats.startingShield) {
+        player.shield = classStats.startingShield;
+        player.maxShield = classStats.startingShield;
+      }
+      
+      // Starcaller - Create helper star
+      if (classStats.helperStar) {
+        helperStars.push({
+          x: player.x,
+          y: player.y,
+          angle: 0,
+          damage: classStats.helperStarDamage,
+          fireRate: classStats.helperStarFireRate,
+          range: classStats.helperStarRange,
+          shootTimer: 0
+        });
+      }
+      
+      // BloodReaver - Set starting lifesteal
+      if (classStats.lifestealPercent) {
+        player.lifesteal = classStats.lifestealPercent;
       }
       
       // Initialize potions for first wave
@@ -6854,9 +7665,14 @@
           }
         }
         
-        // Frozen enemies don't move (but can still be in any state)
-        if (!e.frozen) {
-          e.x += e.vx;
+        // Apply movement with debuffs
+        if (!e.frozen && !e.stunned) {
+          // Apply slow effect
+          let moveSpeed = e.vx;
+          if (e.slowAmount > 0) {
+            moveSpeed *= (1 - e.slowAmount);
+          }
+          e.x += moveSpeed;
         }
         e.animFrame = ((e.animFrame || 0) + dt * 10) % 1;
         
@@ -7175,37 +7991,172 @@
         critMultiplier = 5.0; // Headhunter 5x crits
       }
 
-      // Guardian Tank: Create rotating shield projectile
-      if (player.className === "GuardianTank") {
+      const classStats = CLASSES[player.className]?.stats || {};
+      
+      // Berserk: Scale damage based on HP
+      let berserkMultiplier = 1.0;
+      if (classStats.berserkMode) {
+        const hpPercent = player.hp / player.maxHP;
+        if (hpPercent <= classStats.lowHPThreshold) {
+          berserkMultiplier = 1 + (classStats.maxDamageMultiplier - 1) * (1 - (hpPercent / classStats.lowHPThreshold));
+        }
+      }
+      
+      const berserkDamage = finalDamage * berserkMultiplier;
+      
+      // Samurai: Screen-wide slash
+      if (player.className === "Samurai") {
         projectiles.push({
           x: px, y: py,
           vx: dx * player.projectileSpeed,
           vy: dy * player.projectileSpeed,
-          radius: 12, // Larger hitbox
-          damage: finalDamage,
+          radius: 8,
+          damage: berserkDamage,
           color: isCrit ? "#ff0000" : player.bulletColor,
           glowColor: isCrit ? "#ff0000" : player.glowColor,
           life: 3.5,
           trail: [],
-          pierce: false, // Shields don't pierce
+          pierce: true,
           pierceCount: 0,
-          explosive: false, // No explosion
+          explosive: false,
           isCrit: isCrit,
           critMultiplier: critMultiplier,
           chainLightning: 0,
           isEnemyProjectile: false,
-          isShield: true, // Special flag for rendering
-          rotation: 0, // Start rotation
-          knockback: player.knockback || 80 // Guardian Tank knockback
+          isSamuraiSlash: true,
+          slashKnockback: classStats.slashKnockback,
+          chainReaction: classStats.chainReaction,
+          chainDamageBonus: classStats.chainDamageBonus
         });
-      } else {
-        // Normal projectile for other classes
+      }
+      // Guardian Tank: Create rotating shield projectile
+      else if (player.className === "GuardianTank") {
+        projectiles.push({
+          x: px, y: py,
+          vx: dx * player.projectileSpeed,
+          vy: dy * player.projectileSpeed,
+          radius: 12,
+          damage: berserkDamage,
+          color: isCrit ? "#ff0000" : player.bulletColor,
+          glowColor: isCrit ? "#ff0000" : player.glowColor,
+          life: 3.5,
+          trail: [],
+          pierce: false,
+          pierceCount: 0,
+          explosive: false,
+          isCrit: isCrit,
+          critMultiplier: critMultiplier,
+          chainLightning: 0,
+          isEnemyProjectile: false,
+          isShield: true,
+          rotation: 0,
+          knockback: player.knockback || 80
+        });
+      }
+      // Gunslinger: Dual guns with ricochet
+      else if (player.className === "Gunslinger") {
+        // Fire from both guns
+        projectiles.push({
+          x: px - 5, y: py,
+          vx: dx * player.projectileSpeed,
+          vy: dy * player.projectileSpeed,
+          radius: 4,
+          damage: berserkDamage,
+          color: isCrit ? "#ff0000" : player.bulletColor,
+          glowColor: isCrit ? "#ff0000" : player.glowColor,
+          life: 3.5,
+          trail: [],
+          pierce: false,
+          pierceCount: 0,
+          explosive: false,
+          isCrit: isCrit,
+          critMultiplier: critMultiplier,
+          chainLightning: 0,
+          isEnemyProjectile: false,
+          ricochetOffWalls: classStats.ricochetOffWalls,
+          maxRicochets: classStats.maxRicochets,
+          ricochetCount: 0
+        });
+        projectiles.push({
+          x: px + 5, y: py,
+          vx: dx * player.projectileSpeed,
+          vy: dy * player.projectileSpeed,
+          radius: 4,
+          damage: berserkDamage,
+          color: isCrit ? "#ff0000" : player.bulletColor,
+          glowColor: isCrit ? "#ff0000" : player.glowColor,
+          life: 3.5,
+          trail: [],
+          pierce: false,
+          pierceCount: 0,
+          explosive: false,
+          isCrit: isCrit,
+          critMultiplier: critMultiplier,
+          chainLightning: 0,
+          isEnemyProjectile: false,
+          ricochetOffWalls: classStats.ricochetOffWalls,
+          maxRicochets: classStats.maxRicochets,
+          ricochetCount: 0
+        });
+      }
+      // TrickshotRogue: Bouncing shots
+      else if (player.className === "TrickshotRogue") {
         projectiles.push({
           x: px, y: py,
           vx: dx * player.projectileSpeed,
           vy: dy * player.projectileSpeed,
           radius: 5,
-          damage: finalDamage,
+          damage: berserkDamage,
+          color: isCrit ? "#ff0000" : player.bulletColor,
+          glowColor: isCrit ? "#ff0000" : player.glowColor,
+          life: 3.5,
+          trail: [],
+          pierce: false,
+          pierceCount: 0,
+          explosive: false,
+          isCrit: isCrit,
+          critMultiplier: critMultiplier,
+          chainLightning: 0,
+          isEnemyProjectile: false,
+          ricochetShots: classStats.ricochetShots,
+          ricochetCount: 0,
+          ricochetDamageIncrease: classStats.ricochetDamageIncrease,
+          hitEnemies: []
+        });
+      }
+      // Warlock: Shield-piercing projectiles
+      else if (player.className === "Warlock") {
+        projectiles.push({
+          x: px, y: py,
+          vx: dx * player.projectileSpeed,
+          vy: dy * player.projectileSpeed,
+          radius: 6,
+          damage: berserkDamage,
+          color: isCrit ? "#ff0000" : player.bulletColor,
+          glowColor: isCrit ? "#ff0000" : player.glowColor,
+          life: 3.5,
+          trail: [],
+          pierce: false,
+          pierceCount: 0,
+          explosive: false,
+          isCrit: isCrit,
+          critMultiplier: critMultiplier,
+          chainLightning: 0,
+          isEnemyProjectile: false,
+          ignoreShields: classStats.ignoreShields,
+          weakenEnemies: classStats.weakenEnemies,
+          weakenAmount: classStats.weakenAmount,
+          weakenDuration: classStats.weakenDuration
+        });
+      }
+      // Normal projectile for other classes
+      else {
+        const proj = {
+          x: px, y: py,
+          vx: dx * player.projectileSpeed,
+          vy: dy * player.projectileSpeed,
+          radius: 5,
+          damage: berserkDamage,
           color: isCrit ? "#ff0000" : player.bulletColor,
           glowColor: isCrit ? "#ff0000" : player.glowColor,
           life: 3.5,
@@ -7214,13 +8165,30 @@
           pierceCount: 0,
           explosive: player.explosive || explosiveRadius > 0,
           explosionRadius: explosiveRadius,
-          explosionDamage: player.explosionDamage, // Bomber's 90 AOE damage
+          explosionDamage: player.explosionDamage,
           isCrit: isCrit,
           critMultiplier: critMultiplier,
           chainLightning: player.chainLightning || 0,
-          poison: player.poison, // Necromancer poison
+          poison: player.poison,
           isEnemyProjectile: false
-        });
+        };
+        
+        // Pyromancer: Create fire zones
+        if (classStats.fireZones) {
+          proj.createFireZone = true;
+          proj.fireZoneDuration = classStats.fireZoneDuration;
+          proj.fireZoneDamage = classStats.fireZoneDamage;
+        }
+        
+        // CryoSentinel: Create ice shards
+        if (classStats.iceShards) {
+          proj.createIceShard = true;
+          proj.iceShardDamage = classStats.iceShardDamage;
+          proj.iceShardDuration = classStats.iceShardDuration;
+          proj.iceShardSlowAmount = classStats.iceShardSlowAmount;
+        }
+        
+        projectiles.push(proj);
       }
     }
 
@@ -7239,6 +8207,36 @@
         // Rotate shield projectile
         if (p.isShield) {
           p.rotation = (p.rotation || 0) + 0.15; // Rotate continuously
+        }
+        
+        // Gunslinger: Wall ricochet
+        if (p.ricochetOffWalls && p.ricochetCount < p.maxRicochets) {
+          const groundY = GROUND_Y || canvas.height - 50;
+          
+          // Hit floor
+          if (p.y >= groundY - 5) {
+            p.vy = -Math.abs(p.vy);
+            p.ricochetCount++;
+            spawnHitParticles(p.x, p.y, "#FFD700", 6);
+          }
+          // Hit ceiling
+          if (p.y <= 5) {
+            p.vy = Math.abs(p.vy);
+            p.ricochetCount++;
+            spawnHitParticles(p.x, p.y, "#FFD700", 6);
+          }
+          // Hit left wall
+          if (p.x <= 5) {
+            p.vx = Math.abs(p.vx);
+            p.ricochetCount++;
+            spawnHitParticles(p.x, p.y, "#FFD700", 6);
+          }
+          // Hit right wall
+          if (p.x >= canvas.width - 5) {
+            p.vx = -Math.abs(p.vx);
+            p.ricochetCount++;
+            spawnHitParticles(p.x, p.y, "#FFD700", 6);
+          }
         }
 
         if (p.life <= 0 || p.x < -50 || p.x > canvas.width + 50 || p.y < -50 || p.y > canvas.height + 50) {
@@ -7287,20 +8285,112 @@
                 addFloatingText(e.x + e.w / 2, e.y - 30, "CRIT!", "#ff0000");
               }
               
-              // Damage shield first
-              if (e.hasShield && e.shieldHP > 0) {
-                if (e.shieldHP >= actualDamage) {
-                  e.shieldHP -= actualDamage;
-                  actualDamage = 0;
-                  addFloatingText(e.x + e.w / 2, e.y - 10, "SHIELD", "#00aaff");
-                } else {
-                  actualDamage -= e.shieldHP;
-                  e.shieldHP = 0;
-                  addFloatingText(e.x + e.w / 2, e.y - 10, "SHIELD BROKEN!", "#ffaa00");
+              // Warlock: Ignore shields
+              if (p.ignoreShields) {
+                addFloatingText(e.x + e.w / 2, e.y - 10, "PIERCE!", "#4B0082");
+                // Apply weaken effect
+                if (p.weakenEnemies) {
+                  e.weakened = true;
+                  e.weakenAmount = p.weakenAmount;
+                  e.weakenDuration = p.weakenDuration;
+                }
+              } else {
+                // Damage shield first
+                if (e.hasShield && e.shieldHP > 0) {
+                  if (e.shieldHP >= actualDamage) {
+                    e.shieldHP -= actualDamage;
+                    actualDamage = 0;
+                    addFloatingText(e.x + e.w / 2, e.y - 10, "SHIELD", "#00aaff");
+                  } else {
+                    actualDamage -= e.shieldHP;
+                    e.shieldHP = 0;
+                    addFloatingText(e.x + e.w / 2, e.y - 10, "SHIELD BROKEN!", "#ffaa00");
+                  }
                 }
               }
               
+              // Apply weaken debuff if enemy is weakened
+              if (e.weakened) {
+                actualDamage *= (1 + e.weakenAmount);
+              }
+              
               e.hp -= actualDamage;
+              
+              // Pyromancer: Create fire zone on hit
+              if (p.createFireZone) {
+                fireZones.push({
+                  x: e.x + e.w / 2,
+                  y: e.y + e.h / 2,
+                  radius: 80,
+                  damage: p.fireZoneDamage,
+                  life: p.fireZoneDuration
+                });
+                // Apply burn to enemy
+                e.burning = true;
+                e.burnDuration = p.fireZoneDuration;
+                e.burnDPS = p.fireZoneDamage;
+              }
+              
+              // CryoSentinel: Create ice shard on hit
+              if (p.createIceShard && iceShards.length < 8) {
+                iceShards.push({
+                  x: e.x + e.w / 2,
+                  y: e.y + e.h / 2,
+                  angle: Math.random() * Math.PI * 2,
+                  damage: p.iceShardDamage,
+                  slowAmount: p.iceShardSlowAmount,
+                  life: p.iceShardDuration,
+                  hit: false
+                });
+              }
+              
+              // TrickshotRogue: Ricochet between enemies
+              if (p.ricochetShots && p.ricochetCount < p.ricochetShots && !p.hitEnemies.includes(e)) {
+                p.hitEnemies.push(e);
+                p.ricochetCount++;
+                p.damage *= (1 + p.ricochetDamageIncrease); // Increase damage
+                
+                // Find nearest enemy not yet hit
+                let nearestEnemy = null;
+                let minDist = Infinity;
+                for (const otherE of enemies) {
+                  if (otherE === e || p.hitEnemies.includes(otherE)) continue;
+                  const dx = (otherE.x + otherE.w / 2) - p.x;
+                  const dy = (otherE.y + otherE.h / 2) - p.y;
+                  const dist = Math.sqrt(dx * dx + dy * dy);
+                  if (dist < minDist && dist < 300) {
+                    minDist = dist;
+                    nearestEnemy = otherE;
+                  }
+                }
+                
+                if (nearestEnemy) {
+                  const dx = (nearestEnemy.x + nearestEnemy.w / 2) - p.x;
+                  const dy = (nearestEnemy.y + nearestEnemy.h / 2) - p.y;
+                  const dist = Math.sqrt(dx * dx + dy * dy);
+                  p.vx = (dx / dist) * player.projectileSpeed;
+                  p.vy = (dy / dist) * player.projectileSpeed;
+                  addFloatingText(p.x, p.y, "BOUNCE!", "#ff1493");
+                  spawnHitParticles(p.x, p.y, "#ff1493", 8);
+                  continue; // Don't remove projectile
+                }
+              }
+              
+              // Samurai: Chain reaction on kill
+              if (p.isSamuraiSlash && e.hp <= 0 && p.chainReaction) {
+                const chainDamage = p.damage * (1 + p.chainDamageBonus);
+                for (const otherE of enemies) {
+                  if (otherE === e) continue;
+                  const dx = (otherE.x + otherE.w / 2) - (e.x + e.w / 2);
+                  const dy = (otherE.y + otherE.h / 2) - (e.y + e.h / 2);
+                  const dist = Math.sqrt(dx * dx + dy * dy);
+                  if (dist < 200) {
+                    otherE.hp -= chainDamage;
+                    addFloatingText(otherE.x + otherE.w / 2, otherE.y - 30, "CHAIN!", "#C41E3A");
+                    spawnExplosion(otherE.x + otherE.w / 2, otherE.y + otherE.h / 2, "#FF4500", 12);
+                  }
+                }
+              }
               spawnHitParticles(p.x, p.y, p.color, p.isCrit ? 12 : 6);
               screenShake += p.isCrit ? 4 : 2;
               
@@ -7498,22 +8588,94 @@
 
     function showUpgradeScreen() {
       gameState = "upgrading";
-      upgradeScreen.classList.add("active");
-      upgradeSubtitle.textContent = `Level ${player.level} - Choose Your Power-Up`;
       
-      generateUpgradeOptions();
+      // Award upgrade point
+      upgradePoints++;
       
-      // Update shuffle button
-      shuffleCount.textContent = shufflesRemaining;
-      if (shufflesRemaining > 0) {
-        shuffleBtn.style.opacity = "1";
-        shuffleBtn.style.cursor = "pointer";
-        shuffleBtn.disabled = false;
-      } else {
-        shuffleBtn.style.opacity = "0.5";
-        shuffleBtn.style.cursor = "not-allowed";
-        shuffleBtn.disabled = true;
+      // Show BTD-style upgrade tree
+      showUpgradeTree();
+    }
+    
+    function showUpgradeTree() {
+      const upgradeTreeScreen = document.getElementById('upgradeTreeScreen');
+      upgradeTreeScreen.classList.add('active');
+      
+      // Update header info
+      document.getElementById('treePlayerLevel').textContent = player.level;
+      document.getElementById('upgradePoints').textContent = upgradePoints;
+      
+      // Render all three paths
+      renderUpgradePath('pathA', UPGRADE_TREE.pathA);
+      renderUpgradePath('pathB', UPGRADE_TREE.pathB);
+      renderUpgradePath('pathC', UPGRADE_TREE.pathC);
+    }
+    
+    function renderUpgradePath(pathId, upgrades) {
+      const pathContainer = document.getElementById(pathId);
+      pathContainer.innerHTML = '';
+      
+      upgrades.forEach(upgrade => {
+        const node = document.createElement('div');
+        node.className = 'upgrade-node';
+        
+        // Check if purchased
+        const isPurchased = purchasedUpgrades[pathId].includes(upgrade.id);
+        
+        // Check if available (requirements met)
+        const isAvailable = !isPurchased && upgradePoints >= upgrade.cost && 
+                           (!upgrade.requires || upgrade.requires.every(req => 
+                             purchasedUpgrades[pathId].includes(req)
+                           ));
+        
+        // Check if locked
+        const isLocked = !isPurchased && !isAvailable;
+        
+        if (isPurchased) node.classList.add('purchased');
+        else if (isAvailable) node.classList.add('available');
+        else node.classList.add('locked');
+        
+        if (upgrade.master) node.classList.add('master');
+        
+        node.innerHTML = `
+          <div class="upgrade-node-tier">Tier ${upgrade.tier}</div>
+          <div class="upgrade-node-name">${upgrade.name}</div>
+          <div class="upgrade-node-desc">${upgrade.desc}</div>
+          <div class="upgrade-node-cost">${isPurchased ? '✓ PURCHASED' : `Cost: ${upgrade.cost} ${upgrade.cost === 1 ? 'point' : 'points'}`}</div>
+        `;
+        
+        if (isAvailable) {
+          node.onclick = () => purchaseUpgrade(pathId, upgrade);
+        }
+        
+        pathContainer.appendChild(node);
+      });
+    }
+    
+    function purchaseUpgrade(pathId, upgrade) {
+      if (upgradePoints < upgrade.cost) return;
+      
+      // Deduct points
+      upgradePoints -= upgrade.cost;
+      
+      // Mark as purchased
+      purchasedUpgrades[pathId].push(upgrade.id);
+      
+      // Apply upgrade effect
+      upgrade.effect(player);
+      
+      // Visual feedback
+      addFloatingText(canvas.width / 2, 200, `${upgrade.name}!`, "#00ffff", 1.5);
+      spawnExplosion(canvas.width / 2, 200, "#00ffff", 30);
+      screenShake += 8;
+      
+      // Master class announcement
+      if (upgrade.master) {
+        addFloatingText(canvas.width / 2, 150, `⭐ ${player.masterClass.toUpperCase()} MASTER! ⭐`, "#ff00ff", 2.0);
+        screenShake += 15;
       }
+      
+      // Refresh the tree display
+      showUpgradeTree();
     }
 
     function generateUpgradeOptions() {
@@ -7644,6 +8806,12 @@
       upgradeScreen.classList.remove("active");
       gameState = "playing"; // Resume game immediately
       // Continue playing without choosing an upgrade
+    });
+    
+    // Close upgrade tree button listener
+    document.getElementById('closeUpgradeTree').addEventListener('click', () => {
+      document.getElementById('upgradeTreeScreen').classList.remove('active');
+      gameState = "playing";
     });
 
     // COMBO SYSTEM
@@ -8105,6 +9273,87 @@
       updatePotionCooldownDisplay();
       updateAbilities(dt);
       updateFireZones(dt);
+      updatePoisonClouds(dt);
+      updateIceShards(dt);
+      updateTurrets(dt);
+      updateRootBarriers(dt);
+      updateHelperStars(dt);
+      
+      // HolyCleric: Auto-heal spell
+      const classStats = CLASSES[player.class]?.stats || {};
+      if (classStats.autoHealSpell) {
+        player.autoHealTimer = (player.autoHealTimer || 0) + dt;
+        if (player.autoHealTimer >= classStats.autoHealInterval) {
+          player.autoHealTimer = 0;
+          player.hp = Math.min(player.hp + classStats.autoHealAmount, player.maxHP);
+          addFloatingText(player.x + player.w / 2, player.y - 40, "+" + classStats.autoHealAmount + " HP", "#00ff00", 1.5);
+          
+          // Knockback enemies in radius
+          enemies.forEach(e => {
+            const dx = (e.x + e.w / 2) - (player.x + player.w / 2);
+            const dy = (e.y + e.h / 2) - (player.y + player.h / 2);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < classStats.autoHealRadius) {
+              const angle = Math.atan2(dy, dx);
+              e.x += Math.cos(angle) * classStats.autoHealKnockback;
+              e.y += Math.sin(angle) * classStats.autoHealKnockback;
+              addFloatingText(e.x + e.w / 2, e.y - 30, "REPEL!", "#ffd700");
+            }
+          });
+          
+          spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, "#ffd700", 20);
+          screenShake += 5;
+        }
+      }
+      
+      // Update enemy debuffs
+      enemies.forEach(e => {
+        // Burn damage
+        if (e.burning) {
+          e.burnDuration -= dt;
+          if (e.burnDuration <= 0) {
+            e.burning = false;
+          } else {
+            e.hp -= e.burnDPS * dt;
+            if (Math.random() < 0.1) {
+              particles.push({
+                x: e.x + e.w / 2,
+                y: e.y + e.h / 2,
+                vx: Math.random() * 4 - 2,
+                vy: Math.random() * 4 - 2,
+                radius: 3,
+                color: "#ff4500",
+                life: 0.5
+              });
+            }
+          }
+        }
+        
+        // Weaken debuff
+        if (e.weakened) {
+          e.weakenDuration -= dt;
+          if (e.weakenDuration <= 0) {
+            e.weakened = false;
+          }
+        }
+        
+        // Slow debuff
+        if (e.slowDuration > 0) {
+          e.slowDuration -= dt;
+          if (e.slowDuration <= 0) {
+            e.slowAmount = 0;
+          }
+        }
+        
+        // Stun debuff
+        if (e.stunned && e.stunDuration > 0) {
+          e.stunDuration -= dt;
+          if (e.stunDuration <= 0) {
+            e.stunned = false;
+          }
+        }
+      });
       
       // Regeneration
       if (player.regen > 0) {
@@ -8279,59 +9528,2053 @@
         drawPhantomClone(x, y, w, h);
       }
 
-      // Try to draw sprite if available
-      const sprite = characterSprites[player.className];
+      // Determine animation state
+      const keys = window.keys || {};
+      const isMoving = keys['a'] || keys['d'] || keys['w'] || keys['s'];
+      const animFrame = player.animFrame || 0;
+      const bobOffset = isMoving ? Math.sin(animFrame * Math.PI * 8) * 3 : 0;
       
-      if (sprite && spritesLoaded) {
-        // DRAW SPRITE
-        const frame = getSpriteFrame(player.animFrame || 0);
-        const spriteWidth = sprite.width;
-        const spriteHeight = sprite.height;
-        const frameWidth = spriteWidth / 4; // 4 frames per sprite sheet
+      // Draw character-specific sprite
+      ctx.save();
+      
+      // Flip if facing left
+      if (player.facingLeft) {
+        ctx.translate(x + w, y);
+        ctx.scale(-1, 1);
+        drawCharacterSprite(player.className, 0, 0, w, h, animFrame, isMoving, bobOffset);
+      } else {
+        ctx.translate(x, y);
+        drawCharacterSprite(player.className, 0, 0, w, h, animFrame, isMoving, bobOffset);
+      }
+      
+      ctx.restore();
+    }
+    
+    function drawCharacterSprite(className, x, y, w, h, animFrame, isMoving, bobOffset) {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = player.glowColor;
+      
+      switch(className) {
+        case 'Hunter':
+          drawHunterSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Knight':
+          drawKnightSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Archer':
+          drawArcherSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Thief':
+          drawThiefSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Assassin':
+          drawAssassinSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Summoner':
+          drawSummonerSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'DarkMagician':
+          drawDarkMagicianSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Bomber':
+          drawBomberSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Sniper':
+          drawSniperSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Necromancer':
+          drawNecromancerSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Vecna':
+          drawVecnaSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Pyromancer':
+          drawPyromancerSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'CryoSentinel':
+          drawCryoSentinelSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'PlagueDoctor':
+          drawPlagueDoctorSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'LightningRanger':
+          drawLightningRangerSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'BloodReaver':
+          drawBloodReaverSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'CrystalGuardian':
+          drawCrystalGuardianSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'ShadowMonk':
+          drawShadowMonkSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'HolyCleric':
+          drawHolyClericSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'TrickshotRogue':
+          drawTrickshotRogueSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Starcaller':
+          drawStarcallerSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'AstralGolem':
+          drawAstralGolemSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Engineer':
+          drawEngineerSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'GuardianTank':
+          drawGuardianTankSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Berserk':
+          drawBerserkSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Samurai':
+          drawSamuraiSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Warlock':
+          drawWarlockSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Druid':
+          drawDruidSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        case 'Gunslinger':
+          drawGunslingerSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+          break;
+        default:
+          drawDefaultSprite(x, y, w, h, animFrame, isMoving, bobOffset);
+      }
+      
+      ctx.shadowBlur = 0;
+    }
+    
+    // CHARACTER SPRITE FUNCTIONS
+    function drawHunterSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Hunter - Balanced archer with bow
+      // Body
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.3, y + h*0.35 + bobOffset, w*0.4, h*0.5);
+      
+      // Head
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Hood/Hat
+      ctx.fillStyle = player.accent;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.3, y + h*0.2 + bobOffset);
+      ctx.lineTo(x + w*0.5, y + h*0.05 + bobOffset);
+      ctx.lineTo(x + w*0.7, y + h*0.2 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Bow
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.5 + bobOffset, w*0.25, -Math.PI/4, Math.PI/4, false);
+      ctx.stroke();
+      
+      // Quiver
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(x + w*0.2, y + h*0.4 + bobOffset, w*0.15, h*0.3);
+      
+      // Arrows in quiver
+      for(let i = 0; i < 3; i++) {
+        ctx.strokeStyle = "#FFD700";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.22 + i*w*0.04, y + h*0.38 + bobOffset);
+        ctx.lineTo(x + w*0.22 + i*w*0.04, y + h*0.45 + bobOffset);
+        ctx.stroke();
+      }
+      
+      // Legs
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.35, y + h*0.75 + bobOffset, w*0.12, h*0.25);
+      ctx.fillRect(x + w*0.53, y + h*0.75 + bobOffset, w*0.12, h*0.25);
+    }
+    
+    function drawKnightSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Knight - Heavy armored warrior
+      // Armor body
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.25, y + h*0.35 + bobOffset, w*0.5, h*0.5);
+      
+      // Shoulder pads
+      ctx.fillRect(x + w*0.15, y + h*0.35 + bobOffset, w*0.2, h*0.15);
+      ctx.fillRect(x + w*0.65, y + h*0.35 + bobOffset, w*0.2, h*0.15);
+      
+      // Helmet
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.3, y + h*0.15 + bobOffset, w*0.4, h*0.25);
+      ctx.fillRect(x + w*0.25, y + h*0.1 + bobOffset, w*0.5, h*0.15);
+      
+      // Visor slit
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + w*0.35, y + h*0.22 + bobOffset, w*0.3, h*0.05);
+      
+      // Sword
+      ctx.fillStyle = "#C0C0C0";
+      ctx.fillRect(x + w*0.8, y + h*0.3 + bobOffset, w*0.08, h*0.5);
+      ctx.fillStyle = "#FFD700";
+      ctx.fillRect(x + w*0.75, y + h*0.3 + bobOffset, w*0.18, h*0.1);
+      
+      // Shield
+      ctx.fillStyle = player.bulletColor;
+      ctx.beginPath();
+      ctx.arc(x + w*0.1, y + h*0.5 + bobOffset, w*0.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Legs
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.32, y + h*0.75 + bobOffset, w*0.15, h*0.25);
+      ctx.fillRect(x + w*0.53, y + h*0.75 + bobOffset, w*0.15, h*0.25);
+    }
+    
+    function drawArcherSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Archer - Rapid fire specialist
+      // Light armor body
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.32, y + h*0.4 + bobOffset, w*0.36, h*0.45);
+      
+      // Head
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.28 + bobOffset, w*0.18, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Headband
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.35, y + h*0.22 + bobOffset, w*0.3, h*0.06);
+      
+      // Rapid-fire crossbow
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(x + w*0.7, y + h*0.45 + bobOffset, w*0.25, h*0.08);
+      ctx.fillStyle = "#8B4513";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.95, y + h*0.4 + bobOffset);
+      ctx.lineTo(x + w*0.7, y + h*0.49 + bobOffset);
+      ctx.lineTo(x + w*0.95, y + h*0.58 + bobOffset);
+      ctx.fill();
+      
+      // Multiple arrows ready
+      for(let i = 0; i < 5; i++) {
+        ctx.fillStyle = "#FFD700";
+        ctx.fillRect(x + w*0.15 + i*w*0.03, y + h*0.5 + bobOffset, w*0.02, h*0.15);
+      }
+      
+      // Legs
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.37, y + h*0.75 + bobOffset, w*0.12, h*0.25);
+      ctx.fillRect(x + w*0.51, y + h*0.75 + bobOffset, w*0.12, h*0.25);
+    }
+    
+    function drawThiefSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Thief - Sneaky money collector
+      // Dark cloak
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.2, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.5, y + h*0.3 + bobOffset);
+      ctx.lineTo(x + w*0.8, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.7, y + h*0.85 + bobOffset);
+      ctx.lineTo(x + w*0.3, y + h*0.85 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Masked face
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.15, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Eyes (glowing)
+      ctx.fillStyle = player.glowColor;
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.24 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.arc(x + w*0.58, y + h*0.24 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Daggers
+      ctx.fillStyle = "#C0C0C0";
+      ctx.fillRect(x + w*0.8, y + h*0.5 + bobOffset, w*0.05, h*0.25);
+      ctx.fillRect(x + w*0.15, y + h*0.5 + bobOffset, w*0.05, h*0.25);
+      
+      // Money bag
+      ctx.fillStyle = "#FFD700";
+      ctx.beginPath();
+      ctx.arc(x + w*0.25, y + h*0.7 + bobOffset, w*0.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#000";
+      ctx.font = `${w*0.15}px Arial`;
+      ctx.fillText("$", x + w*0.22, y + h*0.73 + bobOffset);
+    }
+    
+    function drawAssassinSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Assassin - Ultra-fast glass cannon
+      // Sleek bodysuit
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.33, y + h*0.35 + bobOffset, w*0.34, h*0.5);
+      
+      // Head with mask
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.16, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Glowing eyes
+      ctx.fillStyle = "#FF00FF";
+      ctx.beginPath();
+      ctx.arc(x + w*0.43, y + h*0.23 + bobOffset, w*0.035, 0, Math.PI * 2);
+      ctx.arc(x + w*0.57, y + h*0.23 + bobOffset, w*0.035, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Twin blades (crossed)
+      ctx.strokeStyle = "#FF00FF";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.2, y + h*0.4 + bobOffset);
+      ctx.lineTo(x + w*0.5, y + h*0.7 + bobOffset);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.8, y + h*0.4 + bobOffset);
+      ctx.lineTo(x + w*0.5, y + h*0.7 + bobOffset);
+      ctx.stroke();
+      
+      // Speed lines
+      if(isMoving) {
+        ctx.strokeStyle = player.glowColor;
+        ctx.globalAlpha = 0.5;
+        ctx.lineWidth = 2;
+        for(let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.moveTo(x - w*0.2 - i*w*0.1, y + h*0.3 + i*h*0.2 + bobOffset);
+          ctx.lineTo(x, y + h*0.3 + i*h*0.2 + bobOffset);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+    
+    function drawSummonerSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Summoner - Spirit magic user
+      // Robed body
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.25, y + h*0.45 + bobOffset);
+      ctx.lineTo(x + w*0.2, y + h*0.9 + bobOffset);
+      ctx.lineTo(x + w*0.8, y + h*0.9 + bobOffset);
+      ctx.lineTo(x + w*0.75, y + h*0.45 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Head
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.17, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Wizard hat
+      ctx.fillStyle = player.accent;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.3, y + h*0.2 + bobOffset);
+      ctx.lineTo(x + w*0.5, y + bobOffset);
+      ctx.lineTo(x + w*0.7, y + h*0.2 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Star on hat
+      ctx.fillStyle = "#FFD700";
+      drawStar(ctx, x + w*0.5, y + h*0.1 + bobOffset, 5, w*0.08, w*0.04);
+      
+      // Staff with crystal
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.85, y + h*0.3 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*0.85 + bobOffset);
+      ctx.stroke();
+      
+      ctx.fillStyle = player.glowColor;
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.25 + bobOffset, w*0.08, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Floating spirits
+      const spiritOffset = Math.sin(Date.now() / 200) * 5;
+      ctx.globalAlpha = 0.6;
+      ctx.fillStyle = "#88ff88";
+      ctx.beginPath();
+      ctx.arc(x + w*1.1, y + h*0.4 + spiritOffset, w*0.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    
+    function drawDarkMagicianSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Dark Magician - Powerful slow caster
+      // Dark robes
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.2, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*0.15, y + h*0.95 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*0.95 + bobOffset);
+      ctx.lineTo(x + w*0.8, y + h*0.5 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Hooded head
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Glowing purple eyes
+      ctx.fillStyle = "#8800ff";
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = "#8800ff";
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.24 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.arc(x + w*0.58, y + h*0.24 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Dark orb
+      const orbPulse = Math.sin(Date.now() / 300) * 0.1 + 1;
+      ctx.fillStyle = player.accent;
+      ctx.globalAlpha = orbPulse * 0.8;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.6 + bobOffset, w*0.15 * orbPulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      
+      // Dark energy wisps
+      for(let i = 0; i < 3; i++) {
+        const angle = (Date.now() / 500 + i * Math.PI * 2/3);
+        const wx = x + w*0.5 + Math.cos(angle) * w*0.3;
+        const wy = y + h*0.6 + Math.sin(angle) * w*0.3 + bobOffset;
+        ctx.fillStyle = "#8800ff";
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.arc(wx, wy, w*0.05, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+    
+    function drawBomberSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Bomber - AOE explosion specialist
+      // Heavy vest
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.25, y + h*0.4 + bobOffset, w*0.5, h*0.45);
+      
+      // Head with goggles
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.28 + bobOffset, w*0.18, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Goggles
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.fillStyle = "#87CEEB";
+      ctx.beginPath();
+      ctx.arc(x + w*0.4, y + h*0.26 + bobOffset, w*0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x + w*0.6, y + h*0.26 + bobOffset, w*0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Bomb bandolier
+      for(let i = 0; i < 3; i++) {
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.arc(x + w*0.3 + i*w*0.2, y + h*0.55 + bobOffset, w*0.08, 0, Math.PI * 2);
+        ctx.fill();
         
+        // Fuse
+        ctx.strokeStyle = "#FF8800";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.3 + i*w*0.2, y + h*0.47 + bobOffset);
+        ctx.lineTo(x + w*0.3 + i*w*0.2 - w*0.03, y + h*0.42 + bobOffset);
+        ctx.stroke();
+      }
+      
+      // Large bomb in hand
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.6 + bobOffset, w*0.12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Lit fuse
+      ctx.strokeStyle = "#FF8800";
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = "#FF8800";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.85, y + h*0.48 + bobOffset);
+      ctx.lineTo(x + w*0.88, y + h*0.4 + bobOffset);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      
+      // Spark
+      ctx.fillStyle = "#FFFF00";
+      ctx.beginPath();
+      ctx.arc(x + w*0.88, y + h*0.4 + bobOffset, w*0.03, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    function drawSniperSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Sniper - Long range precision
+      // Ghillie suit body
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.3, y + h*0.4 + bobOffset, w*0.4, h*0.45);
+      
+      // Camouflage pattern
+      ctx.fillStyle = player.accent;
+      for(let i = 0; i < 5; i++) {
+        ctx.fillRect(x + w*0.3 + Math.random()*w*0.3, y + h*0.4 + Math.random()*h*0.4 + bobOffset, w*0.05, h*0.05);
+      }
+      
+      // Head with scope
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.28 + bobOffset, w*0.16, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Scope goggles
+      ctx.fillStyle = "#00FFFF";
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.26 + bobOffset, w*0.07, 0, Math.PI * 2);
+      ctx.arc(x + w*0.58, y + h*0.26 + bobOffset, w*0.07, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Long sniper rifle
+      ctx.fillStyle = "#2F4F4F";
+      ctx.fillRect(x + w*0.7, y + h*0.45 + bobOffset, w*0.45, h*0.08);
+      
+      // Scope
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + w*0.85, y + h*0.42 + bobOffset, w*0.15, h*0.14);
+      ctx.strokeStyle = "#00FFFF";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x + w*0.92, y + h*0.49 + bobOffset, w*0.05, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Laser sight
+      ctx.strokeStyle = "#FF0000";
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(x + w*1.15, y + h*0.49 + bobOffset);
+      ctx.lineTo(x + w*2, y + h*0.49 + bobOffset);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    
+    function drawNecromancerSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Necromancer - Poison and skeleton summoner
+      // Tattered robes
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.25, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*0.2, y + h*0.95 + bobOffset);
+      for(let i = 0; i < 5; i++) {
+        ctx.lineTo(x + w*0.2 + i*w*0.15, y + h*0.95 - (i%2)*h*0.05);
+      }
+      ctx.lineTo(x + w*0.75, y + h*0.5 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Skull head
+      ctx.fillStyle = "#E0E0E0";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.18, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Skull eyes (empty sockets)
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.23 + bobOffset, w*0.05, 0, Math.PI * 2);
+      ctx.arc(x + w*0.58, y + h*0.23 + bobOffset, w*0.05, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Green glow in sockets
+      ctx.fillStyle = "#00FF00";
+      ctx.globalAlpha = 0.8;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = "#00FF00";
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.23 + bobOffset, w*0.03, 0, Math.PI * 2);
+      ctx.arc(x + w*0.58, y + h*0.23 + bobOffset, w*0.03, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+      
+      // Staff with skull
+      ctx.strokeStyle = "#4B0082";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.15, y + h*0.3 + bobOffset);
+      ctx.lineTo(x + w*0.15, y + h*0.85 + bobOffset);
+      ctx.stroke();
+      
+      ctx.fillStyle = "#E0E0E0";
+      ctx.beginPath();
+      ctx.arc(x + w*0.15, y + h*0.25 + bobOffset, w*0.08, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Floating poison cloud
+      const poisonFloat = Math.sin(Date.now() / 400) * 5;
+      ctx.fillStyle = "#32CD32";
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      ctx.arc(x + w*0.9, y + h*0.5 + poisonFloat, w*0.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    
+    function drawDefaultSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Default fallback sprite
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x, y + bobOffset, w, h);
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + 4, y + 4 + bobOffset, w - 8, h - 8);
+      
+      // Simple face
+      ctx.fillStyle = "#ffd4a3";
+      ctx.fillRect(x + w*0.25, y - h*0.3 + bobOffset, w*0.5, h*0.3);
+      ctx.fillStyle = player.glowColor;
+      ctx.fillRect(x + w*0.35, y - h*0.18 + bobOffset, 4, 4);
+      ctx.fillRect(x + w*0.55, y - h*0.18 + bobOffset, 4, 4);
+    }
+    
+    function drawVecnaSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Vecna - Eldritch summoner with eye and tentacles
+      // Dark robed body with eldritch patterns
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.2, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*0.15, y + h*1 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*1 + bobOffset);
+      ctx.lineTo(x + w*0.8, y + h*0.5 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Giant floating eye (Vecna's eye)
+      const eyePulse = Math.sin(Date.now() / 300) * 0.05 + 1;
+      ctx.fillStyle = "#FFFFFF";
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#FF00FF";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.22 * eyePulse, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Iris
+      ctx.fillStyle = "#8800FF";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.12 * eyePulse, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Pupil
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.06 * eyePulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Tentacles emerging from robe
+      for(let i = 0; i < 4; i++) {
+        const tentacleWave = Math.sin(Date.now() / 200 + i) * 0.1;
+        ctx.strokeStyle = player.accent;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.2 + i*w*0.2, y + h*0.7 + bobOffset);
+        ctx.bezierCurveTo(
+          x + w*0.2 + i*w*0.2 + tentacleWave*50, y + h*0.85 + bobOffset,
+          x + w*0.15 + i*w*0.2 - tentacleWave*50, y + h*1 + bobOffset,
+          x + w*0.1 + i*w*0.2, y + h*1.15 + bobOffset
+        );
+        ctx.stroke();
+      }
+      
+      // Eldritch runes floating around
+      ctx.fillStyle = "#FF00FF";
+      ctx.globalAlpha = 0.6;
+      const runeAngle = Date.now() / 500;
+      for(let i = 0; i < 3; i++) {
+        const angle = runeAngle + i * Math.PI * 2/3;
+        const rx = x + w*0.5 + Math.cos(angle) * w*0.4;
+        const ry = y + h*0.5 + Math.sin(angle) * w*0.4 + bobOffset;
+        ctx.font = `${w*0.15}px Arial`;
+        ctx.fillText("☥", rx, ry);
+      }
+      ctx.globalAlpha = 1;
+    }
+    
+    function drawPyromancerSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Pyromancer - Fire specialist creating burning zones
+      // Fire-resistant robes
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.28, y + h*0.4 + bobOffset, w*0.44, h*0.5);
+      
+      // Head
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.28 + bobOffset, w*0.18, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Flaming hair
+      ctx.fillStyle = "#FF4500";
+      for(let i = 0; i < 5; i++) {
+        const flameHeight = Math.random() * h*0.15 + h*0.1;
+        const flameX = x + w*0.3 + i*w*0.1;
+        ctx.beginPath();
+        ctx.moveTo(flameX, y + h*0.15 + bobOffset);
+        ctx.lineTo(flameX - w*0.03, y + h*0.15 - flameHeight + bobOffset);
+        ctx.lineTo(flameX + w*0.03, y + h*0.15 - flameHeight + bobOffset);
+        ctx.closePath();
+        ctx.fill();
+      }
+      
+      // Fire aura
+      const fireGlow = Math.sin(Date.now() / 200) * 0.2 + 0.8;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = "#FF6600";
+      ctx.globalAlpha = fireGlow;
+      ctx.strokeStyle = "#FF6600";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.6 + bobOffset, w*0.4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      
+      // Fireballs in hands
+      ctx.fillStyle = "#FF4500";
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#FF4500";
+      ctx.beginPath();
+      ctx.arc(x + w*0.15, y + h*0.55 + bobOffset, w*0.12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.55 + bobOffset, w*0.12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Inner flame
+      ctx.fillStyle = "#FFFF00";
+      ctx.beginPath();
+      ctx.arc(x + w*0.15, y + h*0.55 + bobOffset, w*0.06, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.55 + bobOffset, w*0.06, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Legs
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.35, y + h*0.8 + bobOffset, w*0.13, h*0.2);
+      ctx.fillRect(x + w*0.52, y + h*0.8 + bobOffset, w*0.13, h*0.2);
+    }
+    
+    function drawCryoSentinelSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // CryoSentinel - Ice warrior creating ice shards
+      // Crystalline ice armor
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.25, y + h*0.38 + bobOffset, w*0.5, h*0.5);
+      
+      // Ice crystal spikes on shoulders
+      ctx.fillStyle = "#00FFFF";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.2, y + h*0.38 + bobOffset);
+      ctx.lineTo(x + w*0.15, y + h*0.25 + bobOffset);
+      ctx.lineTo(x + w*0.25, y + h*0.35 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.8, y + h*0.38 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*0.25 + bobOffset);
+      ctx.lineTo(x + w*0.75, y + h*0.35 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Frozen head/helmet
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.32, y + h*0.18 + bobOffset, w*0.36, h*0.25);
+      
+      // Glowing ice eyes
+      ctx.fillStyle = "#00FFFF";
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = "#00FFFF";
+      ctx.fillRect(x + w*0.38, y + h*0.26 + bobOffset, w*0.08, h*0.08);
+      ctx.fillRect(x + w*0.54, y + h*0.26 + bobOffset, w*0.08, h*0.08);
+      ctx.shadowBlur = 0;
+      
+      // Ice sword
+      ctx.fillStyle = "#87CEEB";
+      ctx.fillRect(x + w*0.8, y + h*0.35 + bobOffset, w*0.08, h*0.5);
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.8, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.84, y + h*0.25 + bobOffset);
+      ctx.lineTo(x + w*0.88, y + h*0.35 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Frost particles
+      ctx.fillStyle = "#FFFFFF";
+      ctx.globalAlpha = 0.7;
+      for(let i = 0; i < 8; i++) {
+        const px = x + w*0.5 + (Math.random() - 0.5) * w*0.8;
+        const py = y + h*0.6 + (Math.random() - 0.5) * h*0.5 + bobOffset;
+        ctx.fillRect(px, py, 3, 3);
+      }
+      ctx.globalAlpha = 1;
+      
+      // Ice shards floating
+      const shardFloat = Math.sin(Date.now() / 300) * 5;
+      ctx.fillStyle = "#00CED1";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.1, y + h*0.5 + shardFloat);
+      ctx.lineTo(x + w*0.08, y + h*0.45 + shardFloat);
+      ctx.lineTo(x + w*0.12, y + h*0.48 + shardFloat);
+      ctx.closePath();
+      ctx.fill();
+    }
+    
+    function drawPlagueDoctorSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // PlagueDoctor - Poison cloud placer
+      // Long dark coat
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.25, y + h*0.45 + bobOffset);
+      ctx.lineTo(x + w*0.2, y + h*0.95 + bobOffset);
+      ctx.lineTo(x + w*0.8, y + h*0.95 + bobOffset);
+      ctx.lineTo(x + w*0.75, y + h*0.45 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Plague doctor mask (beak)
+      ctx.fillStyle = "#8B4513";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.17, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Beak
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.25 + bobOffset);
+      ctx.lineTo(x + w*0.7, y + h*0.22 + bobOffset);
+      ctx.lineTo(x + w*0.7, y + h*0.28 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Goggle eyes
+      ctx.fillStyle = "#32CD32";
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "#32CD32";
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.23 + bobOffset, w*0.06, 0, Math.PI * 2);
+      ctx.arc(x + w*0.52, y + h*0.23 + bobOffset, w*0.06, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Wide brim hat
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + w*0.25, y + h*0.12 + bobOffset, w*0.5, h*0.05);
+      ctx.fillRect(x + w*0.35, y + h*0.08 + bobOffset, w*0.3, h*0.08);
+      
+      // Poison vials
+      for(let i = 0; i < 3; i++) {
+        ctx.fillStyle = "#32CD32";
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(x + w*0.3 + i*w*0.15, y + h*0.6 + bobOffset, w*0.06, h*0.15);
+        ctx.fillStyle = "#228B22";
+        ctx.fillRect(x + w*0.3 + i*w*0.15, y + h*0.58 + bobOffset, w*0.06, h*0.04);
+        ctx.globalAlpha = 1;
+      }
+      
+      // Poison cloud aura
+      const poisonPulse = Math.sin(Date.now() / 400) * 10;
+      ctx.fillStyle = "#32CD32";
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.6 + bobOffset, w*0.5 + poisonPulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    
+    function drawLightningRangerSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // LightningRanger - Chain lightning specialist
+      // Light armor with electric patterns
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.3, y + h*0.4 + bobOffset, w*0.4, h*0.45);
+      
+      // Electric lines on armor
+      ctx.strokeStyle = "#FFFF00";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.35, y + h*0.45 + bobOffset);
+      ctx.lineTo(x + w*0.4, y + h*0.55 + bobOffset);
+      ctx.lineTo(x + w*0.35, y + h*0.65 + bobOffset);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.65, y + h*0.45 + bobOffset);
+      ctx.lineTo(x + w*0.6, y + h*0.55 + bobOffset);
+      ctx.lineTo(x + w*0.65, y + h*0.65 + bobOffset);
+      ctx.stroke();
+      
+      // Head
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.28 + bobOffset, w*0.17, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Lightning crown
+      ctx.fillStyle = "#FFFF00";
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = "#FFFF00";
+      for(let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.3 + i*w*0.1, y + h*0.15 + bobOffset);
+        ctx.lineTo(x + w*0.28 + i*w*0.1, y + h*0.08 + bobOffset);
+        ctx.lineTo(x + w*0.32 + i*w*0.1, y + h*0.08 + bobOffset);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      
+      // Electrified bow
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.5 + bobOffset, w*0.25, -Math.PI/4, Math.PI/4, false);
+      ctx.stroke();
+      
+      // Lightning string
+      ctx.strokeStyle = "#FFFF00";
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "#FFFF00";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.68, y + h*0.37 + bobOffset);
+      ctx.lineTo(x + w*0.72, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*0.68, y + h*0.63 + bobOffset);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      
+      // Sparks
+      const sparkTime = Date.now() / 100;
+      for(let i = 0; i < 4; i++) {
+        const angle = sparkTime + i * Math.PI / 2;
+        const sx = x + w*0.5 + Math.cos(angle) * w*0.35;
+        const sy = y + h*0.6 + Math.sin(angle) * w*0.35 + bobOffset;
+        ctx.fillStyle = "#FFFF00";
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        ctx.arc(sx, sy, w*0.04, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+    
+    function drawBloodReaverSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // BloodReaver - Life-stealing vampire
+      // Dark crimson armor
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.27, y + h*0.38 + bobOffset, w*0.46, h*0.5);
+      
+      // Cape
+      ctx.fillStyle = "#8B0000";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.3, y + h*0.38 + bobOffset);
+      ctx.lineTo(x + w*0.15, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*0.2, y + h*0.9 + bobOffset);
+      ctx.lineTo(x + w*0.35, y + h*0.8 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.7, y + h*0.38 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*0.8, y + h*0.9 + bobOffset);
+      ctx.lineTo(x + w*0.65, y + h*0.8 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Pale vampire head
+      ctx.fillStyle = "#E8E8E8";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.26 + bobOffset, w*0.18, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Blood-red eyes
+      ctx.fillStyle = "#FF0000";
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = "#FF0000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.24 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.arc(x + w*0.58, y + h*0.24 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Fangs
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.45, y + h*0.3 + bobOffset);
+      ctx.lineTo(x + w*0.47, y + h*0.34 + bobOffset);
+      ctx.lineTo(x + w*0.43, y + h*0.34 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.55, y + h*0.3 + bobOffset);
+      ctx.lineTo(x + w*0.57, y + h*0.34 + bobOffset);
+      ctx.lineTo(x + w*0.53, y + h*0.34 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Blood scythe
+      ctx.strokeStyle = "#C0C0C0";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.85, y + h*0.3 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*0.8 + bobOffset);
+      ctx.stroke();
+      
+      ctx.fillStyle = "#8B0000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.25 + bobOffset, w*0.15, Math.PI, Math.PI * 1.5);
+      ctx.fill();
+      
+      // Blood droplets
+      const dropTime = Date.now() / 200;
+      for(let i = 0; i < 3; i++) {
+        const dy = (dropTime + i*20) % 50;
+        ctx.fillStyle = "#FF0000";
+        ctx.globalAlpha = 1 - dy/50;
+        ctx.beginPath();
+        ctx.arc(x + w*0.4 + i*w*0.1, y + h*0.5 + dy + bobOffset, w*0.03, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+    
+    function drawCrystalGuardianSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // CrystalGuardian - Defensive tank with crystal armor
+      // Massive crystal body
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.2, y + h*0.35 + bobOffset, w*0.6, h*0.55);
+      
+      // Crystal facets
+      ctx.strokeStyle = player.glowColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.2, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.5, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*0.8, y + h*0.35 + bobOffset);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.2, y + h*0.9 + bobOffset);
+      ctx.lineTo(x + w*0.5, y + h*0.7 + bobOffset);
+      ctx.lineTo(x + w*0.8, y + h*0.9 + bobOffset);
+      ctx.stroke();
+      
+      // Crystal spikes on shoulders
+      ctx.fillStyle = player.accent;
+      for(let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.15, y + h*0.4 + i*h*0.08 + bobOffset);
+        ctx.lineTo(x + w*0.05, y + h*0.35 + i*h*0.08 + bobOffset);
+        ctx.lineTo(x + w*0.15, y + h*0.35 + i*h*0.08 + bobOffset);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.85, y + h*0.4 + i*h*0.08 + bobOffset);
+        ctx.lineTo(x + w*0.95, y + h*0.35 + i*h*0.08 + bobOffset);
+        ctx.lineTo(x + w*0.85, y + h*0.35 + i*h*0.08 + bobOffset);
+        ctx.closePath();
+        ctx.fill();
+      }
+      
+      // Glowing crystal core
+      const corePulse = Math.sin(Date.now() / 300) * 0.1 + 0.9;
+      ctx.fillStyle = player.bulletColor;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = player.bulletColor;
+      ctx.globalAlpha = corePulse;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.55 + bobOffset, w*0.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      
+      // Crystal head/helmet
+      ctx.fillStyle = player.accent;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.15 + bobOffset);
+      ctx.lineTo(x + w*0.35, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.65, y + h*0.35 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Glowing eyes
+      ctx.fillStyle = player.glowColor;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = player.glowColor;
+      ctx.fillRect(x + w*0.4, y + h*0.26 + bobOffset, w*0.06, h*0.04);
+      ctx.fillRect(x + w*0.54, y + h*0.26 + bobOffset, w*0.06, h*0.04);
+      ctx.shadowBlur = 0;
+    }
+    
+    function drawShadowMonkSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // ShadowMonk - Melee martial artist
+      // Simple monk robes
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.32, y + h*0.4 + bobOffset, w*0.36, h*0.48);
+      
+      // Belt/sash
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.28, y + h*0.65 + bobOffset, w*0.44, h*0.08);
+      
+      // Head
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.28 + bobOffset, w*0.17, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Shaved head marking
+      ctx.strokeStyle = player.accent;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.2 + bobOffset, w*0.08, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Focused eyes
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + w*0.42, y + h*0.27 + bobOffset, w*0.06, h*0.02);
+      ctx.fillRect(x + w*0.52, y + h*0.27 + bobOffset, w*0.06, h*0.02);
+      
+      // Fighting stance - fists
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.15, y + h*0.55 + bobOffset, w*0.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.55 + bobOffset, w*0.1, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Shadow energy aura
+      ctx.strokeStyle = "#4B0082";
+      ctx.globalAlpha = 0.5;
+      ctx.lineWidth = 3;
+      for(let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.arc(x + w*0.5, y + h*0.6 + bobOffset, w*0.35 + i*w*0.1, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      
+      // Chi symbol on chest
+      ctx.fillStyle = player.glowColor;
+      ctx.font = `${w*0.2}px Arial`;
+      ctx.fillText("☯", x + w*0.42, y + h*0.6 + bobOffset);
+    }
+    
+    function drawHolyClericSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // HolyCleric - Healer with auto-heal and knockback
+      // White/gold robes
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.25, y + h*0.48 + bobOffset);
+      ctx.lineTo(x + w*0.22, y + h*0.92 + bobOffset);
+      ctx.lineTo(x + w*0.78, y + h*0.92 + bobOffset);
+      ctx.lineTo(x + w*0.75, y + h*0.48 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Gold trim
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.25, y + h*0.48 + bobOffset);
+      ctx.lineTo(x + w*0.22, y + h*0.92 + bobOffset);
+      ctx.lineTo(x + w*0.78, y + h*0.92 + bobOffset);
+      ctx.lineTo(x + w*0.75, y + h*0.48 + bobOffset);
+      ctx.stroke();
+      
+      // Head
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.26 + bobOffset, w*0.17, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Halo
+      const haloGlow = Math.sin(Date.now() / 400) * 0.2 + 0.8;
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 4;
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#FFD700";
+      ctx.globalAlpha = haloGlow;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.12 + bobOffset, w*0.15, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      
+      // Staff with cross
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.85, y + h*0.25 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*0.85 + bobOffset);
+      ctx.stroke();
+      
+      // Cross top
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.75, y + h*0.3 + bobOffset);
+      ctx.lineTo(x + w*0.95, y + h*0.3 + bobOffset);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.85, y + h*0.2 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*0.4 + bobOffset);
+      ctx.stroke();
+      
+      // Healing aura
+      ctx.fillStyle = "#90EE90";
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.6 + bobOffset, w*0.55, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      
+      // Healing particles
+      for(let i = 0; i < 5; i++) {
+        const angle = Date.now() / 500 + i * Math.PI * 2/5;
+        const px = x + w*0.5 + Math.cos(angle) * w*0.4;
+        const py = y + h*0.6 + Math.sin(angle) * w*0.4 + bobOffset;
+        ctx.fillStyle = "#FFD700";
+        ctx.beginPath();
+        ctx.arc(px, py, w*0.04, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    function drawTrickshotRogueSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // TrickshotRogue - Ricochet specialist
+      // Agile leather armor
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.33, y + h*0.42 + bobOffset, w*0.34, h*0.46);
+      
+      // Head
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.29 + bobOffset, w*0.16, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Bandana
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.35, y + h*0.23 + bobOffset, w*0.3, h*0.06);
+      
+      // Confident smirk
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.32 + bobOffset, w*0.08, 0, Math.PI);
+      ctx.stroke();
+      
+      // Trick crossbow with angles
+      ctx.fillStyle = "#8B4513";
+      ctx.save();
+      ctx.translate(x + w*0.8, y + h*0.5 + bobOffset);
+      ctx.rotate(Math.PI / 6);
+      ctx.fillRect(-w*0.15, -h*0.04, w*0.3, h*0.08);
+      ctx.fillStyle = "#C0C0C0";
+      ctx.beginPath();
+      ctx.moveTo(w*0.15, -h*0.08);
+      ctx.lineTo(w*0.22, 0);
+      ctx.lineTo(w*0.15, h*0.08);
+      ctx.fill();
+      ctx.restore();
+      
+      // Ricochet trajectory lines
+      ctx.strokeStyle = player.bulletColor;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(x + w, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*1.3, y + h*0.3 + bobOffset);
+      ctx.lineTo(x + w*1.5, y + h*0.6 + bobOffset);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      
+      // Trick shot coins (target markers)
+      for(let i = 0; i < 3; i++) {
+        ctx.fillStyle = "#FFD700";
+        ctx.beginPath();
+        ctx.arc(x + w*0.2 + i*w*0.08, y + h*0.65 + bobOffset, w*0.04, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    function drawStarcallerSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Starcaller - Summons helper stars
+      // Cosmic robes
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.36 + bobOffset);
+      ctx.lineTo(x + w*0.24, y + h*0.49 + bobOffset);
+      ctx.lineTo(x + w*0.2, y + h*0.94 + bobOffset);
+      ctx.lineTo(x + w*0.8, y + h*0.94 + bobOffset);
+      ctx.lineTo(x + w*0.76, y + h*0.49 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Star pattern on robes
+      ctx.fillStyle = "#FFD700";
+      for(let i = 0; i < 6; i++) {
+        drawStar(ctx, x + w*0.35 + (i%3)*w*0.15, y + h*0.65 + Math.floor(i/3)*h*0.15 + bobOffset, 5, w*0.04, w*0.02);
+      }
+      
+      // Head
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.27 + bobOffset, w*0.17, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Starry wizard hat
+      ctx.fillStyle = player.accent;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.3, y + h*0.21 + bobOffset);
+      ctx.lineTo(x + w*0.5, y + h*0.02 + bobOffset);
+      ctx.lineTo(x + w*0.7, y + h*0.21 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Glowing star on hat
+      const starPulse = Math.sin(Date.now() / 300) * 0.15 + 1;
+      ctx.fillStyle = "#FFD700";
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#FFD700";
+      ctx.globalAlpha = starPulse;
+      drawStar(ctx, x + w*0.5, y + h*0.11 + bobOffset, 5, w*0.08, w*0.04);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      
+      // Cosmic staff
+      ctx.strokeStyle = "#4B0082";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.12, y + h*0.28 + bobOffset);
+      ctx.lineTo(x + w*0.12, y + h*0.88 + bobOffset);
+      ctx.stroke();
+      
+      // Orbiting stars around staff
+      for(let i = 0; i < 3; i++) {
+        const angle = Date.now() / 600 + i * Math.PI * 2/3;
+        const sx = x + w*0.12 + Math.cos(angle) * w*0.12;
+        const sy = y + h*0.55 + Math.sin(angle) * w*0.12 + bobOffset;
+        ctx.fillStyle = "#FFD700";
+        ctx.globalAlpha = 0.8;
+        drawStar(ctx, sx, sy, 5, w*0.05, w*0.025);
+        ctx.globalAlpha = 1;
+      }
+      
+      // Constellation background
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.4, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*0.55, y + h*0.45 + bobOffset);
+      ctx.lineTo(x + w*0.6, y + h*0.6 + bobOffset);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    
+    function drawAstralGolemSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // AstralGolem - Massive slow cosmic tank
+      // Large stone/crystal body
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.18, y + h*0.32 + bobOffset, w*0.64, h*0.6);
+      
+      // Stone texture cracks
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.3;
+      for(let i = 0; i < 8; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.2 + Math.random()*w*0.6, y + h*0.35 + bobOffset);
+        ctx.lineTo(x + w*0.2 + Math.random()*w*0.6, y + h*0.35 + Math.random()*h*0.5 + bobOffset);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      
+      // Massive shoulders
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.08, y + h*0.35 + bobOffset, w*0.25, h*0.2);
+      ctx.fillRect(x + w*0.67, y + h*0.35 + bobOffset, w*0.25, h*0.2);
+      
+      // Cosmic core (glowing)
+      const corePulse = Math.sin(Date.now() / 400) * 0.15 + 0.85;
+      ctx.fillStyle = player.bulletColor;
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = player.bulletColor;
+      ctx.globalAlpha = corePulse;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.6 + bobOffset, w*0.18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      
+      // Cosmic runes on body
+      ctx.fillStyle = player.glowColor;
+      ctx.globalAlpha = 0.7;
+      ctx.font = `${w*0.12}px Arial`;
+      ctx.fillText("✧", x + w*0.25, y + h*0.5 + bobOffset);
+      ctx.fillText("✦", x + w*0.7, y + h*0.5 + bobOffset);
+      ctx.fillText("★", x + w*0.5, y + h*0.8 + bobOffset);
+      ctx.globalAlpha = 1;
+      
+      // Simple head shape
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.35, y + h*0.15 + bobOffset, w*0.3, h*0.22);
+      
+      // Glowing eyes
+      ctx.fillStyle = player.bulletColor;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = player.bulletColor;
+      ctx.fillRect(x + w*0.4, y + h*0.22 + bobOffset, w*0.08, h*0.08);
+      ctx.fillRect(x + w*0.52, y + h*0.22 + bobOffset, w*0.08, h*0.08);
+      ctx.shadowBlur = 0;
+      
+      // Massive fists
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.02, y + h*0.55 + bobOffset, w*0.15, h*0.18);
+      ctx.fillRect(x + w*0.83, y + h*0.55 + bobOffset, w*0.15, h*0.18);
+    }
+    
+    function drawEngineerSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Engineer - Turret placer with wrench
+      // Work coveralls
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.3, y + h*0.42 + bobOffset, w*0.4, h*0.48);
+      
+      // Tool belt
+      ctx.fillStyle = "#8B4513";
+      ctx.fillRect(x + w*0.28, y + h*0.68 + bobOffset, w*0.44, h*0.08);
+      
+      // Tools on belt
+      ctx.fillStyle = "#C0C0C0";
+      for(let i = 0; i < 4; i++) {
+        ctx.fillRect(x + w*0.32 + i*w*0.09, y + h*0.66 + bobOffset, w*0.04, h*0.1);
+      }
+      
+      // Head with hardhat
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.3 + bobOffset, w*0.16, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Hardhat
+      ctx.fillStyle = "#FFD700";
+      ctx.fillRect(x + w*0.32, y + h*0.18 + bobOffset, w*0.36, h*0.08);
+      ctx.fillRect(x + w*0.36, y + h*0.14 + bobOffset, w*0.28, h*0.06);
+      
+      // Safety goggles
+      ctx.fillStyle = "#87CEEB";
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.28 + bobOffset, w*0.06, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x + w*0.58, y + h*0.28 + bobOffset, w*0.06, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Large wrench
+      ctx.fillStyle = "#C0C0C0";
+      ctx.fillRect(x + w*0.75, y + h*0.5 + bobOffset, w*0.08, h*0.35);
+      ctx.fillRect(x + w*0.72, y + h*0.48 + bobOffset, w*0.14, h*0.08);
+      ctx.fillRect(x + w*0.72, y + h*0.83 + bobOffset, w*0.14, h*0.08);
+      
+      // Blueprint/schematic
+      ctx.fillStyle = "#ADD8E6";
+      ctx.fillRect(x + w*0.12, y + h*0.55 + bobOffset, w*0.15, h*0.2);
+      ctx.strokeStyle = "#0000FF";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + w*0.12, y + h*0.55 + bobOffset, w*0.15, h*0.2);
+      
+      // Miniature turret icon on blueprint
+      ctx.fillStyle = "#0000FF";
+      ctx.fillRect(x + w*0.16, y + h*0.6 + bobOffset, w*0.04, h*0.08);
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.14, y + h*0.6 + bobOffset);
+      ctx.lineTo(x + w*0.18, y + h*0.55 + bobOffset);
+      ctx.lineTo(x + w*0.22, y + h*0.6 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+    }
+    
+    function drawGuardianTankSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // GuardianTank - Defensive specialist with high HP
+      // Massive plate armor
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.22, y + h*0.36 + bobOffset, w*0.56, h*0.56);
+      
+      // Extra thick shoulder plates
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.12, y + h*0.36 + bobOffset, w*0.22, h*0.18);
+      ctx.fillRect(x + w*0.66, y + h*0.36 + bobOffset, w*0.22, h*0.18);
+      
+      // Chest plate rivets
+      ctx.fillStyle = "#C0C0C0";
+      for(let row = 0; row < 3; row++) {
+        for(let col = 0; col < 4; col++) {
+          ctx.beginPath();
+          ctx.arc(x + w*0.3 + col*w*0.13, y + h*0.5 + row*h*0.12 + bobOffset, w*0.02, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      // Great helm
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.33, y + h*0.16 + bobOffset, w*0.34, h*0.26);
+      
+      // Helmet crest
+      ctx.fillStyle = player.bulletColor;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.1 + bobOffset);
+      ctx.lineTo(x + w*0.45, y + h*0.16 + bobOffset);
+      ctx.lineTo(x + w*0.55, y + h*0.16 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Visor cross
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + w*0.48, y + h*0.24 + bobOffset, w*0.04, h*0.12);
+      ctx.fillRect(x + w*0.38, y + h*0.28 + bobOffset, w*0.24, h*0.04);
+      
+      // Massive tower shield
+      ctx.fillStyle = player.bulletColor;
+      ctx.fillRect(x + w*0.05, y + h*0.35 + bobOffset, w*0.18, h*0.5);
+      
+      // Shield cross emblem
+      ctx.fillStyle = "#FFD700";
+      ctx.fillRect(x + w*0.12, y + h*0.45 + bobOffset, w*0.04, h*0.25);
+      ctx.fillRect(x + w*0.08, y + h*0.55 + bobOffset, w*0.12, h*0.04);
+      
+      // Heavy mace
+      ctx.fillStyle = "#8B4513";
+      ctx.fillRect(x + w*0.82, y + h*0.5 + bobOffset, w*0.06, h*0.35);
+      ctx.fillStyle = "#696969";
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.45 + bobOffset, w*0.08, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Spikes on mace
+      for(let i = 0; i < 6; i++) {
+        const angle = i * Math.PI / 3;
+        ctx.fillStyle = "#C0C0C0";
         ctx.save();
-        
-        // Flip sprite if facing left
-        if (player.facingLeft) {
-          ctx.scale(-1, 1);
-          ctx.drawImage(
-            sprite,
-            frame * frameWidth, 0, // Source x, y
-            frameWidth, spriteHeight, // Source width, height
-            -(x + w), y, // Dest x, y (flipped)
-            w, h // Dest width, height
-          );
-        } else {
-          ctx.drawImage(
-            sprite,
-            frame * frameWidth, 0, // Source x, y
-            frameWidth, spriteHeight, // Source width, height
-            x, y, // Dest x, y
-            w, h // Dest width, height
+        ctx.translate(x + w*0.85, y + h*0.45 + bobOffset);
+        ctx.rotate(angle);
+        ctx.fillRect(-w*0.02, -w*0.12, w*0.04, w*0.08);
+        ctx.restore();
+      }
+    }
+    
+    function drawBerserkSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Berserk - Rage damage scaling
+      // Torn barbarian clothing
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.3, y + h*0.44 + bobOffset, w*0.4, h*0.48);
+      
+      // Torn edges
+      for(let i = 0; i < 8; i++) {
+        ctx.fillStyle = player.accent;
+        ctx.fillRect(x + w*0.28 + i*w*0.06, y + h*0.88 + bobOffset, w*0.04, h*0.06);
+      }
+      
+      // Muscular head
+      ctx.fillStyle = "#d4a574";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.3 + bobOffset, w*0.19, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // War paint
+      ctx.fillStyle = player.bulletColor;
+      ctx.fillRect(x + w*0.35, y + h*0.26 + bobOffset, w*0.3, h*0.04);
+      ctx.fillRect(x + w*0.48, y + h*0.22 + bobOffset, w*0.04, h*0.12);
+      
+      // Rage eyes (glowing red)
+      ctx.fillStyle = "#FF0000";
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = "#FF0000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.28 + bobOffset, w*0.05, 0, Math.PI * 2);
+      ctx.arc(x + w*0.58, y + h*0.28 + bobOffset, w*0.05, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Massive battle axe
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.85, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*0.85 + bobOffset);
+      ctx.stroke();
+      
+      // Axe blade
+      ctx.fillStyle = "#C0C0C0";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.85, y + h*0.35 + bobOffset);
+      ctx.lineTo(x + w*1.05, y + h*0.25 + bobOffset);
+      ctx.lineTo(x + w*1.05, y + h*0.45 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Blood on axe
+      ctx.fillStyle = "#8B0000";
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      ctx.arc(x + w*0.95, y + h*0.35 + bobOffset, w*0.05, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      
+      // Rage aura
+      const ragePulse = Math.sin(Date.now() / 150) * 10;
+      ctx.strokeStyle = "#FF4500";
+      ctx.globalAlpha = 0.6;
+      ctx.lineWidth = 4;
+      for(let i = 0; i < 2; i++) {
+        ctx.beginPath();
+        ctx.arc(x + w*0.5, y + h*0.6 + bobOffset, w*0.45 + ragePulse + i*w*0.1, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      
+      // Muscles (arms)
+      ctx.fillStyle = "#d4a574";
+      ctx.beginPath();
+      ctx.arc(x + w*0.2, y + h*0.55 + bobOffset, w*0.12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + w*0.8, y + h*0.55 + bobOffset, w*0.12, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    function drawSamuraiSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Samurai - Screen-wide slashes
+      // Traditional armor
+      ctx.fillStyle = player.color;
+      ctx.fillRect(x + w*0.28, y + h*0.4 + bobOffset, w*0.44, h*0.5);
+      
+      // Shoulder guards (sode)
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.18, y + h*0.4 + bobOffset, w*0.2, h*0.18);
+      ctx.fillRect(x + w*0.62, y + h*0.4 + bobOffset, w*0.2, h*0.18);
+      
+      // Armor plates (horizontal lines)
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 2;
+      for(let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.28, y + h*0.5 + i*h*0.08 + bobOffset);
+        ctx.lineTo(x + w*0.72, y + h*0.5 + i*h*0.08 + bobOffset);
+        ctx.stroke();
+      }
+      
+      // Kabuto helmet
+      ctx.fillStyle = player.accent;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.25 + bobOffset, w*0.2, Math.PI, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(x + w*0.3, y + h*0.25 + bobOffset, w*0.4, h*0.12);
+      
+      // Crescent horns (maedate)
+      ctx.fillStyle = "#FFD700";
+      ctx.beginPath();
+      ctx.arc(x + w*0.35, y + h*0.18 + bobOffset, w*0.08, Math.PI, Math.PI * 1.5);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + w*0.65, y + h*0.18 + bobOffset, w*0.08, Math.PI * 1.5, Math.PI * 2);
+      ctx.fill();
+      
+      // Face mask (menpo)
+      ctx.fillStyle = "#8B0000";
+      ctx.fillRect(x + w*0.38, y + h*0.3 + bobOffset, w*0.24, h*0.12);
+      
+      // Katana (long curved blade)
+      ctx.strokeStyle = "#C0C0C0";
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "#00FFFF";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.8, y + h*0.45 + bobOffset);
+      ctx.quadraticCurveTo(x + w*1, y + h*0.4 + bobOffset, x + w*1.15, y + h*0.38 + bobOffset);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      
+      // Katana handle (tsuka)
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + w*0.72, y + h*0.43 + bobOffset, w*0.12, h*0.05);
+      
+      // Tsuba (guard)
+      ctx.fillStyle = "#FFD700";
+      ctx.beginPath();
+      ctx.arc(x + w*0.8, y + h*0.455 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Slash effect trail
+      if(isMoving || animFrame % 20 < 10) {
+        ctx.strokeStyle = player.bulletColor;
+        ctx.globalAlpha = 0.5;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.6, y + h*0.3 + bobOffset);
+        ctx.lineTo(x + w*1.2, y + h*0.5 + bobOffset);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+    
+    function drawWarlockSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Warlock - Shield piercing dark magic
+      // Dark corrupted robes
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.36 + bobOffset);
+      ctx.lineTo(x + w*0.24, y + h*0.5 + bobOffset);
+      ctx.lineTo(x + w*0.18, y + h*0.96 + bobOffset);
+      ctx.lineTo(x + w*0.82, y + h*0.96 + bobOffset);
+      ctx.lineTo(x + w*0.76, y + h*0.5 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Demonic symbols on robe
+      ctx.fillStyle = player.bulletColor;
+      ctx.globalAlpha = 0.8;
+      ctx.font = `${w*0.15}px Arial`;
+      ctx.fillText("⛧", x + w*0.43, y + h*0.65 + bobOffset);
+      ctx.globalAlpha = 1;
+      
+      // Horned hood
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.26 + bobOffset, w*0.2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Horns
+      ctx.fillStyle = "#8B0000";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.35, y + h*0.18 + bobOffset);
+      ctx.lineTo(x + w*0.3, y + h*0.08 + bobOffset);
+      ctx.lineTo(x + w*0.38, y + h*0.15 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.65, y + h*0.18 + bobOffset);
+      ctx.lineTo(x + w*0.7, y + h*0.08 + bobOffset);
+      ctx.lineTo(x + w*0.62, y + h*0.15 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Fel green eyes
+      ctx.fillStyle = "#00FF00";
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#00FF00";
+      ctx.beginPath();
+      ctx.arc(x + w*0.42, y + h*0.24 + bobOffset, w*0.045, 0, Math.PI * 2);
+      ctx.arc(x + w*0.58, y + h*0.24 + bobOffset, w*0.045, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Cursed tome/grimoire
+      ctx.fillStyle = "#4B0082";
+      ctx.fillRect(x + w*0.15, y + h*0.55 + bobOffset, w*0.14, h*0.2);
+      ctx.fillStyle = "#8B008B";
+      ctx.fillRect(x + w*0.17, y + h*0.57 + bobOffset, w*0.1, h*0.16);
+      
+      // Skull on tome
+      ctx.fillStyle = "#E0E0E0";
+      ctx.beginPath();
+      ctx.arc(x + w*0.22, y + h*0.65 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Chaos staff
+      ctx.strokeStyle = "#4B0082";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.85, y + h*0.28 + bobOffset);
+      ctx.lineTo(x + w*0.85, y + h*0.88 + bobOffset);
+      ctx.stroke();
+      
+      // Demonic skull on staff
+      ctx.fillStyle = "#8B0000";
+      ctx.beginPath();
+      ctx.arc(x + w*0.85, y + h*0.24 + bobOffset, w*0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#00FF00";
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = "#00FF00";
+      ctx.fillRect(x + w*0.81, y + h*0.22 + bobOffset, w*0.03, h*0.03);
+      ctx.fillRect(x + w*0.88, y + h*0.22 + bobOffset, w*0.03, h*0.03);
+      ctx.shadowBlur = 0;
+      
+      // Dark energy wisps
+      const wispTime = Date.now() / 300;
+      for(let i = 0; i < 4; i++) {
+        const angle = wispTime + i * Math.PI / 2;
+        const wx = x + w*0.5 + Math.cos(angle) * w*0.35;
+        const wy = y + h*0.65 + Math.sin(angle) * w*0.25 + bobOffset;
+        ctx.fillStyle = "#8B008B";
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.arc(wx, wy, w*0.05, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+    
+    function drawDruidSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Druid - Nature root barriers
+      // Nature robes with leaves
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.37 + bobOffset);
+      ctx.lineTo(x + w*0.26, y + h*0.49 + bobOffset);
+      ctx.lineTo(x + w*0.22, y + h*0.93 + bobOffset);
+      ctx.lineTo(x + w*0.78, y + h*0.93 + bobOffset);
+      ctx.lineTo(x + w*0.74, y + h*0.49 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Leaf patterns on robe
+      ctx.fillStyle = "#228B22";
+      for(let i = 0; i < 8; i++) {
+        const lx = x + w*0.3 + (i%2)*w*0.2;
+        const ly = y + h*0.55 + Math.floor(i/2)*h*0.1 + bobOffset;
+        ctx.beginPath();
+        ctx.ellipse(lx, ly, w*0.04, w*0.06, Math.PI/4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Head with nature crown
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.27 + bobOffset, w*0.17, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Leaf/vine crown
+      ctx.strokeStyle = "#228B22";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.18 + bobOffset, w*0.18, 0, Math.PI);
+      ctx.stroke();
+      
+      // Leaves on crown
+      for(let i = 0; i < 5; i++) {
+        ctx.fillStyle = "#32CD32";
+        const angle = Math.PI * i / 4;
+        const lx = x + w*0.5 + Math.cos(angle) * w*0.18;
+        const ly = y + h*0.18 + Math.sin(angle) * w*0.18 + bobOffset;
+        ctx.beginPath();
+        ctx.ellipse(lx, ly, w*0.05, w*0.07, angle, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Wise eyes
+      ctx.fillStyle = "#228B22";
+      ctx.beginPath();
+      ctx.arc(x + w*0.43, y + h*0.26 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.arc(x + w*0.57, y + h*0.26 + bobOffset, w*0.04, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Wooden staff with living vines
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.12, y + h*0.3 + bobOffset);
+      ctx.lineTo(x + w*0.12, y + h*0.87 + bobOffset);
+      ctx.stroke();
+      
+      // Growing vine on staff
+      ctx.strokeStyle = "#228B22";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.12, y + h*0.85 + bobOffset);
+      for(let i = 0; i < 8; i++) {
+        const vy = y + h*0.85 - i*h*0.07 + bobOffset;
+        const vx = x + w*0.12 + (i%2 ? w*0.03 : -w*0.03);
+        ctx.lineTo(vx, vy);
+      }
+      ctx.stroke();
+      
+      // Glowing crystal on staff top
+      ctx.fillStyle = "#32CD32";
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#32CD32";
+      ctx.beginPath();
+      ctx.arc(x + w*0.12, y + h*0.25 + bobOffset, w*0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Floating leaves
+      const leafFloat = Math.sin(Date.now() / 400);
+      for(let i = 0; i < 3; i++) {
+        const angle = Date.now() / 600 + i * Math.PI * 2/3;
+        const lx = x + w*0.5 + Math.cos(angle) * w*0.4;
+        const ly = y + h*0.55 + Math.sin(angle) * w*0.3 + leafFloat*5 + bobOffset;
+        ctx.fillStyle = "#90EE90";
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.ellipse(lx, ly, w*0.04, w*0.06, angle, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+    
+    function drawGunslingerSprite(x, y, w, h, animFrame, isMoving, bobOffset) {
+      // Gunslinger - Dual pistol ricochet master
+      // Western duster coat
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.5, y + h*0.38 + bobOffset);
+      ctx.lineTo(x + w*0.27, y + h*0.47 + bobOffset);
+      ctx.lineTo(x + w*0.23, y + h*0.95 + bobOffset);
+      ctx.lineTo(x + w*0.77, y + h*0.95 + bobOffset);
+      ctx.lineTo(x + w*0.73, y + h*0.47 + bobOffset);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Head with cowboy hat
+      ctx.fillStyle = "#ffd4a3";
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.28 + bobOffset, w*0.16, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Cowboy hat
+      ctx.fillStyle = player.accent;
+      ctx.fillRect(x + w*0.3, y + h*0.18 + bobOffset, w*0.4, h*0.04);
+      ctx.beginPath();
+      ctx.ellipse(x + w*0.5, y + h*0.16 + bobOffset, w*0.15, w*0.08, 0, Math.PI, Math.PI * 2);
+      ctx.fill();
+      
+      // Bandana/scarf
+      ctx.fillStyle = "#FF4500";
+      ctx.fillRect(x + w*0.42, y + h*0.35 + bobOffset, w*0.16, h*0.06);
+      
+      // Steely eyes
+      ctx.fillStyle = "#87CEEB";
+      ctx.beginPath();
+      ctx.arc(x + w*0.43, y + h*0.27 + bobOffset, w*0.035, 0, Math.PI * 2);
+      ctx.arc(x + w*0.57, y + h*0.27 + bobOffset, w*0.035, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Dual revolvers
+      ctx.fillStyle = "#C0C0C0";
+      // Left gun
+      ctx.fillRect(x + w*0.12, y + h*0.52 + bobOffset, w*0.15, h*0.06);
+      ctx.fillRect(x + w*0.1, y + h*0.53 + bobOffset, w*0.04, h*0.04);
+      // Right gun
+      ctx.fillRect(x + w*0.73, y + h*0.52 + bobOffset, w*0.15, h*0.06);
+      ctx.fillRect(x + w*0.86, y + h*0.53 + bobOffset, w*0.04, h*0.04);
+      
+      // Gun handles (grip)
+      ctx.fillStyle = "#8B4513";
+      ctx.fillRect(x + w*0.22, y + h*0.51 + bobOffset, w*0.05, h*0.08);
+      ctx.fillRect(x + w*0.73, y + h*0.51 + bobOffset, w*0.05, h*0.08);
+      
+      // Bullet belt
+      ctx.fillStyle = "#8B4513";
+      ctx.fillRect(x + w*0.28, y + h*0.67 + bobOffset, w*0.44, h*0.06);
+      
+      // Bullets
+      ctx.fillStyle = "#FFD700";
+      for(let i = 0; i < 8; i++) {
+        ctx.fillRect(x + w*0.3 + i*w*0.05, y + h*0.65 + bobOffset, w*0.02, h*0.08);
+      }
+      
+      // Muzzle flashes (if moving/attacking)
+      if(animFrame % 10 < 5) {
+        ctx.fillStyle = "#FFA500";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#FFA500";
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.1, y + h*0.55 + bobOffset);
+        for(let i = 0; i < 6; i++) {
+          const angle = i * Math.PI / 3;
+          ctx.lineTo(
+            x + w*0.1 + Math.cos(angle) * w*0.06,
+            y + h*0.55 + Math.sin(angle) * w*0.06 + bobOffset
           );
         }
+        ctx.closePath();
+        ctx.fill();
         
-        ctx.restore();
-      } else {
-        // FALLBACK: Draw colored square (current system)
-        ctx.shadowColor = player.glowColor;
-        ctx.shadowBlur = 15;
-        ctx.fillStyle = player.color;
-        ctx.fillRect(x, y, w, h);
-
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = player.accent;
-        ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
-
-        ctx.fillStyle = "#ffd4a3";
-        ctx.fillRect(x + w * 0.25, y - h * 0.3, w * 0.5, h * 0.3);
-
-        ctx.fillStyle = player.glowColor;
-        ctx.fillRect(x + w * 0.35, y - h * 0.18, 4, 4);
-        ctx.fillRect(x + w * 0.55, y - h * 0.18, 4, 4);
-
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.9, y + h*0.55 + bobOffset);
+        for(let i = 0; i < 6; i++) {
+          const angle = i * Math.PI / 3;
+          ctx.lineTo(
+            x + w*0.9 + Math.cos(angle) * w*0.06,
+            y + h*0.55 + Math.sin(angle) * w*0.06 + bobOffset
+          );
+        }
+        ctx.closePath();
+        ctx.fill();
         ctx.shadowBlur = 0;
       }
+    }
+    
+    // Helper function to draw stars
+    function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+      let rot = Math.PI / 2 * 3;
+      let step = Math.PI / spikes;
+      
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - outerRadius);
+      
+      for(let i = 0; i < spikes; i++) {
+        let x = cx + Math.cos(rot) * outerRadius;
+        let y = cy + Math.sin(rot) * outerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+        
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+      }
+      
+      ctx.lineTo(cx, cy - outerRadius);
+      ctx.closePath();
+      ctx.fill();
     }
 
     function drawEnemies() {
@@ -8594,6 +11837,145 @@
             life: 0.5
           });
         }
+        
+        ctx.restore();
+      });
+    }
+    
+    function drawPoisonClouds() {
+      poisonClouds.forEach(cloud => {
+        ctx.save();
+        const pulse = Math.sin(Date.now() / 150) * 0.15 + 0.5;
+        ctx.globalAlpha = pulse;
+        
+        const gradient = ctx.createRadialGradient(cloud.x, cloud.y, 0, cloud.x, cloud.y, cloud.radius);
+        gradient.addColorStop(0, "#32cd32");
+        gradient.addColorStop(0.5, "#90ee90");
+        gradient.addColorStop(1, "rgba(50, 205, 50, 0)");
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(cloud.x, cloud.y, cloud.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+    
+    function drawIceShards() {
+      iceShards.forEach(shard => {
+        ctx.save();
+        ctx.fillStyle = "#00bfff";
+        ctx.strokeStyle = "#87ceeb";
+        ctx.lineWidth = 2;
+        
+        ctx.translate(shard.x, shard.y);
+        ctx.rotate(shard.angle);
+        
+        ctx.beginPath();
+        ctx.moveTo(0, -10);
+        ctx.lineTo(5, 10);
+        ctx.lineTo(-5, 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.restore();
+      });
+    }
+    
+    function drawTurrets() {
+      turrets.forEach(turret => {
+        ctx.save();
+        ctx.fillStyle = "#FF8C00";
+        ctx.strokeStyle = "#FFA500";
+        ctx.lineWidth = 2;
+        
+        // Base
+        ctx.beginPath();
+        ctx.arc(turret.x, turret.y, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Cannon
+        ctx.strokeStyle = "#FF8C00";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(turret.x, turret.y);
+        ctx.lineTo(turret.x + 20, turret.y - 10);
+        ctx.stroke();
+        
+        // HP bar
+        const hpPercent = turret.hp / 150;
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(turret.x - 20, turret.y - 30, 40, 4);
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(turret.x - 20, turret.y - 30, 40 * hpPercent, 4);
+        
+        ctx.restore();
+      });
+    }
+    
+    function drawRootBarriers() {
+      rootBarriers.forEach(barrier => {
+        ctx.save();
+        ctx.fillStyle = "#228B22";
+        ctx.strokeStyle = "#32CD32";
+        ctx.lineWidth = 3;
+        
+        // Root barrier visual
+        ctx.beginPath();
+        ctx.arc(barrier.x, barrier.y, 30, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Thorns
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(barrier.x, barrier.y);
+          ctx.lineTo(barrier.x + Math.cos(angle) * 40, barrier.y + Math.sin(angle) * 40);
+          ctx.strokeStyle = "#8B4513";
+          ctx.stroke();
+        }
+        
+        // HP bar
+        const hpPercent = barrier.hp / 200;
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(barrier.x - 25, barrier.y - 50, 50, 4);
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(barrier.x - 25, barrier.y - 50, 50 * hpPercent, 4);
+        
+        ctx.restore();
+      });
+    }
+    
+    function drawHelperStars() {
+      helperStars.forEach(star => {
+        ctx.save();
+        ctx.fillStyle = "#9400d3";
+        ctx.strokeStyle = "#ba55d3";
+        ctx.lineWidth = 2;
+        
+        // Draw star shape
+        ctx.translate(star.x, star.y);
+        ctx.rotate(Date.now() / 1000);
+        
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+          const x = Math.cos(angle) * 10;
+          const y = Math.sin(angle) * 10;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          
+          const angle2 = ((i + 0.5) / 5) * Math.PI * 2 - Math.PI / 2;
+          const x2 = Math.cos(angle2) * 5;
+          const y2 = Math.sin(angle2) * 5;
+          ctx.lineTo(x2, y2);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
         
         ctx.restore();
       });
@@ -8984,7 +12366,12 @@
       drawBackground();
       drawGround();
       drawFireZones();
+      drawPoisonClouds();
+      drawIceShards();
+      drawRootBarriers();
+      drawTurrets();
       if (player) drawPlayer();
+      drawHelperStars();
       drawEnemies();
       drawProjectiles();
       drawMinions();
