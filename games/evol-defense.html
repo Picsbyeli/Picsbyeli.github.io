@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>E.Vol Legends – Big Class Tower Defense</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #02040b;
+      color: #ffffff;
+      font-family: "Courier New", monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+
+    #game-container {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    canvas {
+      border: 2px solid #00ffff;
+      image-rendering: pixelated;
+      background: #050010;
+    }
+
+    #ui-bar {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      max-width: 1000px;
+    }
+
+    #controls {
+      margin-top: 6px;
+    }
+
+    button {
+      background: #111122;
+      color: #ffffff;
+      border: 1px solid #00ffff;
+      padding: 3px 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+    }
+
+    button.selected {
+      background: #00ffff;
+      color: #000000;
+    }
+
+    #hud {
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    #game-over {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px 30px;
+      background: rgba(0, 0, 0, 0.85);
+      border: 2px solid #ff0044;
+      color: #ffffff;
+      text-align: center;
+      display: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="1000" height="550"></canvas>
+
+    <div id="ui-bar"></div>
+
+    <div id="controls">
+      <button id="start-wave-btn">Start Wave</button>
+    </div>
+
+    <div id="hud">
+      <span id="hud-coins">Coins: 500</span> |
+      <span id="hud-lives">Lives: 20</span> |
+      <span id="hud-wave">Wave: 1</span>
+    </div>
+  </div>
+
+  <div id="game-over">
+    <h2>Game Over</h2>
+    <p id="game-over-text"></p>
+    <button id="restart-btn">Restart</button>
+  </div>
+
+  <script>
+    // ---------- BASIC SETUP ----------
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const hudCoins = document.getElementById("hud-coins");
+    const hudLives = document.getElementById("hud-lives");
+    const hudWave = document.getElementById("hud-wave");
+    const gameOverPanel = document.getElementById("game-over");
+    const gameOverText = document.getElementById("game-over-text");
+    const restartBtn = document.getElementById("restart-btn");
+    const startWaveBtn = document.getElementById("start-wave-btn");
+    const uiBar = document.getElementById("ui-bar");
+
+    // ---------- GRID / MAP CONFIG ----------
+    const TILE_SIZE = 32;
+    const GRID_COLS = Math.floor(canvas.width / TILE_SIZE);   // 31
+    const GRID_ROWS = Math.floor(canvas.height / TILE_SIZE);  // 17
+
+    const TILE_TYPE = {
+      EMPTY: 0,
+      PATH: 1,
+      BLOCKED: 2
+    };
+
+    const MAPS = {
+      NeonLoop: {
+        name: "Neon Loop",
+        path: [
+          { c: 0,  r: 8 },
+          { c: 10, r: 8 },
+          { c: 10, r: 3 },
+          { c: 20, r: 3 },
+          { c: 20, r: 13 },
+          { c: 30, r: 13 }
+        ],
+        blockedTiles: [
+          { c: 5, r: 5 }, { c: 6, r: 5 }, { c: 7, r: 5 },
+          { c: 15, r: 10 }, { c: 16, r: 10 }
+        ],
+        backgroundColor: "#050010"
+      }
+    };
+
+    let currentMapKey = "NeonLoop";
+    let grid = [];
+
+    function initGridForMap(mapKey) {
+      currentMapKey = mapKey;
+      const map = MAPS[mapKey];
+
+      grid = [];
+      for (let r = 0; r < GRID_ROWS; r++) {
+        const row = [];
+        for (let c = 0; c < GRID_COLS; c++) {
+          row.push(TILE_TYPE.EMPTY);
+        }
+        grid.push(row);
+      }
+
+      for (let i = 0; i < map.path.length - 1; i++) {
+        const a = map.path[i];
+        const b = map.path[i + 1];
+
+        const dc = Math.sign(b.c - a.c);
+        const dr = Math.sign(b.r - a.r);
+        let c = a.c;
+        let r = a.r;
+
+        grid[r][c] = TILE_TYPE.PATH;
+        while (c !== b.c || r !== b.r) {
+          c += dc;
+          r += dr;
+          grid[r][c] = TILE_TYPE.PATH;
+        }
+      }
+
+      map.blockedTiles.forEach(t => {
+        if (grid[t.r] && grid[t.r][t.c] !== undefined) {
+          grid[t.r][t.c] = TILE_TYPE.BLOCKED;
+        }
+      });
+    }
+
+    // ---------- GAME STATE ----------
+    let player = { hp: 20 };
+    let playerCoins = 500;
+    let tdWave = 1;
+    let tdWaveTimer = 0;
+    let tdWaveInProgress = false;
+    let gameRunning = true;
+
+    function updateHUD() {
+      hudCoins.textContent = "Coins: " + Math.floor(playerCoins);
+      hudLives.textContent = "Lives: " + player.hp;
+      hudWave.textContent = "Wave: " + tdWave;
+    }
+
+    function triggerGameOver(reasonText) {
+      gameRunning = false;
+      gameOverText.textContent = reasonText || "The path was overrun!";
+      gameOverPanel.style.display = "block";
+    }
+
+    function resetGame() {
+      player.hp = 20;
+      playerCoins = 500;
+      tdWave = 1;
+      tdWaveTimer = 0;
+      tdWaveInProgress = false;
+      creepEnemies = [];
+      towers = [];
+      projectilesTD = [];
+      gameRunning = true;
+      gameOverPanel.style.display = "none";
+      initGridForMap("NeonLoop");
+      updateHUD();
+    }
+
+    restartBtn.addEventListener("click", resetGame);
+
+    // ---------- SPRITES FOR ALL CLASSES ----------
+    const spritePaths = {
+      mage: "mage.png",
+      monk: "monk.png",
+      necromancer: "necromancer.png",
+      ninja: "ninja.png",
+      pyromancer: "pyromancer.png",
+      sniper: "sniper.png",
+      summoner: "summoner.png",
+      tank: "tank.png",
+      thief: "thief.png",
+      vecna: "vecna.png",
+      archer: "archer.png",
+      assassin: "assassin.png",
+      bomber: "bomber.png",
+      darkMagician: "dark magician.png", // filename can have space
+      engineer: "engineer.png",
+      frostmage: "frostmage.png",
+      healer: "healer.png",
+      hunter: "hunter.png",
+      knight: "knight.png"
+    };
+
+    const sprites = {};
+    for (const key in spritePaths) {
+      const img = new Image();
+      img.src = spritePaths[key];
+      sprites[key] = img;
+    }
+
+    // ---------- ENEMIES ----------
+    const ENEMY_TYPES = {
+      basic:   { hp: 10,  speed: 1.5, rewardCoins: 5,  rewardGems: 0, color: "#00ff00" },
+      fast:    { hp: 8,   speed: 2.5, rewardCoins: 6,  rewardGems: 0, color: "#ffff00" },
+      armored: { hp: 30,  speed: 1.3, rewardCoins: 20, rewardGems: 1, color: "#ff8800" },
+      boss:    { hp: 300, speed: 1.0, rewardCoins: 150, rewardGems: 5, color: "#ff0000" }
+    };
+
+    let creepEnemies = [];
+
+    function spawnEnemy(typeKey) {
+      const map = MAPS[currentMapKey];
+      const type = ENEMY_TYPES[typeKey];
+      const startWp = map.path[0];
+
+      creepEnemies.push({
+        typeKey,
+        hp: type.hp,
+        speed: type.speed,
+        rewardCoins: type.rewardCoins,
+        rewardGems: type.rewardGems,
+        color: type.color,
+        pathIndex: 0,
+        t: 0,
+        leaked: false,
+        dead: false,
+        spawnWave: tdWave,
+        x: startWp.c * TILE_SIZE + TILE_SIZE / 2,
+        y: startWp.r * TILE_SIZE + TILE_SIZE / 2
+      });
+    }
+
+    function updateEnemiesTD(dt) {
+      const map = MAPS[currentMapKey];
+
+      for (const e of creepEnemies) {
+        if (e.leaked || e.hp <= 0) continue;
+
+        const path = map.path;
+        const idx = e.pathIndex;
+
+        if (idx >= path.length - 1) {
+          e.leaked = true;
+          player.hp -= 1;
+          if (player.hp <= 0) {
+            triggerGameOver("You ran out of lives on wave " + tdWave + "!");
+          }
+          continue;
+        }
+
+        const a = path[idx];
+        const b = path[idx + 1];
+
+        e.t += (e.speed * dt) / TILE_SIZE;
+        if (e.t >= 1) {
+          e.t = 0;
+          e.pathIndex++;
+        }
+
+        const cx = (a.c + (b.c - a.c) * e.t) * TILE_SIZE + TILE_SIZE / 2;
+        const cy = (a.r + (b.r - a.r) * e.t) * TILE_SIZE + TILE_SIZE / 2;
+        e.x = cx;
+        e.y = cy;
+      }
+
+      creepEnemies = creepEnemies.filter(e => !e.leaked && e.hp > 0);
+    }
+
+    // ---------- WAVES ----------
+    function startTDWave() {
+      if (tdWaveInProgress) return;
+      tdWaveInProgress = true;
+      tdWaveTimer = 0;
+    }
+
+    function updateTDWave(dt) {
+      if (!tdWaveInProgress) return;
+      tdWaveTimer += dt;
+
+      if (tdWaveTimer < 10) {
+        const shouldCount = Math.floor(tdWaveTimer / 0.7);
+        const existing = creepEnemies.filter(e => e.spawnWave === tdWave && e.typeKey === "basic").length;
+        if (shouldCount > existing) spawnEnemy("basic");
+      } else if (tdWaveTimer < 18) {
+        const shouldCount = Math.floor((tdWaveTimer - 10) / 0.8);
+        const existing = creepEnemies.filter(e => e.spawnWave === tdWave && e.typeKey === "fast").length;
+        if (shouldCount > existing) spawnEnemy("fast");
+      } else if (tdWaveTimer < 24) {
+        const shouldCount = Math.floor((tdWaveTimer - 18) / 1.2);
+        const existing = creepEnemies.filter(e => e.spawnWave === tdWave && e.typeKey === "armored").length;
+        if (shouldCount > existing) spawnEnemy("armored");
+      } else if (tdWaveTimer >= 24 && tdWaveTimer < 26 && tdWave % 5 === 0) {
+        const existingBoss = creepEnemies.some(e => e.spawnWave === tdWave && e.typeKey === "boss");
+        if (!existingBoss) spawnEnemy("boss");
+      }
+
+      if (tdWaveTimer > 30 && creepEnemies.length === 0) {
+        tdWaveInProgress = false;
+        tdWave++;
+        updateHUD();
+      }
+    }
+
+    startWaveBtn.addEventListener("click", () => {
+      if (!tdWaveInProgress) startTDWave();
+    });
+
+    // ---------- TOWERS / CLASSES ----------
+    const TOWER_TYPES = {
+      mage: {
+        displayName: "Mage",
+        spriteKey: "mage",
+        cost: 180,
+        range: 4 * TILE_SIZE,
+        fireRate: 0.7,
+        damage: 5,
+        splashRadius: 0,
+        projectileSpeed: 9 * TILE_SIZE
+      },
+      monk: {
+        displayName: "Monk",
+        spriteKey: "monk",
+        cost: 140,
+        range: 3 * TILE_SIZE,
+        fireRate: 0.45,
+        damage: 3,
+        splashRadius: 0,
+        projectileSpeed: 9 * TILE_SIZE
+      },
+      necromancer: {
+        displayName: "Necromancer",
+        spriteKey: "necromancer",
+        cost: 220,
+        range: 3.5 * TILE_SIZE,
+        fireRate: 1.0,
+        damage: 7,
+        splashRadius: 1.2 * TILE_SIZE,
+        projectileSpeed: 8 * TILE_SIZE
+      },
+      ninja: {
+        displayName: "Ninja",
+        spriteKey: "ninja",
+        cost: 160,
+        range: 4.2 * TILE_SIZE,
+        fireRate: 0.5,
+        damage: 4,
+        splashRadius: 0,
+        projectileSpeed: 11 * TILE_SIZE
+      },
+      pyromancer: {
+        displayName: "Pyromancer",
+        spriteKey: "pyromancer",
+        cost: 260,
+        range: 3.8 * TILE_SIZE,
+        fireRate: 0.9,
+        damage: 9,
+        splashRadius: 1.6 * TILE_SIZE,
+        projectileSpeed: 9 * TILE_SIZE
+      },
+      sniper: {
+        displayName: "Sniper",
+        spriteKey: "sniper",
+        cost: 300,
+        range: 8 * TILE_SIZE,
+        fireRate: 1.8,
+        damage: 25,
+        splashRadius: 0,
+        projectileSpeed: 14 * TILE_SIZE
+      },
+      summoner: {
+        displayName: "Summoner",
+        spriteKey: "summoner",
+        cost: 230,
+        range: 3.5 * TILE_SIZE,
+        fireRate: 0.85,
+        damage: 6,
+        splashRadius: 1.0 * TILE_SIZE,
+        projectileSpeed: 8 * TILE_SIZE
+      },
+      tank: {
+        displayName: "Tank",
+        spriteKey: "tank",
+        cost: 280,
+        range: 3.2 * TILE_SIZE,
+        fireRate: 1.2,
+        damage: 12,
+        splashRadius: 0.8 * TILE_SIZE,
+        projectileSpeed: 7 * TILE_SIZE
+      },
+      thief: {
+        displayName: "Thief",
+        spriteKey: "thief",
+        cost: 150,
+        range: 4 * TILE_SIZE,
+        fireRate: 0.55,
+        damage: 4,
+        splashRadius: 0,
+        projectileSpeed: 10 * TILE_SIZE
+      },
+      vecna: {
+        displayName: "Vecna",
+        spriteKey: "vecna",
+        cost: 400,
+        range: 5 * TILE_SIZE,
+        fireRate: 1.5,
+        damage: 35,
+        splashRadius: 2 * TILE_SIZE,
+        projectileSpeed: 10 * TILE_SIZE
+      },
+      archer: {
+        displayName: "Archer",
+        spriteKey: "archer",
+        cost: 160,
+        range: 4.5 * TILE_SIZE,
+        fireRate: 0.6,
+        damage: 5,
+        splashRadius: 0,
+        projectileSpeed: 11 * TILE_SIZE
+      },
+      assassin: {
+        displayName: "Assassin",
+        spriteKey: "assassin",
+        cost: 190,
+        range: 3.8 * TILE_SIZE,
+        fireRate: 0.4,
+        damage: 7,
+        splashRadius: 0,
+        projectileSpeed: 12 * TILE_SIZE
+      },
+      bomber: {
+        displayName: "Bomber",
+        spriteKey: "bomber",
+        cost: 220,
+        range: 3.2 * TILE_SIZE,
+        fireRate: 1.1,
+        damage: 10,
+        splashRadius: 2 * TILE_SIZE,
+        projectileSpeed: 8 * TILE_SIZE
+      },
+      darkMagician: {
+        displayName: "Dark Magician",
+        spriteKey: "darkMagician",
+        cost: 260,
+        range: 4.2 * TILE_SIZE,
+        fireRate: 0.9,
+        damage: 11,
+        splashRadius: 1.4 * TILE_SIZE,
+        projectileSpeed: 9 * TILE_SIZE
+      },
+      engineer: {
+        displayName: "Engineer",
+        spriteKey: "engineer",
+        cost: 210,
+        range: 3.8 * TILE_SIZE,
+        fireRate: 0.7,
+        damage: 6,
+        splashRadius: 0,
+        projectileSpeed: 9 * TILE_SIZE
+      },
+      frostmage: {
+        displayName: "Frost Mage",
+        spriteKey: "frostmage",
+        cost: 230,
+        range: 4 * TILE_SIZE,
+        fireRate: 1.0,
+        damage: 8,
+        splashRadius: 1.3 * TILE_SIZE,
+        projectileSpeed: 8 * TILE_SIZE
+      },
+      healer: {
+        displayName: "Healer",
+        spriteKey: "healer",
+        cost: 200,
+        range: 3.5 * TILE_SIZE,
+        fireRate: 1.3,
+        damage: 4,
+        splashRadius: 1.0 * TILE_SIZE,
+        projectileSpeed: 7 * TILE_SIZE
+      },
+      hunter: {
+        displayName: "Hunter",
+        spriteKey: "hunter",
+        cost: 170,
+        range: 4.6 * TILE_SIZE,
+        fireRate: 0.7,
+        damage: 6,
+        splashRadius: 0,
+        projectileSpeed: 10 * TILE_SIZE
+      },
+      knight: {
+        displayName: "Knight",
+        spriteKey: "knight",
+        cost: 250,
+        range: 3.2 * TILE_SIZE,
+        fireRate: 0.9,
+        damage: 13,
+        splashRadius: 0.9 * TILE_SIZE,
+        projectileSpeed: 8 * TILE_SIZE
+      }
+    };
+
+    let towers = [];
+    let projectilesTD = [];
+    let selectedTowerType = "mage";
+
+    function buildTowerButtons() {
+      const order = [
+        "mage","pyromancer","frostmage","darkMagician",
+        "archer","hunter","sniper",
+        "ninja","assassin","thief",
+        "monk","knight","tank",
+        "necromancer","summoner","vecna",
+        "bomber","engineer","healer"
+      ];
+
+      order.forEach(key => {
+        const t = TOWER_TYPES[key];
+        if (!t) return;
+        const btn = document.createElement("button");
+        btn.textContent = `${t.displayName} (${t.cost})`;
+        btn.dataset.towerKey = key;
+        btn.addEventListener("click", () => setSelectedTowerType(key));
+        uiBar.appendChild(btn);
+        t.buttonEl = btn;
+      });
+      setSelectedTowerType("mage");
+    }
+
+    function setSelectedTowerType(typeKey) {
+      selectedTowerType = typeKey;
+      for (const key in TOWER_TYPES) {
+        const t = TOWER_TYPES[key];
+        if (t.buttonEl) {
+          t.buttonEl.classList.toggle("selected", key === typeKey);
+        }
+      }
+    }
+
+    canvas.addEventListener("click", (e) => {
+      if (!gameRunning) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      const c = Math.floor(mx / TILE_SIZE);
+      const r = Math.floor(my / TILE_SIZE);
+
+      if (c < 0 || c >= GRID_COLS || r < 0 || r >= GRID_ROWS) return;
+      if (grid[r][c] !== TILE_TYPE.EMPTY) return;
+
+      const type = TOWER_TYPES[selectedTowerType];
+      if (!type) return;
+      if (playerCoins < type.cost) return;
+
+      playerCoins -= type.cost;
+      updateHUD();
+
+      towers.push({
+        typeKey: selectedTowerType,
+        classKey: type.spriteKey,
+        range: type.range,
+        fireRate: type.fireRate,
+        damage: type.damage,
+        splashRadius: type.splashRadius || 0,
+        projectileSpeed: type.projectileSpeed,
+        gridC: c,
+        gridR: r,
+        x: c * TILE_SIZE + TILE_SIZE / 2,
+        y: r * TILE_SIZE + TILE_SIZE / 2,
+        fireCooldown: 0
+      });
+    });
+
+    function updateTowers(dt) {
+      for (const t of towers) {
+        t.fireCooldown -= dt;
+        if (t.fireCooldown > 0) continue;
+
+        let target = null;
+        let bestDist = Infinity;
+        for (const e of creepEnemies) {
+          const dx = e.x - t.x;
+          const dy = e.y - t.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist <= t.range && dist < bestDist) {
+            bestDist = dist;
+            target = e;
+          }
+        }
+
+        if (!target) continue;
+
+        t.fireCooldown = t.fireRate;
+        const angle = Math.atan2(target.y - t.y, target.x - t.x);
+
+        projectilesTD.push({
+          x: t.x,
+          y: t.y,
+          vx: Math.cos(angle) * t.projectileSpeed,
+          vy: Math.sin(angle) * t.projectileSpeed,
+          damage: t.damage,
+          splashRadius: t.splashRadius,
+          alive: true
+        });
+      }
+    }
+
+    function updateProjectiles(dt) {
+      for (const p of projectilesTD) {
+        if (!p.alive) continue;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+
+        if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+          p.alive = false;
+          continue;
+        }
+
+        for (const e of creepEnemies) {
+          const dx = e.x - p.x;
+          const dy = e.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < TILE_SIZE * 0.4) {
+            e.hp -= p.damage;
+
+            if (p.splashRadius && p.splashRadius > 0) {
+              for (const e2 of creepEnemies) {
+                const dx2 = e2.x - p.x;
+                const dy2 = e2.y - p.y;
+                const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                if (dist2 < p.splashRadius) {
+                  e2.hp -= p.damage * 0.5;
+                }
+              }
+            }
+
+            if (e.hp <= 0 && !e.dead) {
+              e.dead = true;
+              playerCoins += e.rewardCoins;
+              updateHUD();
+            }
+
+            p.alive = false;
+            break;
+          }
+        }
+      }
+
+      projectilesTD = projectilesTD.filter(p => p.alive);
+      creepEnemies = creepEnemies.filter(e => e.hp > 0 && !e.leaked);
+    }
+
+    // ---------- DRAWING ----------
+    function drawTD() {
+      const map = MAPS[currentMapKey];
+      ctx.fillStyle = map.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let r = 0; r < GRID_ROWS; r++) {
+        for (let c = 0; c < GRID_COLS; c++) {
+          const x = c * TILE_SIZE;
+          const y = r * TILE_SIZE;
+
+          if (grid[r][c] === TILE_TYPE.PATH) {
+            ctx.fillStyle = "#181818";
+          } else if (grid[r][c] === TILE_TYPE.BLOCKED) {
+            ctx.fillStyle = "#220022";
+          } else {
+            ctx.fillStyle = "#02040b";
+          }
+          ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+
+          ctx.strokeStyle = "rgba(0, 255, 255, 0.05)";
+          ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
+        }
+      }
+
+      for (const e of creepEnemies) {
+        ctx.fillStyle = e.color;
+        const size = 20;
+        ctx.fillRect(
+          Math.floor(e.x - size / 2),
+          Math.floor(e.y - size / 2),
+          size,
+          size
+        );
+      }
+
+      for (const t of towers) {
+        const sprite = sprites[t.classKey];
+        if (sprite && sprite.complete) {
+          const w = 32;
+          const h = 32;
+          ctx.drawImage(
+            sprite,
+            Math.floor(t.x - w / 2),
+            Math.floor(t.y - h + TILE_SIZE / 2),
+            w,
+            h
+          );
+        } else {
+          ctx.fillStyle = "#ffffff";
+          const size = 26;
+          ctx.fillRect(
+            Math.floor(t.x - size / 2),
+            Math.floor(t.y - size / 2),
+            size,
+            size
+          );
+        }
+      }
+
+      for (const p of projectilesTD) {
+        if (!p.alive) continue;
+        ctx.fillStyle = "#ffff00";
+        ctx.fillRect(
+          Math.floor(p.x - 3),
+          Math.floor(p.y - 3),
+          6,
+          6
+        );
+      }
+    }
+
+    // ---------- MAIN LOOP ----------
+    let lastTime = 0;
+    function gameLoop(timestamp) {
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+      lastTime = timestamp;
+
+      if (gameRunning) {
+        updateTDWave(dt);
+        updateEnemiesTD(dt);
+        updateTowers(dt);
+        updateProjectiles(dt);
+      }
+
+      drawTD();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // ---------- INIT ----------
+    initGridForMap("NeonLoop");
+    updateHUD();
+    buildTowerButtons();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
