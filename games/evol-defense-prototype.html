@@ -3254,6 +3254,26 @@
           sunRadius: 150 // Sun burn radius
         },
         description: "Controls a blazing mini sun that burns enemies. Arrow keys to move sun. Unlock: Restart at wave 18, 7 times"
+      },
+      Illusionist: {
+        icon: "🎭",
+        color: "#9370DB",
+        accent: "#BA55D3",
+        bulletColor: "#9370DB",
+        glowColor: "#BA55D3",
+        unlockWave: 0,
+        purchasable: true,
+        cost: { coins: 75000, gems: 750 },
+        stats: {
+          maxHP: 110,
+          damage: 12,
+          fireRate: 0.909, // 1.1/sec
+          range: 550,
+          projectileSpeed: 7.5,
+          createClone: true, // Can create clone of another class
+          cloneHealthRatio: 0.5 // Clone has 50% of original class HP
+        },
+        description: "Master of illusions - creates a fighting clone positioned above with half health (added to your HP pool)"
       }
     };
 
@@ -4505,6 +4525,24 @@
     let helperStars = []; // Starcaller mini star helpers
     let turrets = []; // Engineer turrets
     let samuraiSlashes = []; // Samurai chain reaction slashes
+    let illusionistClone = null; // Illusionist's fighting clone
+    
+    // Clickable upgrade UI state
+    let upgradePopup = {
+      active: false,
+      target: null, // What's being upgraded (sun, turret, clone, etc)
+      x: 0,
+      y: 0
+    };
+    
+    // Engineer turret crafting UI
+    let turretCraftUI = {
+      active: false,
+      selectedType: null, // 'shield' or 'dps'
+      dragging: false,
+      dragX: 0,
+      dragY: 0
+    };
     
     // Cooldowns for special abilities
     let plagueCloudCooldown = 0;
@@ -6603,8 +6641,47 @@
           y: player.y - 120, // Start above player
           radius: 40,
           damage: cls.stats.sunDamage || 25,
-          burnRadius: cls.stats.sunRadius || 150
+          burnRadius: cls.stats.sunRadius || 150,
+          level: 1,
+          upgradeCost: 500 // Coins to upgrade
         };
+      }
+      
+      // Illusionist clone (if playing as Illusionist)
+      if (className === "Illusionist") {
+        // Choose a random unlocked class for the clone
+        const availableClasses = gameData.unlockedClasses.filter(c => c !== "Illusionist" && c !== "Rookie");
+        const cloneClassName = availableClasses[Math.floor(Math.random() * availableClasses.length)] || "Hunter";
+        const cloneCls = CLASSES[cloneClassName];
+        
+        const cloneMaxHP = Math.floor(cloneCls.stats.maxHP * (cls.stats.cloneHealthRatio || 0.5));
+        
+        illusionistClone = {
+          className: cloneClassName,
+          x: player.x,
+          y: player.y - 80, // Position above player (non-overlapping)
+          w: 36,
+          h: 44,
+          maxHP: cloneMaxHP,
+          hp: cloneMaxHP,
+          damage: cloneCls.stats.damage,
+          fireRate: cloneCls.stats.fireRate,
+          range: cloneCls.stats.range,
+          projectileSpeed: cloneCls.stats.projectileSpeed,
+          color: cloneCls.color,
+          accent: cloneCls.accent,
+          bulletColor: cloneCls.bulletColor,
+          glowColor: cloneCls.glowColor,
+          shootTimer: 0,
+          animFrame: 0,
+          facingLeft: false,
+          level: 1,
+          upgradeCost: 750 // Coins to upgrade
+        };
+        
+        // Add clone HP to player's total HP pool
+        player.maxHP += cloneMaxHP;
+        player.hp += cloneMaxHP;
       }
       
       // Reset cooldowns
@@ -7869,6 +7946,17 @@
           }
         }
       }
+      
+      // Illusionist clone shooting
+      if (illusionistClone && illusionistClone.hp > 0) {
+        illusionistClone.shootTimer += dt;
+        const cloneTarget = getTargetEnemyForClone();
+        
+        if (cloneTarget && illusionistClone.shootTimer >= illusionistClone.fireRate) {
+          illusionistClone.shootTimer = 0;
+          shootCloneProjectile(illusionistClone, cloneTarget);
+        }
+      }
     }
 
     function getTargetEnemy() {
@@ -8126,6 +8214,61 @@
           }
         }
       }
+    }
+    
+    // CLONE SHOOTING HELPERS
+    function getTargetEnemyForClone() {
+      if (enemies.length === 0 || !illusionistClone) return null;
+      
+      let closestInRange = null;
+      let closestDist = illusionistClone.range;
+      
+      for (const e of enemies) {
+        const dx = (e.x + e.w / 2) - (illusionistClone.x + illusionistClone.w / 2);
+        const dy = (e.y + e.h / 2) - (illusionistClone.y + illusionistClone.h / 2);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestInRange = e;
+        }
+      }
+      
+      return closestInRange;
+    }
+    
+    function shootCloneProjectile(clone, target) {
+      const cx = clone.x + clone.w / 2;
+      const cy = clone.y + clone.h / 2;
+      const tx = target.x + target.w / 2;
+      const ty = target.y + target.h / 2;
+
+      let dx = tx - cx;
+      let dy = ty - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      dx /= dist;
+      dy /= dist;
+
+      projectiles.push({
+        x: cx,
+        y: cy,
+        vx: dx * clone.projectileSpeed,
+        vy: dy * clone.projectileSpeed,
+        radius: 4,
+        damage: clone.damage,
+        color: clone.bulletColor,
+        glowColor: clone.glowColor,
+        life: 3.5,
+        trail: [],
+        pierce: false,
+        pierceCount: 0,
+        explosive: false,
+        isCrit: false,
+        critMultiplier: 1,
+        chainLightning: 0,
+        isEnemyProjectile: false,
+        isCloneProjectile: true // Flag for clone bullets
+      });
     }
 
     // PROJECTILE UPDATES
@@ -9683,6 +9826,75 @@
 
         ctx.shadowBlur = 0;
       }
+      
+      // Draw Illusionist clone (positioned above player)
+      if (illusionistClone && illusionistClone.hp > 0) {
+        drawIllusionistClone();
+      }
+    }
+    
+    function drawIllusionistClone() {
+      if (!illusionistClone) return;
+      
+      const x = illusionistClone.x;
+      const y = illusionistClone.y;
+      const w = illusionistClone.w;
+      const h = illusionistClone.h;
+      
+      // Semi-transparent to show it's a clone
+      ctx.globalAlpha = 0.85;
+      
+      // Try sprite first
+      const sprite = characterSprites[illusionistClone.className];
+      
+      if (sprite && spritesLoaded) {
+        const frame = getSpriteFrame(illusionistClone.animFrame || 0);
+        const spriteWidth = sprite.width;
+        const spriteHeight = sprite.height;
+        const frameWidth = spriteWidth / 4;
+        
+        ctx.save();
+        
+        if (illusionistClone.facingLeft) {
+          ctx.scale(-1, 1);
+          ctx.drawImage(sprite, frame * frameWidth, 0, frameWidth, spriteHeight, -(x + w), y, w, h);
+        } else {
+          ctx.drawImage(sprite, frame * frameWidth, 0, frameWidth, spriteHeight, x, y, w, h);
+        }
+        
+        ctx.restore();
+      } else {
+        // Fallback colored square
+        ctx.shadowColor = illusionistClone.glowColor;
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = illusionistClone.color;
+        ctx.fillRect(x, y, w, h);
+        ctx.shadowBlur = 0;
+        
+        ctx.fillStyle = illusionistClone.accent;
+        ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      }
+      
+      ctx.globalAlpha = 1.0;
+      
+      // HP bar above clone
+      const barWidth = w;
+      const barHeight = 4;
+      const barX = x;
+      const barY = y - 10;
+      
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(barX, barY, barWidth, barHeight);
+      
+      const hpPercent = illusionistClone.hp / illusionistClone.maxHP;
+      ctx.fillStyle = hpPercent > 0.5 ? "#00ff00" : hpPercent > 0.25 ? "#ffff00" : "#ff0000";
+      ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+      
+      // Level indicator
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "12px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(`Lv${illusionistClone.level}`, x + w/2, y - 15);
     }
 
     function drawEnemies() {
