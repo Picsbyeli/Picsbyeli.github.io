@@ -1220,6 +1220,12 @@
         <div class="potion-count" id="countDragon">1</div>
         <div class="potion-cooldown-overlay" id="cdDragon" style="height: 0%"></div>
       </div>
+      <div class="potion-slot" id="potionCleanse" data-key="7">
+        <div class="potion-key">7</div>
+        <div class="potion-icon">✨</div>
+        <div class="potion-count" id="countCleanse">2</div>
+        <div class="potion-cooldown-overlay" id="cdCleanse" style="height: 0%"></div>
+      </div>
     </div>
     
     <!-- Ultimate Ability Buttons -->
@@ -1442,6 +1448,7 @@
       potions.damage = 1 + gameData.potionUpgrades.startingOthers;
       potions.speed = 1 + gameData.potionUpgrades.startingOthers;
       potions.dragon = 1 + gameData.potionUpgrades.startingOthers;
+      potions.cleanse = 2 + gameData.potionUpgrades.startingOthers;
       
       // Potion generation chance (10% per level)
       const genChance = gameData.potionUpgrades.potionGen * 0.1;
@@ -1462,6 +1469,7 @@
       document.getElementById('countDamage').textContent = potions.damage;
       document.getElementById('countSpeed').textContent = potions.speed;
       document.getElementById('countDragon').textContent = potions.dragon;
+      document.getElementById('countCleanse').textContent = potions.cleanse;
     }
     
     function usePotion(type) {
@@ -1518,6 +1526,18 @@
           
         case 'dragon':
           useDragonBeam();
+          break;
+        case 'cleanse':
+          // Remove all debuffs
+          playerDebuffs.cursed = false;
+          playerDebuffs.cursedTimer = 0;
+          playerDebuffs.poisoned = false;
+          playerDebuffs.poisonedTimer = 0;
+          playerDebuffs.poisonDamage = 0;
+          
+          const healStrength = 20 + (gameData.potionUpgrades.healStrength * 5);
+          player.hp = Math.min(player.hp + healStrength, player.maxHP);
+          addFloatingText(player.x + player.w / 2, player.y - 40, "✨ CLEANSED! +" + healStrength, "#FFD700");
           break;
       }
       
@@ -1731,7 +1751,7 @@
     }
     
     function updatePotionCooldownDisplay() {
-      const types = ['heal', 'shield', 'crit', 'damage', 'speed', 'dragon'];
+      const types = ['heal', 'shield', 'crit', 'damage', 'speed', 'dragon', 'cleanse'];
       types.forEach((type) => {
         const cooldownPercent = (potionCooldowns[type] / 1.0) * 100;
         document.getElementById('cd' + type.charAt(0).toUpperCase() + type.slice(1)).style.height = cooldownPercent + '%';
@@ -4687,7 +4707,8 @@
       crit: 1,
       damage: 1,
       speed: 1,
-      dragon: 1
+      dragon: 1,
+      cleanse: 2
     };
     
     let potionCooldowns = {
@@ -4696,7 +4717,8 @@
       crit: 0,
       damage: 0,
       speed: 0,
-      dragon: 0
+      dragon: 0,
+      cleanse: 0
     };
     
     let potionEffects = {
@@ -4824,6 +4846,7 @@
     document.getElementById('potionDamage').addEventListener('click', () => usePotion('damage'));
     document.getElementById('potionSpeed').addEventListener('click', () => usePotion('speed'));
     document.getElementById('potionDragon').addEventListener('click', () => usePotion('dragon'));
+    document.getElementById('potionCleanse').addEventListener('click', () => usePotion('cleanse'));
     
     // Ability button click handlers
     document.getElementById('ability1Btn').addEventListener('click', () => activateAbility1());
@@ -4986,6 +5009,7 @@
       if (e.key === "4") usePotion('damage');
       if (e.key === "5") usePotion('speed');
       if (e.key === "6") usePotion('dragon');
+      if (e.key === "7") usePotion('cleanse');
       
       // Ability hotkeys
       if ((e.key === "q" || e.key === "Q") && gameState === "playing") {
@@ -7443,16 +7467,30 @@
           speed *= 0.4; // Very slow
           hp *= 3.0; // Lots of HP
           size = 60; // Big!
-        } else if (rand < 0.97 && wave >= 18) {
-          // WITCH - Debuffs player in radius (Wave 18+)
-          color = "#9400D3";
-          glowColor = "#BA55D3";
-          type = "witch";
-          hasShield = false;
-          isRanged = false;
-          speed *= 0.7;
-          hp *= 1.2;
-          size = 35;
+        } else if (rand < 0.97 && wave >= 27) {
+          // WITCH - Debuffs player in radius (Wave 27+)
+          // Check: Max 2 witches on screen at once
+          const witchCount = enemies.filter(e => e.type === "witch").length;
+          if (witchCount >= 2) {
+            // Skip witch spawn, use grunt instead
+            color = "#ff4444";
+            glowColor = "#ff8888";
+            type = "grunt";
+            hasShield = false;
+            isRanged = false;
+            speed *= 1.0;
+            hp *= 1.0;
+            size = 40;
+          } else {
+            color = "#9400D3";
+            glowColor = "#BA55D3";
+            type = "witch";
+            hasShield = false;
+            isRanged = false;
+            speed *= 0.7;
+            hp *= 1.2;
+            size = 35;
+          }
         } else if (rand < 0.98 && wave >= 25) {
           // BIG WITCH - Buffs other enemies (Wave 25+)
           color = "#4B0082";
@@ -11702,7 +11740,8 @@
         { key: '3', icon: '💥', name: 'Crit', count: potions.crit, color: '#ff0000' },
         { key: '4', icon: '⚔️', name: 'Damage', count: potions.damage, color: '#ff8800' },
         { key: '5', icon: '⚡', name: 'Speed', count: potions.speed, color: '#ffff00' },
-        { key: '6', icon: '🐉', name: 'Dragon', count: potions.dragon, color: '#ff00ff' }
+        { key: '6', icon: '🐉', name: 'Dragon', count: potions.dragon, color: '#ff00ff' },
+        { key: '7', icon: '✨', name: 'Cleanse', count: potions.cleanse, color: '#FFD700' }
       ];
       
       potionsList.forEach((potion, i) => {
