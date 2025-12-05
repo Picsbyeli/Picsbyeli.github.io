@@ -9752,6 +9752,7 @@
       // Shield bar
       if (player.maxShield > 0) {
         const shieldRatio = player.shield / player.maxShield;
+        ctx.fillStyle = "#00ffff";
         ctx.fillText("🛡️ Shield", 20, 70);
         ctx.fillStyle = "rgba(0, 40, 80, 0.8)";
         ctx.fillRect(70, 60, 230, 8);
@@ -9761,6 +9762,11 @@
         
         ctx.strokeStyle = "#00ffff";
         ctx.strokeRect(70, 60, 230, 8);
+        
+        // Shield numbers on bar
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px 'Courier New'";
+        ctx.fillText(Math.floor(player.shield) + "/" + player.maxShield, 155, 67);
       }
 
       // HP bar
@@ -9777,11 +9783,16 @@
       
       ctx.strokeStyle = "#ff4444";
       ctx.strokeRect(70, hpBarY, 230, 12);
+      
+      // HP numbers on bar
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px 'Courier New'";
+      ctx.fillText(Math.floor(player.hp) + "/" + player.maxHP, 155, hpBarY + 9);
 
       // XP bar
       const xpRatio = player.xp / player.xpToNext;
       ctx.fillStyle = "#00ffff";
-      ctx.fillText("✨ XP: " + Math.floor(player.xp) + "/" + player.xpToNext, 20, 102);
+      ctx.fillText("✨ XP", 20, 102);
       ctx.fillStyle = "rgba(0, 50, 80, 0.8)";
       ctx.fillRect(70, 92, 230, 10);
       
@@ -9790,6 +9801,11 @@
       
       ctx.strokeStyle = "#00ffff";
       ctx.strokeRect(70, 92, 230, 10);
+      
+      // XP numbers on bar
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 10px 'Courier New'";
+      ctx.fillText(Math.floor(player.xp) + "/" + player.xpToNext, 155, 100);
 
       
       // Combo
