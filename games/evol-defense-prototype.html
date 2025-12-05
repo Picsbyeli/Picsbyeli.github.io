@@ -4498,12 +4498,31 @@
         specialAbility: "Shield Regen"
       },
       {
+        name: "The Alchemist",
+        color: "#9932CC",
+        pattern: "alchemist", // Stays at start, shoots blasts, casts debuffs
+        speed: 0.2, // Very slow, waits for enemies
+        attackInterval: 2,
+        specialAbility: "Debuff Blast",
+        wave: 30 // Only spawns at wave 30
+      },
+      {
         name: "The Summoner",
         color: "#88ff88",
         pattern: "summon", // Spawns extra enemies
         speed: 0.7,
         attackInterval: 4,
         specialAbility: "Spawn Minions"
+      },
+      {
+        name: "Boss CremeCheese Bagel",
+        color: "#F5DEB3",
+        pattern: "bagel", // Flying boss with clones
+        speed: 1.5, // Fast flyer
+        attackInterval: 1.5,
+        specialAbility: "Clone Army",
+        wave: 40, // Only spawns at wave 40
+        isFlying: true
       },
       {
         name: "The Berserker",
@@ -4534,6 +4553,20 @@
     let brightnessLevel = 1.0;
     let volumeLevel = 1.0;
     let roundBreakTimer = 0;
+    
+    // PLAYER DEBUFF SYSTEM
+    let playerDebuffs = {
+      cursed: false,
+      cursedTimer: 0,
+      poisoned: false,
+      poisonedTimer: 0,
+      poisonDamage: 0
+    };
+    
+    // MOUSE POSITION for cursor aiming
+    let mouseX = canvas.width / 2;
+    let mouseY = canvas.height / 2;
+    let mouseAiming = false;
 
     // SPRITE SYSTEM
     const characterSprites = {};
@@ -4958,12 +4991,23 @@
       keys[e.key] = false;
     });
     
-    // CANVAS MOUSEMOVE for turret drag tracking
+    // CANVAS MOUSEMOVE for turret drag tracking AND cursor aiming
     canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+      
+      // Enable mouse aiming if cursor is in valid area (not underground/potion bar)
+      const potionBarY = canvas.height - 80; // Potion bar area
+      if (mouseY < player.y && mouseY < potionBarY) {
+        mouseAiming = true;
+      } else {
+        mouseAiming = false; // Fall back to auto-aim
+      }
+      
       if (turretCraftUI.dragging) {
-        const rect = canvas.getBoundingClientRect();
-        turretCraftUI.dragX = e.clientX - rect.left;
-        turretCraftUI.dragY = e.clientY - rect.top;
+        turretCraftUI.dragX = mouseX;
+        turretCraftUI.dragY = mouseY;
       }
     });
     
@@ -7168,9 +7212,19 @@
       let size, hp, speed, color, glowColor, type, damage, hasShield, isRanged, pattern;
 
       if (isBoss) {
-        // Get boss pattern based on wave
-        const patternIndex = Math.floor((wave - 1) / 10) % BOSS_PATTERNS.length;
-        const bossPattern = BOSS_PATTERNS[patternIndex];
+        let bossPattern;
+        
+        // SPECIAL WAVE-SPECIFIC BOSSES
+        if (wave === 30) {
+          bossPattern = BOSS_PATTERNS.find(b => b.pattern === "alchemist");
+        } else if (wave === 40) {
+          bossPattern = BOSS_PATTERNS.find(b => b.pattern === "bagel");
+        } else {
+          // Regular boss patterns (cycling through)
+          const regularPatterns = BOSS_PATTERNS.filter(b => !b.wave);
+          const patternIndex = Math.floor((wave - 1) / 10) % regularPatterns.length;
+          bossPattern = regularPatterns[patternIndex];
+        }
         
         size = 80;
         hp = getEnemyHP(wave, true, false);
@@ -7183,7 +7237,7 @@
         // Wave 10: 50, Wave 20: 70, Wave 30: 90, Wave 40: 110
         damage = 30 + (wave * 2);
         hasShield = bossPattern.pattern === "tank";
-        isRanged = bossPattern.pattern === "ranged";
+        isRanged = bossPattern.pattern === "ranged" || bossPattern.pattern === "alchemist";
         pattern = bossPattern;
         
       } else if (isMiniBoss) {
@@ -7298,6 +7352,16 @@
           speed *= 1.2;
           hp *= 0.9; // Slightly less HP
           size = 28; // Smaller
+        } else if (rand < 0.85 && wave >= 23) {
+          // CARRIER - Flies and carries regular enemies, drops them midway (Wave 23+)
+          color = "#FF6347";
+          glowColor = "#FF4500";
+          type = "carrier";
+          hasShield = false;
+          isRanged = true;
+          speed *= 1.5; // Faster
+          hp *= 1.1;
+          size = 32;
         } else if (rand < 0.86 && wave >= 25) {
           // TELEPORTER - Randomly teleports (Wave 25+)
           color = "#00ffff";
@@ -7418,12 +7482,43 @@
         maxFreezeStacks: Math.ceil((size / 32) * (isBoss ? 10 : isMiniBoss ? 5 : 3)), // Boss: ~25, Mini: ~8, Normal: ~3
         freezeSlowPerStack: 0.15, // 15% slow per stack
         // Flyer properties
-        isFlying: type === "flyer",
-        flyHeight: type === "flyer" ? 80 + Math.random() * 40 : 0, // Flying height above ground
+        isFlying: type === "flyer" || (pattern && pattern.isFlying),
+        flyHeight: (type === "flyer" || (pattern && pattern.isFlying)) ? 80 + Math.random() * 40 : 0, // Flying height above ground
         liftTimer: 0,
         liftCooldown: 6, // Flyer can lift an enemy every 6 seconds
-        liftingEnemy: null // Reference to enemy being lifted
+        liftingEnemy: null, // Reference to enemy being lifted
+        // Carrier properties (Wave 23+)
+        isCarrier: type === "carrier",
+        carriedEnemy: type === "carrier" ? {
+          type: "grunt",
+          color: "#ff4444",
+          size: 24,
+          hp: getEnemyHP(wave) * 0.6,
+          maxHP: getEnemyHP(wave) * 0.6,
+          damage: damage * 0.7
+        } : null,
+        dropTimer: 0,
+        hasDropped: false,
+        waitTimer: 0,
+        // Alchemist boss properties
+        isAlchemist: pattern && pattern.pattern === "alchemist",
+        debuffTimer: 0,
+        debuffCooldown: 3, // Cast debuff every 3 seconds
+        waitingForEnemies: pattern && pattern.pattern === "alchemist", // Waits at start
+        // Bagel boss properties
+        isBagel: pattern && pattern.pattern === "bagel",
+        bagelClones: [], // Array of clone objects
+        healTimer: 0,
+        healCooldown: 2 // Heals every 2 seconds
       };
+      
+      // Spawn Bagel clones if it's the Bagel boss
+      if (enemy.isBagel && isBoss) {
+        enemy.bagelClones = [
+          { x: enemy.x - 100, y: enemy.y - 150, vy: 2, hp: hp * 0.4, maxHP: hp * 0.4 },
+          { x: enemy.x - 100, y: enemy.y + 150, vy: -2, hp: hp * 0.4, maxHP: hp * 0.4 }
+        ];
+      }
       
       enemies.push(enemy);
       enemiesThisWave++; // Track for progress bar
@@ -7657,6 +7752,196 @@
         
         // DRAINER: Heals itself when hitting player
         // (Handled in player damage function)
+        
+        // CARRIER: Flies and carries regular enemy, drops midway, waits 2s, then attacks
+        if (e.type === "carrier") {
+          // Floating animation
+          e.y = (GROUND_Y - 120) + Math.sin(Date.now() / 400 + e.x) * 15;
+          
+          // Drop enemy at midway point (canvas.width / 2)
+          if (e.carriedEnemy && !e.hasDropped && e.x < canvas.width / 2) {
+            // Drop the carried enemy
+            const dropped = {
+              x: e.x,
+              y: GROUND_Y - e.carriedEnemy.size,
+              vx: -1.0,
+              w: e.carriedEnemy.size,
+              h: e.carriedEnemy.size,
+              maxHP: e.carriedEnemy.maxHP,
+              hp: e.carriedEnemy.hp,
+              color: e.carriedEnemy.color,
+              glowColor: e.carriedEnemy.color,
+              type: e.carriedEnemy.type,
+              isBoss: false,
+              isMiniBoss: false,
+              baseSpeed: 1.0,
+              damage: e.carriedEnemy.damage,
+              hasShield: false,
+              shieldHP: 0,
+              maxShieldHP: 0,
+              isRanged: false,
+              shootTimer: 0,
+              shootCooldown: 2.5,
+              attackTimer: 0,
+              attackCooldown: 1.5,
+              attackState: "approaching",
+              savedAttackX: null,
+              pattern: null,
+              patternTimer: 0,
+              animFrame: 0,
+              shape: "square"
+            };
+            enemies.push(dropped);
+            e.carriedEnemy = null;
+            e.hasDropped = true;
+            e.waitTimer = 2.0; // Wait 2 seconds
+            e.vx = 0; // Stop moving
+            addFloatingText(e.x + e.w/2, e.y - 30, "DROPPED!", "#FF4500");
+          }
+          
+          // Wait 2 seconds after dropping
+          if (e.hasDropped && e.waitTimer > 0) {
+            e.waitTimer -= dt;
+            if (e.waitTimer <= 0) {
+              // Resume movement and become ranged attacker
+              e.vx = -e.baseSpeed;
+              e.isRanged = true;
+            }
+          }
+        }
+        
+        // ALCHEMIST BOSS: Stays at start, shoots debuff blasts, waits for enemies to engage
+        else if (e.isAlchemist) {
+          // Stay near the start position until other enemies engage
+          if (e.waitingForEnemies) {
+            // Check if any other enemies have gotten close to player
+            const otherEnemiesEngaged = enemies.some(enemy => 
+              enemy !== e && enemy.x < canvas.width * 0.6
+            );
+            
+            if (otherEnemiesEngaged) {
+              e.waitingForEnemies = false;
+              e.vx = -e.baseSpeed;
+              addFloatingText(e.x + e.w/2, e.y - 50, "The Alchemist advances!", "#9932CC");
+            } else {
+              // Stay at spawn area
+              if (e.x < canvas.width - 100) {
+                e.x += 0.5; // Drift back slowly
+              }
+              e.vx = 0;
+            }
+          }
+          
+          // Cast debuffs periodically
+          e.debuffTimer += dt;
+          if (e.debuffTimer >= e.debuffCooldown) {
+            // Shoot debuff blast at player
+            const ex = e.x + e.w / 2;
+            const ey = e.y + e.h / 2;
+            const px = player.x + player.w / 2;
+            const py = player.y + player.h / 2;
+            
+            let dx = px - ex;
+            let dy = py - ey;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            dx /= dist;
+            dy /= dist;
+            
+            projectiles.push({
+              x: ex, y: ey,
+              vx: dx * 7, vy: dy * 7,
+              radius: 15,
+              damage: e.damage * 0.5,
+              color: "#9932CC",
+              glowColor: "#BA55D3",
+              life: 5,
+              trail: [],
+              isEnemyProjectile: true,
+              isDebuffBlast: true // Special flag for debuffs
+            });
+            
+            e.debuffTimer = 0;
+          }
+        }
+        
+        // BAGEL BOSS: Flying boss with clones
+        else if (e.isBagel) {
+          // Fly to middle of screen
+          const targetX = canvas.width / 2;
+          if (Math.abs(e.x - targetX) > 10) {
+            e.x += (targetX - e.x) * 0.01;
+          }
+          
+          // Floating animation
+          e.y = (GROUND_Y - 150) + Math.sin(Date.now() / 300) * 20;
+          
+          // Update clones
+          if (e.bagelClones) {
+            e.bagelClones.forEach((clone, idx) => {
+              // Move clones up and down
+              clone.y += clone.vy * dt * 60;
+              
+              // Bounce at boundaries
+              if (clone.y < GROUND_Y - 250) clone.vy = 2;
+              if (clone.y > GROUND_Y - 50) clone.vy = -2;
+              
+              // Keep clones near main boss
+              clone.x = e.x - 100;
+              
+              // Clones shoot at player
+              if (!clone.shootTimer) clone.shootTimer = 0;
+              clone.shootTimer += dt;
+              
+              if (clone.shootTimer >= 1.5 && clone.hp > 0) {
+                const cx = clone.x;
+                const cy = clone.y;
+                const px = player.x + player.w / 2;
+                const py = player.y + player.h / 2;
+                
+                let dx = px - cx;
+                let dy = py - cy;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                dx /= dist;
+                dy /= dist;
+                
+                projectiles.push({
+                  x: cx, y: cy,
+                  vx: dx * 8, vy: dy * 8,
+                  radius: 10,
+                  damage: e.damage * 0.6,
+                  color: "#F5DEB3",
+                  glowColor: "#FFE4B5",
+                  life: 5,
+                  trail: [],
+                  isEnemyProjectile: true
+                });
+                
+                clone.shootTimer = 0;
+              }
+            });
+          }
+          
+          // Main boss heals over time
+          e.healTimer += dt;
+          if (e.healTimer >= e.healCooldown) {
+            if (e.hp < e.maxHP) {
+              // Heal self
+              const healAmount = e.maxHP * 0.02;
+              e.hp = Math.min(e.hp + healAmount, e.maxHP);
+              addFloatingText(e.x + e.w/2, e.y - 30, `+${Math.floor(healAmount)}`, "#00ff00");
+            } else if (e.bagelClones) {
+              // Heal clones if at full HP
+              e.bagelClones.forEach(clone => {
+                if (clone.hp > 0 && clone.hp < clone.maxHP) {
+                  const cloneHeal = clone.maxHP * 0.03;
+                  clone.hp = Math.min(clone.hp + cloneHeal, clone.maxHP);
+                  addFloatingText(e.x - 100, clone.y - 20, `+${Math.floor(cloneHeal)}`, "#00ff00");
+                }
+              });
+            }
+            e.healTimer = 0;
+          }
+        }
         
         // FLYER: Flies above ground, can lift other enemies at wave 25+
         else if (e.type === "flyer") {
@@ -8303,8 +8588,17 @@
     function shootProjectile(target, angleOffset = 0) {
       const px = player.x + player.w / 2;
       const py = player.y + player.h / 2;
-      const tx = target.x + target.w / 2;
-      const ty = target.y + target.h / 2;
+      
+      let tx, ty;
+      
+      // Use mouse cursor aiming if enabled, otherwise use target
+      if (mouseAiming) {
+        tx = mouseX;
+        ty = mouseY;
+      } else {
+        tx = target.x + target.w / 2;
+        ty = target.y + target.h / 2;
+      }
 
       let dx = tx - px;
       let dy = ty - py;
@@ -8640,6 +8934,23 @@
               }
             }
             
+            // Apply debuffs from Alchemist blast (unless HolyCleric)
+            if (p.isDebuffBlast && player.className !== "HolyCleric") {
+              const debuffType = Math.random() < 0.5 ? "curse" : "poison";
+              if (debuffType === "curse") {
+                playerDebuffs.cursed = true;
+                playerDebuffs.cursedTimer = 5.0; // 5 seconds
+                addFloatingText(player.x + player.w/2, player.y - 40, "CURSED!", "#9932CC");
+              } else {
+                playerDebuffs.poisoned = true;
+                playerDebuffs.poisonedTimer = 5.0; // 5 seconds
+                playerDebuffs.poisonDamage = 5 + wave; // Scales with wave
+                addFloatingText(player.x + player.w/2, player.y - 40, "POISONED!", "#00ff00");
+              }
+            } else if (p.isDebuffBlast && player.className === "HolyCleric") {
+              addFloatingText(player.x + player.w/2, player.y - 40, "IMMUNE!", "#FFD700");
+            }
+            
             player.hp -= damage;
             addFloatingText(p.x, p.y - 20, "-" + Math.floor(damage), "#ff0000"); // Show damage taken!
             spawnHitParticles(p.x, p.y, "#ff0000", 8);
@@ -8901,6 +9212,37 @@
                   damage: p.poison.damage,
                   duration: p.poison.duration
                 });
+              }
+              
+              // Check for Bagel clone hits (if enemy is Bagel boss)
+              if (e.isBagel && e.bagelClones) {
+                for (let cloneIdx = 0; cloneIdx < e.bagelClones.length; cloneIdx++) {
+                  const clone = e.bagelClones[cloneIdx];
+                  if (clone.hp > 0) {
+                    const dx = p.x - clone.x;
+                    const dy = p.y - clone.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 20 + p.radius) {
+                      // Hit a clone!
+                      let cloneDamage = actualDamage;
+                      if (p.isCrit) {
+                        cloneDamage *= p.critMultiplier;
+                      }
+                      
+                      clone.hp -= cloneDamage;
+                      addFloatingText(clone.x, clone.y - 20, `-${Math.floor(cloneDamage)}`, "#ff0000");
+                      spawnHitParticles(clone.x, clone.y, p.color, 8);
+                      
+                      if (clone.hp <= 0) {
+                        clone.hp = 0;
+                        addFloatingText(clone.x, clone.y - 30, "CLONE DESTROYED!", "#ffff00");
+                        spawnExplosion(clone.x, clone.y, "#F5DEB3", 15);
+                      }
+                      break;
+                    }
+                  }
+                }
               }
               
               // Chain lightning
@@ -9742,6 +10084,36 @@
     function update(dt) {
       if (!player || !player.alive) return;
 
+      // Update player debuffs
+      if (playerDebuffs.cursed) {
+        playerDebuffs.cursedTimer -= dt;
+        if (playerDebuffs.cursedTimer <= 0) {
+          playerDebuffs.cursed = false;
+          playerDebuffs.cursedTimer = 0;
+        }
+        // Curse effect: -30% damage
+        player.damage *= 0.7;
+      }
+      
+      if (playerDebuffs.poisoned) {
+        playerDebuffs.poisonedTimer -= dt;
+        if (playerDebuffs.poisonedTimer <= 0) {
+          playerDebuffs.poisoned = false;
+          playerDebuffs.poisonedTimer = 0;
+        } else {
+          // Poison effect: damage over time every 0.5s
+          if (Math.floor(playerDebuffs.poisonedTimer * 2) !== Math.floor((playerDebuffs.poisonedTimer + dt) * 2)) {
+            player.hp -= playerDebuffs.poisonDamage;
+            addFloatingText(player.x + player.w/2, player.y - 20, `-${playerDebuffs.poisonDamage}`, "#00ff00");
+            if (player.hp <= 0) {
+              player.hp = 0;
+              player.alive = false;
+              endGame();
+            }
+          }
+        }
+      }
+
       // Update player sprite animation
       if (player && player.alive) {
         const keys = window.keys || {};
@@ -10298,6 +10670,47 @@
         const hpColor = hpRatio > 0.5 ? "#44ff44" : hpRatio > 0.25 ? "#ffaa44" : "#ff4444";
         ctx.fillStyle = hpColor;
         ctx.fillRect(e.x, e.y - 8, barWidth * hpRatio, barHeight);
+        
+        // Draw Bagel boss clones
+        if (e.isBagel && e.bagelClones) {
+          e.bagelClones.forEach(clone => {
+            if (clone.hp > 0) {
+              ctx.shadowColor = "#F5DEB3";
+              ctx.shadowBlur = 15;
+              ctx.fillStyle = "#F5DEB3";
+              
+              // Draw clone body
+              ctx.beginPath();
+              ctx.arc(clone.x, clone.y, 20, 0, Math.PI * 2);
+              ctx.fill();
+              
+              ctx.shadowBlur = 0;
+              
+              // Clone HP bar
+              const cloneHpRatio = clone.hp / clone.maxHP;
+              const cloneBarWidth = 40;
+              const cloneBarHeight = 4;
+              
+              ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+              ctx.fillRect(clone.x - cloneBarWidth/2, clone.y - 30, cloneBarWidth, cloneBarHeight);
+              
+              const cloneHpColor = cloneHpRatio > 0.6 ? "#00ff00" : cloneHpRatio > 0.3 ? "#ffaa00" : "#ff0000";
+              ctx.fillStyle = cloneHpColor;
+              ctx.fillRect(clone.x - cloneBarWidth/2, clone.y - 30, cloneBarWidth * cloneHpRatio, cloneBarHeight);
+            }
+          });
+        }
+        
+        // Draw carrier's carried enemy
+        if (e.isCarrier && e.carriedEnemy && !e.hasDropped) {
+          ctx.fillStyle = e.carriedEnemy.color;
+          ctx.shadowColor = e.carriedEnemy.color;
+          ctx.shadowBlur = 8;
+          
+          const carriedSize = e.carriedEnemy.size;
+          ctx.fillRect(e.x + e.w/2 - carriedSize/2, e.y + e.h + 5, carriedSize, carriedSize);
+          ctx.shadowBlur = 0;
+        }
       }
       ctx.shadowBlur = 0;
     }
@@ -10639,6 +11052,32 @@
       ctx.fillText("💰 " + gameData.totalCoins, 20, 125); // Moved from 105 to 125
       ctx.fillStyle = "#00ffff";
       ctx.fillText("💎 " + gameData.totalGems, 160, 125); // Moved from 105 to 125
+      
+      // Debuff indicators
+      let debuffX = 350;
+      if (playerDebuffs.cursed) {
+        ctx.fillStyle = "rgba(153, 50, 204, 0.8)";
+        ctx.fillRect(debuffX, 55, 70, 25);
+        ctx.strokeStyle = "#9932CC";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(debuffX, 55, 70, 25);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px 'Courier New'";
+        ctx.fillText("CURSED", debuffX + 5, 67);
+        ctx.fillText(Math.ceil(playerDebuffs.cursedTimer) + "s", debuffX + 5, 77);
+        debuffX += 75;
+      }
+      if (playerDebuffs.poisoned) {
+        ctx.fillStyle = "rgba(0, 255, 0, 0.8)";
+        ctx.fillRect(debuffX, 55, 75, 25);
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(debuffX, 55, 75, 25);
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 10px 'Courier New'";
+        ctx.fillText("POISONED", debuffX + 3, 67);
+        ctx.fillText(Math.ceil(playerDebuffs.poisonedTimer) + "s", debuffX + 20, 77);
+      }
       
       // Auto-start indicator (top-right)
       ctx.fillStyle = autoStartWave ? "rgba(0, 255, 0, 0.8)" : "rgba(255, 0, 0, 0.8)";
