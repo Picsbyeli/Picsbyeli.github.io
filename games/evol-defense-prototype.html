@@ -4201,6 +4201,30 @@
           gameData.potionUpgrades.potionGen = (gameData.potionUpgrades.potionGen || 0) + 1;
           saveGameData();
         }
+      },
+      flameBurst: {
+        icon: "🔥",
+        name: "Flame Burst",
+        maxLevel: 5,
+        getCurrentLevel: (player) => player.upgradeLevels.flameBurst,
+        getDesc: (level) => `Bullets burn for ${level * 10} damage over 3s (Level ${level}/5)`,
+        apply: (player, level) => {
+          player.flameBurst = true;
+          player.burnDamage = level * 10;
+          player.burnDuration = 3;
+          player.upgradeLevels.flameBurst = level;
+        },
+        superUpgrade: {
+          name: "🌋 INFERNO CHAIN",
+          desc: "Burns chain to nearby enemies!",
+          icon: "🌋",
+          apply: (player) => {
+            player.superUpgrades.infernoChain = true;
+            player.burnChain = true;
+            player.burnChainRange = 150;
+            player.burnDamage = 100; // Massive burn damage
+          }
+        }
       }
     };
 
@@ -6625,32 +6649,40 @@
     function getEnemyHP(wave, isBoss = false, isMiniBoss = false) {
       // WAVES 1-9: Fixed HP - difficulty increases by enemy COUNT only
       // WAVE 10+: HP starts scaling
+      // WAVE 20+: HARDER SCALING - Significant difficulty increase!
       // WAVE 25+: EXPONENTIAL SCALING - Much harder!
       
       // Wave 1-9: 20 HP (2-shot from Hunter's 10 damage)
       // Wave 10: 140 HP
-      // Wave 20: 500 HP
-      // Wave 25: 800 HP
-      // Wave 30: 1,500 HP (with exponential boost)
-      // Wave 40: 4,000 HP (with exponential boost)
-      // Wave 50: 10,000 HP (with exponential boost)
+      // Wave 20: 800 HP (HARDER)
+      // Wave 25: 1,200 HP
+      // Wave 30: 2,500 HP (with exponential boost)
+      // Wave 40: 6,000 HP (with exponential boost)
+      // Wave 50: 15,000 HP (with exponential boost)
       
       let hp;
       
       if (wave < 10) {
         // Waves 1-9: FIXED HP, no scaling
         hp = 20; // Always 2-shot for Hunter
-      } else if (wave < 25) {
-        // Wave 10-24: Normal scaling
+      } else if (wave < 20) {
+        // Wave 10-19: Normal scaling
         const adjustedWave = wave;
         const baseHP = 20;
         const linearGrowth = adjustedWave * 8;
         const exponentialGrowth = Math.pow(adjustedWave, 1.8) * 1.0;
         hp = baseHP + linearGrowth + exponentialGrowth;
+      } else if (wave < 25) {
+        // Wave 20-24: HARDER SCALING - Significant difficulty spike!
+        const adjustedWave = wave;
+        const baseHP = 50;
+        const linearGrowth = adjustedWave * 15; // Increased from 8
+        const exponentialGrowth = Math.pow(adjustedWave, 2.0) * 1.5; // Increased exponent
+        hp = baseHP + linearGrowth + exponentialGrowth;
       } else {
         // Wave 25+: EXPONENTIAL SCALING - Much harder!
-        const baseHP = 800; // Start at 800 HP
-        const exponentialGrowth = Math.pow(wave - 24, 2.2) * 15; // Aggressive exponential
+        const baseHP = 1200; // Increased from 800
+        const exponentialGrowth = Math.pow(wave - 24, 2.3) * 20; // More aggressive
         hp = baseHP + exponentialGrowth;
       }
       
@@ -6667,9 +6699,9 @@
       spawnTimer += dt;
       
       // Spawn rate increases dramatically with waves
-      // Wave 1: 2.0s, Wave 10: 1.2s, Wave 20: 0.6s, Wave 30: 0.3s
+      // Wave 1: 2.0s, Wave 10: 1.2s, Wave 20: 0.4s (FASTER!), Wave 30: 0.2s
       let spawnInterval = 2.0 - (wave * 0.05);
-      spawnInterval = Math.max(spawnInterval, 0.2); // Minimum 0.2s between spawns
+      spawnInterval = Math.max(spawnInterval, 0.15); // Minimum 0.15s between spawns (reduced from 0.2s)
 
       if (spawnTimer >= spawnInterval) {
         spawnTimer = 0;
@@ -6678,9 +6710,11 @@
         // DIFFICULTY SCALING: Spawn multiple enemies at once on higher waves
         let spawnCount = 1; // Default: 1 enemy
         if (wave >= 35) {
-          spawnCount = 3; // Wave 35+: 3 enemies at once
+          spawnCount = 4; // Wave 35+: 4 enemies at once (increased from 3)
         } else if (wave >= 25) {
-          spawnCount = 2; // Wave 25-34: 2 enemies at once
+          spawnCount = 3; // Wave 25-34: 3 enemies at once (increased from 2)
+        } else if (wave >= 20) {
+          spawnCount = 2; // Wave 20-24: 2 enemies at once (NEW!)
         }
         
         // Spawn multiple enemies
@@ -6821,7 +6855,17 @@
           speed *= 0.9;
           hp *= 1.2;
           size = 36;
-        } else if (rand < 0.84 && wave >= 25) {
+        } else if (rand < 0.82 && wave >= 12) {
+          // FLYER - Flies above ground, can lift enemies at wave 25+ (Wave 12+)
+          color = "#00ccff";
+          glowColor = "#66ddff";
+          type = "flyer";
+          hasShield = false;
+          isRanged = false;
+          speed *= 1.2;
+          hp *= 0.9; // Slightly less HP
+          size = 28; // Smaller
+        } else if (rand < 0.86 && wave >= 25) {
           // TELEPORTER - Randomly teleports (Wave 25+)
           color = "#00ffff";
           glowColor = "#88ffff";
@@ -6830,7 +6874,7 @@
           isRanged = false;
           speed *= 0.7;
           size = 32;
-        } else if (rand < 0.87 && wave >= 30) {
+        } else if (rand < 0.89 && wave >= 30) {
           // BERSERKER - Gets faster when low HP (Wave 30+)
           color = "#ff0000";
           glowColor = "#ff4400";
@@ -6840,7 +6884,7 @@
           speed *= 1.0;
           hp *= 1.3;
           size = 38;
-        } else if (rand < 0.90 && wave >= 35) {
+        } else if (rand < 0.92 && wave >= 35) {
           // DRAINER - Steals HP on hit (Wave 35+)
           color = "#8800ff";
           glowColor = "#aa44ff";
@@ -6850,7 +6894,7 @@
           speed *= 0.8;
           hp *= 1.4;
           size = 34;
-        } else if (rand < 0.93 && wave >= 40) {
+        } else if (rand < 0.95 && wave >= 40) {
           // SUMMONER - Spawns minion enemies (Wave 40+)
           color = "#ffaa00";
           glowColor = "#ffcc44";
@@ -6869,19 +6913,24 @@
           isRanged = false;
         }
         
-        // Damage scales - EXPONENTIAL at wave 25+
-        if (wave < 25) {
+        // Damage scales - HARDER at wave 20+, EXPONENTIAL at wave 25+
+        if (wave < 20) {
           damage = 20 + Math.floor(wave / 5) * 4;
+        } else if (wave < 25) {
+          // Wave 20-24: HARDER DAMAGE SCALING
+          const baseDamage = 30;
+          const scalingDamage = (wave - 19) * 10; // +10 per wave
+          damage = baseDamage + scalingDamage;
         } else {
           // Wave 25+: Much higher damage!
-          const baseDamage = 40;
-          const scalingDamage = (wave - 24) * 8; // +8 per wave
+          const baseDamage = 80; // Increased from 40
+          const scalingDamage = (wave - 24) * 12; // Increased from +8 to +12 per wave
           damage = baseDamage + scalingDamage;
         }
         
         // Kamikaze does massive explosion damage
         if (type === "kamikaze") {
-          damage = 50 + wave * 5; // Much higher damage
+          damage = 50 + wave * 6; // Slightly increased multiplier
         }
         
         pattern = null;
@@ -6934,7 +6983,13 @@
         // Freeze resistance system - larger enemies need more freeze stacks
         freezeStacks: 0, // Current freeze stacks
         maxFreezeStacks: Math.ceil((size / 32) * (isBoss ? 10 : isMiniBoss ? 5 : 3)), // Boss: ~25, Mini: ~8, Normal: ~3
-        freezeSlowPerStack: 0.15 // 15% slow per stack
+        freezeSlowPerStack: 0.15, // 15% slow per stack
+        // Flyer properties
+        isFlying: type === "flyer",
+        flyHeight: type === "flyer" ? 80 + Math.random() * 40 : 0, // Flying height above ground
+        liftTimer: 0,
+        liftCooldown: 6, // Flyer can lift an enemy every 6 seconds
+        liftingEnemy: null // Reference to enemy being lifted
       };
       
       enemies.push(enemy);
@@ -7090,7 +7145,7 @@
             
             addFloatingText(e.x + e.w / 2, e.y - 40, "💀 HEAD THROW!", "#ff0000");
             spawnExplosion(ex, ey, "#8B0000", 12);
-            screenShake += 10;
+            screenShake += 3;
             e.patternTimer = 0;
           }
         }
@@ -7116,7 +7171,7 @@
           }
         } else if (e.type === "kamikaze" && e.x + e.w < player.x + player.w) {
           // Kamikaze explodes when it reaches player
-          screenShake += 15;
+          screenShake += 5;
           spawnExplosion(e.x + e.w / 2, e.y + e.h / 2, "#ff8800", 20);
           addFloatingText(e.x + e.w / 2, e.y - 30, "💥 BOOM! 💥", "#ff8800");
           
@@ -7162,13 +7217,61 @@
             e.vx = e.baseSpeed * -2; // Double speed!
             e.color = "#ff4400"; // Brighter red
             addFloatingText(e.x + e.w / 2, e.y - 30, "ENRAGED!", "#ff0000");
-            screenShake += 8;
+            screenShake += 2;
             spawnExplosion(e.x + e.w/2, e.y + e.h/2, "#ff0000", 20);
           }
         }
         
         // DRAINER: Heals itself when hitting player
         // (Handled in player damage function)
+        
+        // FLYER: Flies above ground, can lift other enemies at wave 25+
+        else if (e.type === "flyer") {
+          // Flyers move at elevated Y position
+          if (!e.liftingEnemy) {
+            // Floating animation - bob up and down
+            e.y = (GROUND_Y - e.flyHeight) + Math.sin(Date.now() / 400 + e.x) * 10;
+            
+            // At wave 25+, flyers can grab and lift ground enemies
+            if (wave >= 25) {
+              e.liftTimer += dt;
+              if (e.liftTimer >= e.liftCooldown) {
+                // Find a nearby ground enemy to lift
+                for (const target of enemies) {
+                  if (target !== e && !target.isFlying && !target.isBoss && !target.isMiniBoss && !target.isBeingLifted) {
+                    const dx = target.x - e.x;
+                    const dy = (target.y + target.h/2) - (e.y + e.h/2);
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (dist < 100) {
+                      // Grab this enemy!
+                      e.liftingEnemy = target;
+                      target.isBeingLifted = true;
+                      target.liftedBy = e;
+                      addFloatingText(e.x + e.w/2, e.y - 30, "LIFTED!", "#00ccff");
+                      e.liftTimer = 0;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            // Currently lifting an enemy - carry it forward
+            if (e.liftingEnemy && e.liftingEnemy.hp > 0) {
+              e.liftingEnemy.x = e.x;
+              e.liftingEnemy.y = e.y + e.h + 5; // Position below flyer
+              e.liftingEnemy.vx = 0; // Stop horizontal movement while lifted
+            } else {
+              // Dropped or enemy died
+              if (e.liftingEnemy) {
+                e.liftingEnemy.isBeingLifted = false;
+                e.liftingEnemy.liftedBy = null;
+              }
+              e.liftingEnemy = null;
+            }
+          }
+        }
         
         // SUMMONER: Spawns minion enemies periodically
         else if (e.type === "summoner") {
@@ -7415,7 +7518,7 @@
         // Frozen enemies don't move (but can still be in any state)
         // Apply slow effect to movement
         const effectiveVx = e.vx * speedMultiplier;
-        if (!e.frozen) {
+        if (!e.frozen && !e.isBeingLifted) {
           e.x += effectiveVx;
         }
         e.animFrame = ((e.animFrame || 0) + dt * 10) % 1;
@@ -7433,6 +7536,31 @@
             }
           }
         }
+        
+        // Burn damage over time
+        if (e.burnStacks && e.burnStacks.length > 0) {
+          for (let b = e.burnStacks.length - 1; b >= 0; b--) {
+            const burn = e.burnStacks[b];
+            burn.timeSinceLastTick += dt;
+            burn.duration -= dt;
+            
+            // Apply damage every tick interval
+            if (burn.timeSinceLastTick >= burn.tickInterval) {
+              const burnDmg = burn.damage / (burn.tickInterval * 2); // Spread damage over ticks
+              if (e.hasShield && e.shieldHP > 0) {
+                e.shieldHP -= burnDmg;
+              } else {
+                e.hp -= burnDmg;
+              }
+              burn.timeSinceLastTick = 0;
+            }
+            
+            // Remove expired burn
+            if (burn.duration <= 0) {
+              e.burnStacks.splice(b, 1);
+            }
+          }
+        }
 
         // Check death
         if (e.hp <= 0) {
@@ -7444,7 +7572,7 @@
               }
             });
             floatingText("👁️ HIVE MIND TRIGGERED!", canvas.width / 2, 150, "#ff0000", 2);
-            screenShake += 15;
+            screenShake += 5;
           }
           
           // Track kill for abilities
@@ -7532,7 +7660,7 @@
             
             addFloatingText(canvas.width / 2, 250, "🎉 BOSS DEFEATED! 🎉", "#ff00ff");
             addFloatingText(canvas.width / 2, 280, "Next wave in 30s!", "#ffff00");
-            screenShake += 25;
+            screenShake += 8;
             
             // Start 30-second timer for next wave
             waveTimer = 30;
@@ -8027,7 +8155,7 @@
               
               e.hp -= actualDamage;
               spawnHitParticles(p.x, p.y, p.color, p.isCrit ? 12 : 6);
-              screenShake += p.isCrit ? 4 : 2;
+              screenShake += p.isCrit ? 1 : 0.5;
               
               // PYROMANCER: Create fire zone on ground
               if (player.className === "Pyromancer") {
@@ -8080,12 +8208,53 @@
                 }
               }
               
+              // FLAME BURST: Burn damage over time
+              if (player.flameBurst) {
+                if (!e.burnStacks) e.burnStacks = [];
+                
+                // Add burn stack
+                e.burnStacks.push({
+                  damage: player.burnDamage || 20,
+                  duration: player.burnDuration || 3,
+                  tickInterval: 0.5, // Damage every 0.5 seconds
+                  timeSinceLastTick: 0
+                });
+                
+                addFloatingText(e.x + e.w / 2, e.y - 50, "🔥 BURNING!", "#ff4500");
+                
+                // SUPER UPGRADE: Inferno Chain - burn spreads to nearby enemies
+                if (player.burnChain) {
+                  for (const otherEnemy of enemies) {
+                    if (otherEnemy === e) continue;
+                    const dx = (otherEnemy.x + otherEnemy.w / 2) - (e.x + e.w / 2);
+                    const dy = (otherEnemy.y + otherEnemy.h / 2) - (e.y + e.h / 2);
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < (player.burnChainRange || 150)) {
+                      // Chain burn to this enemy!
+                      if (!otherEnemy.burnStacks) otherEnemy.burnStacks = [];
+                      otherEnemy.burnStacks.push({
+                        damage: (player.burnDamage || 20) * 0.8, // 80% burn damage for chain
+                        duration: player.burnDuration || 3,
+                        tickInterval: 0.5,
+                        timeSinceLastTick: 0
+                      });
+                      addFloatingText(otherEnemy.x + otherEnemy.w / 2, otherEnemy.y - 50, "🌋 CHAIN!", "#ff6600");
+                      
+                      // Visual chain effect
+                      spawnHitParticles((e.x + otherEnemy.x) / 2, (e.y + otherEnemy.y) / 2, "#ff4500", 8);
+                    }
+                  }
+                }
+              }
+              
               // Knockback (Guardian Tank or other knockback sources)
               if (p.knockback && p.knockback > 0) {
                 // Knockback resistance system - similar to freeze
                 const currentTime = Date.now() / 1000; // Current time in seconds
                 if (!e.lastKnockbackTime) e.lastKnockbackTime = 0;
                 if (!e.knockbackResistance) e.knockbackResistance = 0;
+                if (!e.knockbackHitCount) e.knockbackHitCount = 0;
                 
                 // Cooldown: 0.3 seconds between knockback applications
                 if (currentTime - e.lastKnockbackTime >= 0.3) {
@@ -8109,16 +8278,29 @@
                       
                       // Build resistance
                       e.knockbackResistance++;
+                      e.knockbackHitCount++;
                       e.lastKnockbackTime = currentTime;
                       
-                      // Visual feedback
-                      const resistancePercent = Math.floor((e.knockbackResistance / maxResistance) * 100);
-                      if (e.knockbackResistance >= maxResistance) {
-                        addFloatingText(e.x + e.w / 2, e.y - 40, "💨 IMMUNE!", "#87ceeb");
+                      // MAX LEVEL KNOCKBACK (5/5 or 75+): Send to spawn after 3 hits!
+                      if (player.knockback >= 75 && e.knockbackHitCount >= 3 && e.hp > 0) {
+                        // Send enemy back to spawn point
+                        e.x = canvas.width + 50;
+                        e.y = GROUND_Y - e.h - 10;
+                        e.knockbackHitCount = 0; // Reset counter
+                        addFloatingText(e.x + e.w / 2, e.y - 60, "🌀 BANISHED!", "#ff00ff");
+                        spawnExplosion(e.x + e.w / 2, e.y + e.h / 2, "#ff00ff", 25);
+                        screenShake += 3;
                       } else {
-                        addFloatingText(e.x + e.w / 2, e.y - 40, `💨 ${resistancePercent}%`, "#87ceeb");
+                        // Visual feedback
+                        const resistancePercent = Math.floor((e.knockbackResistance / maxResistance) * 100);
+                        if (e.knockbackResistance >= maxResistance) {
+                          addFloatingText(e.x + e.w / 2, e.y - 40, "💨 IMMUNE!", "#87ceeb");
+                        } else {
+                          const hitText = player.knockback >= 75 ? ` (${e.knockbackHitCount}/3)` : "";
+                          addFloatingText(e.x + e.w / 2, e.y - 40, `💨 ${resistancePercent}%${hitText}`, "#87ceeb");
+                        }
+                        spawnExplosion(p.x, p.y, "#87ceeb", 15);
                       }
-                      spawnExplosion(p.x, p.y, "#87ceeb", 15);
                     }
                   }
                   
@@ -8169,7 +8351,7 @@
                   }
                 }
                 spawnExplosion(p.x, p.y, "#ff8800", Math.min(15 + explosionRadius / 10, 30));
-                screenShake += 6;
+                screenShake += 2;
               }
               
               // Apply poison (Necromancer)
@@ -8506,7 +8688,7 @@
             gameData.unlockedClasses.push("GuardianTank");
             saveGameData();
             addFloatingText(canvas.width / 2, 150, "🛡️ GUARDIAN TANK UNLOCKED! 🛡️", "#4169e1");
-            screenShake += 20;
+            screenShake += 6;
             
             // Extra visual feedback
             for (let i = 0; i < 50; i++) {
@@ -8561,7 +8743,7 @@
       // Epic visual feedback for super upgrade!
       addFloatingText(canvas.width / 2, canvas.height / 2 - 50, upgrade.superUpgrade.name, "#ff00ff");
       addFloatingText(canvas.width / 2, canvas.height / 2, "SUPER UPGRADE!", "#ffaa00");
-      screenShake += 30;
+      screenShake += 10;
       
       // Massive particle explosion
       for (let i = 0; i < 100; i++) {
@@ -9110,7 +9292,7 @@
               life: 1.5
             });
           }
-          screenShake += 15;
+          screenShake += 5;
         }
       }
       
@@ -9187,7 +9369,7 @@
           shufflesRemaining = 4;
           addFloatingText(canvas.width / 2, 200, `🗺️ MAP ${currentMap} 🗺️`, "#ff00ff");
           addFloatingText(canvas.width / 2, 230, "SHUFFLES RESET!", "#00ffff");
-          screenShake += 15;
+          screenShake += 5;
         }
         
         // Give wave bonus XP
@@ -9263,7 +9445,7 @@
               
               addFloatingText(canvas.width / 2, 200, `🗺️ MAP ${currentMap} 🗺️`, "#ff00ff");
               addFloatingText(canvas.width / 2, 230, "SHUFFLES RESET!", "#00ffff");
-              screenShake += 15;
+              screenShake += 5;
             }
             
             // Give wave bonus XP
