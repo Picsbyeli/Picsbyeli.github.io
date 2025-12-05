@@ -1330,7 +1330,8 @@
       },
       unlockedClasses: ["Hunter", "Rookie"], // Rookie available from start
       purchasedClasses: [], // Track purchased classes separately
-      skillTrees: {} // Track unlocked abilities for each class
+      skillTrees: {}, // Track unlocked abilities for each class
+      wave18Restarts: 0 // Track restarts at wave 18 for Dr.Sunshine unlock
     };
 
     // Load saved data
@@ -1625,6 +1626,66 @@
               });
             }
           }
+        });
+      }
+    }
+    
+    function updateMiniSun(dt) {
+      if (!player.miniSun) return;
+      
+      const sun = player.miniSun;
+      const keys = window.keys || {};
+      const sunSpeed = 200; // Pixels per second
+      
+      // Arrow key movement for mini sun
+      if (keys['ArrowUp']) sun.y -= sunSpeed * dt;
+      if (keys['ArrowDown']) sun.y += sunSpeed * dt;
+      if (keys['ArrowLeft']) sun.x -= sunSpeed * dt;
+      if (keys['ArrowRight']) sun.x += sunSpeed * dt;
+      
+      // Keep sun within bounds
+      sun.x = Math.max(sun.radius, Math.min(canvas.width - sun.radius, sun.x));
+      sun.y = Math.max(sun.radius, Math.min(GROUND_Y - sun.radius, sun.y));
+      
+      // Burn enemies within radius
+      enemies.forEach(e => {
+        const dx = (e.x + e.w / 2) - sun.x;
+        const dy = (e.y + e.h / 2) - sun.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < sun.burnRadius) {
+          const burnDmg = sun.damage * dt;
+          if (e.hasShield && e.shieldHP > 0) {
+            e.shieldHP -= burnDmg;
+          } else {
+            e.hp -= burnDmg;
+          }
+          
+          // Visual burn particles
+          if (Math.random() < 0.15) {
+            particles.push({
+              x: e.x + e.w / 2,
+              y: e.y + e.h / 2,
+              vx: (Math.random() - 0.5) * 3,
+              vy: (Math.random() - 0.5) * 3,
+              radius: 4,
+              color: ["#FFD700", "#FFA500", "#FF8C00"][Math.floor(Math.random() * 3)],
+              life: 0.8
+            });
+          }
+        }
+      });
+      
+      // Sun particle effects
+      if (Math.random() < 0.3) {
+        particles.push({
+          x: sun.x + (Math.random() - 0.5) * sun.radius,
+          y: sun.y + (Math.random() - 0.5) * sun.radius,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          radius: 3,
+          color: ["#FFD700", "#FFA500", "#FFFF00"][Math.floor(Math.random() * 3)],
+          life: 0.5
         });
       }
     }
@@ -3172,6 +3233,27 @@
           forestBonus: 1.2 // 20% damage bonus
         },
         description: "Forest tracker with piercing long-range arrows"
+      },
+      DrSunshine: {
+        icon: "☀️",
+        color: "#FFD700",
+        accent: "#FFA500",
+        bulletColor: "#FFD700",
+        glowColor: "#FF8C00",
+        unlockWave: 0,
+        purchasable: false,
+        challengeUnlock: "wave18Restart7Times", // Restart at wave 18, 7 times
+        stats: {
+          maxHP: 120,
+          damage: 15,
+          fireRate: 1.0, // 1/sec
+          range: 600,
+          projectileSpeed: 7,
+          miniSun: true, // Has placeable mini sun
+          sunDamage: 25, // Sun burns for 25 damage/sec
+          sunRadius: 150 // Sun burn radius
+        },
+        description: "Controls a blazing mini sun that burns enemies. Arrow keys to move sun. Unlock: Restart at wave 18, 7 times"
       }
     };
 
@@ -4271,6 +4353,12 @@
         requirement: "💀 Reject ALL powerups and reach Wave 11",
         description: "Don't choose ANY level-up upgrades. Don't use ANY potions. Survive to Wave 11 without help!",
         icon: "💀"
+      },
+      wave18Restart7Times: {
+        title: "The Solar Sacrifice",
+        requirement: "☀️ Restart at Wave 18 exactly, 7 times",
+        description: "When you reach Wave 18, restart the game. Do this 7 times to unlock Dr.Sunshine!",
+        icon: "☀️"
       }
     };
 
@@ -6507,6 +6595,17 @@
       samuraiSlashes = [];
       fireZones = [];
       vecnaMonsters = [];
+      
+      // Dr.Sunshine mini sun (if playing as Dr.Sunshine)
+      if (className === "DrSunshine") {
+        player.miniSun = {
+          x: player.x,
+          y: player.y - 120, // Start above player
+          radius: 40,
+          damage: cls.stats.sunDamage || 25,
+          burnRadius: cls.stats.sunRadius || 150
+        };
+      }
       
       // Reset cooldowns
       plagueCloudCooldown = 0;
@@ -8900,6 +8999,21 @@
       gameRunning = false; // Stop game loop
       spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, player.color, 30);
       
+      // Track Wave 18 restart for Dr.Sunshine unlock
+      if (wave === 18) {
+        if (!gameData.wave18Restarts) gameData.wave18Restarts = 0;
+        gameData.wave18Restarts++;
+        console.log(`☀️ Wave 18 Restart #${gameData.wave18Restarts}/7 for Dr.Sunshine`);
+        
+        // Check if unlocked Dr.Sunshine (7 restarts at wave 18)
+        if (gameData.wave18Restarts >= 7 && !gameData.unlockedClasses.includes("DrSunshine")) {
+          gameData.unlockedClasses.push("DrSunshine");
+          addFloatingText(canvas.width / 2, 150, "☀️ DR.SUNSHINE UNLOCKED! ☀️", "#FFD700");
+          screenShake += 8;
+          console.log("☀️ DR.SUNSHINE UNLOCKED! (7 Wave 18 Restarts)");
+        }
+      }
+      
       // Update highest wave
       let newClassUnlocked = false;
       if (wave > gameData.highestWave) {
@@ -9241,6 +9355,7 @@
       updatePotionCooldownDisplay();
       updateAbilities(dt);
       updateFireZones(dt);
+      updateMiniSun(dt);
       
       // Regeneration
       if (player.regen > 0) {
@@ -9868,6 +9983,70 @@
         ctx.restore();
       });
     }
+    
+    function drawMiniSun() {
+      if (!player.miniSun) return;
+      
+      const sun = player.miniSun;
+      ctx.save();
+      
+      // Pulsing glow effect
+      const pulse = Math.sin(Date.now() / 150) * 0.3 + 0.7;
+      
+      // Burn radius (faint outer glow)
+      ctx.globalAlpha = 0.15;
+      const burnGradient = ctx.createRadialGradient(sun.x, sun.y, 0, sun.x, sun.y, sun.burnRadius);
+      burnGradient.addColorStop(0, "#FFD700");
+      burnGradient.addColorStop(1, "rgba(255, 215, 0, 0)");
+      ctx.fillStyle = burnGradient;
+      ctx.beginPath();
+      ctx.arc(sun.x, sun.y, sun.burnRadius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Main sun glow
+      ctx.globalAlpha = 0.7 * pulse;
+      const glowGradient = ctx.createRadialGradient(sun.x, sun.y, 0, sun.x, sun.y, sun.radius * 1.5);
+      glowGradient.addColorStop(0, "#FFFF00");
+      glowGradient.addColorStop(0.4, "#FFD700");
+      glowGradient.addColorStop(0.8, "#FFA500");
+      glowGradient.addColorStop(1, "rgba(255, 165, 0, 0)");
+      ctx.fillStyle = glowGradient;
+      ctx.beginPath();
+      ctx.arc(sun.x, sun.y, sun.radius * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Sun core
+      ctx.globalAlpha = 1.0;
+      const coreGradient = ctx.createRadialGradient(sun.x, sun.y, 0, sun.x, sun.y, sun.radius);
+      coreGradient.addColorStop(0, "#FFFFFF");
+      coreGradient.addColorStop(0.3, "#FFFF00");
+      coreGradient.addColorStop(0.7, "#FFD700");
+      coreGradient.addColorStop(1, "#FFA500");
+      ctx.fillStyle = coreGradient;
+      ctx.beginPath();
+      ctx.arc(sun.x, sun.y, sun.radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Sun flares (rotating rays)
+      ctx.globalAlpha = 0.6 * pulse;
+      const rotation = Date.now() / 1000;
+      for (let i = 0; i < 8; i++) {
+        const angle = (rotation + i * Math.PI / 4);
+        const x1 = sun.x + Math.cos(angle) * sun.radius;
+        const y1 = sun.y + Math.sin(angle) * sun.radius;
+        const x2 = sun.x + Math.cos(angle) * (sun.radius * 1.8);
+        const y2 = sun.y + Math.sin(angle) * (sun.radius * 1.8);
+        
+        ctx.strokeStyle = "#FFD700";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      
+      ctx.restore();
+    }
 
     function drawFloatingTexts() {
       for (const t of floatingTexts) {
@@ -10293,6 +10472,7 @@
       drawGround();
       drawFireZones();
       if (player) drawPlayer();
+      drawMiniSun(); // Dr.Sunshine's mini sun
       drawEnemies();
       drawProjectiles();
       drawMinions();
