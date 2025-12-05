@@ -1389,8 +1389,8 @@
         console.log("🧪 TEST MODE ENABLED - Adding bonus currency!");
         
         // Give extra currency for testing (but don't unlock everything)
-        gameData.totalCoins += 10000;
-        gameData.totalGems += 100;
+        gameData.totalCoins += 1000;
+        gameData.totalGems += 50;
         
         console.log("💰 Bonus currency added!");
       }
@@ -6930,7 +6930,11 @@
         summonCooldown: 8, // Summoner spawns minion every 8 seconds
         summonCount: 0, // Track how many minions spawned
         isSplitterChild: false, // Track if this is a split offspring
-        shape: type === "triangle" ? "triangle" : type === "circle" ? "circle" : "square"
+        shape: type === "triangle" ? "triangle" : type === "circle" ? "circle" : "square",
+        // Freeze resistance system - larger enemies need more freeze stacks
+        freezeStacks: 0, // Current freeze stacks
+        maxFreezeStacks: Math.ceil((size / 32) * (isBoss ? 10 : isMiniBoss ? 5 : 3)), // Boss: ~25, Mini: ~8, Normal: ~3
+        freezeSlowPerStack: 0.15 // 15% slow per stack
       };
       
       enemies.push(enemy);
@@ -7012,6 +7016,7 @@
           e.frozenDuration -= dt;
           if (e.frozenDuration <= 0) {
             e.frozen = false;
+            e.freezeStacks = 0; // Reset freeze stacks when thawed
           } else {
             // Frozen enemies can't move
             continue; // Skip this enemy's update
@@ -8051,17 +8056,27 @@
               
               // SUPER UPGRADE: Freeze Bullets
               if (p.freeze) {
-                // Apply slow
-                if (p.slowAmount > 0) {
-                  e.slowEffect = (e.slowEffect || 0) + p.slowAmount;
-                  e.slowDuration = 3; // 3 seconds slow
-                }
+                // Progressive freeze system - each hit adds a freeze stack
+                if (!e.freezeStacks) e.freezeStacks = 0;
+                if (!e.maxFreezeStacks) e.maxFreezeStacks = 3;
                 
-                // Apply freeze chance
-                if (p.freezeChance > 0 && Math.random() < p.freezeChance) {
+                e.freezeStacks++;
+                
+                // Calculate slow effect based on stacks (caps at max stacks)
+                const stackRatio = Math.min(e.freezeStacks / e.maxFreezeStacks, 1);
+                e.slowEffect = stackRatio * 0.9; // Up to 90% slow
+                e.slowDuration = 2; // Refresh duration
+                
+                // Visual feedback
+                if (e.freezeStacks >= e.maxFreezeStacks) {
+                  // Fully frozen - can't move
                   e.frozen = true;
-                  e.frozenDuration = p.freezeDuration || 2; // 2 seconds freeze
+                  e.frozenDuration = 2;
                   addFloatingText(e.x + e.w / 2, e.y - 50, "❄️ FROZEN!", "#00ffff");
+                } else {
+                  // Show progress
+                  const percent = Math.floor((e.freezeStacks / e.maxFreezeStacks) * 100);
+                  addFloatingText(e.x + e.w / 2, e.y - 30, `🧊 ${percent}%`, "#88ffff");
                 }
               }
               
