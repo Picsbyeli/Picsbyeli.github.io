@@ -4525,6 +4525,15 @@
         isFlying: true
       },
       {
+        name: "Spiderman Boss",
+        color: "#DC143C",
+        pattern: "spiderman", // Multiple enemies stacked, kill each leg
+        speed: 0.6,
+        attackInterval: 2,
+        specialAbility: "Spider Legs",
+        wave: 50 // Only spawns at wave 50
+      },
+      {
         name: "The Berserker",
         color: "#ff8800",
         pattern: "berserk", // Gets faster as HP lowers
@@ -4984,6 +4993,22 @@
       }
       if ((e.key === "e" || e.key === "E") && gameState === "playing") {
         activateAbility2();
+      }
+      
+      // Dr.Sunshine password unlock (Press 'U' key)
+      if ((e.key === "u" || e.key === "U") && !gameData.unlockedClasses.includes("DrSunshine")) {
+        e.preventDefault();
+        const password = prompt("🔐 Enter the password to unlock Dr.Sunshine:");
+        if (password === "Mr.Cotter" || password === "Mr. Cotter" || password === "mr.cotter" || password === "mr. cotter") {
+          gameData.unlockedClasses.push("DrSunshine");
+          saveGameData();
+          addFloatingText(canvas.width / 2, 150, "☀️ DR.SUNSHINE UNLOCKED! ☀️", "#FFD700");
+          screenShake += 8;
+          console.log("☀️ DR.SUNSHINE UNLOCKED! (Password: Mr.Cotter)");
+          alert("🎉 Dr.Sunshine has been unlocked! Select him from the class selection screen.");
+        } else if (password) {
+          alert("❌ Incorrect password. Hint: Think about your teacher!");
+        }
       }
     });
     
@@ -7219,6 +7244,8 @@
           bossPattern = BOSS_PATTERNS.find(b => b.pattern === "alchemist");
         } else if (wave === 40) {
           bossPattern = BOSS_PATTERNS.find(b => b.pattern === "bagel");
+        } else if (wave === 50) {
+          bossPattern = BOSS_PATTERNS.find(b => b.pattern === "spiderman");
         } else {
           // Regular boss patterns (cycling through)
           const regularPatterns = BOSS_PATTERNS.filter(b => !b.wave);
@@ -7226,7 +7253,12 @@
           bossPattern = regularPatterns[patternIndex];
         }
         
-        size = 80;
+        // Boss size varies (bigger for special bosses)
+        if (wave === 50) size = 100; // Spiderman is huge
+        else if (wave === 40) size = 90; // Bagel is big
+        else if (wave === 30) size = 85; // Alchemist
+        else size = 80 + (wave / 10) * 5; // Scaling size
+        
         hp = getEnemyHP(wave, true, false);
         speed = bossPattern.speed;
         color = bossPattern.color;
@@ -7401,6 +7433,36 @@
           speed *= 0.6; // Slow
           hp *= 1.6;
           size = 40;
+        } else if (rand < 0.96 && wave >= 15) {
+          // ROLLING SPLITTER - Big circle that splits when killed (Wave 15+)
+          color = "#8B4513";
+          glowColor = "#A0522D";
+          type = "roller";
+          hasShield = false;
+          isRanged = false;
+          speed *= 0.4; // Very slow
+          hp *= 3.0; // Lots of HP
+          size = 60; // Big!
+        } else if (rand < 0.97 && wave >= 18) {
+          // WITCH - Debuffs player in radius (Wave 18+)
+          color = "#9400D3";
+          glowColor = "#BA55D3";
+          type = "witch";
+          hasShield = false;
+          isRanged = false;
+          speed *= 0.7;
+          hp *= 1.2;
+          size = 35;
+        } else if (rand < 0.98 && wave >= 25) {
+          // BIG WITCH - Buffs other enemies (Wave 25+)
+          color = "#4B0082";
+          glowColor = "#8A2BE2";
+          type = "bigwitch";
+          hasShield = false;
+          isRanged = false;
+          speed *= 0.5; // Slow
+          hp *= 1.8;
+          size = 50; // Bigger
         } else {
           // GRUNT - Basic enemy
           color = "#ff4444";
@@ -7509,7 +7571,23 @@
         isBagel: pattern && pattern.pattern === "bagel",
         bagelClones: [], // Array of clone objects
         healTimer: 0,
-        healCooldown: 2 // Heals every 2 seconds
+        healCooldown: 2, // Heals every 2 seconds
+        // Spiderman boss properties
+        isSpiderman: pattern && pattern.pattern === "spiderman",
+        spiderLegs: [], // Array of leg objects
+        // Roller properties
+        isRoller: type === "roller",
+        rollerGeneration: 0, // 0 = big, 1 = medium, 2 = small
+        // Witch properties
+        isWitch: type === "witch",
+        witchDebuffTimer: 0,
+        witchDebuffCooldown: 4, // Cast debuff every 4 seconds
+        witchRadius: 150, // Debuff radius
+        // Big Witch properties
+        isBigWitch: type === "bigwitch",
+        bigWitchBuffTimer: 0,
+        bigWitchBuffCooldown: 5, // Cast buff every 5 seconds
+        bigWitchRadius: 200 // Buff radius
       };
       
       // Spawn Bagel clones if it's the Bagel boss
@@ -7518,6 +7596,24 @@
           { x: enemy.x - 100, y: enemy.y - 150, vy: 2, hp: hp * 0.4, maxHP: hp * 0.4 },
           { x: enemy.x - 100, y: enemy.y + 150, vy: -2, hp: hp * 0.4, maxHP: hp * 0.4 }
         ];
+      }
+      
+      // Spawn spider legs if it's the Spiderman boss
+      if (enemy.isSpiderman && isBoss) {
+        // 8 spider legs arranged around the body
+        const legHP = hp * 0.15; // Each leg has 15% of boss HP
+        enemy.spiderLegs = [];
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2;
+          const distance = size * 0.8;
+          enemy.spiderLegs.push({
+            angle: angle,
+            distance: distance,
+            hp: legHP,
+            maxHP: legHP,
+            shootTimer: Math.random() * 2 // Stagger shooting
+          });
+        }
       }
       
       enemies.push(enemy);
@@ -7943,12 +8039,99 @@
           }
         }
         
-        // FLYER: Flies above ground, can lift other enemies at wave 25+
+        // SPIDERMAN BOSS: Spider with 8 legs that shoot independently
+        else if (e.isSpiderman) {
+          // Fly/hover in center area
+          const targetX = canvas.width / 2;
+          if (Math.abs(e.x - targetX) > 10) {
+            e.x += (targetX - e.x) * 0.005;
+          }
+          
+          // Floating animation (spider hovers)
+          e.y = (GROUND_Y - 180) + Math.sin(Date.now() / 400) * 15;
+          
+          // Update spider legs
+          if (e.spiderLegs) {
+            e.spiderLegs.forEach((leg, idx) => {
+              if (leg.hp <= 0) return; // Dead leg doesn't shoot
+              
+              // Calculate leg position
+              const legX = e.x + e.w / 2 + Math.cos(leg.angle) * leg.distance;
+              const legY = e.y + e.h / 2 + Math.sin(leg.angle) * leg.distance;
+              
+              // Each leg shoots at player independently
+              leg.shootTimer += dt;
+              if (leg.shootTimer >= 1.2) {
+                const px = player.x + player.w / 2;
+                const py = player.y + player.h / 2;
+                
+                let dx = px - legX;
+                let dy = py - legY;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                dx /= dist;
+                dy /= dist;
+                
+                projectiles.push({
+                  x: legX, y: legY,
+                  vx: dx * 9, vy: dy * 9,
+                  radius: 8,
+                  damage: e.damage * 0.4,
+                  color: "#8B0000",
+                  glowColor: "#DC143C",
+                  life: 5,
+                  trail: [],
+                  isEnemyProjectile: true
+                });
+                
+                leg.shootTimer = 0;
+              }
+            });
+            
+            // Check if all legs are destroyed
+            const legsAlive = e.spiderLegs.filter(leg => leg.hp > 0).length;
+            if (legsAlive === 0) {
+              // Kill the main boss when all legs are destroyed
+              e.hp = 0;
+            }
+          }
+        }
+        
+        // FLYER: Flies above ground, shoots at player, can lift other enemies at wave 25+
         else if (e.type === "flyer") {
           // Flyers move at elevated Y position
           if (!e.liftingEnemy) {
             // Floating animation - bob up and down
             e.y = (GROUND_Y - e.flyHeight) + Math.sin(Date.now() / 400 + e.x) * 10;
+            
+            // Flyers shoot at player instead of flying past
+            e.shootTimer += dt;
+            if (e.shootTimer >= 2.0) {
+              // Shoot at player
+              const ex = e.x + e.w / 2;
+              const ey = e.y + e.h / 2;
+              const px = player.x + player.w / 2;
+              const py = player.y + player.h / 2;
+              
+              let dx = px - ex;
+              let dy = py - ey;
+              const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+              dx /= dist;
+              dy /= dist;
+              
+              projectiles.push({
+                x: ex, y: ey,
+                vx: dx * 7, vy: dy * 7,
+                radius: 8,
+                damage: e.damage * 0.5,
+                color: "#00ccff",
+                glowColor: "#66ddff",
+                life: 5,
+                trail: [],
+                isEnemyProjectile: true
+              });
+              
+              e.shootTimer = 0;
+            }
             
             // At wave 25+, flyers can grab and lift ground enemies
             if (wave >= 25) {
@@ -8044,6 +8227,77 @@
             e.summonTimer = 0;
             addFloatingText(e.x + e.w / 2, e.y - 30, "SUMMON!", "#ffaa00");
             spawnExplosion(e.x + e.w/2, e.y + e.h/2, "#ffaa00", 12);
+          }
+        }
+        
+        // WITCH: Debuffs player when in radius
+        if (e.isWitch) {
+          e.witchDebuffTimer += dt;
+          const dx = (player.x + player.w/2) - (e.x + e.w/2);
+          const dy = (player.y + player.h/2) - (e.y + e.h/2);
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          
+          if (dist < e.witchRadius && e.witchDebuffTimer >= e.witchDebuffCooldown) {
+            // Apply random debuff (unless HolyCleric)
+            if (player.className !== "HolyCleric") {
+              const debuffType = Math.random() < 0.5 ? "curse" : "poison";
+              if (debuffType === "curse") {
+                playerDebuffs.cursed = true;
+                playerDebuffs.cursedTimer = 3.0;
+                addFloatingText(e.x + e.w/2, e.y - 40, "🧙 CURSE!", "#9400D3");
+              } else {
+                playerDebuffs.poisoned = true;
+                playerDebuffs.poisonedTimer = 3.0;
+                playerDebuffs.poisonDamage = 3 + wave;
+                addFloatingText(e.x + e.w/2, e.y - 40, "🧙 POISON!", "#00ff00");
+              }
+            } else {
+              addFloatingText(player.x + player.w/2, player.y - 40, "IMMUNE!", "#FFD700");
+            }
+            e.witchDebuffTimer = 0;
+          }
+        }
+        
+        // BIG WITCH: Buffs nearby enemies
+        if (e.isBigWitch) {
+          e.bigWitchBuffTimer += dt;
+          if (e.bigWitchBuffTimer >= e.bigWitchBuffCooldown) {
+            // Buff nearby enemies
+            for (const other of enemies) {
+              if (other === e || other.isBoss) continue;
+              const dx = (other.x + other.w/2) - (e.x + e.w/2);
+              const dy = (other.y + other.h/2) - (e.y + e.h/2);
+              const dist = Math.sqrt(dx*dx + dy*dy);
+              
+              if (dist < e.bigWitchRadius) {
+                // Apply buff
+                if (!other.witchBuffed) {
+                  other.witchBuffed = true;
+                  other.witchBuffDuration = 3.0;
+                  other.witchBuffDamage = other.damage * 1.5; // 50% damage boost
+                  other.witchBuffHealRate = 2; // 2 HP/sec
+                  addFloatingText(other.x + other.w/2, other.y - 30, "🧙 BUFFED!", "#4B0082", 0.8);
+                }
+              }
+            }
+            addFloatingText(e.x + e.w/2, e.y - 40, "🧙 BUFF WAVE!", "#8A2BE2");
+            spawnExplosion(e.x + e.w/2, e.y + e.h/2, "#8A2BE2", 20);
+            e.bigWitchBuffTimer = 0;
+          }
+        }
+        
+        // Handle witch buffs on enemies
+        if (e.witchBuffed) {
+          e.witchBuffDuration -= dt;
+          if (e.witchBuffDuration <= 0) {
+            e.witchBuffed = false;
+            e.damage = e.damage / 1.5; // Remove damage boost
+          } else {
+            // Apply heal over time
+            if (Math.floor(e.witchBuffDuration * 2) !== Math.floor((e.witchBuffDuration + dt) * 2)) {
+              e.hp = Math.min(e.hp + e.witchBuffHealRate, e.maxHP);
+              addFloatingText(e.x + e.w/2, e.y - 20, `+${e.witchBuffHealRate}`, "#00ff00", 0.5);
+            }
           }
         }
         
@@ -8282,6 +8536,51 @@
 
         // Check death
         if (e.hp <= 0) {
+          // ROLLER: Split into smaller rollers when killed
+          if (e.isRoller && e.rollerGeneration < 2) {
+            const newGen = e.rollerGeneration + 1;
+            const newSize = e.w * 0.6; // 60% smaller
+            const newHP = e.maxHP * 0.5; // 50% HP
+            
+            // Spawn 2 smaller rollers
+            for (let r = 0; r < 2; r++) {
+              enemies.push({
+                x: e.x + (r * 30),
+                y: e.y,
+                vx: -e.baseSpeed * 1.3, // Slightly faster
+                w: newSize,
+                h: newSize,
+                maxHP: newHP,
+                hp: newHP,
+                color: e.color,
+                glowColor: e.glowColor,
+                type: "roller",
+                isBoss: false,
+                isMiniBoss: false,
+                baseSpeed: e.baseSpeed * 1.3,
+                damage: e.damage * 0.8,
+                hasShield: false,
+                shieldHP: 0,
+                maxShieldHP: 0,
+                isRanged: false,
+                shootTimer: 0,
+                shootCooldown: 2.5,
+                attackTimer: 0,
+                attackCooldown: 1.5,
+                attackState: "approaching",
+                savedAttackX: null,
+                pattern: null,
+                patternTimer: 0,
+                animFrame: 0,
+                shape: "circle",
+                isRoller: true,
+                rollerGeneration: newGen
+              });
+            }
+            addFloatingText(e.x + e.w/2, e.y - 30, "SPLIT!", "#8B4513", 1.5);
+            spawnExplosion(e.x + e.w/2, e.y + e.h/2, "#8B4513", 15);
+          }
+          
           // Hive Mind: Kill all linked enemies
           if (hiveMindActive && e.hiveMindLinked) {
             enemies.forEach(enemy => {
@@ -8473,18 +8772,48 @@
 
       if (shootTimer >= player.fireRate) {
         shootTimer = 0;
-        shootProjectile(target);
         
-        // Multishot: Fire additional shots based on multiShot level
-        // multiShot = 1: 2 total shots, multiShot = 2: 3 total shots, etc.
-        if (player.multiShot > 0) {
-          for (let i = 0; i < player.multiShot; i++) {
-            setTimeout(() => {
-              const currentTarget = getTargetEnemy();
-              if (currentTarget) {
-                shootProjectile(currentTarget, 0);
-              }
-            }, 100 * (i + 1)); // Stagger shots by 100ms each
+        // If laser beam is unlocked, fire horizontal laser beam instead
+        if (player.superUpgrades.laserBeam) {
+          // Fire horizontal laser beam across entire screen
+          const beamY = player.y + player.h / 2;
+          projectiles.push({
+            x: player.x,
+            y: beamY,
+            vx: 0, // Stationary
+            vy: 0,
+            radius: 20,
+            damage: player.damage * 2, // Laser does more damage
+            color: "#ffaa00",
+            glowColor: "#ff0000",
+            life: 0.3, // Short lifetime (visual effect)
+            trail: [],
+            isDragonBeam: true // Use dragon beam rendering
+          });
+          
+          // Damage all enemies in beam path
+          for (const e of enemies) {
+            const ey = e.y + e.h / 2;
+            if (Math.abs(ey - beamY) < 30) {
+              e.hp -= player.damage * 0.5; // Continuous damage per shot
+              addFloatingText(e.x + e.w / 2, e.y - 20, `-${Math.floor(player.damage * 0.5)}`, "#ffaa00", 0.5);
+            }
+          }
+        } else {
+          // Regular shooting
+          shootProjectile(target);
+          
+          // Multishot: Fire additional shots based on multiShot level
+          // multiShot = 1: 2 total shots, multiShot = 2: 3 total shots, etc.
+          if (player.multiShot > 0) {
+            for (let i = 0; i < player.multiShot; i++) {
+              setTimeout(() => {
+                const currentTarget = getTargetEnemy();
+                if (currentTarget) {
+                  shootProjectile(currentTarget, 0);
+                }
+              }, 100 * (i + 1)); // Stagger shots by 100ms each
+            }
           }
         }
       }
@@ -9245,6 +9574,41 @@
                 }
               }
               
+              // Check for Spiderman leg hits (if enemy is Spiderman boss)
+              if (e.isSpiderman && e.spiderLegs) {
+                for (let legIdx = 0; legIdx < e.spiderLegs.length; legIdx++) {
+                  const leg = e.spiderLegs[legIdx];
+                  if (leg.hp > 0) {
+                    const legX = e.x + e.w / 2 + Math.cos(leg.angle) * leg.distance;
+                    const legY = e.y + e.h / 2 + Math.sin(leg.angle) * leg.distance;
+                    
+                    const dx = p.x - legX;
+                    const dy = p.y - legY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 15 + p.radius) {
+                      // Hit a leg!
+                      let legDamage = actualDamage;
+                      if (p.isCrit) {
+                        legDamage *= p.critMultiplier;
+                      }
+                      
+                      leg.hp -= legDamage;
+                      addFloatingText(legX, legY - 20, `-${Math.floor(legDamage)}`, "#ff0000");
+                      spawnHitParticles(legX, legY, p.color, 8);
+                      
+                      if (leg.hp <= 0) {
+                        leg.hp = 0;
+                        addFloatingText(legX, legY - 30, "LEG DOWN!", "#ffff00");
+                        spawnExplosion(legX, legY, "#DC143C", 12);
+                        screenShake += 2;
+                      }
+                      break;
+                    }
+                  }
+                }
+              }
+              
               // Chain lightning
               if (p.chainLightning > 0 && !p.hasChained) {
                 p.hasChained = true;
@@ -9780,19 +10144,11 @@
       gameRunning = false; // Stop game loop
       spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, player.color, 30);
       
-      // Track Wave 18 restart for Dr.Sunshine unlock
+      // Track Wave 18 restart for Dr.Sunshine unlock (kept for backwards compatibility)
       if (wave === 18) {
         if (!gameData.wave18Restarts) gameData.wave18Restarts = 0;
         gameData.wave18Restarts++;
         console.log(`☀️ Wave 18 Restart #${gameData.wave18Restarts}/7 for Dr.Sunshine`);
-        
-        // Check if unlocked Dr.Sunshine (7 restarts at wave 18)
-        if (gameData.wave18Restarts >= 7 && !gameData.unlockedClasses.includes("DrSunshine")) {
-          gameData.unlockedClasses.push("DrSunshine");
-          addFloatingText(canvas.width / 2, 150, "☀️ DR.SUNSHINE UNLOCKED! ☀️", "#FFD700");
-          screenShake += 8;
-          console.log("☀️ DR.SUNSHINE UNLOCKED! (7 Wave 18 Restarts)");
-        }
       }
       
       // Update highest wave
@@ -10288,6 +10644,22 @@
         enemiesThisWave = 0;
         enemiesKilledThisWave = 0;
         
+        // SPECIAL WAVE 20 COMPLETION REWARD
+        if (wave === 21) {
+          // Just completed wave 20!
+          gameState = "roundBreak";
+          roundBreakTimer = 10; // 10 second wait
+          breakTimer.style.display = "block";
+          breakTitle.textContent = "🌟 WAVE 20 COMPLETE! 🌟";
+          breakTitle.style.display = "block";
+          
+          // Give 1000 XP bonus
+          giveXP(1000);
+          addFloatingText(canvas.width / 2, 250, "+1000 XP BONUS!", "#FFD700", 2.0);
+          addFloatingText(canvas.width / 2, 280, "Map changing to sunny day!", "#FFA500", 1.5);
+          screenShake += 10;
+        }
+        
         // Check for map progression (every 20 waves)
         if (wave % 20 === 1 && wave > 1) {
           currentMap++;
@@ -10403,17 +10775,50 @@
 
     // DRAWING
     function drawBackground() {
-      ctx.fillStyle = "#0a0015";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Stars
-      const time = Date.now() * 0.0001;
-      for (let i = 0; i < 50; i++) {
-        const x = (i * 123.456 % canvas.width);
-        const y = ((i * 78.9 + time * 20) % canvas.height);
-        const brightness = (Math.sin(i + time * 3) + 1) * 0.5;
-        ctx.fillStyle = `rgba(255, 255, 255, ${brightness * 0.5})`;
-        ctx.fillRect(x, y, 2, 2);
+      // After wave 20, show sunny day background
+      if (wave > 20) {
+        // Sky blue gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, "#87CEEB"); // Light blue
+        gradient.addColorStop(1, "#E0F6FF"); // Very light blue
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Sun
+        const time = Date.now() * 0.0001;
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = "#FFA500";
+        ctx.fillStyle = "#FFD700";
+        ctx.beginPath();
+        ctx.arc(canvas.width - 100, 80, 40, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // Clouds
+        for (let i = 0; i < 5; i++) {
+          const cloudX = ((i * 250 + time * 30) % (canvas.width + 100)) - 50;
+          const cloudY = 50 + i * 40;
+          ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+          ctx.beginPath();
+          ctx.arc(cloudX, cloudY, 30, 0, Math.PI * 2);
+          ctx.arc(cloudX + 25, cloudY, 35, 0, Math.PI * 2);
+          ctx.arc(cloudX + 50, cloudY, 30, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        // Original night background
+        ctx.fillStyle = "#0a0015";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Stars
+        const time = Date.now() * 0.0001;
+        for (let i = 0; i < 50; i++) {
+          const x = (i * 123.456 % canvas.width);
+          const y = ((i * 78.9 + time * 20) % canvas.height);
+          const brightness = (Math.sin(i + time * 3) + 1) * 0.5;
+          ctx.fillStyle = `rgba(255, 255, 255, ${brightness * 0.5})`;
+          ctx.fillRect(x, y, 2, 2);
+        }
       }
     }
 
@@ -10699,6 +11104,58 @@
               ctx.fillRect(clone.x - cloneBarWidth/2, clone.y - 30, cloneBarWidth * cloneHpRatio, cloneBarHeight);
             }
           });
+        }
+        
+        // Draw Spiderman boss legs
+        if (e.isSpiderman && e.spiderLegs) {
+          const centerX = e.x + e.w / 2;
+          const centerY = e.y + e.h / 2;
+          
+          e.spiderLegs.forEach((leg, idx) => {
+            if (leg.hp > 0) {
+              const legX = centerX + Math.cos(leg.angle) * leg.distance;
+              const legY = centerY + Math.sin(leg.angle) * leg.distance;
+              
+              // Draw leg connection to body
+              ctx.strokeStyle = "rgba(139, 0, 0, 0.6)";
+              ctx.lineWidth = 4;
+              ctx.beginPath();
+              ctx.moveTo(centerX, centerY);
+              ctx.lineTo(legX, legY);
+              ctx.stroke();
+              
+              // Draw leg body
+              ctx.shadowColor = "#DC143C";
+              ctx.shadowBlur = 12;
+              ctx.fillStyle = "#8B0000";
+              
+              ctx.beginPath();
+              ctx.arc(legX, legY, 12, 0, Math.PI * 2);
+              ctx.fill();
+              
+              ctx.shadowBlur = 0;
+              
+              // Leg HP bar
+              const legHpRatio = leg.hp / leg.maxHP;
+              const legBarWidth = 24;
+              const legBarHeight = 3;
+              
+              ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+              ctx.fillRect(legX - legBarWidth/2, legY - 18, legBarWidth, legBarHeight);
+              
+              const legHpColor = legHpRatio > 0.5 ? "#00ff00" : legHpRatio > 0.25 ? "#ffaa00" : "#ff0000";
+              ctx.fillStyle = legHpColor;
+              ctx.fillRect(legX - legBarWidth/2, legY - 18, legBarWidth * legHpRatio, legBarHeight);
+              
+              // Leg number
+              ctx.fillStyle = "#ffffff";
+              ctx.font = "bold 8px Arial";
+              ctx.textAlign = "center";
+              ctx.fillText(idx + 1, legX, legY + 3);
+            }
+          });
+          
+          ctx.textAlign = "left";
         }
         
         // Draw carrier's carried enemy
