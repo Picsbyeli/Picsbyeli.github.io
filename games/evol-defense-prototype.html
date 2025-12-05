@@ -1383,36 +1383,16 @@
       }
       
       // ===============================================
-      // 🧪 TEST MODE: Unlock all classes
+      // 🧪 TEST MODE: Extra currency for testing
       // ===============================================
       if (TEST_MODE) {
-        console.log("🧪 TEST MODE ENABLED - Unlocking all classes!");
+        console.log("🧪 TEST MODE ENABLED - Adding bonus currency!");
         
-        // Get all class names
-        const allClassNames = Object.keys(CLASSES);
+        // Give extra currency for testing (but don't unlock everything)
+        gameData.totalCoins += 10000;
+        gameData.totalGems += 100;
         
-        // Unlock all wave-based and achievement classes
-        gameData.unlockedClasses = allClassNames;
-        
-        // Unlock all purchasable classes
-        gameData.purchasedClasses = allClassNames;
-        
-        // Give tons of currency for testing
-        gameData.totalCoins = 99999999;
-        gameData.totalGems = 99999;
-        
-        // Set high wave for unlocks
-        gameData.highestWave = 200;
-        
-        // Unlock all waves
-        gameData.unlockedWaves = [];
-        for (let w = 1; w <= 200; w++) {
-          gameData.unlockedWaves.push(w);
-        }
-        
-        console.log("✅ All classes unlocked!");
-        console.log("💰 Currency maxed!");
-        console.log("🌊 All waves unlocked!");
+        console.log("💰 Bonus currency added!");
       }
       
       updateTitleScreenDisplay();
