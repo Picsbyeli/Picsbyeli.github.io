@@ -1745,6 +1745,95 @@
       });
     }
 
+    // UPGRADE POPUP SYSTEM
+    function openUpgradePopup(type, target) {
+      upgradePopup.active = true;
+      upgradePopup.target = target;
+      upgradePopup.type = type;
+      upgradePopup.x = canvas.width / 2 - 150;
+      upgradePopup.y = canvas.height / 2 - 200;
+    }
+    
+    function openTurretCraftUI() {
+      turretCraftUI.active = true;
+      turretCraftUI.selectedType = null;
+      turretCraftUI.dragging = false;
+    }
+    
+    function closeUpgradePopup() {
+      upgradePopup.active = false;
+      upgradePopup.target = null;
+      upgradePopup.type = null;
+    }
+    
+    function closeTurretCraftUI() {
+      turretCraftUI.active = false;
+      turretCraftUI.selectedType = null;
+      turretCraftUI.dragging = false;
+    }
+    
+    function purchaseUpgrade(upgradeType) {
+      const target = upgradePopup.target;
+      const type = upgradePopup.type;
+      
+      if (!target) return;
+      
+      let cost = 0;
+      const currentLevel = target.upgradeLevel || 0;
+      
+      // Calculate cost based on level (500 for level 1, 750 for level 2, 1000 for level 3, etc.)
+      cost = 500 + (currentLevel * 250);
+      
+      if (coins < cost) {
+        return; // Not enough coins
+      }
+      
+      // Deduct coins and apply upgrade
+      coins -= cost;
+      
+      if (!target.upgradeLevel) target.upgradeLevel = 0;
+      target.upgradeLevel++;
+      
+      // Apply upgrade based on type
+      if (type === 'clone') {
+        if (upgradeType === 'damage') {
+          target.damage = (target.damage || 10) * 1.15;
+        } else if (upgradeType === 'fireRate') {
+          target.fireRate = (target.fireRate || 1000) * 0.9;
+        } else if (upgradeType === 'hp') {
+          target.maxHp = (target.maxHp || 50) * 1.2;
+          target.hp = Math.min(target.hp + 20, target.maxHp);
+        }
+      } else if (type === 'sun') {
+        if (upgradeType === 'damage') {
+          target.damage = (target.damage || 25) * 1.1;
+        } else if (upgradeType === 'radius') {
+          target.radius = (target.radius || 40) + 10;
+          target.burnRadius = (target.burnRadius || 150) + 15;
+        } else if (upgradeType === 'speed') {
+          target.speed = (target.speed || 200) * 1.1;
+        }
+      } else if (type === 'turret') {
+        if (upgradeType === 'damage') {
+          target.damage = (target.damage || 15) * 1.15;
+        } else if (upgradeType === 'fireRate') {
+          target.fireRate = (target.fireRate || 1000) * 0.9;
+        } else if (upgradeType === 'range') {
+          target.range = (target.range || 200) * 1.1;
+        }
+      } else if (type === 'root') {
+        if (upgradeType === 'damage') {
+          target.damage = (target.damage || 5) * 1.2;
+        } else if (upgradeType === 'slow') {
+          target.slow = (target.slow || 0.5) * 1.1;
+        } else if (upgradeType === 'duration') {
+          target.duration = (target.duration || 3000) * 1.15;
+        }
+      }
+      
+      updateCoinsDisplay();
+    }
+
     // SKILL TREE SYSTEM
     let currentSelectedClass = "Hunter";
     let selectedClassName = null;
@@ -4868,6 +4957,174 @@
     window.addEventListener("keyup", (e) => {
       keys[e.key] = false;
     });
+    
+    // CANVAS MOUSEMOVE for turret drag tracking
+    canvas.addEventListener("mousemove", (e) => {
+      if (turretCraftUI.dragging) {
+        const rect = canvas.getBoundingClientRect();
+        turretCraftUI.dragX = e.clientX - rect.left;
+        turretCraftUI.dragY = e.clientY - rect.top;
+      }
+    });
+    
+    // CANVAS CLICK EVENTS for clickable upgrades
+    canvas.addEventListener("click", (e) => {
+      if (!gameRunning || gameState !== "playing") return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      
+      // Handle upgrade popup clicks
+      if (upgradePopup.active) {
+        const popupW = 300;
+        const popupH = 350;
+        const popupX = upgradePopup.x;
+        const popupY = upgradePopup.y;
+        
+        // Check close button
+        if (clickX >= popupX + popupW - 30 && clickX <= popupX + popupW - 10 &&
+            clickY >= popupY + 10 && clickY <= popupY + 30) {
+          closeUpgradePopup();
+          return;
+        }
+        
+        // Check upgrade buttons
+        const buttonY = [popupY + 200, popupY + 250, popupY + 300];
+        for (let i = 0; i < 3; i++) {
+          if (clickX >= popupX + 20 && clickX <= popupX + popupW - 20 &&
+              clickY >= buttonY[i] && clickY <= buttonY[i] + 35) {
+            const upgradeTypes = {
+              'clone': ['damage', 'fireRate', 'hp'],
+              'sun': ['damage', 'radius', 'speed'],
+              'turret': ['damage', 'fireRate', 'range'],
+              'root': ['damage', 'slow', 'duration']
+            };
+            purchaseUpgrade(upgradeTypes[upgradePopup.type][i]);
+            return;
+          }
+        }
+        return;
+      }
+      
+      // Handle turret craft UI clicks
+      if (turretCraftUI.active && !turretCraftUI.dragging) {
+        const craftX = canvas.width / 2 - 150;
+        const craftY = canvas.height / 2 - 100;
+        
+        // Close button
+        if (clickX >= craftX + 270 && clickX <= craftX + 290 &&
+            clickY >= craftY + 10 && clickY <= craftY + 30) {
+          closeTurretCraftUI();
+          return;
+        }
+        
+        // Shield Turret button
+        if (clickX >= craftX + 20 && clickX <= craftX + 280 &&
+            clickY >= craftY + 50 && clickY <= craftY + 90) {
+          turretCraftUI.selectedType = 'shield';
+          turretCraftUI.dragging = true;
+          return;
+        }
+        
+        // DPS Turret button
+        if (clickX >= craftX + 20 && clickX <= craftX + 280 &&
+            clickY >= craftY + 100 && clickY <= craftY + 140) {
+          turretCraftUI.selectedType = 'dps';
+          turretCraftUI.dragging = true;
+          return;
+        }
+        return;
+      }
+      
+      // Handle turret placement while dragging
+      if (turretCraftUI.dragging) {
+        const dx = clickX - player.x;
+        const dy = clickY - player.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist <= 250) { // 50 radius increased to 250 for better gameplay
+          // Place turret
+          const turretCost = 500;
+          if (coins >= turretCost) {
+            coins -= turretCost;
+            updateCoinsDisplay();
+            
+            turrets.push({
+              x: clickX,
+              y: clickY,
+              damage: turretCraftUI.selectedType === 'shield' ? 5 : 20,
+              fireRate: turretCraftUI.selectedType === 'shield' ? 1500 : 800,
+              range: turretCraftUI.selectedType === 'shield' ? 150 : 250,
+              lastShot: 0,
+              type: turretCraftUI.selectedType,
+              upgradeLevel: 0
+            });
+            
+            addFloatingText(clickX, clickY - 30, "TURRET PLACED!", "#00ff00");
+          } else {
+            addFloatingText(player.x, player.y - 50, "Need 500 coins!", "#ff0000");
+          }
+        } else {
+          addFloatingText(player.x, player.y - 50, "Too far! (Max 250 range)", "#ff0000");
+        }
+        
+        closeTurretCraftUI();
+        return;
+      }
+      
+      // Check if clicked on Illusionist clone
+      if (illusionistClone && illusionistClone.hp > 0) {
+        if (clickX >= illusionistClone.x && clickX <= illusionistClone.x + illusionistClone.w &&
+            clickY >= illusionistClone.y && clickY <= illusionistClone.y + illusionistClone.h) {
+          openUpgradePopup('clone', illusionistClone);
+          return;
+        }
+      }
+      
+      // Check if clicked on Dr.Sunshine's mini sun
+      if (player.miniSun) {
+        const sun = player.miniSun;
+        const dx = clickX - sun.x;
+        const dy = clickY - sun.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < sun.radius) {
+          openUpgradePopup('sun', sun);
+          return;
+        }
+      }
+      
+      // Check if clicked on Engineer (for turret crafting)
+      if (player.className === "Engineer") {
+        if (clickX >= player.x && clickX <= player.x + player.w &&
+            clickY >= player.y && clickY <= player.y + player.h) {
+          openTurretCraftUI();
+          return;
+        }
+      }
+      
+      // Check if clicked on turrets
+      for (const turret of turrets) {
+        const dx = clickX - turret.x;
+        const dy = clickY - turret.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < 20) { // Turret click radius
+          openUpgradePopup('turret', turret);
+          return;
+        }
+      }
+      
+      // Check if clicked on root barriers
+      for (const root of rootBarriers) {
+        if (clickX >= root.x && clickX <= root.x + root.w &&
+            clickY >= root.y && clickY <= root.y + root.h) {
+          openUpgradePopup('root', root);
+          return;
+        }
+      }
+    });
 
     // CLASS SELECTION
     function showClassSelection() {
@@ -7957,6 +8214,45 @@
           shootCloneProjectile(illusionistClone, cloneTarget);
         }
       }
+      
+      // Turret shooting
+      turrets.forEach(turret => {
+        turret.lastShot += dt * 1000; // Convert to ms
+        
+        // Find closest enemy in range
+        let closestEnemy = null;
+        let closestDist = turret.range;
+        
+        for (const e of enemies) {
+          const dx = (e.x + e.w / 2) - turret.x;
+          const dy = (e.y + e.h / 2) - turret.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < closestDist) {
+            closestDist = dist;
+            closestEnemy = e;
+          }
+        }
+        
+        // Shoot at enemy if found and fire rate allows
+        if (closestEnemy && turret.lastShot >= turret.fireRate) {
+          turret.lastShot = 0;
+          
+          const dx = (closestEnemy.x + closestEnemy.w / 2) - turret.x;
+          const dy = (closestEnemy.y + closestEnemy.h / 2) - turret.y;
+          const angle = Math.atan2(dy, dx);
+          
+          projectiles.push({
+            x: turret.x,
+            y: turret.y,
+            vx: Math.cos(angle) * 8,
+            vy: Math.sin(angle) * 8,
+            damage: turret.damage,
+            color: turret.type === 'shield' ? "#4444ff" : "#ff4444",
+            isTurret: true
+          });
+        }
+      });
     }
 
     function getTargetEnemy() {
@@ -10665,6 +10961,261 @@
       });
     }
 
+    function drawUpgradePopup() {
+      const popupW = 300;
+      const popupH = 350;
+      const popupX = upgradePopup.x;
+      const popupY = upgradePopup.y;
+      
+      // Background
+      ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+      ctx.fillRect(popupX, popupY, popupW, popupH);
+      
+      // Border
+      ctx.strokeStyle = "#00ffff";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(popupX, popupY, popupW, popupH);
+      
+      // Close button
+      ctx.fillStyle = "#ff0000";
+      ctx.fillRect(popupX + popupW - 30, popupY + 10, 20, 20);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("X", popupX + popupW - 20, popupY + 25);
+      
+      // Title
+      const titles = {
+        'clone': "UPGRADE CLONE",
+        'sun': "UPGRADE SUN",
+        'turret': "UPGRADE TURRET",
+        'root': "UPGRADE ROOT"
+      };
+      ctx.fillStyle = "#ffff00";
+      ctx.font = "bold 20px 'Courier New'";
+      ctx.fillText(titles[upgradePopup.type], popupX + popupW / 2, popupY + 40);
+      
+      // Stats display
+      const target = upgradePopup.target;
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "14px 'Courier New'";
+      ctx.textAlign = "left";
+      
+      let yPos = popupY + 80;
+      if (upgradePopup.type === 'clone') {
+        ctx.fillText(`Damage: ${Math.round(target.damage || 10)}`, popupX + 20, yPos);
+        ctx.fillText(`Fire Rate: ${Math.round(target.fireRate || 1000)}ms`, popupX + 20, yPos + 25);
+        ctx.fillText(`HP: ${Math.round(target.hp)}/${Math.round(target.maxHp)}`, popupX + 20, yPos + 50);
+      } else if (upgradePopup.type === 'sun') {
+        ctx.fillText(`Damage: ${Math.round(target.damage || 25)}/sec`, popupX + 20, yPos);
+        ctx.fillText(`Radius: ${Math.round(target.radius || 40)}`, popupX + 20, yPos + 25);
+        ctx.fillText(`Burn Radius: ${Math.round(target.burnRadius || 150)}`, popupX + 20, yPos + 50);
+        ctx.fillText(`Speed: ${Math.round(target.speed || 200)}`, popupX + 20, yPos + 75);
+      } else if (upgradePopup.type === 'turret') {
+        ctx.fillText(`Damage: ${Math.round(target.damage || 15)}`, popupX + 20, yPos);
+        ctx.fillText(`Fire Rate: ${Math.round(target.fireRate || 1000)}ms`, popupX + 20, yPos + 25);
+        ctx.fillText(`Range: ${Math.round(target.range || 200)}`, popupX + 20, yPos + 50);
+      } else if (upgradePopup.type === 'root') {
+        ctx.fillText(`Damage: ${Math.round(target.damage || 5)}`, popupX + 20, yPos);
+        ctx.fillText(`Slow: ${Math.round((target.slow || 0.5) * 100)}%`, popupX + 20, yPos + 25);
+        ctx.fillText(`Duration: ${Math.round(target.duration || 3000)}ms`, popupX + 20, yPos + 50);
+      }
+      
+      ctx.fillText(`Level: ${target.upgradeLevel || 0}`, popupX + 20, yPos + 100);
+      
+      // Upgrade buttons
+      const cost = 500 + ((target.upgradeLevel || 0) * 250);
+      const buttonLabels = {
+        'clone': ['Damage +15%', 'Fire Rate -10%', 'HP +20%'],
+        'sun': ['Damage +10%', 'Radius +25', 'Speed +10%'],
+        'turret': ['Damage +15%', 'Fire Rate -10%', 'Range +10%'],
+        'root': ['Damage +20%', 'Slow +10%', 'Duration +15%']
+      };
+      
+      const buttonY = [popupY + 200, popupY + 250, popupY + 300];
+      for (let i = 0; i < 3; i++) {
+        // Button background
+        ctx.fillStyle = coins >= cost ? "#00aa00" : "#555555";
+        ctx.fillRect(popupX + 20, buttonY[i], popupW - 40, 35);
+        
+        // Button border
+        ctx.strokeStyle = "#00ffff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(popupX + 20, buttonY[i], popupW - 40, 35);
+        
+        // Button text
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 14px 'Courier New'";
+        ctx.textAlign = "center";
+        ctx.fillText(buttonLabels[upgradePopup.type][i], popupX + popupW / 2, buttonY[i] + 22);
+        
+        // Cost
+        ctx.font = "12px 'Courier New'";
+        ctx.fillStyle = coins >= cost ? "#ffff00" : "#ff0000";
+        ctx.fillText(`${cost} coins`, popupX + popupW / 2, buttonY[i] + 33);
+      }
+      
+      ctx.textAlign = "left";
+    }
+    
+    function drawTurretCraftUI() {
+      const craftX = canvas.width / 2 - 150;
+      const craftY = canvas.height / 2 - 100;
+      const craftW = 300;
+      const craftH = 200;
+      
+      if (turretCraftUI.dragging) {
+        // Show placement preview
+        const mouseX = turretCraftUI.dragX || player.x;
+        const mouseY = turretCraftUI.dragY || player.y;
+        const dx = mouseX - player.x;
+        const dy = mouseY - player.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        // Draw range circle
+        ctx.strokeStyle = dist <= 250 ? "#00ff00" : "#ff0000";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, 250, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Draw turret preview
+        ctx.fillStyle = dist <= 250 ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 0, 0, 0.5)";
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "12px 'Courier New'";
+        ctx.textAlign = "center";
+        ctx.fillText(turretCraftUI.selectedType === 'shield' ? "SHIELD" : "DPS", mouseX, mouseY - 25);
+        ctx.fillText(`${Math.round(dist)}/250`, mouseX, mouseY + 35);
+        
+        return;
+      }
+      
+      // Background
+      ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+      ctx.fillRect(craftX, craftY, craftW, craftH);
+      
+      // Border
+      ctx.strokeStyle = "#ffaa00";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(craftX, craftY, craftW, craftH);
+      
+      // Close button
+      ctx.fillStyle = "#ff0000";
+      ctx.fillRect(craftX + craftW - 30, craftY + 10, 20, 20);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("X", craftX + craftW - 20, craftY + 25);
+      
+      // Title
+      ctx.fillStyle = "#ffaa00";
+      ctx.font = "bold 20px 'Courier New'";
+      ctx.fillText("CRAFT TURRET", craftX + craftW / 2, craftY + 35);
+      
+      // Shield Turret button
+      ctx.fillStyle = coins >= 500 ? "#4444ff" : "#333333";
+      ctx.fillRect(craftX + 20, craftY + 50, craftW - 40, 40);
+      ctx.strokeStyle = "#00ffff";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(craftX + 20, craftY + 50, craftW - 40, 40);
+      
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px 'Courier New'";
+      ctx.textAlign = "center";
+      ctx.fillText("🛡️ SHIELD TURRET", craftX + craftW / 2, craftY + 70);
+      ctx.font = "12px 'Courier New'";
+      ctx.fillText("Low damage, fast fire, short range", craftX + craftW / 2, craftY + 85);
+      
+      // DPS Turret button
+      ctx.fillStyle = coins >= 500 ? "#ff4444" : "#333333";
+      ctx.fillRect(craftX + 20, craftY + 100, craftW - 40, 40);
+      ctx.strokeStyle = "#00ffff";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(craftX + 20, craftY + 100, craftW - 40, 40);
+      
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px 'Courier New'";
+      ctx.fillText("⚔️ DPS TURRET", craftX + craftW / 2, craftY + 120);
+      ctx.font = "12px 'Courier New'";
+      ctx.fillText("High damage, slow fire, long range", craftX + craftW / 2, craftY + 135);
+      
+      // Cost
+      ctx.fillStyle = coins >= 500 ? "#ffff00" : "#ff0000";
+      ctx.font = "bold 14px 'Courier New'";
+      ctx.fillText("Cost: 500 coins each", craftX + craftW / 2, craftY + 165);
+      
+      ctx.fillText("Click to drag and place within 250 range", craftX + craftW / 2, craftY + 185);
+      
+      ctx.textAlign = "left";
+    }
+    
+    function drawTurrets() {
+      turrets.forEach(turret => {
+        ctx.save();
+        
+        // Turret base
+        ctx.fillStyle = turret.type === 'shield' ? "#4444ff" : "#ff4444";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = turret.type === 'shield' ? "#4444ff" : "#ff4444";
+        
+        ctx.beginPath();
+        ctx.arc(turret.x, turret.y, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Turret gun
+        ctx.fillStyle = "#888888";
+        ctx.fillRect(turret.x - 3, turret.y - 20, 6, 15);
+        
+        // Icon
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(turret.type === 'shield' ? "🛡️" : "⚔️", turret.x, turret.y + 5);
+        
+        // Level indicator
+        if (turret.upgradeLevel > 0) {
+          ctx.fillStyle = "#ffff00";
+          ctx.font = "bold 10px 'Courier New'";
+          ctx.fillText(`Lv${turret.upgradeLevel}`, turret.x, turret.y - 25);
+        }
+        
+        ctx.restore();
+      });
+    }
+    
+    function drawRootBarriers() {
+      rootBarriers.forEach(root => {
+        ctx.save();
+        
+        // Root visual
+        ctx.fillStyle = "#228B22";
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#00ff00";
+        
+        for (let i = 0; i < root.w; i += 10) {
+          const height = 15 + Math.sin(Date.now() / 200 + i) * 5;
+          ctx.fillRect(root.x + i, root.y + root.h - height, 8, height);
+        }
+        
+        ctx.shadowBlur = 0;
+        
+        // Level indicator
+        if (root.upgradeLevel > 0) {
+          ctx.fillStyle = "#ffff00";
+          ctx.font = "bold 10px 'Courier New'";
+          ctx.textAlign = "center";
+          ctx.fillText(`Lv${root.upgradeLevel}`, root.x + root.w / 2, root.y - 5);
+        }
+        
+        ctx.restore();
+      });
+    }
+
     function draw() {
       // Only draw game elements when actually playing
       if (!gameRunning || gameState === "title") {
@@ -10683,6 +11234,8 @@
       drawBackground();
       drawGround();
       drawFireZones();
+      drawRootBarriers();
+      drawTurrets();
       if (player) drawPlayer();
       drawMiniSun(); // Dr.Sunshine's mini sun
       drawEnemies();
@@ -10698,6 +11251,10 @@
       drawAbilityEffects();
 
       ctx.restore();
+      
+      // Draw UI overlays (not affected by screen shake)
+      if (upgradePopup.active) drawUpgradePopup();
+      if (turretCraftUI.active) drawTurretCraftUI();
     }
 
     function gameLoop(timestamp) {
