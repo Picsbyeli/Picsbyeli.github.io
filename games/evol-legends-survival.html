@@ -1431,11 +1431,17 @@
   </div>
 
   <script>
+    console.log("🎮 EVOL LEGENDS - Starting initialization...");
+    
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     
     const titleScreen = document.getElementById("titleScreen");
     const startBtn = document.getElementById("startBtn");
+    
+    console.log("✅ Canvas:", canvas);
+    console.log("✅ Title Screen:", titleScreen);
+    console.log("✅ Start Button:", startBtn);
     const shopBtn = document.getElementById("shopBtn");
     const tutorialBtn = document.getElementById("tutorialBtn");
     const tutorialScreen = document.getElementById("tutorialScreen");
@@ -4728,9 +4734,15 @@
     let phantomSpeedBoostTimer = 0;
 
     // Initialize
-    loadGameData();
-    updateShopDisplay();
-    updateTitleScreenDisplay();
+    console.log("📊 Loading game data...");
+    try {
+      loadGameData();
+      updateShopDisplay();
+      updateTitleScreenDisplay();
+      console.log("✅ Game data loaded successfully");
+    } catch (error) {
+      console.error("❌ Error loading game data:", error);
+    }
     
     // Ensure correct initial screen state
     titleScreen.classList.remove("hidden");
@@ -4742,7 +4754,9 @@
     upgradeScreen.classList.remove("active");
 
     // EVENT LISTENERS
+    console.log("🔘 Adding event listeners...");
     startBtn.addEventListener("click", () => {
+      console.log("🎯 START BUTTON CLICKED!");
       titleScreen.classList.add("hidden");
       showClassSelection();
     });
