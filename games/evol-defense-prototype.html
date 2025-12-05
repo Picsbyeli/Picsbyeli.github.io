@@ -8082,18 +8082,51 @@
               
               // Knockback (Guardian Tank or other knockback sources)
               if (p.knockback && p.knockback > 0) {
-                const knockbackForce = p.knockback;
-                const dx = e.x + e.w/2 - (player.x + player.w/2);
-                const dy = e.y + e.h/2 - (player.y + player.h/2);
-                const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                // Knockback resistance system - similar to freeze
+                const currentTime = Date.now() / 1000; // Current time in seconds
+                if (!e.lastKnockbackTime) e.lastKnockbackTime = 0;
+                if (!e.knockbackResistance) e.knockbackResistance = 0;
                 
-                // Push enemy away
-                e.x += (dx / dist) * knockbackForce * 0.8;
-                e.y += (dy / dist) * knockbackForce * 0.8;
-                
-                // Visual feedback for knockback
-                addFloatingText(e.x + e.w / 2, e.y - 40, "KNOCKBACK!", "#87ceeb");
-                spawnExplosion(p.x, p.y, "#87ceeb", 15);
+                // Cooldown: 0.3 seconds between knockback applications
+                if (currentTime - e.lastKnockbackTime >= 0.3) {
+                  // Size-based max knockback resistance (similar to freeze stacks)
+                  const maxResistance = e.isBoss ? 15 : e.isMiniBoss ? 8 : 5;
+                  
+                  if (e.knockbackResistance < maxResistance) {
+                    const knockbackForce = p.knockback;
+                    const dx = e.x + e.w/2 - (player.x + player.w/2);
+                    const dy = e.y + e.h/2 - (player.y + player.h/2);
+                    const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                    
+                    // Resistance reduces knockback effectiveness
+                    const resistanceMultiplier = 1 - (e.knockbackResistance / maxResistance);
+                    const effectiveKnockback = knockbackForce * 0.8 * resistanceMultiplier;
+                    
+                    // Push enemy away (only if resistance not maxed)
+                    if (effectiveKnockback > 0) {
+                      e.x += (dx / dist) * effectiveKnockback;
+                      e.y += (dy / dist) * effectiveKnockback;
+                      
+                      // Build resistance
+                      e.knockbackResistance++;
+                      e.lastKnockbackTime = currentTime;
+                      
+                      // Visual feedback
+                      const resistancePercent = Math.floor((e.knockbackResistance / maxResistance) * 100);
+                      if (e.knockbackResistance >= maxResistance) {
+                        addFloatingText(e.x + e.w / 2, e.y - 40, "💨 IMMUNE!", "#87ceeb");
+                      } else {
+                        addFloatingText(e.x + e.w / 2, e.y - 40, `💨 ${resistancePercent}%`, "#87ceeb");
+                      }
+                      spawnExplosion(p.x, p.y, "#87ceeb", 15);
+                    }
+                  }
+                  
+                  // Decay resistance over time (lose 1 resistance every 3 seconds)
+                  if (currentTime - e.lastKnockbackTime >= 3) {
+                    e.knockbackResistance = Math.max(0, e.knockbackResistance - 1);
+                  }
+                }
               }
               
               // Lifesteal
