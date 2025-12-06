@@ -3565,9 +3565,34 @@
           range: 550,
           projectileSpeed: 7.5,
           createClone: true, // Can create clone of another class
-          cloneHealthRatio: 0.5 // Clone has 50% of original class HP
+          cloneHealthRatio: 0.5, // Clone has 50% of original class HP
+          cloneRangeBonus: 150 // Clone has +150 range
         },
         description: "Master of illusions - creates a fighting clone positioned above with half health (added to your HP pool)"
+      },
+      DrEclipse: {
+        icon: "🌙",
+        color: "#2C1E4A",
+        accent: "#4A2C6A",
+        bulletColor: "#8B7AB8",
+        glowColor: "#9D8BC9",
+        unlockWave: 0,
+        purchasable: true,
+        cost: { coins: 100000, gems: 1000 },
+        stats: {
+          maxHP: 115,
+          damage: 18,
+          fireRate: 1.111, // 0.9/sec
+          range: 600,
+          projectileSpeed: 7,
+          hasKnockback: true, // Bullets knock enemies back
+          knockbackForce: 25,
+          moonControl: true, // Has controllable moon
+          moonGravityRadius: 200, // Moon's gravity pull radius
+          moonLiftForce: 150, // Force to lift enemies
+          moonSlamDamage: 100 // Base damage when enemies crash down
+        },
+        description: "Master of lunar magic - controls a moon that lifts enemies with gravity and slams them down. Arrow keys move moon. Bullets have knockback."
       }
     };
 
@@ -4862,6 +4887,7 @@
     let turrets = []; // Engineer turrets
     let samuraiSlashes = []; // Samurai chain reaction slashes
     let illusionistClone = null; // Illusionist's fighting clone
+    let eclipseMoon = null; // Dr.Eclipse's controllable moon
     
     // Clickable upgrade UI state
     let upgradePopup = {
@@ -6280,6 +6306,21 @@
       vecnaKillCounter++;
       enemiesKilledThisWave++; // Track for progress bar
       
+      // Illusionist clone gains XP from clone kills
+      if (illusionistClone && enemy.killedByClone) {
+        const xpGained = enemy.xpValue || 10;
+        illusionistClone.xp += xpGained;
+        
+        // Check for level up
+        const xpNeeded = xpForLevel(illusionistClone.level);
+        if (illusionistClone.xp >= xpNeeded) {
+          illusionistClone.xp -= xpNeeded;
+          illusionistClone.level++;
+          createFloatingText("CLONE LVL UP!", illusionistClone.x, illusionistClone.y - 30, "#BA55D3");
+          showUpgradeScreen(); // Clone gets upgrade too!
+        }
+      }
+      
       // Enemy conversion chance for Vecna
       if (selectedClassName === "Vecna" && Math.random() < 0.2 && !enemy.isConverted) {
         enemy.isConverted = true;
@@ -7321,6 +7362,7 @@
         const cloneCls = CLASSES[cloneClassName];
         
         const cloneMaxHP = Math.floor(cloneCls.stats.maxHP * (cls.stats.cloneHealthRatio || 0.5));
+        const cloneRange = cloneCls.stats.range + (cls.stats.cloneRangeBonus || 0);
         
         illusionistClone = {
           className: cloneClassName,
@@ -7332,7 +7374,7 @@
           hp: cloneMaxHP,
           damage: cloneCls.stats.damage,
           fireRate: cloneCls.stats.fireRate,
-          range: cloneCls.stats.range,
+          range: cloneRange, // Farther range than original
           projectileSpeed: cloneCls.stats.projectileSpeed,
           color: cloneCls.color,
           accent: cloneCls.accent,
@@ -7342,12 +7384,26 @@
           animFrame: 0,
           facingLeft: false,
           level: 1,
+          xp: 0, // Clone has its own XP
           upgradeCost: 750 // Coins to upgrade
         };
         
         // Add clone HP to player's total HP pool
         player.maxHP += cloneMaxHP;
         player.hp += cloneMaxHP;
+      }
+      
+      // Dr.Eclipse moon (if playing as Dr.Eclipse)
+      if (className === "DrEclipse") {
+        eclipseMoon = {
+          x: player.x + 150,
+          y: player.y - 100,
+          radius: 40,
+          gravityRadius: cls.stats.moonGravityRadius || 200,
+          liftForce: cls.stats.moonLiftForce || 150,
+          slamDamage: cls.stats.moonSlamDamage || 100,
+          liftedEnemies: [] // Track which enemies are being lifted
+        };
       }
       
       // Reset cooldowns
@@ -9192,6 +9248,74 @@
         }
       }
       
+      // Dr.Eclipse moon gravity and movement
+      if (eclipseMoon && selectedClassName === "DrEclipse") {
+        // Moon movement (arrow keys)
+        const moonSpeed = 300 * dt;
+        if (keys['ArrowLeft']) eclipseMoon.x -= moonSpeed;
+        if (keys['ArrowRight']) eclipseMoon.x += moonSpeed;
+        if (keys['ArrowUp']) eclipseMoon.y -= moonSpeed;
+        if (keys['ArrowDown']) eclipseMoon.y += moonSpeed;
+        
+        // Keep moon on screen
+        eclipseMoon.x = Math.max(eclipseMoon.radius, Math.min(canvas.width - eclipseMoon.radius, eclipseMoon.x));
+        eclipseMoon.y = Math.max(eclipseMoon.radius, Math.min(canvas.height - eclipseMoon.radius, eclipseMoon.y));
+        
+        // Moon gravity effect on enemies
+        for (let i = 0; i < enemies.length; i++) {
+          const e = enemies[i];
+          const dx = eclipseMoon.x - (e.x + e.w / 2);
+          const dy = eclipseMoon.y - (e.y + e.h / 2);
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < eclipseMoon.gravityRadius) {
+            // Check if enemy should be lifted
+            const enemySize = e.w * e.h;
+            const liftDifficulty = Math.max(1, enemySize / 2000); // Bigger = harder to lift
+            const liftChance = eclipseMoon.liftForce / (liftDifficulty * 100);
+            
+            if (!e.lifted && Math.random() < liftChance * dt * 2) {
+              // Start lifting enemy
+              e.lifted = true;
+              e.liftTime = 0;
+              e.maxLiftTime = 2 + liftDifficulty * 0.5; // Bigger enemies take longer
+              e.originalY = e.y;
+              e.liftHeight = 100 + Math.random() * 50;
+              createFloatingText("\ud83c\udf19 LIFTED!", e.x + e.w/2, e.y - 30, "#9D8BC9");
+            }
+            
+            if (e.lifted) {
+              e.liftTime += dt;
+              const liftProgress = Math.min(1, e.liftTime / (e.maxLiftTime * 0.3));
+              e.y = e.originalY - (e.liftHeight * liftProgress);
+              e.vx = 0; // Stop moving forward while lifted
+              
+              // Slam down after lift time
+              if (e.liftTime >= e.maxLiftTime) {
+                const slamDamage = eclipseMoon.slamDamage * liftDifficulty;
+                e.hp -= slamDamage;
+                e.lifted = false;
+                e.y = e.originalY;
+                createFloatingText("-" + Math.floor(slamDamage) + " SLAM!", e.x + e.w/2, e.y - 20, "#ff4444");
+                spawnExplosion(e.x + e.w/2, e.y + e.h/2, "#9D8BC9", 20);
+                screenShake += 5;
+                
+                if (e.hp <= 0 && !e.dead) {
+                  e.dead = true;
+                  onEnemyKilled(e);
+                }
+              }
+            }
+          } else {
+            // Out of range, reset lift
+            if (e.lifted) {
+              e.lifted = false;
+              e.y = e.originalY;
+            }
+          }
+        }
+      }
+      
       // Turret shooting
       turrets.forEach(turret => {
         turret.lastShot += dt * 1000; // Convert to ms
@@ -9362,6 +9486,11 @@
         // Legendary: Flaming Bullets - apply burn effect
         const hasFlame = player.legendaryUpgrades.flamingBullets;
         
+        // Dr.Eclipse: Bullets have knockback
+        const classData = CLASSES[player.className];
+        const hasClassKnockback = classData && classData.stats.hasKnockback;
+        const classKnockback = hasClassKnockback ? (classData.stats.knockbackForce || 25) : 0;
+        
         // Normal projectile for other classes
         projectiles.push({
           x: px, y: py,
@@ -9391,7 +9520,7 @@
           freezeChance: player.freezeChance || 0,
           // Legendary properties
           flameBurn: hasFlame,
-          knockback: player.knockback || 0,
+          knockback: (player.knockback || 0) + classKnockback,
           shieldPierce: player.legendaryUpgrades.shieldPenetration ? player.shieldPierce : 0
         });
         
@@ -10067,6 +10196,11 @@
                 }
               }
               
+              // Mark enemy for clone kill tracking
+              if (p.isCloneProjectile && e.hp <= 0) {
+                e.killedByClone = true;
+              }
+              
               if (p.pierce && p.pierceCount < 3) {
                 p.pierceCount++;
               } else {
@@ -10234,19 +10368,19 @@
         return isMaxed && notUnlocked;
       });
       
-      // Filter out maxed cards (including those with legendary unlocked)
+      // Filter out maxed cards
       const availableUpgrades = Object.keys(UPGRADE_TYPES).filter(key => {
         const upgrade = UPGRADE_TYPES[key];
         const currentLevel = upgrade.getCurrentLevel(player);
         const isMaxed = currentLevel >= upgrade.maxLevel;
         
-        // Check if this upgrade has a legendary available
-        const hasLegendary = availableLegendaries.some(legKey => {
+        // Only hide maxed upgrade if its legendary is currently available
+        const legendaryAvailable = availableLegendaries.some(legKey => {
           return LEGENDARY_UPGRADES[legKey].requiresMaxed === key;
         });
         
-        // Don't show if maxed (will show legendary instead if available)
-        return !isMaxed || hasLegendary;
+        // Show if not maxed, OR if maxed but legendary not available yet
+        return !isMaxed || !legendaryAvailable;
       });
       
       // Combine available legendary and normal upgrades
@@ -11662,11 +11796,22 @@
       ctx.fillStyle = hpPercent > 0.5 ? "#00ff00" : hpPercent > 0.25 ? "#ffff00" : "#ff0000";
       ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
       
+      // XP bar above HP bar
+      const xpBarY = y - 16;
+      const xpNeeded = xpForLevel(illusionistClone.level);
+      const xpPercent = illusionistClone.xp / xpNeeded;
+      
+      ctx.fillStyle = "#222222";
+      ctx.fillRect(barX, xpBarY, barWidth, 3);
+      
+      ctx.fillStyle = "#BA55D3";
+      ctx.fillRect(barX, xpBarY, barWidth * xpPercent, 3);
+      
       // Level indicator
       ctx.fillStyle = "#ffffff";
       ctx.font = "12px Arial";
       ctx.textAlign = "center";
-      ctx.fillText(`Lv${illusionistClone.level}`, x + w/2, y - 15);
+      ctx.fillText(`Lv${illusionistClone.level}`, x + w/2, y - 21);
     }
 
     function drawEnemies() {
@@ -12190,6 +12335,85 @@
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
+      }
+      
+      ctx.restore();
+    }
+    
+    function drawEclipseMoon() {
+      if (!eclipseMoon) return;
+      
+      ctx.save();
+      
+      // Pulsing effect
+      const pulse = Math.sin(Date.now() / 200) * 0.2 + 0.8;
+      
+      // Gravity radius (faint purple glow)
+      ctx.globalAlpha = 0.1;
+      const gravityGradient = ctx.createRadialGradient(eclipseMoon.x, eclipseMoon.y, 0, eclipseMoon.x, eclipseMoon.y, eclipseMoon.gravityRadius);
+      gravityGradient.addColorStop(0, "#9D8BC9");
+      gravityGradient.addColorStop(1, "rgba(157, 139, 201, 0)");
+      ctx.fillStyle = gravityGradient;
+      ctx.beginPath();
+      ctx.arc(eclipseMoon.x, eclipseMoon.y, eclipseMoon.gravityRadius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Moon glow
+      ctx.globalAlpha = 0.6 * pulse;
+      const glowGradient = ctx.createRadialGradient(eclipseMoon.x, eclipseMoon.y, 0, eclipseMoon.x, eclipseMoon.y, eclipseMoon.radius * 1.8);
+      glowGradient.addColorStop(0, "#DDDDFF");
+      glowGradient.addColorStop(0.4, "#9D8BC9");
+      glowGradient.addColorStop(0.8, "#4A2C6A");
+      glowGradient.addColorStop(1, "rgba(74, 44, 106, 0)");
+      ctx.fillStyle = glowGradient;
+      ctx.beginPath();
+      ctx.arc(eclipseMoon.x, eclipseMoon.y, eclipseMoon.radius * 1.8, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Moon surface
+      ctx.globalAlpha = 1.0;
+      const moonGradient = ctx.createRadialGradient(
+        eclipseMoon.x - eclipseMoon.radius * 0.3, 
+        eclipseMoon.y - eclipseMoon.radius * 0.3, 
+        0, 
+        eclipseMoon.x, 
+        eclipseMoon.y, 
+        eclipseMoon.radius
+      );
+      moonGradient.addColorStop(0, "#E0E0FF");
+      moonGradient.addColorStop(0.5, "#B0B0D0");
+      moonGradient.addColorStop(1, "#6A6A90");
+      ctx.fillStyle = moonGradient;
+      ctx.beginPath();
+      ctx.arc(eclipseMoon.x, eclipseMoon.y, eclipseMoon.radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Moon craters (dark spots)
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = "#4A4A6A";
+      ctx.beginPath();
+      ctx.arc(eclipseMoon.x + 10, eclipseMoon.y - 5, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(eclipseMoon.x - 12, eclipseMoon.y + 8, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(eclipseMoon.x + 5, eclipseMoon.y + 12, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Gravity particles swirling around moon
+      ctx.globalAlpha = 0.5;
+      const rotation = Date.now() / 500;
+      for (let i = 0; i < 12; i++) {
+        const angle = rotation + (i * Math.PI / 6);
+        const dist = eclipseMoon.radius * 1.3;
+        const px = eclipseMoon.x + Math.cos(angle) * dist;
+        const py = eclipseMoon.y + Math.sin(angle) * dist;
+        
+        ctx.fillStyle = "#9D8BC9";
+        ctx.beginPath();
+        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.fill();
       }
       
       ctx.restore();
@@ -12904,6 +13128,8 @@
       drawTurrets();
       if (player) drawPlayer();
       drawMiniSun(); // Dr.Sunshine's mini sun
+      drawEclipseMoon(); // Dr.Eclipse's moon
+      drawIllusionistClone(); // Illusionist's clone
       drawEnemies();
       drawProjectiles();
       drawMinions();
