@@ -2822,6 +2822,12 @@
         coins: 10000,
         gems: 500,
         desc: "Legendary reward!"
+      },
+      "Mrvalentine": {
+        type: "currency",
+        coins: 10000,
+        gems: 100,
+        desc: "Mr. Valentine's gift! 10,000 coins + 100 gems!"
       }
     };
 
@@ -11549,10 +11555,32 @@
         drawPhantomClone(x, y, w, h);
       }
 
-      // THIEF: Special enhanced ninja rendering
-      if (player.className === "Thief") {
-        drawThief(x, y, w, h);
-        return;
+      // SPECIAL CHARACTER DESIGNS
+      switch (player.className) {
+        case "Thief":
+          drawThief(x, y, w, h);
+          return;
+        case "DrSunshine":
+          drawDrSunshine(x, y, w, h);
+          return;
+        case "DrEclipse":
+          drawDrEclipse(x, y, w, h);
+          return;
+        case "Bomber":
+          drawBomber(x, y, w, h);
+          return;
+        case "Necromancer":
+          drawNecromancer(x, y, w, h);
+          return;
+        case "Pyromancer":
+          drawPyromancer(x, y, w, h);
+          return;
+        case "CryoSentinel":
+          drawCryoSentinel(x, y, w, h);
+          return;
+        case "LightningRanger":
+          drawLightningRanger(x, y, w, h);
+          return;
       }
 
       // Try to draw sprite if available
@@ -11736,6 +11764,426 @@
       
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 1.0;
+      ctx.restore();
+    }
+    
+    function drawDrSunshine(x, y, w, h) {
+      ctx.save();
+      
+      // Radiant sun aura
+      const time = Date.now() / 1000;
+      const pulse = Math.sin(time * 3) * 0.2 + 1;
+      
+      // Outer sun glow
+      ctx.shadowColor = "#FFD700";
+      ctx.shadowBlur = 30 * pulse;
+      ctx.fillStyle = "#FFA500";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h/2, w * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Main body - bright yellow
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#FFD700";
+      ctx.fillRect(x, y, w, h);
+      
+      // Inner glow
+      ctx.fillStyle = "#FFFF00";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      
+      // Sun rays (rotating)
+      ctx.strokeStyle = "#FF8C00";
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 8; i++) {
+        const angle = (time + i * Math.PI / 4) % (Math.PI * 2);
+        const rayLength = 20 + Math.sin(time * 2 + i) * 5;
+        const startX = x + w/2 + Math.cos(angle) * (w * 0.5);
+        const startY = y + h/2 + Math.sin(angle) * (h * 0.5);
+        const endX = x + w/2 + Math.cos(angle) * (w * 0.5 + rayLength);
+        const endY = y + h/2 + Math.sin(angle) * (h * 0.5 + rayLength);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+      
+      // Sun emoji overlay
+      ctx.shadowBlur = 10;
+      ctx.font = "bold 24px Arial";
+      ctx.fillStyle = "#FFFF00";
+      ctx.textAlign = "center";
+      ctx.fillText("☀️", x + w/2, y + h/2 + 8);
+      
+      // Heat wave particles
+      if (Math.random() < 0.2) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + h,
+          vx: (Math.random() - 0.5) * 1,
+          vy: -2 - Math.random() * 2,
+          radius: 2 + Math.random() * 3,
+          color: "#FF8C00",
+          life: 0.6,
+          alpha: 0.8
+        });
+      }
+      
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+    
+    function drawDrEclipse(x, y, w, h) {
+      ctx.save();
+      
+      // Dark eclipse aura
+      const time = Date.now() / 1000;
+      const pulse = Math.sin(time * 2) * 0.15 + 0.85;
+      
+      // Outer dark aura
+      ctx.shadowColor = "#9D8BC9";
+      ctx.shadowBlur = 25;
+      ctx.fillStyle = "#2C1E4A";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h/2, w * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Main body - deep purple
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#4A2C6A";
+      ctx.fillRect(x, y, w, h);
+      
+      // Inner mysterious glow
+      ctx.fillStyle = "#6A4C8A";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      
+      // Crescent moon patterns
+      ctx.fillStyle = "#9D8BC9";
+      ctx.beginPath();
+      ctx.arc(x + w * 0.3, y + h * 0.3, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + w * 0.7, y + h * 0.3, 6, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Eclipse effect - partially covered circle
+      ctx.fillStyle = "#2C1E4A";
+      ctx.beginPath();
+      ctx.arc(x + w * 0.35, y + h * 0.3, 7, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Moon emoji overlay
+      ctx.shadowBlur = 10;
+      ctx.font = "bold 24px Arial";
+      ctx.fillStyle = "#9D8BC9";
+      ctx.textAlign = "center";
+      ctx.fillText("🌙", x + w/2, y + h/2 + 8);
+      
+      // Stars orbiting
+      for (let i = 0; i < 3; i++) {
+        const angle = (time * 1.5 + i * Math.PI * 2 / 3) % (Math.PI * 2);
+        const radius = 20;
+        const starX = x + w/2 + Math.cos(angle) * radius;
+        const starY = y + h/2 + Math.sin(angle) * radius;
+        
+        ctx.shadowColor = "#9D8BC9";
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "12px Arial";
+        ctx.fillText("⭐", starX - 6, starY + 4);
+      }
+      
+      // Gravity wave particles
+      if (Math.random() < 0.15) {
+        particles.push({
+          x: x + w/2,
+          y: y + h/2,
+          vx: (Math.random() - 0.5) * 3,
+          vy: (Math.random() - 0.5) * 3,
+          radius: 2 + Math.random() * 2,
+          color: "#9D8BC9",
+          life: 0.7,
+          alpha: 0.7
+        });
+      }
+      
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+    
+    function drawBomber(x, y, w, h) {
+      ctx.save();
+      
+      // Explosive aura
+      const time = Date.now() / 1000;
+      const pulse = Math.sin(time * 4) * 0.3 + 1;
+      
+      // Main body - orange/red
+      ctx.shadowColor = "#ff8800";
+      ctx.shadowBlur = 20 * pulse;
+      ctx.fillStyle = "#ff8800";
+      ctx.fillRect(x, y, w, h);
+      
+      // Accent
+      ctx.fillStyle = "#ffaa44";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      
+      // Dynamite sticks on back
+      for (let i = 0; i < 3; i++) {
+        const stickX = x + 8 + i * 10;
+        ctx.fillStyle = "#8B0000";
+        ctx.fillRect(stickX, y + h * 0.3, 6, h * 0.5);
+        
+        // Fuse
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(stickX + 3, y + h * 0.3);
+        ctx.lineTo(stickX + 3, y + h * 0.2);
+        ctx.stroke();
+        
+        // Spark
+        ctx.fillStyle = "#FFD700";
+        ctx.fillRect(stickX + 2, y + h * 0.2 - 2, 2, 2);
+      }
+      
+      // Bomb emoji
+      ctx.shadowBlur = 5;
+      ctx.font = "bold 26px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("💣", x + w/2, y + h/2 + 10);
+      
+      // Explosion sparks
+      if (Math.random() < 0.25) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          radius: 2 + Math.random() * 2,
+          color: "#ff8800",
+          life: 0.5,
+          alpha: 1
+        });
+      }
+      
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+    
+    function drawNecromancer(x, y, w, h) {
+      ctx.save();
+      
+      // Dark necromantic aura
+      const time = Date.now() / 1000;
+      
+      // Shadow cloak
+      ctx.shadowColor = "#9933ff";
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#4B0082";
+      ctx.fillRect(x, y, w, h);
+      
+      // Purple robe trim
+      ctx.fillStyle = "#9933ff";
+      ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+      
+      // Hood
+      ctx.fillStyle = "#2F0E4A";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Glowing purple eyes
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#9933ff";
+      ctx.fillRect(x + w * 0.35, y + h * 0.2, 3, 3);
+      ctx.fillRect(x + w * 0.6, y + h * 0.2, 3, 3);
+      
+      // Skull staff
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.2, y + h * 0.4);
+      ctx.lineTo(x + w * 0.2, y + h);
+      ctx.stroke();
+      
+      // Skull on staff
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText("💀", x + w * 0.15, y + h * 0.4);
+      
+      // Floating souls
+      for (let i = 0; i < 2; i++) {
+        const angle = time + i * Math.PI;
+        const soulX = x + w/2 + Math.cos(angle) * 20;
+        const soulY = y + h * 0.6 + Math.sin(angle * 2) * 10;
+        
+        ctx.globalAlpha = 0.6;
+        ctx.fillStyle = "#00FF00";
+        ctx.font = "12px Arial";
+        ctx.fillText("👻", soulX - 6, soulY);
+      }
+      
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+    
+    function drawPyromancer(x, y, w, h) {
+      ctx.save();
+      
+      // Fire aura
+      const time = Date.now() / 1000;
+      const pulse = Math.sin(time * 5) * 0.3 + 1;
+      
+      // Main body - red/orange
+      ctx.shadowColor = "#ff4500";
+      ctx.shadowBlur = 25 * pulse;
+      ctx.fillStyle = "#ff4500";
+      ctx.fillRect(x, y, w, h);
+      
+      // Inner flame
+      ctx.fillStyle = "#ff6347";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      
+      // Flame patterns
+      ctx.fillStyle = "#FFD700";
+      for (let i = 0; i < 3; i++) {
+        const flameY = y + h * 0.3 + i * 10;
+        ctx.beginPath();
+        ctx.moveTo(x + w * 0.3, flameY);
+        ctx.lineTo(x + w * 0.5, flameY - 8);
+        ctx.lineTo(x + w * 0.7, flameY);
+        ctx.fill();
+      }
+      
+      // Fire emoji
+      ctx.shadowBlur = 15;
+      ctx.font = "bold 28px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#FF4500";
+      ctx.fillText("🔥", x + w/2, y + h/2 + 10);
+      
+      // Fire particles
+      if (Math.random() < 0.3) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + h,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -3 - Math.random() * 2,
+          radius: 3 + Math.random() * 3,
+          color: Math.random() > 0.5 ? "#ff4500" : "#FFD700",
+          life: 0.6,
+          alpha: 1
+        });
+      }
+      
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+    
+    function drawCryoSentinel(x, y, w, h) {
+      ctx.save();
+      
+      // Ice aura
+      const time = Date.now() / 1000;
+      
+      // Frost shell
+      ctx.shadowColor = "#00bfff";
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#4682B4";
+      ctx.fillRect(x, y, w, h);
+      
+      // Ice crystals
+      ctx.fillStyle = "#87ceeb";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      
+      // Ice shard patterns
+      ctx.strokeStyle = "#00bfff";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 4; i++) {
+        const shardX = x + 10 + i * 8;
+        ctx.beginPath();
+        ctx.moveTo(shardX, y + h * 0.4);
+        ctx.lineTo(shardX + 4, y + h * 0.3);
+        ctx.lineTo(shardX + 8, y + h * 0.4);
+        ctx.stroke();
+      }
+      
+      // Snowflake emoji
+      ctx.shadowBlur = 10;
+      ctx.font = "bold 24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText("❄️", x + w/2, y + h/2 + 8);
+      
+      // Frost particles
+      if (Math.random() < 0.2) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 1,
+          vy: -1 - Math.random() * 1,
+          radius: 2 + Math.random() * 2,
+          color: "#87ceeb",
+          life: 0.8,
+          alpha: 0.7
+        });
+      }
+      
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+    
+    function drawLightningRanger(x, y, w, h) {
+      ctx.save();
+      
+      // Electric aura
+      const time = Date.now() / 1000;
+      const pulse = Math.sin(time * 6) * 0.4 + 1;
+      
+      // Main body - yellow/gold
+      ctx.shadowColor = "#ffd700";
+      ctx.shadowBlur = 25 * pulse;
+      ctx.fillStyle = "#DAA520";
+      ctx.fillRect(x, y, w, h);
+      
+      // Electric core
+      ctx.fillStyle = "#ffff00";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      
+      // Lightning bolts on body
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.3, y + h * 0.2);
+      ctx.lineTo(x + w * 0.4, y + h * 0.5);
+      ctx.lineTo(x + w * 0.35, y + h * 0.5);
+      ctx.lineTo(x + w * 0.45, y + h * 0.8);
+      ctx.stroke();
+      
+      // Lightning emoji
+      ctx.shadowBlur = 15;
+      ctx.font = "bold 26px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#FFD700";
+      ctx.fillText("⚡", x + w/2, y + h/2 + 10);
+      
+      // Electric sparks
+      if (Math.random() < 0.35) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 5,
+          vy: (Math.random() - 0.5) * 5,
+          radius: 1 + Math.random() * 2,
+          color: "#ffff00",
+          life: 0.3,
+          alpha: 1
+        });
+      }
+      
+      ctx.shadowBlur = 0;
       ctx.restore();
     }
     
