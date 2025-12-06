@@ -35,6 +35,12 @@
       display: block;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
+      z-index: 1;
+      pointer-events: none; /* Allow clicks to pass through when not playing */
+    }
+    
+    canvas.active {
+      pointer-events: auto; /* Enable clicks when game is active */
     }
     
     /* Title Screen */
@@ -7525,6 +7531,9 @@
       // Hide title screen completely
       titleScreen.classList.add('hidden');
       
+      // Enable canvas clicks for gameplay
+      canvas.classList.add('active');
+      
       gameRunning = true;
       statusText.style.display = "none";
       lastTime = performance.now();
@@ -10847,6 +10856,7 @@
     // GAME END
     function endGame() {
       gameRunning = false; // Stop game loop
+      canvas.classList.remove('active'); // Disable canvas clicks
       spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, player.color, 30);
       
       // Track Wave 18 restart for Dr.Sunshine unlock (kept for backwards compatibility)
