@@ -13158,27 +13158,112 @@
     
     function drawVoidAssassin(x, y, w, h, time) {
       ctx.save();
+      
+      // Void phase (flicker in and out)
       const pulse = Math.sin(time * 3) * 0.2 + 0.8;
       ctx.globalAlpha = pulse;
       ctx.shadowColor = "#483d8b";
       ctx.shadowBlur = 25;
-      ctx.fillStyle = "#191970";
+      
+      // Void energy body
+      ctx.fillStyle = "#0a0a1a";
       ctx.fillRect(x, y, w, h);
+      
+      // Void assassin garb
+      ctx.fillStyle = "#191970";
+      ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+      
+      // Inner void layer
       ctx.fillStyle = "#483d8b";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Void tendrils
-      ctx.strokeStyle = "#000";
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 2; i++) {
+      ctx.fillRect(x + 6, y + 6, w - 12, h - 12);
+      
+      // Void hood
+      ctx.fillStyle = "#0a0a1a";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Void eyes (purple glow)
+      ctx.fillStyle = "#9370db";
+      ctx.shadowBlur = 18;
+      ctx.fillRect(x + w * 0.41, y + h * 0.24, 5, 2);
+      ctx.fillRect(x + w * 0.54, y + h * 0.24, 5, 2);
+      
+      // Dual void daggers
+      ctx.fillStyle = "#483d8b";
+      ctx.shadowColor = "#9370db";
+      ctx.shadowBlur = 15;
+      
+      // Left dagger
+      ctx.fillRect(x + w * 0.25, y + h * 0.5, 3, 12);
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.265, y + h * 0.5);
+      ctx.lineTo(x + w * 0.23, y + h * 0.46);
+      ctx.lineTo(x + w * 0.3, y + h * 0.46);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Right dagger (crossed)
+      ctx.fillRect(x + w * 0.72, y + h * 0.5, 3, 12);
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.735, y + h * 0.5);
+      ctx.lineTo(x + w * 0.7, y + h * 0.46);
+      ctx.lineTo(x + w * 0.77, y + h * 0.46);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Void tendrils (animated)
+      ctx.strokeStyle = "#191970";
+      ctx.lineWidth = 2.5;
+      ctx.globalAlpha = 0.7 * pulse;
+      for (let i = 0; i < 3; i++) {
+        const offset = Math.sin(time * 3 + i * 1.5) * 5;
         ctx.beginPath();
-        ctx.moveTo(x + w * (0.3 + i * 0.4), y + h * 0.7);
-        ctx.lineTo(x + w * (0.2 + i * 0.5), y + h);
+        ctx.moveTo(x + w * (0.25 + i * 0.25), y + h * 0.7);
+        ctx.quadraticCurveTo(
+          x + w * (0.2 + i * 0.25) + offset,
+          y + h * 0.85,
+          x + w * (0.15 + i * 0.3),
+          y + h + 5
+        );
         ctx.stroke();
       }
-      ctx.globalAlpha = 1;
-      ctx.font = "24px Arial";
+      ctx.globalAlpha = pulse;
+      
+      // Void portal swirl
+      ctx.strokeStyle = "#483d8b";
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 2; i++) {
+        const radius = 14 + i * 5 + Math.sin(time * 4 + i) * 3;
+        ctx.globalAlpha = (0.5 - i * 0.15) * pulse;
+        ctx.beginPath();
+        ctx.arc(x + w/2, y + h * 0.6, radius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = pulse;
+      
+      // Void emoji
+      ctx.shadowBlur = 20;
+      ctx.font = "bold 24px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🌑", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#483d8b";
+      ctx.fillText("🌑", x + w/2, y + h * 0.76);
+      
+      // Void particles
+      if (Math.random() < 0.25) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: (Math.random() - 0.5) * 1.5,
+          radius: 2,
+          color: "#483d8b",
+          life: 0.7,
+          alpha: 0.6
+        });
+      }
+      
+      ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -13186,24 +13271,97 @@
     
     function drawShadowblade(x, y, w, h, time) {
       ctx.save();
+      
+      // Shadow aura
       ctx.shadowColor = "#696969";
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = 22;
+      
+      // Pure shadow body
       ctx.fillStyle = "#000000";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#696969";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Dark blade
-      ctx.strokeStyle = "#C0C0C0";
-      ctx.lineWidth = 2;
+      
+      // Dark grey inner layer
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+      
+      // Shadow grey accent
+      ctx.fillStyle = "#2a2a2a";
+      ctx.fillRect(x + 6, y + 6, w - 12, h - 12);
+      
+      // Shadow hood
+      ctx.fillStyle = "#000000";
       ctx.beginPath();
-      ctx.moveTo(x + w * 0.6, y + h * 0.3);
-      ctx.lineTo(x + w * 0.4, y + h * 0.7);
+      ctx.arc(x + w/2, y + h * 0.25, 13, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Glowing shadow eyes
+      ctx.fillStyle = "#696969";
+      ctx.shadowBlur = 15;
+      ctx.fillRect(x + w * 0.41, y + h * 0.24, 5, 3);
+      ctx.fillRect(x + w * 0.54, y + h * 0.24, 5, 3);
+      
+      // Cursed shadow blade (large)
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(x + w * 0.75, y + h * 0.35, 4, 18);
+      
+      // Blade tip
+      ctx.fillStyle = "#4a4a4a";
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.77, y + h * 0.35);
+      ctx.lineTo(x + w * 0.73, y + h * 0.3);
+      ctx.lineTo(x + w * 0.81, y + h * 0.3);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Silver edge glow
+      ctx.strokeStyle = "#C0C0C0";
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = "#C0C0C0";
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.79, y + h * 0.3);
+      ctx.lineTo(x + w * 0.79, y + h * 0.53);
       ctx.stroke();
-      ctx.font = "24px Arial";
+      
+      // Cursed hilt
+      ctx.fillStyle = "#696969";
+      ctx.fillRect(x + w * 0.74, y + h * 0.53, 6, 4);
+      
+      // Shadow trails from blade
+      ctx.globalAlpha = 0.6;
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = "#1a1a1a";
+        const offset = i * 3;
+        ctx.fillRect(x + w * 0.75 + offset, y + h * 0.4 + i * 2, 3, 10 - i * 2);
+      }
+      ctx.globalAlpha = 1;
+      
+      // Curse runes orbiting
+      const runes = ["◆", "✦", "☠"];
+      for (let i = 0; i < 3; i++) {
+        const angle = time * 2 + (i * (Math.PI * 2 / 3));
+        const dist = 16 + Math.sin(time * 3 + i) * 3;
+        const runeX = x + w/2 + Math.cos(angle) * dist;
+        const runeY = y + h/2 + Math.sin(angle) * dist;
+        
+        ctx.font = "12px Arial";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#696969";
+        ctx.shadowBlur = 12;
+        ctx.globalAlpha = 0.8;
+        ctx.fillText(runes[i], runeX, runeY);
+      }
+      ctx.globalAlpha = 1;
+      
+      // Sword emoji
+      ctx.shadowBlur = 18;
+      ctx.font = "bold 24px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("⚔️", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#696969";
+      ctx.fillText("⚔️", x + w * 0.4, y + h * 0.7);
+      
       // Curse particles
-      if (Math.random() < 0.15) {
+      if (Math.random() < 0.3) {
         particles.push({
           x: x + Math.random() * w,
           y: y + h,
@@ -13215,6 +13373,7 @@
           alpha: 0.7
         });
       }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -13222,23 +13381,107 @@
     
     function drawIllusionistChar(x, y, w, h, time) {
       ctx.save();
+      
+      // Shimmer effect
       const pulse = Math.sin(time * 3) * 0.15 + 0.85;
       ctx.globalAlpha = pulse;
       ctx.shadowColor = "#BA55D3";
       ctx.shadowBlur = 22;
-      ctx.fillStyle = "#9370DB";
+      
+      // Illusionist robes
+      ctx.fillStyle = "#6a0dad";
       ctx.fillRect(x, y, w, h);
+      
+      // Inner robe
+      ctx.fillStyle = "#9370DB";
+      ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+      
+      // Bright layer
       ctx.fillStyle = "#BA55D3";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Mirror effect
+      ctx.fillRect(x + 6, y + 6, w - 12, h - 12);
+      
+      // Hood
+      ctx.fillStyle = "#6a0dad";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Mystical eyes
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowBlur = 15;
+      ctx.fillRect(x + w * 0.42, y + h * 0.24, 4, 3);
+      ctx.fillRect(x + w * 0.54, y + h * 0.24, 4, 3);
+      
+      // Magic wand/staff
+      ctx.strokeStyle = "#BA55D3";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.2, y + h * 0.4);
+      ctx.lineTo(x + w * 0.2, y + h * 0.75);
+      ctx.stroke();
+      
+      // Star on wand
+      ctx.fillStyle = "#FFD700";
+      ctx.shadowColor = "#FFD700";
+      ctx.shadowBlur = 15;
+      ctx.font = "16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("⭐", x + w * 0.2, y + h * 0.38);
+      
+      // Mirror clones (illusions)
+      const cloneCount = 3;
+      for (let i = 0; i < cloneCount; i++) {
+        const angle = time * 2 + (i * (Math.PI * 2 / cloneCount));
+        const dist = 20 + Math.sin(time * 3 + i) * 4;
+        const cloneX = x + w/2 + Math.cos(angle) * dist;
+        const cloneY = y + h/2 + Math.sin(angle) * dist;
+        
+        ctx.globalAlpha = 0.4 * pulse;
+        ctx.fillStyle = "#9370DB";
+        ctx.fillRect(cloneX - 8, cloneY - 8, 16, 16);
+        ctx.fillStyle = "#BA55D3";
+        ctx.fillRect(cloneX - 6, cloneY - 6, 12, 12);
+      }
+      ctx.globalAlpha = pulse;
+      
+      // Mirror/glass effect
       ctx.strokeStyle = "#FFFFFF";
       ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.3;
+      ctx.globalAlpha = 0.4 * pulse;
       ctx.strokeRect(x + 8, y + 8, w - 16, h - 16);
-      ctx.globalAlpha = 1;
-      ctx.font = "24px Arial";
+      
+      // Reflection lines
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + 8 + i * 6, y + 8);
+        ctx.lineTo(x + 8 + i * 6, y + h - 8);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = pulse;
+      
+      // Theatre mask emoji
+      ctx.shadowBlur = 18;
+      ctx.font = "bold 24px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🎭", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#BA55D3";
+      ctx.globalAlpha = 1;
+      ctx.fillText("🎭", x + w/2, y + h * 0.72);
+      
+      // Sparkle particles
+      if (Math.random() < 0.3) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          radius: 2,
+          color: "#BA55D3",
+          life: 0.7,
+          alpha: 0.8
+        });
+      }
+      
+      ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
