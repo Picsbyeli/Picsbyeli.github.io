@@ -4993,11 +4993,24 @@
     let phantomSpeedBoostTimer = 0;
 
     // Initialize
-    loadGameData();
-    updateShopDisplay();
-    updateTitleScreenDisplay();
+    try {
+      console.log("📦 Loading game data...");
+      loadGameData();
+      console.log("✅ Game data loaded");
+      
+      console.log("🛒 Updating shop display...");
+      updateShopDisplay();
+      console.log("✅ Shop display updated");
+      
+      console.log("🏠 Updating title screen...");
+      updateTitleScreenDisplay();
+      console.log("✅ Title screen updated");
+    } catch (error) {
+      console.error("❌ ERROR during initialization:", error);
+    }
     
     // Ensure correct initial screen state
+    console.log("🖥️ Setting initial screen state...");
     titleScreen.classList.remove("hidden");
     classSelection.classList.remove("active");
     shopScreen.classList.remove("active");
@@ -5008,12 +5021,18 @@
 
     // EVENT LISTENERS
     console.log("🔗 Setting up event listeners...");
+    console.log("startBtn element:", startBtn);
     
-    startBtn.addEventListener("click", () => {
-      console.log("🎮 START button clicked!");
-      titleScreen.classList.add("hidden");
-      showClassSelection();
-    });
+    if (!startBtn) {
+      console.error("❌ ERROR: startBtn element not found!");
+    } else {
+      console.log("✅ startBtn found, adding click listener...");
+      startBtn.addEventListener("click", () => {
+        console.log("🎮 START button clicked!");
+        titleScreen.classList.add("hidden");
+        showClassSelection();
+      });
+    }
 
     shopBtn.addEventListener("click", () => {
       titleScreen.classList.add("hidden");
