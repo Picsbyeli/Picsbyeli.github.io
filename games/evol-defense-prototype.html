@@ -12437,19 +12437,98 @@
     
     function drawVecna(x, y, w, h, time) {
       ctx.save();
+      
+      // Lich lord pulsing aura
       const pulse = Math.sin(time * 2) * 0.3 + 1;
       ctx.shadowColor = "#FF0000";
-      ctx.shadowBlur = 30 * pulse;
-      ctx.fillStyle = "#8B0000";
+      ctx.shadowBlur = 35 * pulse;
+      
+      // Ancient robes - dark crimson
+      ctx.fillStyle = "#5A0000";
       ctx.fillRect(x, y, w, h);
+      
+      // Blood red inner robes
+      ctx.fillStyle = "#8B0000";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      
+      // Skeletal hood
+      ctx.fillStyle = "#2A0000";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 13, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Glowing red eye (main)
+      ctx.shadowBlur = 25;
       ctx.fillStyle = "#FF0000";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Dark energy
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 6, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Eye pupil
       ctx.fillStyle = "#000";
-      ctx.fillRect(x + w * 0.4, y + h * 0.25, 4, 4);
-      ctx.font = "28px Arial";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Dark magic staff/hand of Vecna
+      ctx.strokeStyle = "#1A0000";
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.75, y + h * 0.3);
+      ctx.lineTo(x + w * 0.75, y + h * 0.9);
+      ctx.stroke();
+      
+      // Skull on staff
+      ctx.fillStyle = "#FFFFFF";
+      ctx.shadowBlur = 15;
+      ctx.font = "16px Arial";
+      ctx.fillText("💀", x + w * 0.7, y + h * 0.3);
+      
+      // Dark tendrils
+      ctx.strokeStyle = "#8B0000";
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.6;
+      for (let i = 0; i < 3; i++) {
+        const angle = time * 2 + i * Math.PI * 2 / 3;
+        const tendrilX = x + w/2 + Math.cos(angle) * 15;
+        const tendrilY = y + h * 0.6 + Math.sin(angle) * 10;
+        ctx.beginPath();
+        ctx.moveTo(x + w/2, y + h * 0.35);
+        ctx.quadraticCurveTo(x + w/2 + Math.cos(angle) * 10, y + h * 0.5, tendrilX, tendrilY);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      
+      // Necrotic runes
+      ctx.fillStyle = "#FF0000";
+      ctx.shadowBlur = 12;
+      ctx.font = "10px Arial";
+      const runes = ["☠", "✦", "◆"];
+      for (let i = 0; i < 3; i++) {
+        ctx.fillText(runes[i], x + 6 + i * 10, y + h * 0.7);
+      }
+      
+      // Eye emoji overlay
+      ctx.shadowBlur = 20;
+      ctx.font = "bold 28px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("👁️", x + w/2, y + h/2 + 10);
+      ctx.fillStyle = "#FF0000";
+      ctx.fillText("👁️", x + w/2, y + h * 0.65);
+      
+      // Dark particles
+      if (Math.random() < 0.2) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -1 - Math.random() * 1.5,
+          radius: 2,
+          color: "#8B0000",
+          life: 0.8,
+          alpha: 0.7
+        });
+      }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -12457,34 +12536,106 @@
     
     function drawPlagueDoctor(x, y, w, h, time) {
       ctx.save();
+      
+      // Toxic glow
       ctx.shadowColor = "#32cd32";
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = "#32cd32";
+      ctx.shadowBlur = 22;
+      
+      // Dark plague doctor coat
+      ctx.fillStyle = "#1a4d1a";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#90ee90";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Plague mask
-      ctx.fillStyle = "#000";
+      
+      // Green apron
+      ctx.fillStyle = "#228b22";
+      ctx.fillRect(x + 5, y + h * 0.4, w - 10, h * 0.5);
+      
+      // Leather belt with vials
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(x + 4, y + h * 0.5, w - 8, 3);
+      
+      // Potion vials on belt
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = "#32cd32";
+        ctx.shadowBlur = 10;
+        ctx.fillRect(x + 8 + i * 10, y + h * 0.52, 4, 8);
+        ctx.strokeStyle = "#654321";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 8 + i * 10, y + h * 0.52, 4, 8);
+      }
+      
+      // Iconic plague doctor mask
+      ctx.fillStyle = "#4d2600";
       ctx.beginPath();
-      ctx.moveTo(x + w/2, y + h * 0.3);
-      ctx.lineTo(x + w * 0.6, y + h * 0.4);
+      ctx.arc(x + w/2, y + h * 0.25, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Beak mask
+      ctx.fillStyle = "#654321";
+      ctx.beginPath();
+      ctx.moveTo(x + w/2, y + h * 0.25);
+      ctx.lineTo(x + w/2 + 12, y + h * 0.3);
+      ctx.lineTo(x + w/2 + 10, y + h * 0.32);
+      ctx.lineTo(x + w/2, y + h * 0.28);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Mask eye holes (dark green glow)
+      ctx.fillStyle = "#32cd32";
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(x + w * 0.45, y + h * 0.24, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + w * 0.55, y + h * 0.26, 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Medical staff with syringe
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.2, y + h * 0.35);
+      ctx.lineTo(x + w * 0.2, y + h * 0.85);
       ctx.stroke();
-      ctx.font = "24px Arial";
+      
+      // Syringe on top
+      ctx.fillStyle = "#C0C0C0";
+      ctx.fillRect(x + w * 0.18, y + h * 0.3, 4, 10);
+      ctx.fillStyle = "#32cd32";
+      ctx.fillRect(x + w * 0.185, y + h * 0.35, 3, 4);
+      
+      // Poison cloud
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = "#32cd32";
+      for (let i = 0; i < 3; i++) {
+        const cloudX = x + w * 0.6 + Math.cos(time * 2 + i) * 8;
+        const cloudY = y + h * 0.7 + Math.sin(time * 2 + i) * 6;
+        ctx.beginPath();
+        ctx.arc(cloudX, cloudY, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      
+      // Plague emoji
+      ctx.shadowBlur = 12;
+      ctx.font = "bold 24px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🦠", x + w/2, y + h/2 + 8);
-      // Poison drops
-      if (Math.random() < 0.2) {
+      ctx.fillStyle = "#32cd32";
+      ctx.fillText("🦠", x + w * 0.65, y + h * 0.7);
+      
+      // Poison drips
+      if (Math.random() < 0.25) {
         particles.push({
           x: x + Math.random() * w,
           y: y + h,
           vx: 0,
-          vy: 1,
-          radius: 2,
+          vy: 1 + Math.random() * 0.5,
+          radius: 2.5,
           color: "#32cd32",
-          life: 0.5,
-          alpha: 0.8
+          life: 0.6,
+          alpha: 0.9
         });
       }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -12492,22 +12643,100 @@
     
     function drawBloodReaver(x, y, w, h, time) {
       ctx.save();
+      
+      // Vampiric aura
+      const pulse = Math.sin(time * 3) * 0.2 + 1;
       ctx.shadowColor = "#dc143c";
-      ctx.shadowBlur = 22;
-      ctx.fillStyle = "#8b0000";
+      ctx.shadowBlur = 25 * pulse;
+      
+      // Dark crimson armor
+      ctx.fillStyle = "#4d0000";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#dc143c";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Blood drops
-      for (let i = 0; i < 2; i++) {
-        ctx.fillStyle = "#8b0000";
+      
+      // Blood-stained plates
+      ctx.fillStyle = "#8b0000";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      
+      // Helmet
+      ctx.fillStyle = "#2d0000";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Glowing red eyes (bloodlust)
+      ctx.fillStyle = "#ff0000";
+      ctx.shadowBlur = 20;
+      ctx.fillRect(x + w * 0.42, y + h * 0.23, 4, 3);
+      ctx.fillRect(x + w * 0.54, y + h * 0.23, 4, 3);
+      
+      // Cursed scythe/reaper blade
+      ctx.strokeStyle = "#8b0000";
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.2, y + h * 0.3);
+      ctx.lineTo(x + w * 0.2, y + h * 0.75);
+      ctx.stroke();
+      
+      // Scythe blade
+      ctx.fillStyle = "#C0C0C0";
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.2, y + h * 0.3);
+      ctx.quadraticCurveTo(x + w * 0.1, y + h * 0.35, x + w * 0.15, y + h * 0.42);
+      ctx.lineTo(x + w * 0.2, y + h * 0.4);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Blood dripping from blade
+      ctx.fillStyle = "#8b0000";
+      for (let i = 0; i < 3; i++) {
+        const dropY = y + h * 0.42 + i * 4;
         ctx.beginPath();
-        ctx.arc(x + w * (0.3 + i * 0.4), y + h * 0.7, 3, 0, Math.PI * 2);
+        ctx.arc(x + w * 0.17, dropY, 2, 0, Math.PI * 2);
         ctx.fill();
       }
-      ctx.font = "24px Arial";
+      
+      // Blood trail
+      for (let i = 0; i < 3; i++) {
+        ctx.globalAlpha = 0.6 - i * 0.15;
+        ctx.fillStyle = "#8b0000";
+        ctx.fillRect(x - 5 - i * 4, y + h * 0.7, 3, 3);
+      }
+      ctx.globalAlpha = 1;
+      
+      // Life drain vortex
+      ctx.strokeStyle = "#dc143c";
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.5;
+      for (let i = 1; i <= 2; i++) {
+        const radius = 12 * i + Math.sin(time * 4) * 3;
+        ctx.beginPath();
+        ctx.arc(x + w/2, y + h * 0.6, radius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      
+      // Blood emoji
+      ctx.shadowBlur = 15;
+      ctx.font = "bold 26px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🩸", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#dc143c";
+      ctx.fillText("🩸", x + w * 0.6, y + h * 0.65);
+      
+      // Blood particles
+      if (Math.random() < 0.25) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          radius: 2.5,
+          color: "#8b0000",
+          life: 0.7,
+          alpha: 0.8
+        });
+      }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -12515,27 +12744,119 @@
     
     function drawCrystalGuardian(x, y, w, h, time) {
       ctx.save();
-      const pulse = Math.sin(time * 2) * 0.2 + 1;
+      
+      // Crystal shimmer
+      const shimmer = Math.sin(time * 4) * 0.3 + 1;
       ctx.shadowColor = "#ba55d3";
-      ctx.shadowBlur = 20 * pulse;
-      ctx.fillStyle = "#9370db";
+      ctx.shadowBlur = 20 * shimmer;
+      
+      // Crystal armor body
+      ctx.fillStyle = "#4a0066";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#ba55d3";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Crystal shards
+      
+      // Inner crystal layer
+      ctx.fillStyle = "#6a0088";
+      ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+      
+      // Bright crystal core
+      ctx.fillStyle = "#9370db";
+      ctx.fillRect(x + 6, y + 6, w - 12, h - 12);
+      
+      // Crystal facets (geometric patterns)
       ctx.strokeStyle = "#ba55d3";
       ctx.lineWidth = 2;
-      for (let i = 0; i < 3; i++) {
-        const shardX = x + 8 + i * 10;
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(x + w/2, y);
+      ctx.lineTo(x, y + h/2);
+      ctx.lineTo(x + w/2, y + h);
+      ctx.lineTo(x + w, y + h/2);
+      ctx.closePath();
+      ctx.stroke();
+      
+      // Cross facet
+      ctx.beginPath();
+      ctx.moveTo(x + w/2, y);
+      ctx.lineTo(x + w/2, y + h);
+      ctx.moveTo(x, y + h/2);
+      ctx.lineTo(x + w, y + h/2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      
+      // Crystal shield
+      ctx.fillStyle = "#ba55d3";
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.85, y + h * 0.35);
+      ctx.lineTo(x + w * 0.85, y + h * 0.65);
+      ctx.lineTo(x + w * 1.05, y + h * 0.5);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Shield outline
+      ctx.strokeStyle = "#9370db";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      
+      // Orbiting crystal shards
+      for (let i = 0; i < 4; i++) {
+        const angle = time * 2 + (i * Math.PI / 2);
+        const dist = 18 + Math.sin(time * 3 + i) * 3;
+        const sx = x + w/2 + Math.cos(angle) * dist;
+        const sy = y + h/2 + Math.sin(angle) * dist;
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowColor = "#ba55d3";
+        ctx.shadowBlur = 12;
+        ctx.globalAlpha = 0.9;
         ctx.beginPath();
-        ctx.moveTo(shardX, y + h * 0.5);
-        ctx.lineTo(shardX + 3, y + h * 0.4);
-        ctx.lineTo(shardX + 6, y + h * 0.5);
-        ctx.stroke();
+        ctx.moveTo(sx, sy - 4);
+        ctx.lineTo(sx - 2.5, sy + 3);
+        ctx.lineTo(sx + 2.5, sy + 3);
+        ctx.closePath();
+        ctx.fill();
       }
-      ctx.font = "26px Arial";
+      ctx.globalAlpha = 1;
+      
+      // Reflection effect
+      ctx.fillStyle = "#ffffff";
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.arc(x + w * 0.35, y + h * 0.35, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      
+      // Crystal eyes
+      ctx.fillStyle = "#ba55d3";
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(x + w * 0.42, y + h * 0.32, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + w * 0.58, y + h * 0.32, 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Diamond emoji
+      ctx.shadowBlur = 18;
+      ctx.font = "bold 26px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("💎", x + w/2, y + h/2 + 10);
+      ctx.fillStyle = "#ba55d3";
+      ctx.fillText("💎", x + w/2, y + h * 0.75);
+      
+      // Crystal particles
+      if (Math.random() < 0.3) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: (Math.random() - 0.5) * 1.5,
+          radius: 2,
+          color: "#ba55d3",
+          life: 0.8,
+          alpha: 0.9
+        });
+      }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -12543,22 +12864,101 @@
     
     function drawShadowMonk(x, y, w, h, time) {
       ctx.save();
+      
+      // Shadow phase effect
+      const phase = Math.sin(time * 3) * 0.15 + 0.85;
+      ctx.globalAlpha = phase;
       ctx.shadowColor = "#696969";
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 18;
+      
+      // Shadow clones (afterimages)
+      for (let i = 1; i <= 2; i++) {
+        ctx.globalAlpha = 0.3 - i * 0.1;
+        ctx.fillStyle = "#1a1a1a";
+        const offset = i * 5;
+        ctx.fillRect(x - offset, y, w, h);
+      }
+      ctx.globalAlpha = phase;
+      
+      // Monk robes
       ctx.fillStyle = "#2f4f4f";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#696969";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Martial arts stance lines
-      ctx.strokeStyle = "#696969";
-      ctx.lineWidth = 2;
+      
+      // Inner robe
+      ctx.fillStyle = "#3a5a5a";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      
+      // Sash/belt
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(x + 2, y + h * 0.5, w - 4, 4);
+      
+      // Hood
+      ctx.fillStyle = "#1a2a2a";
       ctx.beginPath();
-      ctx.moveTo(x + w * 0.3, y + h * 0.6);
-      ctx.lineTo(x + w * 0.4, y + h * 0.4);
+      ctx.arc(x + w/2, y + h * 0.25, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Glowing shadow eyes
+      ctx.fillStyle = "#a0a0a0";
+      ctx.shadowBlur = 12;
+      ctx.fillRect(x + w * 0.42, y + h * 0.24, 4, 2);
+      ctx.fillRect(x + w * 0.54, y + h * 0.24, 4, 2);
+      
+      // Martial arts stance - left arm punch
+      ctx.strokeStyle = "#696969";
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.3, y + h * 0.4);
+      ctx.lineTo(x + w * 0.15, y + h * 0.35);
       ctx.stroke();
-      ctx.font = "24px Arial";
+      
+      // Left fist
+      ctx.fillStyle = "#696969";
+      ctx.beginPath();
+      ctx.arc(x + w * 0.15, y + h * 0.35, 4, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Right arm guard
+      ctx.strokeStyle = "#696969";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.7, y + h * 0.4);
+      ctx.lineTo(x + w * 0.85, y + h * 0.45);
+      ctx.stroke();
+      
+      // Motion lines (speed effect)
+      ctx.strokeStyle = "#696969";
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.5;
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x - 8 - i * 4, y + h * 0.35 + i * 3);
+        ctx.lineTo(x - 15 - i * 4, y + h * 0.35 + i * 3);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = phase;
+      
+      // Shadow clones orbiting
+      for (let i = 0; i < 2; i++) {
+        const angle = time * 2.5 + i * Math.PI;
+        const cloneX = x + w/2 + Math.cos(angle) * 22;
+        const cloneY = y + h/2 + Math.sin(angle) * 15;
+        
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = "#2f4f4f";
+        ctx.fillRect(cloneX - 8, cloneY - 8, 16, 16);
+        ctx.fillStyle = "#696969";
+        ctx.fillRect(cloneX - 6, cloneY - 6, 12, 12);
+      }
+      ctx.globalAlpha = phase;
+      
+      // Martial arts emoji
+      ctx.shadowBlur = 15;
+      ctx.font = "bold 24px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🥋", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#696969";
+      ctx.fillText("🥋", x + w/2, y + h * 0.75);
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -12566,23 +12966,114 @@
     
     function drawArcWarden(x, y, w, h, time) {
       ctx.save();
+      
+      // Electric pulse
       const pulse = Math.sin(time * 5) * 0.3 + 1;
       ctx.shadowColor = "#6495ed";
       ctx.shadowBlur = 25 * pulse;
-      ctx.fillStyle = "#4169e1";
+      
+      // Electric armor
+      ctx.fillStyle = "#1e3a8a";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#6495ed";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Electric arc
-      ctx.strokeStyle = "#FFD700";
-      ctx.lineWidth = 2;
+      
+      // Inner electric layer
+      ctx.fillStyle = "#2563eb";
+      ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+      
+      // Bright core
+      ctx.fillStyle = "#4169e1";
+      ctx.fillRect(x + 6, y + 6, w - 12, h - 12);
+      
+      // Helmet
+      ctx.fillStyle = "#1e3a8a";
       ctx.beginPath();
-      ctx.moveTo(x + w * 0.3, y + h * 0.3);
-      ctx.quadraticCurveTo(x + w/2, y + h * 0.5, x + w * 0.7, y + h * 0.3);
+      ctx.arc(x + w/2, y + h * 0.25, 13, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Electric eyes
+      ctx.fillStyle = "#FFD700";
+      ctx.shadowBlur = 18;
+      ctx.fillRect(x + w * 0.41, y + h * 0.24, 5, 3);
+      ctx.fillRect(x + w * 0.54, y + h * 0.24, 5, 3);
+      
+      // Lightning staff
+      ctx.strokeStyle = "#4169e1";
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.2, y + h * 0.3);
+      ctx.lineTo(x + w * 0.2, y + h * 0.8);
       ctx.stroke();
-      ctx.font = "24px Arial";
+      
+      // Lightning bolt on staff
+      ctx.fillStyle = "#FFD700";
+      ctx.shadowColor = "#FFD700";
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.2, y + h * 0.25);
+      ctx.lineTo(x + w * 0.16, y + h * 0.3);
+      ctx.lineTo(x + w * 0.2, y + h * 0.3);
+      ctx.lineTo(x + w * 0.17, y + h * 0.35);
+      ctx.lineTo(x + w * 0.23, y + h * 0.28);
+      ctx.lineTo(x + w * 0.2, y + h * 0.28);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Electric arcs
+      const arcCount = 3;
+      for (let i = 0; i < arcCount; i++) {
+        const offset = Math.sin(time * 6 + i * 2) * 4;
+        ctx.strokeStyle = "#6495ed";
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(x + w * 0.3, y + h * (0.4 + i * 0.15));
+        ctx.quadraticCurveTo(
+          x + w * 0.5 + offset,
+          y + h * (0.45 + i * 0.15),
+          x + w * 0.7,
+          y + h * (0.4 + i * 0.15)
+        );
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      
+      // Electric field (orbiting sparks)
+      for (let i = 0; i < 4; i++) {
+        const angle = time * 3 + (i * Math.PI / 2);
+        const radius = 18 + Math.sin(time * 4 + i) * 4;
+        const sparkX = x + w/2 + Math.cos(angle) * radius;
+        const sparkY = y + h/2 + Math.sin(angle) * radius;
+        
+        ctx.fillStyle = "#FFD700";
+        ctx.shadowColor = "#FFD700";
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(sparkX, sparkY, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Lightning emoji
+      ctx.shadowColor = "#6495ed";
+      ctx.shadowBlur = 18;
+      ctx.font = "bold 26px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("⚡", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#FFD700";
+      ctx.fillText("⚡", x + w/2, y + h * 0.75);
+      
+      // Electric particles
+      if (Math.random() < 0.35) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 3,
+          vy: (Math.random() - 0.5) * 3,
+          radius: 2,
+          color: "#6495ed",
+          life: 0.6,
+          alpha: 0.9
+        });
+      }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
