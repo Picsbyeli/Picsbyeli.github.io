@@ -9261,30 +9261,42 @@
         eclipseMoon.x = Math.max(eclipseMoon.radius, Math.min(canvas.width - eclipseMoon.radius, eclipseMoon.x));
         eclipseMoon.y = Math.max(eclipseMoon.radius, Math.min(canvas.height - eclipseMoon.radius, eclipseMoon.y));
         
-        // Moon gravity effect on enemies
-        for (let i = 0; i < enemies.length; i++) {
-          const e = enemies[i];
-          const dx = eclipseMoon.x - (e.x + e.w / 2);
-          const dy = eclipseMoon.y - (e.y + e.h / 2);
-          const dist = Math.sqrt(dx * dx + dy * dy);
+        // Optimize: Only check for new lifts every few frames
+        if (!eclipseMoon.gravityCheckTimer) eclipseMoon.gravityCheckTimer = 0;
+        eclipseMoon.gravityCheckTimer += dt;
+        
+        // Check for new enemy lifts less frequently to reduce lag
+        if (eclipseMoon.gravityCheckTimer >= 0.1) { // Check every 100ms
+          eclipseMoon.gravityCheckTimer = 0;
           
-          if (dist < eclipseMoon.gravityRadius) {
-            // Check if enemy should be lifted
-            const enemySize = e.w * e.h;
-            const liftDifficulty = Math.max(1, enemySize / 2000); // Bigger = harder to lift
-            const liftChance = eclipseMoon.liftForce / (liftDifficulty * 100);
+          const radiusSquared = eclipseMoon.gravityRadius * eclipseMoon.gravityRadius;
+          
+          for (let i = 0; i < enemies.length; i++) {
+            const e = enemies[i];
+            if (e.lifted) continue; // Skip already lifted enemies
             
-            if (!e.lifted && Math.random() < liftChance * dt * 2) {
-              // Start lifting enemy
+            const dx = eclipseMoon.x - (e.x + e.w / 2);
+            const dy = eclipseMoon.y - (e.y + e.h / 2);
+            const distSquared = dx * dx + dy * dy;
+            
+            if (distSquared < radiusSquared && Math.random() < 0.15) {
+              const enemySize = e.w * e.h;
+              const liftDifficulty = Math.max(1, enemySize / 2000);
+              
               e.lifted = true;
               e.liftTime = 0;
-              e.maxLiftTime = 2 + liftDifficulty * 0.5; // Bigger enemies take longer
+              e.maxLiftTime = 2 + liftDifficulty * 0.5;
               e.originalY = e.y;
               e.liftHeight = 100 + Math.random() * 50;
               createFloatingText("\ud83c\udf19 LIFTED!", e.x + e.w/2, e.y - 30, "#9D8BC9");
             }
-            
-            if (e.lifted) {
+          }
+        }
+        
+        // Update all lifted enemies every frame (smooth animation)
+        for (let i = 0; i < enemies.length; i++) {
+          const e = enemies[i];
+          if (e.lifted) {
               e.liftTime += dt;
               const liftProgress = Math.min(1, e.liftTime / (e.maxLiftTime * 0.3));
               e.y = e.originalY - (e.liftHeight * liftProgress);
@@ -9305,12 +9317,6 @@
                   onEnemyKilled(e);
                 }
               }
-            }
-          } else {
-            // Out of range, reset lift
-            if (e.lifted) {
-              e.lifted = false;
-              e.y = e.originalY;
             }
           }
         }
