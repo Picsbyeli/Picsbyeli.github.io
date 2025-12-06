@@ -1297,6 +1297,10 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     
+    // DEBUG: Check canvas initial state
+    console.log("🖼️ Canvas initial pointer-events:", window.getComputedStyle(canvas).pointerEvents);
+    console.log("🖼️ Canvas has active class:", canvas.classList.contains('active'));
+    
     const titleScreen = document.getElementById("titleScreen");
     const startBtn = document.getElementById("startBtn");
     const shopBtn = document.getElementById("shopBtn");
@@ -5033,10 +5037,19 @@
       console.error("❌ ERROR: startBtn element not found!");
     } else {
       console.log("✅ startBtn found, adding click listener...");
+      console.log("🔍 startBtn z-index:", window.getComputedStyle(startBtn).zIndex);
+      console.log("🔍 startBtn pointer-events:", window.getComputedStyle(startBtn).pointerEvents);
+      console.log("🔍 titleScreen z-index:", window.getComputedStyle(titleScreen).zIndex);
+      
       startBtn.addEventListener("click", () => {
         console.log("🎮 START button clicked!");
         titleScreen.classList.add("hidden");
         showClassSelection();
+      });
+      
+      // Test if button receives mouse events
+      startBtn.addEventListener("mouseenter", () => {
+        console.log("🖱️ Mouse entered START button");
       });
     }
 
