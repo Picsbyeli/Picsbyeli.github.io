@@ -2640,6 +2640,99 @@
       });
     }
 
+    // LEGENDARY UPGRADES - Powerful one-time upgrades available after maxing basic stats
+    const LEGENDARY_UPGRADES = {
+      bigBullets: {
+        icon: "💥",
+        name: "MEGA BULLETS",
+        desc: "Bullets 3x size with 30% knockback!",
+        requiresMaxed: "damage",
+        apply: (player) => {
+          player.legendaryUpgrades.bigBullets = true;
+          player.bulletSizeMultiplier = 3.0;
+          player.knockback = (player.knockback || 0) + 30;
+        }
+      },
+      flamingBullets: {
+        icon: "🔥",
+        name: "FLAMING ROUNDS",
+        desc: "All bullets burn enemies for 25 DPS!",
+        requiresMaxed: "fireRate",
+        apply: (player) => {
+          player.legendaryUpgrades.flamingBullets = true;
+          player.flameBurst = true;
+          player.burnDamage = 25;
+          player.burnDuration = 4;
+        }
+      },
+      ultraSense: {
+        icon: "👁️",
+        name: "ULTRA SENSE",
+        desc: "5% chance to dodge enemy bullets!",
+        requiresMaxed: "range",
+        apply: (player) => {
+          player.legendaryUpgrades.ultraSense = true;
+          player.dodgeChance = 0.05;
+        }
+      },
+      shieldPenetration: {
+        icon: "🎯",
+        name: "SHIELD BUSTER",
+        desc: "Homing shots have 5% chance to ignore shields!",
+        requiresMaxed: "homingShots",
+        apply: (player) => {
+          player.legendaryUpgrades.shieldPenetration = true;
+          player.shieldPierce = 0.05;
+        }
+      },
+      explosiveShield: {
+        icon: "💣",
+        name: "EXPLOSIVE BARRIER",
+        desc: "Shield explodes when broken, damaging nearby enemies!",
+        requiresMaxed: "shield",
+        apply: (player) => {
+          player.legendaryUpgrades.explosiveShield = true;
+          player.shieldExplosion = true;
+          player.shieldExplosionDamage = 100;
+        }
+      },
+      speedDemon: {
+        icon: "⚡",
+        name: "SPEED DEMON",
+        desc: "Move 50% faster, leave damaging trail!",
+        requiresMaxed: "projectileSpeed",
+        apply: (player) => {
+          player.legendaryUpgrades.speedDemon = true;
+          player.speed *= 1.5;
+          player.speedTrail = true;
+          player.trailDamage = 15;
+        }
+      },
+      vampiricAura: {
+        icon: "🩸",
+        name: "VAMPIRIC AURA",
+        desc: "Drain 5 HP/sec from nearby enemies!",
+        requiresMaxed: "lifesteal",
+        apply: (player) => {
+          player.legendaryUpgrades.vampiricAura = true;
+          player.vampireAura = true;
+          player.vampireAuraRange = 200;
+          player.vampireAuraDrain = 5;
+        }
+      },
+      luckyStreak: {
+        icon: "🍀",
+        name: "LUCKY STREAK",
+        desc: "Double crit chance, crits grant temporary invulnerability!",
+        requiresMaxed: "criticalHit",
+        apply: (player) => {
+          player.legendaryUpgrades.luckyStreak = true;
+          player.critChance *= 2;
+          player.critInvuln = true;
+        }
+      }
+    };
+
     // CLASS DEFINITIONS
     const CLASSES = {
       Hunter: {
@@ -6956,6 +7049,11 @@
           nukeShots: false, guaranteedCrits: false, invincible: false, immortal: false,
           storm: false, inferno: false, absoluteZero: false, gravityWell: false, seekingSwarm: false
         },
+        // Legendary upgrades (one-time powerful upgrades from maxed stats)
+        legendaryUpgrades: {
+          bigBullets: false, flamingBullets: false, ultraSense: false, shieldPenetration: false,
+          explosiveShield: false, speedDemon: false, vampiricAura: false, luckyStreak: false
+        },
         // Necromancer traits
         poison: cls.stats.alwaysPoison ? { damage: 5, duration: 3 } : null,
         spawnSkeletonsOnKill: cls.stats.spawnSkeletonsOnKill || false,
@@ -8141,6 +8239,14 @@
             // Floating animation - bob up and down
             e.y = (GROUND_Y - e.flyHeight) + Math.sin(Date.now() / 400 + e.x) * 10;
             
+            // Slow down when near player to engage in combat
+            const distToPlayer = Math.abs((e.x + e.w/2) - (player.x + player.w/2));
+            if (distToPlayer < 400) {
+              e.vx = -e.baseSpeed * 0.2; // Move very slowly when in range
+            } else {
+              e.vx = -e.baseSpeed; // Normal speed when far away
+            }
+            
             // Flyers shoot at player instead of flying past
             e.shootTimer += dt;
             if (e.shootTimer >= 2.0) {
@@ -8579,13 +8685,14 @@
             const newGen = e.rollerGeneration + 1;
             const newSize = e.w * 0.6; // 60% smaller
             const newHP = e.maxHP * 0.5; // 50% HP
+            const speedMultiplier = 1.5 + (newGen * 0.3); // Much faster with each generation
             
             // Spawn 2 smaller rollers
             for (let r = 0; r < 2; r++) {
               enemies.push({
                 x: e.x + (r * 30),
                 y: e.y,
-                vx: -e.baseSpeed * 1.3, // Slightly faster
+                vx: -e.baseSpeed * speedMultiplier, // Gets faster each generation
                 w: newSize,
                 h: newSize,
                 maxHP: newHP,
@@ -8595,7 +8702,7 @@
                 type: "roller",
                 isBoss: false,
                 isMiniBoss: false,
-                baseSpeed: e.baseSpeed * 1.3,
+                baseSpeed: e.baseSpeed * speedMultiplier,
                 damage: e.damage * 0.8,
                 hasShield: false,
                 shieldHP: 0,
@@ -9031,15 +9138,21 @@
           knockback: player.knockback || 80 // Guardian Tank knockback
         });
       } else {
+        // Legendary: Big Bullets - 3x size with knockback
+        const bulletSize = player.legendaryUpgrades.bigBullets ? 15 : 5;
+        
+        // Legendary: Flaming Bullets - apply burn effect
+        const hasFlame = player.legendaryUpgrades.flamingBullets;
+        
         // Normal projectile for other classes
         projectiles.push({
           x: px, y: py,
           vx: dx * player.projectileSpeed,
           vy: dy * player.projectileSpeed,
-          radius: 5,
+          radius: bulletSize,
           damage: finalDamage,
-          color: isCrit ? "#ff0000" : player.bulletColor,
-          glowColor: isCrit ? "#ff0000" : player.glowColor,
+          color: hasFlame ? "#ff4500" : (isCrit ? "#ff0000" : player.bulletColor),
+          glowColor: hasFlame ? "#ffa500" : (isCrit ? "#ff0000" : player.glowColor),
           life: 3.5,
           trail: [],
           pierce: player.pierce,
@@ -9057,7 +9170,11 @@
           homingStrength: player.homingStrength || 0,
           freeze: player.freezeBullets || false,
           slowAmount: player.slowAmount || 0,
-          freezeChance: player.freezeChance || 0
+          freezeChance: player.freezeChance || 0,
+          // Legendary properties
+          flameBurn: hasFlame,
+          knockback: player.knockback || 0,
+          shieldPierce: player.legendaryUpgrades.shieldPenetration ? player.shieldPierce : 0
         });
         
         // GUNSLINGER: Dual shot (2 projectiles with slight spread)
@@ -9289,6 +9406,23 @@
         // Enemy projectile hitting player
         if (p.isEnemyProjectile && player.alive) {
           if (p.x > player.x && p.x < player.x + player.w && p.y > player.y && p.y < player.y + player.h) {
+            // LEGENDARY: Lucky Streak - crit invulnerability
+            if (player.critInvulnTimer && player.critInvulnTimer > 0) {
+              addFloatingText(player.x + player.w/2, player.y - 30, "⭐ INVULNERABLE!", "#ffff00", 1.0);
+              projectiles.splice(i, 1);
+              continue; // Skip damage
+            }
+            
+            // LEGENDARY: Ultra Sense - 5% chance to dodge
+            if (player.legendaryUpgrades.ultraSense && player.dodgeChance > 0) {
+              if (Math.random() < player.dodgeChance) {
+                addFloatingText(player.x + player.w/2, player.y - 30, "👁️ DODGED!", "#00ffff", 1.2);
+                spawnExplosion(player.x + player.w/2, player.y + player.h/2, "#00ffff", 15);
+                projectiles.splice(i, 1);
+                continue; // Skip damage
+              }
+            }
+            
             let damage = p.damage;
             
             if (player.shield > 0) {
@@ -9298,6 +9432,23 @@
               } else {
                 damage -= player.shield;
                 player.shield = 0;
+                
+                // LEGENDARY: Explosive Shield - explode when shield breaks
+                if (player.legendaryUpgrades.explosiveShield && player.shieldExplosion) {
+                  // Damage all nearby enemies
+                  enemies.forEach(enemy => {
+                    const dx = (enemy.x + enemy.w/2) - (player.x + player.w/2);
+                    const dy = (enemy.y + enemy.h/2) - (player.y + player.h/2);
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 200) {
+                      enemy.hp -= player.shieldExplosionDamage || 100;
+                      addFloatingText(enemy.x + enemy.w/2, enemy.y - 30, `-${player.shieldExplosionDamage || 100}`, "#ffaa00");
+                    }
+                  });
+                  addFloatingText(player.x + player.w/2, player.y - 50, "💣 SHIELD BLAST!", "#ffaa00", 1.5);
+                  spawnExplosion(player.x + player.w/2, player.y + player.h/2, "#ffaa00", 40);
+                  screenShake += 5;
+                }
               }
             }
             
@@ -9344,8 +9495,19 @@
                 addFloatingText(e.x + e.w / 2, e.y - 30, "CRIT!", "#ff0000");
               }
               
-              // Damage shield first (unless Warlock - ignores shields!)
-              if (player.className !== "Warlock") {
+              // LEGENDARY: Shield Penetration - 5% chance to ignore shields (only on homing shots)
+              const ignoreShield = p.shieldPierce && p.homing && Math.random() < p.shieldPierce;
+              if (ignoreShield) {
+                addFloatingText(e.x + e.w / 2, e.y - 40, "🎯 PIERCED!", "#ffff00", 1.2);
+              }
+              
+              // Shielded enemies take 50% less damage
+              if (e.hasShield && e.shieldHP > 0 && !ignoreShield) {
+                actualDamage *= 0.5;
+              }
+              
+              // Damage shield first (unless Warlock or shield pierce)
+              if (player.className !== "Warlock" && !ignoreShield) {
                 if (e.hasShield && e.shieldHP > 0) {
                   if (e.shieldHP >= actualDamage) {
                     e.shieldHP -= actualDamage;
@@ -9357,7 +9519,7 @@
                     addFloatingText(e.x + e.w / 2, e.y - 10, "SHIELD BROKEN!", "#ffaa00");
                   }
                 }
-              } else {
+              } else if (player.className === "Warlock") {
                 // WARLOCK: Ignore shields, weaken enemies
                 if (e.hasShield && e.shieldHP > 0) {
                   addFloatingText(e.x + e.w / 2, e.y - 10, "🌀 CURSED!", "#6A0DAD");
@@ -9372,6 +9534,14 @@
               e.hp -= actualDamage;
               spawnHitParticles(p.x, p.y, p.color, p.isCrit ? 12 : 6);
               screenShake += p.isCrit ? 1 : 0.5;
+              
+              // LEGENDARY: Lucky Streak - crits grant brief invulnerability
+              if (p.isCrit && player.legendaryUpgrades.luckyStreak && player.critInvuln) {
+                if (!player.critInvulnTimer || player.critInvulnTimer <= 0) {
+                  player.critInvulnTimer = 0.5; // 0.5 seconds of invuln
+                  addFloatingText(player.x + player.w/2, player.y - 50, "🍀 LUCKY!", "#ffff00", 1.0);
+                }
+              }
               
               // PYROMANCER: Create fire zone on ground
               if (player.className === "Pyromancer") {
@@ -9836,22 +10006,53 @@
     }
 
     function generateUpgradeOptions() {
-      // Filter out maxed cards
+      // Check for available legendary upgrades (when a stat is maxed)
+      const availableLegendaries = Object.keys(LEGENDARY_UPGRADES).filter(key => {
+        const legendary = LEGENDARY_UPGRADES[key];
+        const requiredUpgrade = legendary.requiresMaxed;
+        const isMaxed = UPGRADE_TYPES[requiredUpgrade] && 
+                       UPGRADE_TYPES[requiredUpgrade].getCurrentLevel(player) >= UPGRADE_TYPES[requiredUpgrade].maxLevel;
+        const notUnlocked = !player.legendaryUpgrades[key];
+        return isMaxed && notUnlocked;
+      });
+      
+      // Filter out maxed cards (including those with legendary unlocked)
       const availableUpgrades = Object.keys(UPGRADE_TYPES).filter(key => {
         const upgrade = UPGRADE_TYPES[key];
         const currentLevel = upgrade.getCurrentLevel(player);
-        return currentLevel < upgrade.maxLevel;
+        const isMaxed = currentLevel >= upgrade.maxLevel;
+        
+        // Check if this upgrade has a legendary available
+        const hasLegendary = availableLegendaries.some(legKey => {
+          return LEGENDARY_UPGRADES[legKey].requiresMaxed === key;
+        });
+        
+        // Don't show if maxed (will show legendary instead if available)
+        return !isMaxed || hasLegendary;
       });
       
-      if (availableUpgrades.length === 0) {
-        // All cards maxed! Offer super upgrades
+      // Combine available legendary and normal upgrades
+      let options = [];
+      
+      // Add legendary upgrades first (priority)
+      if (availableLegendaries.length > 0) {
+        options.push(...availableLegendaries.map(key => ({ type: 'legendary', key })));
+      }
+      
+      // Add normal upgrades
+      if (availableUpgrades.length > 0) {
+        options.push(...availableUpgrades.map(key => ({ type: 'normal', key })));
+      }
+      
+      // Check for super upgrades if no regular options
+      if (options.length === 0) {
         const superUpgrades = Object.keys(UPGRADE_TYPES).filter(key => {
           const upgrade = UPGRADE_TYPES[key];
           return upgrade.superUpgrade && !player.superUpgrades[upgrade.superUpgrade.name.toLowerCase().replace(/[^a-z]/g, '')];
         });
         
         if (superUpgrades.length > 0) {
-          currentUpgradeOptions = superUpgrades.slice(0, 3);
+          options.push(...superUpgrades.map(key => ({ type: 'super', key })));
         } else {
           // Everything maxed!
           alert("🎉 ALL UPGRADES MAXED! You're unstoppable!");
@@ -9859,44 +10060,68 @@
           gameState = "playing";
           return;
         }
-      } else {
-        const shuffled = availableUpgrades.sort(() => Math.random() - 0.5);
-        currentUpgradeOptions = shuffled.slice(0, 3);
       }
+      
+      // Shuffle and pick 3
+      const shuffled = options.sort(() => Math.random() - 0.5);
+      currentUpgradeOptions = shuffled.slice(0, 3);
       
       upgradeOptions.innerHTML = "";
       
       // Add upgrade cards
-      currentUpgradeOptions.forEach(key => {
-        const upgrade = UPGRADE_TYPES[key];
-        const currentLevel = upgrade.getCurrentLevel(player);
-        const nextLevel = currentLevel + 1;
-        const isMaxed = currentLevel >= upgrade.maxLevel;
-        
+      currentUpgradeOptions.forEach(option => {
         const card = document.createElement("div");
         card.className = "upgrade-card";
         
-        // Check if this card can unlock super upgrade
-        const canSuper = currentLevel === upgrade.maxLevel && upgrade.superUpgrade;
-        
-        if (canSuper) {
+        if (option.type === 'legendary') {
+          // Show legendary upgrade
+          const legendary = LEGENDARY_UPGRADES[option.key];
+          card.className = "upgrade-card legendary-card";
+          card.innerHTML = `
+            <div class="upgrade-card-icon" style="font-size: 48px;">${legendary.icon}</div>
+            <div class="upgrade-card-title" style="color: #ffcc00; text-shadow: 0 0 10px #ffaa00;">${legendary.name}</div>
+            <div class="upgrade-card-desc">${legendary.desc}</div>
+            <div style="color: #ffaa00; font-size: 12px; margin-top: 5px; font-weight: bold;">✨ LEGENDARY ✨</div>
+          `;
+          card.style.border = "2px solid #ffcc00";
+          card.style.boxShadow = "0 0 20px rgba(255, 204, 0, 0.5)";
+          card.onclick = () => selectLegendaryUpgrade(option.key);
+        } else if (option.type === 'super') {
           // Show super upgrade
+          const upgrade = UPGRADE_TYPES[option.key];
           card.innerHTML = `
             <div class="upgrade-card-icon">${upgrade.superUpgrade.icon}</div>
             <div class="upgrade-card-title">${upgrade.superUpgrade.name}</div>
             <div class="upgrade-card-desc">${upgrade.superUpgrade.desc}</div>
             <div style="color: #ffaa00; font-size: 11px; margin-top: 5px;">⭐ SUPER UPGRADE ⭐</div>
           `;
-          card.onclick = () => selectSuperUpgrade(key);
+          card.onclick = () => selectSuperUpgrade(option.key);
         } else {
-          // Normal level up
-          card.innerHTML = `
-            <div class="upgrade-card-icon">${upgrade.icon}</div>
-            <div class="upgrade-card-title">${upgrade.name}</div>
-            <div class="upgrade-card-desc">${upgrade.getDesc(nextLevel)}</div>
-            <div style="color: #888; font-size: 11px; margin-top: 5px;">Level ${nextLevel}/${upgrade.maxLevel}</div>
-          `;
-          card.onclick = () => selectUpgrade(key);
+          // Normal upgrade
+          const upgrade = UPGRADE_TYPES[option.key];
+          const currentLevel = upgrade.getCurrentLevel(player);
+          const nextLevel = currentLevel + 1;
+          const canSuper = currentLevel === upgrade.maxLevel && upgrade.superUpgrade;
+          
+          if (canSuper) {
+            // Show super upgrade
+            card.innerHTML = `
+              <div class="upgrade-card-icon">${upgrade.superUpgrade.icon}</div>
+              <div class="upgrade-card-title">${upgrade.superUpgrade.name}</div>
+              <div class="upgrade-card-desc">${upgrade.superUpgrade.desc}</div>
+              <div style="color: #ffaa00; font-size: 11px; margin-top: 5px;">⭐ SUPER UPGRADE ⭐</div>
+            `;
+            card.onclick = () => selectSuperUpgrade(option.key);
+          } else {
+            // Normal level up
+            card.innerHTML = `
+              <div class="upgrade-card-icon">${upgrade.icon}</div>
+              <div class="upgrade-card-title">${upgrade.name}</div>
+              <div class="upgrade-card-desc">${upgrade.getDesc(nextLevel)}</div>
+              <div style="color: #888; font-size: 11px; margin-top: 5px;">Level ${nextLevel}/${upgrade.maxLevel}</div>
+            `;
+            card.onclick = () => selectUpgrade(option.key);
+          }
         }
         
         upgradeOptions.appendChild(card);
@@ -10005,6 +10230,42 @@
       spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, player.glowColor, 20);
     }
     
+    function selectLegendaryUpgrade(legendaryKey) {
+      const legendary = LEGENDARY_UPGRADES[legendaryKey];
+      
+      if (!legendary) return;
+      
+      // Apply legendary upgrade
+      legendary.apply(player);
+      
+      upgradeScreen.classList.remove("active");
+      gameState = "playing";
+      
+      // Check for queued upgrades
+      if (player.queuedUpgrades && player.queuedUpgrades > 0) {
+        player.queuedUpgrades--;
+        setTimeout(() => showUpgradeScreen(), 100);
+      }
+      
+      // Epic visual feedback for legendary upgrade!
+      addFloatingText(canvas.width / 2, canvas.height / 2 - 60, legendary.name, "#ffcc00", 2);
+      addFloatingText(canvas.width / 2, canvas.height / 2 - 20, "✨ LEGENDARY ✨", "#ffaa00", 1.5);
+      screenShake += 15;
+      
+      // Massive golden particle explosion
+      for (let i = 0; i < 150; i++) {
+        particles.push({
+          x: player.x + player.w / 2,
+          y: player.y + player.h / 2,
+          vx: (Math.random() - 0.5) * 18,
+          vy: (Math.random() - 0.5) * 18,
+          radius: 10,
+          color: ["#ffcc00", "#ffaa00", "#ff8800"][i % 3],
+          life: 3
+        });
+      }
+    }
+    
     function selectSuperUpgrade(upgradeKey) {
       const upgrade = UPGRADE_TYPES[upgradeKey];
       
@@ -10104,6 +10365,19 @@
         p.x += p.vx;
         p.y += p.vy;
         p.life -= dt;
+        
+        // Speed Demon trail particles damage enemies
+        if (p.damageTrail && p.trailDamage) {
+          enemies.forEach(enemy => {
+            const dx = (enemy.x + enemy.w/2) - p.x;
+            const dy = (enemy.y + enemy.h/2) - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 30) {
+              enemy.hp -= p.trailDamage * dt;
+            }
+          });
+        }
+        
         if (p.life <= 0) {
           particles.splice(i, 1);
         }
@@ -10565,6 +10839,45 @@
       // Regeneration
       if (player.regen > 0) {
         player.hp = Math.min(player.hp + player.regen * dt, player.maxHP);
+      }
+      
+      // LEGENDARY: Lucky Streak - update crit invulnerability timer
+      if (player.critInvulnTimer && player.critInvulnTimer > 0) {
+        player.critInvulnTimer -= dt;
+      }
+      
+      // LEGENDARY: Vampiric Aura - drain HP from nearby enemies
+      if (player.legendaryUpgrades.vampiricAura && player.vampireAura) {
+        enemies.forEach(enemy => {
+          const dx = (enemy.x + enemy.w/2) - (player.x + player.w/2);
+          const dy = (enemy.y + enemy.h/2) - (player.y + player.h/2);
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < (player.vampireAuraRange || 200)) {
+            const drain = (player.vampireAuraDrain || 5) * dt;
+            enemy.hp -= drain;
+            if (player.hp < player.maxHP) {
+              player.hp = Math.min(player.hp + drain, player.maxHP);
+            }
+          }
+        });
+      }
+      
+      // LEGENDARY: Speed Demon - leave damaging trail
+      if (player.legendaryUpgrades.speedDemon && player.speedTrail) {
+        // Create trail particles behind player
+        if (Math.random() < 0.3) {
+          particles.push({
+            x: player.x + player.w/2,
+            y: player.y + player.h/2,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            radius: 8,
+            color: "#ffaa00",
+            life: 0.5,
+            damageTrail: true,
+            trailDamage: player.trailDamage || 15
+          });
+        }
       }
       
       // BERSERK: Damage scales with HP lost (up to 3x at 0% HP)
