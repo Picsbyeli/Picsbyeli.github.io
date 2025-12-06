@@ -4633,6 +4633,7 @@
         icon: "🔥",
         name: "Flame Burst",
         maxLevel: 5,
+        classRestriction: ["Pyromancer"], // Only Pyromancer can get this
         getCurrentLevel: (player) => player.upgradeLevels.flameBurst,
         getDesc: (level) => `Bullets burn for ${level * 10} damage over 3s (Level ${level}/5)`,
         apply: (player, level) => {
@@ -11555,33 +11556,9 @@
         drawPhantomClone(x, y, w, h);
       }
 
-      // SPECIAL CHARACTER DESIGNS
-      switch (player.className) {
-        case "Thief":
-          drawThief(x, y, w, h);
-          return;
-        case "DrSunshine":
-          drawDrSunshine(x, y, w, h);
-          return;
-        case "DrEclipse":
-          drawDrEclipse(x, y, w, h);
-          return;
-        case "Bomber":
-          drawBomber(x, y, w, h);
-          return;
-        case "Necromancer":
-          drawNecromancer(x, y, w, h);
-          return;
-        case "Pyromancer":
-          drawPyromancer(x, y, w, h);
-          return;
-        case "CryoSentinel":
-          drawCryoSentinel(x, y, w, h);
-          return;
-        case "LightningRanger":
-          drawLightningRanger(x, y, w, h);
-          return;
-      }
+      // SPECIAL CHARACTER DESIGNS - Enhanced emoji-based sprites
+      const enhancedClass = drawEnhancedClass(x, y, w, h, player.className);
+      if (enhancedClass) return;
 
       // Try to draw sprite if available
       const sprite = characterSprites[player.className];
@@ -11765,6 +11742,513 @@
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 1.0;
       ctx.restore();
+    }
+    
+    function drawEnhancedClass(x, y, w, h, className) {
+      const time = Date.now() / 1000;
+      
+      switch(className) {
+        case "Thief": return drawThief(x, y, w, h), true;
+        case "DrSunshine": return drawDrSunshine(x, y, w, h), true;
+        case "DrEclipse": return drawDrEclipse(x, y, w, h), true;
+        case "Bomber": return drawBomber(x, y, w, h), true;
+        case "Necromancer": return drawNecromancer(x, y, w, h), true;
+        case "Pyromancer": return drawPyromancer(x, y, w, h), true;
+        case "CryoSentinel": return drawCryoSentinel(x, y, w, h), true;
+        case "LightningRanger": return drawLightningRanger(x, y, w, h), true;
+        case "Hunter": return drawHunter(x, y, w, h, time), true;
+        case "Knight": return drawKnight(x, y, w, h, time), true;
+        case "Archer": return drawArcher(x, y, w, h, time), true;
+        case "Assassin": return drawAssassin(x, y, w, h, time), true;
+        case "Summoner": return drawSummoner(x, y, w, h, time), true;
+        case "DarkMagician": return drawDarkMagician(x, y, w, h, time), true;
+        case "Sniper": return drawSniper(x, y, w, h, time), true;
+        case "Vecna": return drawVecna(x, y, w, h, time), true;
+        case "PlagueDoctor": return drawPlagueDoctor(x, y, w, h, time), true;
+        case "BloodReaver": return drawBloodReaver(x, y, w, h, time), true;
+        case "CrystalGuardian": return drawCrystalGuardian(x, y, w, h, time), true;
+        case "ShadowMonk": return drawShadowMonk(x, y, w, h, time), true;
+        case "ArcWarden": return drawArcWarden(x, y, w, h, time), true;
+        case "HolyCleric": return drawHolyCleric(x, y, w, h, time), true;
+        case "TrickshotRogue": return drawTrickshotRogue(x, y, w, h, time), true;
+        case "Starcaller": return drawStarcaller(x, y, w, h, time), true;
+        case "VoidAssassin": return drawVoidAssassin(x, y, w, h, time), true;
+        case "Shadowblade": return drawShadowblade(x, y, w, h, time), true;
+        case "Illusionist": return drawIllusionistChar(x, y, w, h, time), true;
+        default: return false;
+      }
+    }
+    
+    function drawHunter(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#00ff88";
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#00ff88";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#88ffaa";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      // Bow on back
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x + w * 0.7, y + h/2, 10, -Math.PI/4, Math.PI/4);
+      ctx.stroke();
+      ctx.font = "22px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🏹", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawKnight(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#4488ff";
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = "#4488ff";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#88aaff";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Shield emblem
+      ctx.fillStyle = "#C0C0C0";
+      ctx.beginPath();
+      ctx.moveTo(x + w/2, y + h * 0.3);
+      ctx.lineTo(x + w * 0.3, y + h * 0.6);
+      ctx.lineTo(x + w/2, y + h * 0.8);
+      ctx.lineTo(x + w * 0.7, y + h * 0.6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("⚔️", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawArcher(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#32cd32";
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#228b22";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#32cd32";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      // Quiver
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = "#8B4513";
+        ctx.fillRect(x + w * 0.65 + i * 3, y + h * 0.2, 2, 15);
+      }
+      ctx.font = "22px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🏹", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawAssassin(x, y, w, h, time) {
+      ctx.save();
+      const pulse = Math.sin(time * 4) * 0.2 + 0.8;
+      ctx.globalAlpha = pulse;
+      ctx.shadowColor = "#ff00ff";
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#ff00ff";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#ff88ff";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      ctx.globalAlpha = 1;
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🗡️", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawSummoner(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#88ff88";
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#88ff88";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#aaffaa";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Orbiting spirits
+      for (let i = 0; i < 2; i++) {
+        const angle = time * 2 + i * Math.PI;
+        const spiritX = x + w/2 + Math.cos(angle) * 18;
+        const spiritY = y + h/2 + Math.sin(angle) * 18;
+        ctx.font = "12px Arial";
+        ctx.fillText("✨", spiritX - 6, spiritY + 4);
+      }
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("✨", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawDarkMagician(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#8800ff";
+      ctx.shadowBlur = 25;
+      ctx.fillStyle = "#8800ff";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#aa88ff";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Dark robe hood
+      ctx.fillStyle = "#4B0082";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = "26px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🔮", x + w/2, y + h/2 + 10);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawSniper(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#00ffff";
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#00ffff";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#88ffff";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      // Scope
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x + w * 0.7, y + h * 0.3, 6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.font = "26px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🎯", x + w/2, y + h/2 + 10);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawVecna(x, y, w, h, time) {
+      ctx.save();
+      const pulse = Math.sin(time * 2) * 0.3 + 1;
+      ctx.shadowColor = "#FF0000";
+      ctx.shadowBlur = 30 * pulse;
+      ctx.fillStyle = "#8B0000";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#FF0000";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Dark energy
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + w * 0.4, y + h * 0.25, 4, 4);
+      ctx.font = "28px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("👁️", x + w/2, y + h/2 + 10);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawPlagueDoctor(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#32cd32";
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#32cd32";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#90ee90";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Plague mask
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.moveTo(x + w/2, y + h * 0.3);
+      ctx.lineTo(x + w * 0.6, y + h * 0.4);
+      ctx.stroke();
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🦠", x + w/2, y + h/2 + 8);
+      // Poison drops
+      if (Math.random() < 0.2) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + h,
+          vx: 0,
+          vy: 1,
+          radius: 2,
+          color: "#32cd32",
+          life: 0.5,
+          alpha: 0.8
+        });
+      }
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawBloodReaver(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#dc143c";
+      ctx.shadowBlur = 22;
+      ctx.fillStyle = "#8b0000";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#dc143c";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Blood drops
+      for (let i = 0; i < 2; i++) {
+        ctx.fillStyle = "#8b0000";
+        ctx.beginPath();
+        ctx.arc(x + w * (0.3 + i * 0.4), y + h * 0.7, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🩸", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawCrystalGuardian(x, y, w, h, time) {
+      ctx.save();
+      const pulse = Math.sin(time * 2) * 0.2 + 1;
+      ctx.shadowColor = "#ba55d3";
+      ctx.shadowBlur = 20 * pulse;
+      ctx.fillStyle = "#9370db";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#ba55d3";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Crystal shards
+      ctx.strokeStyle = "#ba55d3";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 3; i++) {
+        const shardX = x + 8 + i * 10;
+        ctx.beginPath();
+        ctx.moveTo(shardX, y + h * 0.5);
+        ctx.lineTo(shardX + 3, y + h * 0.4);
+        ctx.lineTo(shardX + 6, y + h * 0.5);
+        ctx.stroke();
+      }
+      ctx.font = "26px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("💎", x + w/2, y + h/2 + 10);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawShadowMonk(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#696969";
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#2f4f4f";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#696969";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Martial arts stance lines
+      ctx.strokeStyle = "#696969";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.3, y + h * 0.6);
+      ctx.lineTo(x + w * 0.4, y + h * 0.4);
+      ctx.stroke();
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🥋", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawArcWarden(x, y, w, h, time) {
+      ctx.save();
+      const pulse = Math.sin(time * 5) * 0.3 + 1;
+      ctx.shadowColor = "#6495ed";
+      ctx.shadowBlur = 25 * pulse;
+      ctx.fillStyle = "#4169e1";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#6495ed";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Electric arc
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.3, y + h * 0.3);
+      ctx.quadraticCurveTo(x + w/2, y + h * 0.5, x + w * 0.7, y + h * 0.3);
+      ctx.stroke();
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("⚡", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawHolyCleric(x, y, w, h, time) {
+      ctx.save();
+      const pulse = Math.sin(time * 2) * 0.2 + 1;
+      ctx.shadowColor = "#ffffe0";
+      ctx.shadowBlur = 25 * pulse;
+      ctx.fillStyle = "#ffd700";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#ffffe0";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Healing aura rings
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.5;
+      for (let i = 1; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.arc(x + w/2, y + h/2, 15 * i, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("✝️", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawTrickshotRogue(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#ff69b4";
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = "#ff1493";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#ff69b4";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Ricochet lines
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.3, y + h * 0.3);
+      ctx.lineTo(x + w * 0.7, y + h * 0.5);
+      ctx.lineTo(x + w * 0.4, y + h * 0.7);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🎲", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawStarcaller(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#ba55d3";
+      ctx.shadowBlur = 25;
+      ctx.fillStyle = "#9400d3";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#ba55d3";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Orbiting stars
+      for (let i = 0; i < 3; i++) {
+        const angle = time * 1.5 + i * Math.PI * 2 / 3;
+        const starX = x + w/2 + Math.cos(angle) * 18;
+        const starY = y + h/2 + Math.sin(angle) * 18;
+        ctx.font = "10px Arial";
+        ctx.fillText("⭐", starX - 5, starY + 3);
+      }
+      ctx.font = "26px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🌟", x + w/2, y + h/2 + 10);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawVoidAssassin(x, y, w, h, time) {
+      ctx.save();
+      const pulse = Math.sin(time * 3) * 0.2 + 0.8;
+      ctx.globalAlpha = pulse;
+      ctx.shadowColor = "#483d8b";
+      ctx.shadowBlur = 25;
+      ctx.fillStyle = "#191970";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#483d8b";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Void tendrils
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + w * (0.3 + i * 0.4), y + h * 0.7);
+        ctx.lineTo(x + w * (0.2 + i * 0.5), y + h);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🌑", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawShadowblade(x, y, w, h, time) {
+      ctx.save();
+      ctx.shadowColor = "#696969";
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#696969";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Dark blade
+      ctx.strokeStyle = "#C0C0C0";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.6, y + h * 0.3);
+      ctx.lineTo(x + w * 0.4, y + h * 0.7);
+      ctx.stroke();
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("⚔️", x + w/2, y + h/2 + 8);
+      // Curse particles
+      if (Math.random() < 0.15) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + h,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -1 - Math.random() * 2,
+          radius: 2,
+          color: "#696969",
+          life: 0.6,
+          alpha: 0.7
+        });
+      }
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawIllusionistChar(x, y, w, h, time) {
+      ctx.save();
+      const pulse = Math.sin(time * 3) * 0.15 + 0.85;
+      ctx.globalAlpha = pulse;
+      ctx.shadowColor = "#BA55D3";
+      ctx.shadowBlur = 22;
+      ctx.fillStyle = "#9370DB";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#BA55D3";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      // Mirror effect
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.3;
+      ctx.strokeRect(x + 8, y + 8, w - 16, h - 16);
+      ctx.globalAlpha = 1;
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🎭", x + w/2, y + h/2 + 8);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
     }
     
     function drawDrSunshine(x, y, w, h) {
@@ -13127,7 +13611,7 @@
       
       // Potion inventory display at bottom center
       const potionBarY = canvas.height - 60;
-      const potionBarWidth = 480;
+      const potionBarWidth = 540; // Increased width to fit all potions
       const potionBarX = (canvas.width - potionBarWidth) / 2;
       
       ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
