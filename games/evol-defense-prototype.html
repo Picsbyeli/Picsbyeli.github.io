@@ -3576,6 +3576,26 @@
         },
         description: "Master of illusions - creates a fighting clone positioned above with half health (added to your HP pool)"
       },
+      EvolLegend: {
+        icon: "🌌",
+        color: "#000000",
+        accent: "#1a001a",
+        bulletColor: "#000000",
+        glowColor: "#4d004d",
+        unlockWave: 0,
+        purchasable: true,
+        cost: { coins: 100000000, gems: 100000 },
+        stats: {
+          maxHP: 130,
+          damage: 100,
+          fireRate: 3.0,
+          range: 700,
+          projectileSpeed: 6,
+          blackHoleShots: true,
+          noMultishot: true
+        },
+        description: "Legendary cosmic being shooting black holes that instantly kill normal enemies and saw through bosses"
+      },
       DrEclipse: {
         icon: "🌙",
         color: "#2C1E4A",
@@ -11775,6 +11795,7 @@
         case "VoidAssassin": return drawVoidAssassin(x, y, w, h, time), true;
         case "Shadowblade": return drawShadowblade(x, y, w, h, time), true;
         case "Illusionist": return drawIllusionistChar(x, y, w, h, time), true;
+        case "EvolLegend": return drawEvolLegend(x, y, w, h, time), true;
         default: return false;
       }
     }
@@ -13480,6 +13501,95 @@
           alpha: 0.8
         });
       }
+      
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return true;
+    }
+    
+    function drawEvolLegend(x, y, w, h, time) {
+      ctx.save();
+      
+      // Cosmic void effect
+      const pulse = Math.sin(time * 2) * 0.3 + 0.7;
+      ctx.globalAlpha = pulse;
+      ctx.shadowColor = "#4d004d";
+      ctx.shadowBlur = 25;
+      
+      // Void black body
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(x, y, w, h);
+      
+      // Dark purple inner layer
+      ctx.fillStyle = "#1a001a";
+      ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+      
+      // Purple cosmic energy
+      ctx.fillStyle = "#2d002d";
+      ctx.fillRect(x + 6, y + 6, w - 12, h - 12);
+      
+      // Black hole center
+      ctx.fillStyle = "#000000";
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = "#8000ff";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h/2, 10, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Event horizon ring
+      ctx.strokeStyle = "#4d004d";
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h/2, 14, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Orbiting void dots
+      for (let i = 0; i < 4; i++) {
+        const angle = time * 3 + (i * Math.PI / 2);
+        const radius = 16 + Math.sin(time * 4 + i) * 3;
+        const dotX = x + w/2 + Math.cos(angle) * radius;
+        const dotY = y + h/2 + Math.sin(angle) * radius;
+        
+        ctx.fillStyle = "#8000ff";
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Gravity distortion lines
+      ctx.strokeStyle = "#4d004d";
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.5 * pulse;
+      for (let i = 0; i < 3; i++) {
+        const radius = 18 + i * 6;
+        ctx.beginPath();
+        ctx.arc(x + w/2, y + h/2, radius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = pulse;
+      
+      // Cosmic crown
+      ctx.fillStyle = "#8000ff";
+      ctx.shadowBlur = 15;
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * Math.PI * 2 / 5) - Math.PI/2 + time * 0.5;
+        const crownX = x + w/2 + Math.cos(angle) * 12;
+        const crownY = y + h * 0.2 + Math.sin(angle) * 12;
+        ctx.beginPath();
+        ctx.arc(crownX, crownY, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Galaxy emoji
+      ctx.shadowBlur = 20;
+      ctx.font = "bold 26px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#8000ff";
+      ctx.globalAlpha = 1;
+      ctx.fillText("🌌", x + w/2, y + h * 0.8);
       
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
