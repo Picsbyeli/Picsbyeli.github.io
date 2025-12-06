@@ -32,16 +32,9 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      display: none; /* Hidden by default - can't block anything */
+      display: block;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
-      z-index: 1;
-      pointer-events: none; /* No clicks by default */
-    }
-    
-    canvas.active {
-      display: block; /* Show when game is active */
-      pointer-events: auto; /* Enable clicks when game is active */
     }
     
     /* Title Screen */
@@ -1297,10 +1290,6 @@
     
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
-    
-    // DEBUG: Check canvas initial state
-    console.log("🖼️ Canvas initial pointer-events:", window.getComputedStyle(canvas).pointerEvents);
-    console.log("🖼️ Canvas has active class:", canvas.classList.contains('active'));
     
     const titleScreen = document.getElementById("titleScreen");
     const startBtn = document.getElementById("startBtn");
@@ -5038,19 +5027,9 @@
       console.error("❌ ERROR: startBtn element not found!");
     } else {
       console.log("✅ startBtn found, adding click listener...");
-      console.log("🔍 startBtn z-index:", window.getComputedStyle(startBtn).zIndex);
-      console.log("🔍 startBtn pointer-events:", window.getComputedStyle(startBtn).pointerEvents);
-      console.log("🔍 titleScreen z-index:", window.getComputedStyle(titleScreen).zIndex);
-      
       startBtn.addEventListener("click", () => {
-        console.log("🎮 START button clicked!");
         titleScreen.classList.add("hidden");
         showClassSelection();
-      });
-      
-      // Test if button receives mouse events
-      startBtn.addEventListener("mouseenter", () => {
-        console.log("🖱️ Mouse entered START button");
       });
     }
 
@@ -7544,9 +7523,6 @@
       
       // Hide title screen completely
       titleScreen.classList.add('hidden');
-      
-      // Enable canvas clicks for gameplay
-      canvas.classList.add('active');
       
       gameRunning = true;
       statusText.style.display = "none";
@@ -10870,7 +10846,6 @@
     // GAME END
     function endGame() {
       gameRunning = false; // Stop game loop
-      canvas.classList.remove('active'); // Disable canvas clicks
       spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, player.color, 30);
       
       // Track Wave 18 restart for Dr.Sunshine unlock (kept for backwards compatibility)
