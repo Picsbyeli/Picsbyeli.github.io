@@ -1286,6 +1286,8 @@
     // ===============================================
     const TEST_MODE = true; // Set to false for normal game
     
+    console.log("🎮 EVOL LEGENDS - Script Loading...");
+    
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     
@@ -1300,6 +1302,8 @@
     const tutorialBackBtn = document.getElementById("tutorialBackBtn");
     const classSelection = document.getElementById("classSelection");
     const classGrid = document.getElementById("classGrid");
+    
+    console.log("✅ All DOM elements loaded successfully");
     const unlockModal = document.getElementById("unlockModal");
     const unlockModalIcon = document.getElementById("unlockModalIcon");
     const unlockModalTitle = document.getElementById("unlockModalTitle");
@@ -1309,6 +1313,8 @@
     const shopScreen = document.getElementById("shopScreen");
     const shopGrid = document.getElementById("shopGrid");
     const shopCloseBtn = document.getElementById("shopCloseBtn");
+    const shopBackBtn = document.getElementById("shopBackBtn");
+    const auraBackBtn = document.getElementById("auraBackBtn");
     const redeemCodeScreen = document.getElementById("redeemCodeScreen");
     const redeemCodeInput = document.getElementById("redeemCodeInput");
     const redeemSubmitBtn = document.getElementById("redeemSubmitBtn");
@@ -5001,7 +5007,10 @@
     upgradeScreen.classList.remove("active");
 
     // EVENT LISTENERS
+    console.log("🔗 Setting up event listeners...");
+    
     startBtn.addEventListener("click", () => {
+      console.log("🎮 START button clicked!");
       titleScreen.classList.add("hidden");
       showClassSelection();
     });
@@ -5060,6 +5069,9 @@
         redeemCode();
       }
     });
+    
+    console.log("✅ All event listeners attached successfully!");
+    console.log("🎯 Ready to play! Click START GAME to begin.");
     
     // Unlock modal close button
     unlockModalClose.addEventListener("click", () => {
