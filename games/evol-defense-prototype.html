@@ -11781,21 +11781,76 @@
     
     function drawHunter(x, y, w, h, time) {
       ctx.save();
+      
+      // Main body - forest green armor
       ctx.shadowColor = "#00ff88";
-      ctx.shadowBlur = 15;
-      ctx.fillStyle = "#00ff88";
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = "#00aa44";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#88ffaa";
+      
+      // Inner tunic
+      ctx.fillStyle = "#228b22";
       ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
-      // Bow on back
-      ctx.strokeStyle = "#8B4513";
-      ctx.lineWidth = 2;
+      
+      // Leather belt
+      ctx.fillStyle = "#8B4513";
+      ctx.fillRect(x + 3, y + h * 0.5, w - 6, 4);
+      
+      // Quiver on back (3 arrows visible)
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = "#8B4513";
+        ctx.fillRect(x + w * 0.7 + i * 3, y + h * 0.2, 2, 12);
+        ctx.fillStyle = "#FFD700";
+        ctx.fillRect(x + w * 0.7 + i * 3, y + h * 0.2, 2, 3);
+      }
+      
+      // Bow strapped on back
+      ctx.strokeStyle = "#D2691E";
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.arc(x + w * 0.7, y + h/2, 10, -Math.PI/4, Math.PI/4);
+      ctx.arc(x + w * 0.65, y + h * 0.5, 12, -Math.PI/4, Math.PI/4);
       ctx.stroke();
-      ctx.font = "22px Arial";
+      
+      // Bow string
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.65 - 8, y + h * 0.5 - 8);
+      ctx.lineTo(x + w * 0.65 - 8, y + h * 0.5 + 8);
+      ctx.stroke();
+      
+      // Face/hood
+      ctx.fillStyle = "#006633";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 10, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Eyes
+      ctx.fillStyle = "#00ff88";
+      ctx.fillRect(x + w * 0.4, y + h * 0.22, 3, 2);
+      ctx.fillRect(x + w * 0.55, y + h * 0.22, 3, 2);
+      
+      // Arrow emoji overlay
+      ctx.shadowBlur = 10;
+      ctx.font = "bold 20px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🏹", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#00ff88";
+      ctx.fillText("🏹", x + w/2, y + h * 0.65);
+      
+      // Nature particles (leaves)
+      if (Math.random() < 0.15) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 1,
+          vy: -0.5 - Math.random() * 1,
+          radius: 2,
+          color: "#00ff88",
+          life: 0.8,
+          alpha: 0.7
+        });
+      }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -11803,24 +11858,98 @@
     
     function drawKnight(x, y, w, h, time) {
       ctx.save();
+      
+      // Heavy armor glow
+      const pulse = Math.sin(time * 2) * 0.15 + 1;
       ctx.shadowColor = "#4488ff";
-      ctx.shadowBlur = 18;
-      ctx.fillStyle = "#4488ff";
+      ctx.shadowBlur = 20 * pulse;
+      
+      // Main armor - blue steel
+      ctx.fillStyle = "#3366cc";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#88aaff";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Shield emblem
+      
+      // Plate armor segments
+      ctx.fillStyle = "#5588ff";
+      ctx.fillRect(x + 3, y + 3, w - 6, h * 0.4);
+      ctx.fillRect(x + 3, y + h * 0.5, w - 6, h * 0.45);
+      
+      // Armor rivets
+      ctx.fillStyle = "#C0C0C0";
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.arc(x + 8 + i * 10, y + 8, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Large shield on body
       ctx.fillStyle = "#C0C0C0";
       ctx.beginPath();
-      ctx.moveTo(x + w/2, y + h * 0.3);
-      ctx.lineTo(x + w * 0.3, y + h * 0.6);
-      ctx.lineTo(x + w/2, y + h * 0.8);
-      ctx.lineTo(x + w * 0.7, y + h * 0.6);
+      ctx.moveTo(x + w * 0.35, y + h * 0.3);
+      ctx.lineTo(x + w * 0.25, y + h * 0.55);
+      ctx.lineTo(x + w * 0.35, y + h * 0.75);
+      ctx.lineTo(x + w * 0.45, y + h * 0.55);
       ctx.closePath();
       ctx.fill();
-      ctx.font = "24px Arial";
+      
+      // Shield emblem - cross
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.35, y + h * 0.4);
+      ctx.lineTo(x + w * 0.35, y + h * 0.65);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.3, y + h * 0.525);
+      ctx.lineTo(x + w * 0.4, y + h * 0.525);
+      ctx.stroke();
+      
+      // Sword on right side
+      ctx.strokeStyle = "#C0C0C0";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.7, y + h * 0.3);
+      ctx.lineTo(x + w * 0.7, y + h * 0.75);
+      ctx.stroke();
+      
+      // Sword hilt
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.65, y + h * 0.3);
+      ctx.lineTo(x + w * 0.75, y + h * 0.3);
+      ctx.stroke();
+      
+      // Helmet
+      ctx.fillStyle = "#2244aa";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.2, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Visor slit
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + w * 0.4, y + h * 0.18, w * 0.2, 3);
+      
+      // Sword emoji
+      ctx.shadowBlur = 10;
+      ctx.font = "bold 22px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("⚔️", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#88aaff";
+      ctx.fillText("⚔️", x + w * 0.6, y + h * 0.65);
+      
+      // Metal sparks
+      if (Math.random() < 0.12) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          radius: 1.5,
+          color: "#C0C0C0",
+          life: 0.4,
+          alpha: 1
+        });
+      }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -11828,20 +11957,107 @@
     
     function drawArcher(x, y, w, h, time) {
       ctx.save();
+      
+      // Rapid-fire archer glow
       ctx.shadowColor = "#32cd32";
-      ctx.shadowBlur = 15;
-      ctx.fillStyle = "#228b22";
+      ctx.shadowBlur = 20;
+      
+      // Main body - forest ranger
+      ctx.fillStyle = "#1a5a1a";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#32cd32";
-      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
-      // Quiver
-      for (let i = 0; i < 3; i++) {
+      
+      // Light green cloak
+      ctx.fillStyle = "#228b22";
+      ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+      
+      // Hood
+      ctx.fillStyle = "#0f3a0f";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 11, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Full quiver on back (5 arrows)
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(x + w * 0.7, y + h * 0.25, 8, 18);
+      
+      for (let i = 0; i < 5; i++) {
+        const arrowX = x + w * 0.68 + i * 2;
         ctx.fillStyle = "#8B4513";
-        ctx.fillRect(x + w * 0.65 + i * 3, y + h * 0.2, 2, 15);
+        ctx.fillRect(arrowX, y + h * 0.2, 1.5, 14);
+        // Arrow tips
+        ctx.fillStyle = "#C0C0C0";
+        ctx.beginPath();
+        ctx.moveTo(arrowX, y + h * 0.2);
+        ctx.lineTo(arrowX + 1.5, y + h * 0.2 - 3);
+        ctx.lineTo(arrowX + 3, y + h * 0.2);
+        ctx.fill();
+        // Fletching
+        ctx.fillStyle = "#32cd32";
+        ctx.fillRect(arrowX, y + h * 0.32, 1.5, 2);
       }
-      ctx.font = "22px Arial";
+      
+      // Bow held
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(x + w * 0.25, y + h * 0.55, 14, -Math.PI/3, Math.PI/3);
+      ctx.stroke();
+      
+      // Bow string (taut)
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.25 - 10, y + h * 0.55 - 12);
+      ctx.lineTo(x + w * 0.25 - 10, y + h * 0.55 + 12);
+      ctx.stroke();
+      
+      // Arrow nocked
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.25 - 10, y + h * 0.55);
+      ctx.lineTo(x + w * 0.15, y + h * 0.55);
+      ctx.stroke();
+      
+      // Piercing eyes
+      ctx.fillStyle = "#32cd32";
+      ctx.shadowBlur = 12;
+      ctx.fillRect(x + w * 0.43, y + h * 0.23, 3, 2);
+      ctx.fillRect(x + w * 0.54, y + h * 0.23, 3, 2);
+      
+      // Focus lines (aiming)
+      ctx.strokeStyle = "#32cd32";
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.5;
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + w * 0.15 - 5 - i * 3, y + h * 0.55);
+        ctx.lineTo(x + w * 0.15 - 8 - i * 3, y + h * 0.55);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      
+      // Bow emoji
+      ctx.shadowBlur = 8;
+      ctx.font = "bold 18px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🏹", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#32cd32";
+      ctx.fillText("🏹", x + w * 0.6, y + h * 0.7);
+      
+      // Wind arrows (rapid fire effect)
+      if (Math.random() < 0.25) {
+        particles.push({
+          x: x - 5,
+          y: y + h * 0.55 + (Math.random() - 0.5) * 10,
+          vx: -3 - Math.random() * 2,
+          vy: 0,
+          radius: 2,
+          color: "#32cd32",
+          life: 0.5,
+          alpha: 0.8
+        });
+      }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
@@ -11849,42 +12065,199 @@
     
     function drawAssassin(x, y, w, h, time) {
       ctx.save();
-      const pulse = Math.sin(time * 4) * 0.2 + 0.8;
+      
+      // Ultra-fast shimmer effect
+      const pulse = Math.sin(time * 6) * 0.3 + 0.7;
       ctx.globalAlpha = pulse;
+      
+      // Speed trail (afterimages)
+      for (let i = 4; i > 0; i--) {
+        ctx.globalAlpha = 0.1 * (i / 4);
+        const trailX = x - (i * 6);
+        ctx.fillStyle = "#8800ff";
+        ctx.fillRect(trailX, y, w, h);
+      }
+      
+      ctx.globalAlpha = pulse;
+      
+      // Main body - dark assassin garb
       ctx.shadowColor = "#ff00ff";
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = "#ff00ff";
+      ctx.shadowBlur = 25;
+      ctx.fillStyle = "#aa00aa";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#ff88ff";
+      
+      // Inner suit
+      ctx.fillStyle = "#ff00ff";
       ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      
+      // Assassin mask
+      ctx.fillStyle = "#660066";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 11, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Glowing eyes (intense)
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#ff00ff";
+      ctx.fillRect(x + w * 0.4, y + h * 0.22, 4, 3);
+      ctx.fillRect(x + w * 0.56, y + h * 0.22, 4, 3);
+      
+      // Dual daggers crossed
+      ctx.strokeStyle = "#C0C0C0";
+      ctx.lineWidth = 2.5;
+      ctx.shadowBlur = 10;
+      // Left dagger
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.3, y + h * 0.35);
+      ctx.lineTo(x + w * 0.55, y + h * 0.7);
+      ctx.stroke();
+      // Right dagger
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.7, y + h * 0.35);
+      ctx.lineTo(x + w * 0.45, y + h * 0.7);
+      ctx.stroke();
+      
+      // Dagger hilts
+      ctx.fillStyle = "#FFD700";
+      ctx.fillRect(x + w * 0.28, y + h * 0.33, 5, 5);
+      ctx.fillRect(x + w * 0.68, y + h * 0.33, 5, 5);
+      
+      // Speed lines
+      ctx.strokeStyle = "#ff00ff";
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.4;
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + w + 5 + i * 5, y + h * 0.3 + i * 8);
+        ctx.lineTo(x + w + 12 + i * 5, y + h * 0.3 + i * 8);
+        ctx.stroke();
+      }
+      
       ctx.globalAlpha = 1;
-      ctx.font = "24px Arial";
+      
+      // Dagger emoji
+      ctx.shadowBlur = 10;
+      ctx.font = "bold 22px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🗡️", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#ff00ff";
+      ctx.fillText("🗡️", x + w/2, y + h * 0.65);
+      
+      // Speed particles
+      if (Math.random() < 0.35) {
+        particles.push({
+          x: x + w + Math.random() * 10,
+          y: y + Math.random() * h,
+          vx: 4 + Math.random() * 3,
+          vy: (Math.random() - 0.5) * 2,
+          radius: 2,
+          color: "#ff00ff",
+          life: 0.4,
+          alpha: 0.9
+        });
+      }
+      
       ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
       ctx.restore();
       return true;
     }
     
     function drawSummoner(x, y, w, h, time) {
       ctx.save();
+      
+      // Summoning aura
       ctx.shadowColor = "#88ff88";
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = "#88ff88";
+      ctx.shadowBlur = 25;
+      
+      // Main robes - nature green
+      ctx.fillStyle = "#449944";
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#aaffaa";
-      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
-      // Orbiting spirits
-      for (let i = 0; i < 2; i++) {
-        const angle = time * 2 + i * Math.PI;
-        const spiritX = x + w/2 + Math.cos(angle) * 18;
-        const spiritY = y + h/2 + Math.sin(angle) * 18;
-        ctx.font = "12px Arial";
-        ctx.fillText("✨", spiritX - 6, spiritY + 4);
+      
+      // Lighter robe accent
+      ctx.fillStyle = "#66bb66";
+      ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+      
+      // Hood
+      ctx.fillStyle = "#337733";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h * 0.25, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Glowing eyes
+      ctx.fillStyle = "#88ff88";
+      ctx.shadowBlur = 15;
+      ctx.fillRect(x + w * 0.42, y + h * 0.23, 3, 2);
+      ctx.fillRect(x + w * 0.55, y + h * 0.23, 3, 2);
+      
+      // Staff with crystal
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.2, y + h * 0.35);
+      ctx.lineTo(x + w * 0.2, y + h * 0.9);
+      ctx.stroke();
+      
+      // Crystal on staff
+      ctx.fillStyle = "#88ff88";
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.arc(x + w * 0.2, y + h * 0.32, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Summoning circle on ground
+      ctx.strokeStyle = "#88ff88";
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.6;
+      ctx.shadowBlur = 10;
+      for (let i = 1; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.arc(x + w/2, y + h + 5, 15 * i, 0, Math.PI * 2);
+        ctx.stroke();
       }
-      ctx.font = "24px Arial";
+      ctx.globalAlpha = 1;
+      
+      // Spirit helpers orbiting (3 spirits)
+      for (let i = 0; i < 3; i++) {
+        const angle = time * 2 + i * (Math.PI * 2 / 3);
+        const spiritX = x + w/2 + Math.cos(angle) * 22;
+        const spiritY = y + h/2 + Math.sin(angle) * 22;
+        
+        ctx.shadowBlur = 15;
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = "#88ff88";
+        ctx.font = "14px Arial";
+        ctx.fillText("✨", spiritX - 7, spiritY + 5);
+        
+        // Spirit trail
+        ctx.globalAlpha = 0.3;
+        const trailX = x + w/2 + Math.cos(angle - 0.3) * 22;
+        const trailY = y + h/2 + Math.sin(angle - 0.3) * 22;
+        ctx.fillText("✨", trailX - 7, trailY + 5);
+      }
+      
+      ctx.globalAlpha = 1;
+      
+      // Main sparkle emoji
+      ctx.shadowBlur = 12;
+      ctx.font = "bold 24px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("✨", x + w/2, y + h/2 + 8);
+      ctx.fillStyle = "#88ff88";
+      ctx.fillText("✨", x + w/2, y + h * 0.65);
+      
+      // Magic particles
+      if (Math.random() < 0.2) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + Math.random() * h,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -1 - Math.random() * 2,
+          radius: 2,
+          color: "#88ff88",
+          life: 0.9,
+          alpha: 0.8
+        });
+      }
+      
       ctx.shadowBlur = 0;
       ctx.restore();
       return true;
