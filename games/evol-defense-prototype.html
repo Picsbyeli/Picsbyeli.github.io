@@ -6538,6 +6538,24 @@
     // THIEF ABILITIES
     function activateThiefsHand() {
       floatingText("🤚 THIEF'S HAND!", player.x, player.y - 50, "#8800ff", 2);
+      floatingText("💰 STEAL!", player.x, player.y - 70, "#ffd700", 2);
+      
+      // Screen flash effect
+      screenShake += 8;
+      
+      // Massive purple explosion from player
+      for (let i = 0; i < 50; i++) {
+        particles.push({
+          x: player.x + player.w / 2,
+          y: player.y + player.h / 2,
+          vx: (Math.random() - 0.5) * 20,
+          vy: (Math.random() - 0.5) * 20,
+          radius: 4 + Math.random() * 4,
+          color: i % 2 === 0 ? "#8800ff" : "#ffd700",
+          life: 1.5,
+          alpha: 0.8
+        });
+      }
       
       let totalHealthStolen = 0;
       
@@ -6555,17 +6573,20 @@
         
         // Visual effect on enemy
         addFloatingText(e.x + e.w / 2, e.y - 20, "-" + Math.floor(stolenHP), "#8800ff");
+        addFloatingText(e.x + e.w / 2, e.y - 40, "💸 ROBBED!", "#ffd700", 1);
         
-        // Purple particles
-        for (let i = 0; i < 5; i++) {
+        // Purple + gold particles streaming toward player
+        for (let i = 0; i < 8; i++) {
+          const angle = Math.atan2((player.y + player.h/2) - (e.y + e.h/2), (player.x + player.w/2) - (e.x + e.w/2));
           particles.push({
             x: e.x + e.w / 2,
             y: e.y + e.h / 2,
-            vx: Math.random() * 8 - 4,
-            vy: Math.random() * 8 - 4,
-            radius: Math.random() * 4 + 2,
-            color: "#8800ff",
-            life: 0.8
+            vx: Math.cos(angle) * (6 + Math.random() * 4),
+            vy: Math.sin(angle) * (6 + Math.random() * 4),
+            radius: 3 + Math.random() * 3,
+            color: i % 3 === 0 ? "#ffd700" : "#8800ff",
+            life: 1.0,
+            alpha: 0.9
           });
         }
         
@@ -11197,6 +11218,12 @@
         drawPhantomClone(x, y, w, h);
       }
 
+      // THIEF: Special enhanced ninja rendering
+      if (player.className === "Thief") {
+        drawThief(x, y, w, h);
+        return;
+      }
+
       // Try to draw sprite if available
       const sprite = characterSprites[player.className];
       
@@ -11255,6 +11282,130 @@
       if (illusionistClone && illusionistClone.hp > 0) {
         drawIllusionistClone();
       }
+    }
+    
+    function drawThief(x, y, w, h) {
+      ctx.save();
+      
+      // Stealth shimmer effect (subtle transparency pulse)
+      const stealthPulse = Math.sin(Date.now() / 300) * 0.1 + 0.9;
+      ctx.globalAlpha = stealthPulse;
+      
+      // Shadow trail effect (motion blur)
+      for (let i = 3; i > 0; i--) {
+        ctx.globalAlpha = 0.15 * (i / 3);
+        const trailX = x - (i * 8);
+        ctx.fillStyle = "#1a0033";
+        ctx.fillRect(trailX, y, w, h);
+      }
+      ctx.globalAlpha = stealthPulse;
+      
+      // Main body - Dark ninja cloak
+      ctx.shadowColor = "#8800ff";
+      ctx.shadowBlur = 25;
+      ctx.fillStyle = "#2a0050"; // Deep purple ninja suit
+      ctx.fillRect(x, y, w, h);
+      
+      // Inner cloak accent
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#4a0080";
+      ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+      
+      // Belt with pouches (gold trim)
+      ctx.fillStyle = "#ffd700";
+      ctx.fillRect(x + 3, y + h * 0.5, w - 6, 4);
+      
+      // Pouch details
+      for (let i = 0; i < 3; i++) {
+        const pouchX = x + 8 + (i * 12);
+        ctx.fillStyle = "#8b4513";
+        ctx.fillRect(pouchX, y + h * 0.5 - 3, 8, 8);
+      }
+      
+      // Hood/mask
+      ctx.fillStyle = "#1a0033";
+      ctx.beginPath();
+      ctx.arc(x + w / 2, y + 8, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Ninja mask with glowing eyes
+      ctx.shadowColor = "#ff00ff";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#ff00ff";
+      ctx.fillRect(x + w * 0.3, y + 6, 4, 3); // Left eye
+      ctx.fillRect(x + w * 0.6, y + 6, 4, 3); // Right eye
+      
+      // Eye glow streaks (intense stare)
+      ctx.strokeStyle = "#ff00ff";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.3 - 3, y + 7);
+      ctx.lineTo(x + w * 0.3 - 8, y + 7);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.6 + 7, y + 7);
+      ctx.lineTo(x + w * 0.6 + 12, y + 7);
+      ctx.stroke();
+      
+      // Dual daggers crossed on back
+      ctx.shadowBlur = 8;
+      ctx.strokeStyle = "#c0c0c0";
+      ctx.lineWidth = 2.5;
+      // Left dagger
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.3, y + h * 0.3);
+      ctx.lineTo(x + w * 0.6, y + h * 0.7);
+      ctx.stroke();
+      // Right dagger
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.7, y + h * 0.3);
+      ctx.lineTo(x + w * 0.4, y + h * 0.7);
+      ctx.stroke();
+      
+      // Dagger hilts (gold)
+      ctx.fillStyle = "#ffd700";
+      ctx.fillRect(x + w * 0.3 - 2, y + h * 0.3 - 2, 4, 4);
+      ctx.fillRect(x + w * 0.7 - 2, y + h * 0.3 - 2, 4, 4);
+      
+      // Coin sparkles around Thief (money aura)
+      const time = Date.now() / 1000;
+      for (let i = 0; i < 4; i++) {
+        const angle = (time + i * Math.PI / 2) % (Math.PI * 2);
+        const radius = 25;
+        const sparkleX = x + w / 2 + Math.cos(angle) * radius;
+        const sparkleY = y + h / 2 + Math.sin(angle) * radius;
+        
+        ctx.shadowColor = "#ffd700";
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = "#ffd700";
+        ctx.beginPath();
+        ctx.arc(sparkleX, sparkleY, 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Coin symbol
+        ctx.shadowBlur = 5;
+        ctx.font = "bold 10px Arial";
+        ctx.fillStyle = "#ffff00";
+        ctx.fillText("💰", sparkleX - 5, sparkleY + 3);
+      }
+      
+      // Stealth smoke particles (randomly spawn)
+      if (Math.random() < 0.15) {
+        particles.push({
+          x: x + Math.random() * w,
+          y: y + h,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -1 - Math.random() * 2,
+          radius: 3 + Math.random() * 4,
+          color: "#8800ff",
+          life: 0.8,
+          alpha: 0.6
+        });
+      }
+      
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1.0;
+      ctx.restore();
     }
     
     function drawIllusionistClone() {
@@ -11584,6 +11735,63 @@
           continue;
         }
         
+        // Special rendering for Thief daggers
+        if (player && player.className === "Thief" && !p.isEnemyProjectile) {
+          ctx.save();
+          
+          // Spinning dagger effect
+          if (!p.daggerRotation) p.daggerRotation = 0;
+          p.daggerRotation += 0.3;
+          
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.daggerRotation);
+          
+          // Purple shadow trail
+          ctx.shadowColor = "#8800ff";
+          ctx.shadowBlur = 20;
+          
+          // Dagger blade (silver)
+          ctx.fillStyle = "#c0c0c0";
+          ctx.beginPath();
+          ctx.moveTo(-3, -10); // Tip
+          ctx.lineTo(3, -10);
+          ctx.lineTo(2, 8); // Base
+          ctx.lineTo(-2, 8);
+          ctx.closePath();
+          ctx.fill();
+          
+          // Blade shine
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(-1, -8, 1, 12);
+          
+          // Hilt (gold with purple gem)
+          ctx.fillStyle = "#ffd700";
+          ctx.fillRect(-4, 8, 8, 3);
+          
+          // Purple gem in hilt
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = "#8800ff";
+          ctx.beginPath();
+          ctx.arc(0, 9.5, 2, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Sparkle particles
+          if (Math.random() < 0.3) {
+            particles.push({
+              x: p.x,
+              y: p.y,
+              vx: (Math.random() - 0.5) * 2,
+              vy: (Math.random() - 0.5) * 2,
+              radius: 2,
+              color: "#8800ff",
+              life: 0.3
+            });
+          }
+          
+          ctx.restore();
+          continue;
+        }
+        
         // Normal projectile rendering
         ctx.globalAlpha = 0.3;
         ctx.strokeStyle = p.color;
@@ -11663,9 +11871,22 @@
 
     function drawParticles() {
       for (const p of particles) {
-        ctx.globalAlpha = p.life * 0.8;
+        // Use custom alpha if provided (for stealth smoke)
+        const alpha = p.alpha !== undefined ? (p.alpha * (p.life / 0.8)) : (p.life * 0.8);
+        ctx.globalAlpha = alpha;
+        
+        // Add glow for magical particles
+        if (p.color === "#8800ff" || p.color === "#ffd700") {
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 8;
+        }
+        
         ctx.fillStyle = p.color;
-        ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius || 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
       }
       ctx.globalAlpha = 1.0;
     }
