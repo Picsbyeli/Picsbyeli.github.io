@@ -2834,6 +2834,12 @@
         type: "character",
         character: "EvolLegend",
         desc: "Unlock the legendary EvolLegend!"
+      },
+      "KAI": {
+        type: "currency",
+        coins: 1000000,
+        gems: 150,
+        desc: "Kai's massive fortune! 1,000,000 coins + 150 gems!"
       }
     };
 
@@ -3155,7 +3161,7 @@
           fireRate: 1.25, // 0.8/sec
           range: 500,
           projectileSpeed: 6,
-          startingShield: 200, // START WITH 200 SHIELD
+          startingShield: 250, // START WITH 250 SHIELD
           reflectDamage: 0.15, // 15% reflect
           reflectProjectiles: true // Reflect enemy projectiles when shielded
         },
@@ -9807,6 +9813,43 @@
                 projectiles.splice(i, 1);
                 continue; // Skip damage
               }
+            }
+            
+            // CRYSTAL GUARDIAN: Reflect projectiles when shield is active
+            if (player.className === "CrystalGuardian" && player.shield > 0 && player.reflectProjectiles) {
+              addFloatingText(player.x + player.w/2, player.y - 30, "💎 REFLECTED!", "#ba55d3", 1.2);
+              spawnExplosion(player.x + player.w/2, player.y + player.h/2, "#ba55d3", 20);
+              
+              // Find the enemy that shot this projectile and reflect it back
+              const reflectedTarget = enemies.find(e => {
+                const dist = Math.hypot((e.x + e.w/2) - p.x, (e.y + e.h/2) - p.y);
+                return dist < 600; // Find nearest enemy within range
+              });
+              
+              if (reflectedTarget) {
+                // Create reflected projectile
+                const dx = (reflectedTarget.x + reflectedTarget.w/2) - p.x;
+                const dy = (reflectedTarget.y + reflectedTarget.h/2) - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const speed = 8; // Fast reflection
+                
+                projectiles.push({
+                  x: p.x,
+                  y: p.y,
+                  vx: (dx / dist) * speed,
+                  vy: (dy / dist) * speed,
+                  damage: p.damage * 1.5, // 50% more damage when reflected
+                  radius: p.radius * 1.2,
+                  color: "#ba55d3",
+                  glowColor: "#9370db",
+                  trail: [],
+                  isEnemyProjectile: false, // Now it's the player's projectile
+                  isReflected: true
+                });
+              }
+              
+              projectiles.splice(i, 1);
+              continue; // Skip damage, projectile was reflected
             }
             
             let damage = p.damage;
