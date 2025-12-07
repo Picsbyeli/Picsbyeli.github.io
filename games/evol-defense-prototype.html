@@ -1718,7 +1718,8 @@
         const dist = Math.sqrt(dx * dx + dy * dy);
         
         if (dist < sun.burnRadius) {
-          const burnDmg = sun.damage * dt;
+          const levelMultiplier = 1 + (player.level * 0.15); // +15% damage per level
+          const burnDmg = sun.damage * dt * levelMultiplier;
           if (e.hasShield && e.shieldHP > 0) {
             e.shieldHP -= burnDmg;
           } else {
@@ -6338,6 +6339,8 @@
       vecnaKillCounter++;
       enemiesKilledThisWave++; // Track for progress bar
       
+      // NO SHIELD REGEN ON KILL (removed)
+      
       // Illusionist clone gains XP from clone kills
       if (illusionistClone && enemy.killedByClone) {
         const xpGained = enemy.xpValue || 10;
@@ -9391,12 +9394,14 @@
     function getTargetEnemy() {
       if (enemies.length === 0) return null;
       
-      // Overwatch: Target highest HP enemy
+      // Overwatch: Target highest HP enemy (skip frozen)
       if (overwatchActive) {
         let highestHP = null;
         let maxHP = 0;
         
         for (const e of enemies) {
+          if (e.frozen) continue; // Skip frozen enemies
+          
           const dx = (e.x + e.w / 2) - (player.x + player.w / 2);
           const dy = (e.y + e.h / 2) - (player.y + player.h / 2);
           const dist = Math.sqrt(dx * dx + dy * dy);
@@ -9412,7 +9417,7 @@
       
       if (!autoAim) {
         return enemies.find(e => 
-          Math.abs((e.x + e.w / 2) - (player.x + player.w / 2)) < player.range
+          !e.frozen && Math.abs((e.x + e.w / 2) - (player.x + player.w / 2)) < player.range
         ) || null;
       }
       
@@ -9420,6 +9425,8 @@
       let closestDist = player.range;
       
       for (const e of enemies) {
+        if (e.frozen) continue; // Skip frozen enemies
+        
         const dx = (e.x + e.w / 2) - (player.x + player.w / 2);
         const dy = (e.y + e.h / 2) - (player.y + player.h / 2);
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -14410,6 +14417,81 @@
               radius: 2,
               color: "#8800ff",
               life: 0.3
+            });
+          }
+          
+          ctx.restore();
+          continue;
+        }
+        
+        // Special rendering for EvolLegend black hole projectiles
+        if (player && player.className === "EvolLegend" && !p.isEnemyProjectile) {
+          ctx.save();
+          
+          // Initialize rotation
+          if (!p.blackHoleRotation) p.blackHoleRotation = 0;
+          p.blackHoleRotation += 0.15;
+          
+          ctx.translate(p.x, p.y);
+          
+          // Outer gravitational distortion rings (largest)
+          for (let i = 3; i > 0; i--) {
+            ctx.strokeStyle = `rgba(77, 0, 77, ${0.2 / i})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, 20 + i * 8, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          
+          // Purple cosmic energy swirl
+          ctx.save();
+          ctx.rotate(p.blackHoleRotation);
+          const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+          gradient.addColorStop(0, "#000000");
+          gradient.addColorStop(0.5, "#4d004d");
+          gradient.addColorStop(0.8, "#8000ff");
+          gradient.addColorStop(1, "rgba(128, 0, 255, 0)");
+          
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(0, 0, 20, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          
+          // Event horizon (bright purple ring)
+          ctx.shadowColor = "#8000ff";
+          ctx.shadowBlur = 25;
+          ctx.strokeStyle = "#8000ff";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, 12, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          // Black hole core (pure black center)
+          ctx.shadowBlur = 15;
+          ctx.fillStyle = "#000000";
+          ctx.beginPath();
+          ctx.arc(0, 0, 8, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Inner singularity glow
+          ctx.shadowColor = "#ff00ff";
+          ctx.shadowBlur = 20;
+          ctx.fillStyle = "#4d004d";
+          ctx.beginPath();
+          ctx.arc(0, 0, 4, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Add void particles trailing behind
+          if (Math.random() < 0.5) {
+            particles.push({
+              x: p.x + (Math.random() - 0.5) * 30,
+              y: p.y + (Math.random() - 0.5) * 30,
+              vx: -p.vx * 0.3 + (Math.random() - 0.5),
+              vy: -p.vy * 0.3 + (Math.random() - 0.5),
+              radius: Math.random() * 3 + 1,
+              color: Math.random() > 0.5 ? "#4d004d" : "#8000ff",
+              life: 0.6
             });
           }
           
