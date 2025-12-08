@@ -4027,6 +4027,12 @@
     let sessionCoins = 0;
     let sessionGems = 0;
     
+    // TD Game tracking
+    let currentNodeId = null;
+    let tdTargetWave = 20;
+    let tdBossWaves = [];
+    let tdMiniBossWaves = [];
+    
     // New features
     let shufflesRemaining = 4; // Shuffle counter for upgrades
     let currentMap = 1; // Map tracking
@@ -5291,6 +5297,221 @@
       }
     }
 
+    // ==================== TOWER DEFENSE GAME LOOP ====================
+    
+    let tdGameLoopRunning = false;
+    let tdLastTime = 0;
+    let screenShake = 0;
+
+    function updateTDGame(dt) {
+      if (!player || !player.alive) return;
+      
+      if (screenShake > 0) {
+        screenShake -= dt * 10;
+        if (screenShake < 0) screenShake = 0;
+      }
+      
+      if (waveTimerActive) {
+        waveTimer -= dt;
+        if (waveTimer <= 0) {
+          waveTimerActive = false;
+          startWave();
+        }
+        return;
+      }
+      
+      if (comboTimer > 0) {
+        comboTimer -= dt;
+        if (comboTimer <= 0) {
+          combo = 0;
+        }
+      }
+      
+      handleSpawning(dt);
+      handleShooting(dt);
+      updateProjectiles(dt);
+      updateEnemies(dt);
+      updateMinions(dt);
+      updateParticles(dt);
+      updateFloatingTexts(dt);
+      updateCurrencyDrops(dt);
+      updatePotionEffects(dt);
+      
+      if (player.damageAura > 0) {
+        enemies.forEach(enemy => {
+          if (!enemy.alive) return;
+          const dx = (enemy.x + enemy.w / 2) - (player.x + player.w / 2);
+          const dy = (enemy.y + enemy.h / 2) - (player.y + player.h / 2);
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < player.damageAura) {
+            enemy.hp -= player.damage * 0.1 * dt;
+            if (Math.random() < 0.1) {
+              spawnHitParticles(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#ff0000', 2);
+            }
+          }
+        });
+      }
+      
+      if (player.regeneration > 0) {
+        player.hp = Math.min(player.hp + player.regeneration * dt, player.maxHP);
+      }
+      
+      if (enemies.length === 0 && enemiesToSpawn === 0 && !waveTimerActive) {
+        completeWave();
+      }
+    }
+
+    function startWave() {
+      enemiesToSpawn = calcEnemiesForWave(wave);
+      spawnTimer = 0;
+    }
+
+    function completeWave() {
+      wave++;
+      
+      addFloatingText(tdGameCanvas.width / 2, tdGameCanvas.height / 2 - 100, `Wave ${wave - 1} Complete!`, '#00ff00');
+      
+      if (wave > tdTargetWave) {
+        completeTDNode();
+        return;
+      }
+      
+      waveTimer = 5;
+      waveTimerActive = true;
+    }
+
+    function completeTDNode() {
+      tdGameLoopRunning = false;
+      
+      addFloatingText(tdGameCanvas.width / 2, tdGameCanvas.height / 2 - 100, 'NODE COMPLETE!', '#ffff00');
+      
+      setTimeout(() => {
+        document.getElementById('tdGameScreen').style.display = 'none';
+        document.getElementById('overworldScreen').classList.add('active');
+        
+        const currentNode = OVERWORLD_MAP.find(n => n.id === currentNodeId);
+        if (currentNode) {
+          if (currentNode.rewards) {
+            if (currentNode.rewards.coins) gameData.coins += currentNode.rewards.coins;
+            if (currentNode.rewards.gems) gameData.gems += currentNode.rewards.gems;
+            if (currentNode.rewards.seal && !collectedSeals[currentNode.rewards.seal]) {
+              collectedSeals[currentNode.rewards.seal] = true;
+              addFloatingText(600, 100, `Seal Collected: ${currentNode.rewards.seal}!`, '#ffff00');
+            }
+          }
+          
+          currentNode.completed = true;
+          currentNode.connections.forEach(connId => {
+            const connectedNode = OVERWORLD_MAP.find(n => n.id === connId);
+            if (connectedNode && connectedNode.hidden) {
+              connectedNode.hidden = false;
+            }
+          });
+        }
+        
+        saveGameData();
+        drawOverworldMap();
+      }, 2000);
+    }
+
+    function tdGameLoop(timestamp) {
+      if (!tdGameLoopRunning) return;
+      
+      const dt = tdLastTime === 0 ? 0 : (timestamp - tdLastTime) / 1000;
+      tdLastTime = timestamp;
+      
+      const actualDt = Math.min(dt, 0.1) * gameSpeed;
+      
+      updateTDGame(actualDt);
+      
+      initTDCanvas();
+      drawTDBackground();
+      drawTDGround();
+      drawPlayer();
+      drawEnemies();
+      drawProjectiles();
+      drawMinions();
+      drawParticles();
+      drawCurrency();
+      drawFloatingTexts();
+      drawTDHUD();
+      
+      requestAnimationFrame(tdGameLoop);
+    }
+
+    function startTDGame(nodeId) {
+      const node = OVERWORLD_MAP.find(n => n.id === nodeId);
+      if (!node) return;
+      
+      currentNodeId = nodeId;
+      tdTargetWave = node.waves || 20;
+      tdBossWaves = node.bossWaves || [];
+      tdMiniBossWaves = node.miniBossWaves || [];
+      
+      document.getElementById('overworldScreen').classList.remove('active');
+      document.getElementById('tdGameScreen').style.display = 'flex';
+      
+      const selectedClass = gameData.selectedClass || "hunter";
+      const classData = CLASSES[selectedClass];
+      
+      player = {
+        x: 100,
+        y: GROUND_Y - 40,
+        w: 40,
+        h: 40,
+        hp: classData.maxHP,
+        maxHP: classData.maxHP,
+        damage: classData.damage,
+        fireRate: classData.fireRate,
+        range: classData.range,
+        projectileSpeed: classData.projectileSpeed,
+        color: classData.colors,
+        level: 1,
+        xp: 0,
+        xpToNext: xpForLevel(1),
+        alive: true,
+        shield: 0,
+        maxShield: 0,
+        multiShot: 0,
+        pierce: 0,
+        lifesteal: 0,
+        explosiveRadius: 0,
+        critChance: 0,
+        regeneration: 0,
+        chainLightning: 0,
+        damageAura: 0,
+        alwaysPierce: classData.alwaysPierce || false
+      };
+      
+      enemies = [];
+      projectiles = [];
+      minions = [];
+      particles = [];
+      floatingTexts = [];
+      currencyDrops = [];
+      
+      wave = 1;
+      enemiesToSpawn = 0;
+      spawnTimer = 0;
+      shootTimer = 0;
+      waveTimer = 3;
+      waveTimerActive = true;
+      
+      combo = 0;
+      comboTimer = 0;
+      maxCombo = 0;
+      enemiesKilled = 0;
+      sessionCoins = 0;
+      sessionGems = 0;
+      
+      resetPotions();
+      
+      tdGameLoopRunning = true;
+      tdLastTime = 0;
+      requestAnimationFrame(tdGameLoop);
+    }
+
     // Initialize
     loadGameData();
     updateShopDisplay();
@@ -5343,6 +5564,15 @@
     tutorialBackBtn.addEventListener("click", () => {
       tutorialScreen.style.display = "none";
       titleScreen.classList.remove("hidden");
+    });
+    
+    // TD GAME EVENT LISTENERS
+    document.getElementById('tdReturnToOverworldBtn').addEventListener('click', () => {
+      tdGameLoopRunning = false;
+      document.getElementById('tdGameScreen').style.display = 'none';
+      document.getElementById('tdGameOverScreen').style.display = 'none';
+      document.getElementById('overworldScreen').classList.add('active');
+      drawOverworldMap();
     });
     
     // OVERWORLD EVENT LISTENERS
@@ -5402,6 +5632,17 @@
 
     window.addEventListener("keydown", (e) => {
       keys[e.key] = true;
+      
+      // TD potion keybinds
+      if (tdGameLoopRunning) {
+        if (e.key === "1") usePotion("heal");
+        if (e.key === "2") usePotion("shield");
+        if (e.key === "3") usePotion("crit");
+        if (e.key === "4") usePotion("damage");
+        if (e.key === "5") usePotion("speed");
+        if (e.key === "6") usePotion("dragon");
+      }
+      
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
         if (gameState === "roundBreak") {
@@ -9113,18 +9354,11 @@
     }
 
     function startNodeLevel(node) {
-      // Store current node
-      OVERWORLD_MAP.currentNode = node.id;
-      
-      // Hide overworld, start game
-      document.getElementById('overworldScreen').classList.remove('active');
+      // Hide node info panel
       document.getElementById('nodeInfoPanel').classList.remove('active');
       
-      // Initialize game with node parameters
-      wave = 1;
-      // Note: Wave system will need to be updated to handle node.miniBossWaves and node.bossWaves
-      
-      startGame();
+      // Launch TD game
+      startTDGame(node.id);
     }
 
     function completeNode(nodeId) {
