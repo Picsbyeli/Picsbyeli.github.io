@@ -1244,6 +1244,9 @@
         };
       });
       
+      // Save collected seals
+      gameData.collectedSeals = OVERWORLD_MAP.collectedSeals;
+      
       localStorage.setItem("evolLegendsData", JSON.stringify(gameData));
       updateTitleScreenDisplay();
     }
@@ -1256,6 +1259,11 @@
             OVERWORLD_MAP.nodes[nodeId].unlocked = gameData.overworldProgress[nodeId].unlocked || false;
           }
         });
+      }
+      
+      // Load collected seals
+      if (gameData.collectedSeals) {
+        OVERWORLD_MAP.collectedSeals = gameData.collectedSeals;
       }
     }
 
@@ -3240,148 +3248,327 @@
           completed: false,
           unlocked: false
         },
-        // SHOP NODES
-        shop_1: {
-          id: "shop_1",
-          type: "shop",
-          name: "Merchant's Rest",
-          x: 325,
-          y: 500,
-          connections: ["elite_1", "elite_2"],
-          completed: false,
-          unlocked: false
-        },
-        // ELITE NODES
-        elite_1: {
-          id: "elite_1",
+        
+        // ===== CRIMSON FOREST - The Bloodwood Gauntlet =====
+        crimson_forest_1: {
+          id: "crimson_forest_1",
           type: "elite",
-          name: "Elite Garrison",
-          x: 550,
-          y: 420,
+          name: "Bloodwood Edge",
+          lore: "Trees soaked in cursed red flame. Two guardians await.",
+          x: 420,
+          y: 180,
           waves: 20,
-          miniBossWaves: [4, 10, 16],
-          bossWaves: [8, 20],
+          miniBossWaves: [8, 16],
+          bossWaves: [20],
           recommendedPower: 3,
-          connections: ["mountain_1", "secret_1"],
-          rewards: { coins: 350, gems: 8, classXP: 80 },
+          connections: ["crimson_forest_2", "crystal_caves_gate"],
+          rewards: { coins: 250, gems: 5, story: "second_key_shard" },
           completed: false,
           unlocked: false
         },
-        elite_2: {
-          id: "elite_2",
+        crimson_forest_2: {
+          id: "crimson_forest_2",
           type: "elite",
-          name: "Elite Arena",
-          x: 550,
-          y: 580,
+          name: "Crimson Depths",
+          lore: "Purge the forest's corruption. Earn passage forward.",
+          x: 400,
+          y: 280,
           waves: 20,
-          miniBossWaves: [4, 10, 16],
-          bossWaves: [8, 20],
+          miniBossWaves: [8, 16],
+          bossWaves: [20],
           recommendedPower: 3,
-          connections: ["mountain_2", "secret_1"],
-          rewards: { coins: 380, gems: 9, classXP: 85 },
+          connections: ["fork_gate", "abyssal_ruins_gate"],
+          rewards: { coins: 270, gems: 5 },
           completed: false,
           unlocked: false
         },
-        // SHRINE NODES
-        shrine_knight: {
-          id: "shrine_knight",
-          type: "shrine",
-          name: "Knight's Shrine",
-          x: 450,
-          y: 350,
-          shrineClass: "Knight",
-          connections: ["elite_1"],
-          rewards: { classXP: 100 },
+        
+        // ===== THE GREAT FORKING OF FATE =====
+        fork_gate: {
+          id: "fork_gate",
+          type: "gate",
+          name: "The Crossroads of Destiny",
+          lore: "Two paths diverge. Choose wisely, warrior.",
+          x: 550,
+          y: 240,
+          connections: ["crystal_caves_gate", "abyssal_ruins_gate"],
           completed: false,
           unlocked: false
         },
-        shrine_assassin: {
-          id: "shrine_assassin",
-          type: "shrine",
-          name: "Shadow Shrine",
-          x: 450,
-          y: 650,
-          shrineClass: "Assassin",
-          connections: ["elite_2"],
-          rewards: { classXP: 100 },
-          completed: false,
-          unlocked: false
-        },
-        // SECRET NODE
-        secret_1: {
-          id: "secret_1",
-          type: "secret",
-          name: "Hidden Cache",
+        
+        // ===== BRANCH A: CRYSTAL CAVES =====
+        crystal_caves_gate: {
+          id: "crystal_caves_gate",
+          type: "gate",
+          name: "Crystal Cave Entrance",
+          lore: "Below the earth lies a glowing labyrinth...",
           x: 600,
-          y: 500,
+          y: 140,
+          connections: ["crystal_caves_1"],
+          completed: false,
+          unlocked: false
+        },
+        crystal_caves_1: {
+          id: "crystal_caves_1",
+          type: "survival",
+          name: "Singing Crystals",
+          lore: "Some crystals sing. Others scream.",
+          x: 720,
+          y: 120,
           waves: 20,
           miniBossWaves: [5, 15],
           bossWaves: [10, 20],
           recommendedPower: 4,
-          connections: ["shop_2"],
-          rewards: { coins: 500, gems: 15, classXP: 120 },
+          connections: ["crystal_caves_boss"],
+          rewards: { coins: 300, gems: 7 },
+          completed: false,
+          unlocked: false
+        },
+        crystal_caves_boss: {
+          id: "crystal_caves_boss",
+          type: "boss",
+          name: "Crystal Guardian",
+          lore: "An ancient guardian holds the Crystal Keystone.",
+          x: 850,
+          y: 100,
+          waves: 20,
+          miniBossWaves: [10],
+          bossWaves: [20],
+          recommendedPower: 5,
+          connections: ["frostbite_mountains"],
+          rewards: { coins: 500, gems: 15, seal: "crystalKeystone", material: "crystal_heart" },
+          completed: false,
+          unlocked: false
+        },
+        
+        // ===== BRANCH B: ABYSSAL RUINS =====
+        abyssal_ruins_gate: {
+          id: "abyssal_ruins_gate",
+          type: "gate",
+          name: "Abyssal Entrance",
+          lore: "A sunken kingdom swallowed by darkness...",
+          x: 600,
+          y: 340,
+          connections: ["abyssal_ruins_1"],
+          completed: false,
+          unlocked: false
+        },
+        abyssal_ruins_1: {
+          id: "abyssal_ruins_1",
+          type: "survival",
+          name: "Flooded Halls",
+          lore: "Phantoms and water-drenched horrors lurk here.",
+          x: 150,
+          y: 520,
+          waves: 20,
+          miniBossWaves: [5, 15],
+          bossWaves: [10, 20],
+          recommendedPower: 4,
+          connections: ["abyssal_ruins_2"],
+          rewards: { coins: 300, gems: 7 },
+          completed: false,
+          unlocked: false
+        },
+        abyssal_ruins_2: {
+          id: "abyssal_ruins_2",
+          type: "elite",
+          name: "Abyss Core",
+          lore: "Fragments of the Abyss Key await the worthy.",
+          x: 200,
+          y: 600,
+          waves: 20,
+          miniBossWaves: [8, 16],
+          bossWaves: [20],
+          recommendedPower: 5,
+          connections: ["underwater_caverns"],
+          rewards: { coins: 450, gems: 12, seal: "abyssKey", material: "abyssal_scale" },
+          completed: false,
+          unlocked: false
+        },
+        
+        // ===== FROSTBITE MOUNTAINS =====
+        frostbite_mountains: {
+          id: "frostbite_mountains",
+          type: "elite",
+          name: "Frostbite Peak",
+          lore: "Blizzards conceal ancient spirits that test endurance.",
+          x: 950,
+          y: 160,
+          waves: 20,
+          miniBossWaves: [8, 16],
+          bossWaves: [20],
+          recommendedPower: 6,
+          connections: ["volcano_gate"],
+          rewards: { coins: 550, gems: 18, seal: "frozenFragment" },
+          completed: false,
+          unlocked: false
+        },
+        
+        // ===== MOUNT IGNIS (VOLCANO) =====
+        volcano_gate: {
+          id: "volcano_gate",
+          type: "gate",
+          name: "Volcano Entrance",
+          lore: "A burning hellscape awaits...",
+          x: 1050,
+          y: 250,
+          connections: ["volcano_1"],
+          completed: false,
+          unlocked: false
+        },
+        volcano_1: {
+          id: "volcano_1",
+          type: "survival",
+          name: "Magma Fields",
+          lore: "Fire elementals attack relentlessly.",
+          x: 1000,
+          y: 350,
+          waves: 20,
+          miniBossWaves: [5, 15],
+          bossWaves: [10, 20],
+          recommendedPower: 7,
+          connections: ["volcano_boss"],
+          rewards: { coins: 600, gems: 20 },
+          completed: false,
+          unlocked: false
+        },
+        volcano_boss: {
+          id: "volcano_boss",
+          type: "boss",
+          name: "Inferno Lord",
+          lore: "The Blazing Seal is yours if you survive.",
+          x: 950,
+          y: 450,
+          waves: 20,
+          miniBossWaves: [10],
+          bossWaves: [20],
+          recommendedPower: 8,
+          connections: ["convergence_gate"],
+          rewards: { coins: 800, gems: 30, seal: "blazingSeal", material: "ember_core" },
+          completed: false,
+          unlocked: false
+        },
+        
+        // ===== UNDERWATER CAVERNS =====
+        underwater_caverns: {
+          id: "underwater_caverns",
+          type: "secret",
+          name: "Underwater Cavern",
+          lore: "Pressure, darkness, drifting undead. The Tide Rune awaits.",
+          x: 250,
+          y: 680,
+          waves: 20,
+          miniBossWaves: [5, 15],
+          bossWaves: [10, 20],
+          recommendedPower: 6,
+          connections: ["underwater_depths"],
+          rewards: { coins: 500, gems: 15 },
           completed: false,
           unlocked: false,
-          hidden: true
+          hidden: true,
+          requireMaterial: "abyssal_scale"
         },
-        // MOUNTAIN PATH
-        mountain_1: {
-          id: "mountain_1",
-          type: "survival",
-          name: "Mountain Pass",
-          x: 700,
-          y: 380,
-          waves: 20,
-          miniBossWaves: [5, 15],
-          bossWaves: [10, 20],
-          recommendedPower: 4,
-          connections: ["mountain_peak", "shop_2"],
-          rewards: { coins: 300, gems: 6, classXP: 90 },
-          completed: false,
-          unlocked: false
-        },
-        mountain_2: {
-          id: "mountain_2",
-          type: "survival",
-          name: "Snowy Cliffs",
-          x: 700,
-          y: 620,
-          waves: 20,
-          miniBossWaves: [5, 15],
-          bossWaves: [10, 20],
-          recommendedPower: 4,
-          connections: ["mountain_peak", "shop_2"],
-          rewards: { coins: 320, gems: 7, classXP: 95 },
-          completed: false,
-          unlocked: false
-        },
-        shop_2: {
-          id: "shop_2",
-          type: "shop",
-          name: "Summit Trading Post",
-          x: 775,
-          y: 500,
-          connections: ["mountain_peak"],
-          completed: false,
-          unlocked: false
-        },
-        mountain_peak: {
-          id: "mountain_peak",
+        underwater_depths: {
+          id: "underwater_depths",
           type: "boss",
-          name: "Mountain Peak - Final Boss",
-          x: 900,
+          name: "Tide Keeper",
+          lore: "The last component. The Tide Rune.",
+          x: 350,
+          y: 720,
+          waves: 20,
+          miniBossWaves: [10],
+          bossWaves: [20],
+          recommendedPower: 7,
+          connections: ["convergence_gate"],
+          rewards: { coins: 700, gems: 25, seal: "tideRune" },
+          completed: false,
+          unlocked: false
+        },
+        
+        // ===== SECRET PATHS =====
+        shadow_shrine: {
+          id: "shadow_shrine",
+          type: "shrine",
+          name: "Shadow Shrine",
+          lore: "Only Assassins may enter...",
+          x: 500,
+          y: 100,
+          shrineClass: "Assassin",
+          connections: ["crystal_caves_1"],
+          rewards: { coins: 300, gems: 10 },
+          completed: false,
+          unlocked: false,
+          hidden: true,
+          requireClass: "Assassin"
+        },
+        code_portal_1: {
+          id: "code_portal_1",
+          type: "secret",
+          name: "Ancient Portal",
+          lore: "Symbols shimmer. A code is required...",
+          x: 450,
+          y: 400,
+          waves: 20,
+          miniBossWaves: [10],
+          bossWaves: [20],
+          recommendedPower: 5,
+          connections: ["volcano_1"],
+          rewards: { coins: 600, gems: 20 },
+          completed: false,
+          unlocked: false,
+          hidden: true,
+          requireCode: "FORGOTTEN"
+        },
+        
+        // ===== CONVERGENCE & FINAL GATE =====
+        convergence_gate: {
+          id: "convergence_gate",
+          type: "gate",
+          name: "The Five Seals Gate",
+          lore: "With all five seals, the golden path appears...",
+          x: 750,
           y: 500,
+          connections: ["forgotten_city_approach"],
+          completed: false,
+          unlocked: false,
+          requireAllSeals: true
+        },
+        forgotten_city_approach: {
+          id: "forgotten_city_approach",
+          type: "survival",
+          name: "Path of Memory",
+          lore: "A road untouched by time. Only you may walk it.",
+          x: 700,
+          y: 600,
           waves: 20,
           miniBossWaves: [5, 10, 15],
           bossWaves: [20],
-          recommendedPower: 5,
+          recommendedPower: 9,
+          connections: ["forgotten_city"],
+          rewards: { coins: 1000, gems: 40 },
+          completed: false,
+          unlocked: false
+        },
+        
+        // ===== CHAPTER VI: THE FORGOTTEN CITY =====
+        forgotten_city: {
+          id: "forgotten_city",
+          type: "final_boss",
+          name: "The Forgotten City",
+          lore: "The Memory Devourer awaits. Reclaim your name.",
+          x: 800,
+          y: 650,
+          waves: 20,
+          miniBossWaves: [5, 10, 15],
+          bossWaves: [20],
+          recommendedPower: 10,
           connections: [],
-          rewards: { coins: 1000, gems: 50, classXP: 300 },
+          rewards: { coins: 5000, gems: 200, ending: true },
           completed: false,
           unlocked: false
         }
       },
-      currentNode: "start"
+      currentNode: "beginner_village"
     };
 
     // GAME STATE
@@ -3571,11 +3758,11 @@
       loadOverworldProgress();
       
       // Ensure starting nodes are unlocked if no save
-      if (!OVERWORLD_MAP.nodes.start.completed) {
-        OVERWORLD_MAP.nodes.start.unlocked = true;
-        OVERWORLD_MAP.nodes.start.completed = true;
-        OVERWORLD_MAP.nodes.forest_1.unlocked = true;
-        OVERWORLD_MAP.nodes.plains_1.unlocked = true;
+      if (!OVERWORLD_MAP.nodes.beginner_village.completed) {
+        OVERWORLD_MAP.nodes.beginner_village.unlocked = true;
+        OVERWORLD_MAP.nodes.beginner_village.completed = true;
+        OVERWORLD_MAP.nodes.new_night_1.unlocked = true;
+        OVERWORLD_MAP.nodes.new_night_2.unlocked = true;
       }
       
       updateOverworldStats();
@@ -7165,6 +7352,8 @@
         case 'shrine': return '⛩️';
         case 'secret': return '💎';
         case 'boss': return '👑';
+        case 'gate': return '🚪';
+        case 'final_boss': return '🏆';
         case 'start': return '🏠';
         default: return '❓';
       }
@@ -7213,18 +7402,50 @@
       nameEl.textContent = node.name;
       
       let details = '';
-      if (node.type === 'survival' || node.type === 'elite' || node.type === 'boss') {
-        details = `Type: ${node.type.toUpperCase()}<br>`;
+      
+      // Display lore if available
+      if (node.lore) {
+        details += `<div style="font-style: italic; color: #FFD700; margin-bottom: 10px;">"${node.lore}"</div>`;
+      }
+      
+      if (node.type === 'survival' || node.type === 'elite' || node.type === 'boss' || node.type === 'final_boss') {
+        details += `Type: ${node.type.toUpperCase()}<br>`;
         details += `Waves: ${node.waves}<br>`;
         details += `Mini-Bosses: Waves ${node.miniBossWaves.join(', ')}<br>`;
         details += `Bosses: Waves ${node.bossWaves.join(', ')}<br>`;
         details += `Recommended Power: ${node.recommendedPower}`;
       } else if (node.type === 'shop') {
-        details = 'Purchase upgrades, potions, and classes';
+        details += 'Purchase upgrades, potions, and classes';
       } else if (node.type === 'shrine') {
-        details = `Unlock/upgrade ${node.shrineClass}`;
+        details += `Unlock/upgrade ${node.shrineClass}`;
       } else if (node.type === 'secret') {
-        details = 'Hidden treasure node!';
+        details += 'Hidden treasure node!';
+      } else if (node.type === 'gate') {
+        details += 'Gateway node - pass through to continue';
+        if (node.requireAllSeals) {
+          details += '<br><br><strong>🔒 REQUIRES ALL 5 SEALS:</strong><br>';
+          details += OVERWORLD_MAP.collectedSeals.crystalKeystone ? '✅' : '❌';
+          details += ' Crystal Keystone<br>';
+          details += OVERWORLD_MAP.collectedSeals.abyssKey ? '✅' : '❌';
+          details += ' Abyss Key<br>';
+          details += OVERWORLD_MAP.collectedSeals.frozenFragment ? '✅' : '❌';
+          details += ' Frozen Fragment<br>';
+          details += OVERWORLD_MAP.collectedSeals.blazingSeal ? '✅' : '❌';
+          details += ' Blazing Seal<br>';
+          details += OVERWORLD_MAP.collectedSeals.tideRune ? '✅' : '❌';
+          details += ' Tide Rune';
+        }
+      }
+      
+      // Show unlock requirements
+      if (node.requireClass) {
+        details += `<br><br>🔒 Requires Class: ${node.requireClass}`;
+      }
+      if (node.requireCode) {
+        details += `<br><br>🔒 Requires Code: ${node.requireCode}`;
+      }
+      if (node.requireMaterial) {
+        details += `<br><br>🔒 Requires Material: ${node.requireMaterial}`;
       }
       
       detailsEl.innerHTML = details;
@@ -7233,7 +7454,10 @@
         let rewardText = '🎁 Rewards: ';
         if (node.rewards.coins) rewardText += `💰 ${node.rewards.coins} Coins `;
         if (node.rewards.gems) rewardText += `💎 ${node.rewards.gems} Gems `;
-        if (node.rewards.classXP) rewardText += `⭐ ${node.rewards.classXP} Class XP`;
+        if (node.rewards.classXP) rewardText += `⭐ ${node.rewards.classXP} Class XP `;
+        if (node.rewards.seal) rewardText += `✨ SEAL: ${node.rewards.seal} `;
+        if (node.rewards.material) rewardText += `🎁 ${node.rewards.material}`;
+        if (node.rewards.ending) rewardText += '🏆 FINAL VICTORY!';
         rewardsEl.textContent = rewardText;
       } else {
         rewardsEl.textContent = '';
@@ -7246,6 +7470,8 @@
         enterBtn.textContent = 'OPEN SHOP';
       } else if (node.type === 'shrine') {
         enterBtn.textContent = 'VISIT SHRINE';
+      } else if (node.type === 'gate') {
+        enterBtn.textContent = 'PASS THROUGH';
       } else {
         enterBtn.textContent = 'ENTER NODE';
       }
@@ -7258,7 +7484,11 @@
         openShopFromOverworld();
       } else if (node.type === 'shrine') {
         openShrineUpgrades(node.shrineClass);
-      } else if (node.type === 'survival' || node.type === 'elite' || node.type === 'boss' || node.type === 'secret') {
+      } else if (node.type === 'gate') {
+        // Gates auto-complete and unlock next nodes
+        completeNode(node.id);
+        document.getElementById('nodeInfoPanel').classList.remove('active');
+      } else if (node.type === 'survival' || node.type === 'elite' || node.type === 'boss' || node.type === 'secret' || node.type === 'final_boss') {
         startNodeLevel(node);
       }
     }
@@ -7287,8 +7517,40 @@
         if (node.connections) {
           node.connections.forEach(connId => {
             const connectedNode = OVERWORLD_MAP.nodes[connId];
-            if (connectedNode && !connectedNode.hidden) {
-              connectedNode.unlocked = true;
+            if (connectedNode) {
+              // Check unlock requirements
+              let canUnlock = true;
+              
+              // Check seal requirement
+              if (connectedNode.requireAllSeals) {
+                canUnlock = OVERWORLD_MAP.collectedSeals.crystalKeystone &&
+                           OVERWORLD_MAP.collectedSeals.abyssKey &&
+                           OVERWORLD_MAP.collectedSeals.frozenFragment &&
+                           OVERWORLD_MAP.collectedSeals.blazingSeal &&
+                           OVERWORLD_MAP.collectedSeals.tideRune;
+              }
+              
+              // Check class requirement
+              if (connectedNode.requireClass) {
+                canUnlock = gameData.currentClass === connectedNode.requireClass;
+              }
+              
+              // Check material requirement
+              if (connectedNode.requireMaterial) {
+                canUnlock = gameData.materials && gameData.materials[connectedNode.requireMaterial];
+              }
+              
+              // Check code requirement
+              if (connectedNode.requireCode) {
+                canUnlock = gameData.redeemedCodes && gameData.redeemedCodes.includes(connectedNode.requireCode);
+              }
+              
+              if (canUnlock && !connectedNode.hidden) {
+                connectedNode.unlocked = true;
+              } else if (canUnlock && connectedNode.hidden) {
+                // Reveal hidden nodes when requirements are met
+                connectedNode.unlocked = true;
+              }
             }
           });
         }
@@ -7305,6 +7567,21 @@
           }
           if (node.rewards.classXP) {
             // Add class XP system here
+          }
+          // Collect seals!
+          if (node.rewards.seal) {
+            OVERWORLD_MAP.collectedSeals[node.rewards.seal] = true;
+            showFloatingText('✨ SEAL OBTAINED: ' + node.rewards.seal.toUpperCase() + ' ✨', canvas.width / 2, 100, '#FFD700', 40);
+          }
+          // Collect materials
+          if (node.rewards.material) {
+            if (!gameData.materials) gameData.materials = {};
+            gameData.materials[node.rewards.material] = true;
+          }
+          // Check for ending
+          if (node.rewards.ending) {
+            showVictoryScreen('🏆 LEGEND COMPLETE! You have reclaimed your name!');
+            return;
           }
         }
         
