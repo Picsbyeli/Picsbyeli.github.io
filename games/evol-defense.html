@@ -4952,6 +4952,345 @@
       document.getElementById('gemsEarned').textContent = sessionGems;
     }
 
+    // ==================== TOWER DEFENSE RENDERING FUNCTIONS ====================
+    
+    let tdCtx = null;
+    let stars = [];
+    
+    function initTDCanvas() {
+      if (!tdCtx) {
+        tdCtx = tdGameCanvas.getContext('2d');
+        // Create stars for background
+        for (let i = 0; i < 100; i++) {
+          stars.push({
+            x: Math.random() * tdGameCanvas.width,
+            y: Math.random() * tdGameCanvas.height,
+            size: Math.random() * 2,
+            speed: Math.random() * 0.5 + 0.2
+          });
+        }
+      }
+    }
+
+    function drawTDBackground() {
+      if (!tdCtx) return;
+      
+      const gradient = tdCtx.createLinearGradient(0, 0, 0, tdGameCanvas.height);
+      gradient.addColorStop(0, '#000428');
+      gradient.addColorStop(1, '#004e92');
+      tdCtx.fillStyle = gradient;
+      tdCtx.fillRect(0, 0, tdGameCanvas.width, tdGameCanvas.height);
+      
+      stars.forEach(star => {
+        tdCtx.fillStyle = `rgba(255, 255, 255, ${star.size / 2})`;
+        tdCtx.fillRect(star.x, star.y, star.size, star.size);
+        
+        star.x -= star.speed;
+        if (star.x < 0) {
+          star.x = tdGameCanvas.width;
+          star.y = Math.random() * tdGameCanvas.height;
+        }
+      });
+    }
+
+    function drawTDGround() {
+      if (!tdCtx) return;
+      
+      tdCtx.fillStyle = '#2a2a2a';
+      tdCtx.fillRect(0, GROUND_Y, tdGameCanvas.width, tdGameCanvas.height - GROUND_Y);
+      
+      tdCtx.strokeStyle = '#444';
+      tdCtx.lineWidth = 2;
+      tdCtx.beginPath();
+      tdCtx.moveTo(0, GROUND_Y);
+      tdCtx.lineTo(tdGameCanvas.width, GROUND_Y);
+      tdCtx.stroke();
+    }
+
+    function drawPlayer() {
+      if (!player || !player.alive || !tdCtx) return;
+      
+      const shake = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+      const x = player.x + shake;
+      const y = player.y + shake;
+      
+      if (player.damageAura > 0) {
+        tdCtx.save();
+        tdCtx.globalAlpha = 0.3;
+        tdCtx.fillStyle = '#ff0000';
+        tdCtx.beginPath();
+        tdCtx.arc(x + player.w / 2, y + player.h / 2, player.damageAura, 0, Math.PI * 2);
+        tdCtx.fill();
+        tdCtx.restore();
+      }
+      
+      tdCtx.fillStyle = player.color.main;
+      tdCtx.shadowColor = player.color.glow;
+      tdCtx.shadowBlur = 15;
+      tdCtx.fillRect(x, y, player.w, player.h);
+      tdCtx.shadowBlur = 0;
+      
+      const hpBarWidth = player.w;
+      const hpBarHeight = 6;
+      tdCtx.fillStyle = '#333';
+      tdCtx.fillRect(x, y - 15, hpBarWidth, hpBarHeight);
+      tdCtx.fillStyle = '#00ff00';
+      tdCtx.fillRect(x, y - 15, hpBarWidth * (player.hp / player.maxHP), hpBarHeight);
+      
+      if (player.shield > 0) {
+        tdCtx.fillStyle = '#444';
+        tdCtx.fillRect(x, y - 25, hpBarWidth, hpBarHeight);
+        tdCtx.fillStyle = '#00aaff';
+        tdCtx.fillRect(x, y - 25, hpBarWidth * (player.shield / player.maxShield), hpBarHeight);
+      }
+    }
+
+    function drawEnemies() {
+      if (!tdCtx) return;
+      
+      enemies.forEach(enemy => {
+        if (!enemy.alive) return;
+        
+        if (enemy.isBoss || enemy.isMiniBoss) {
+          tdCtx.save();
+          tdCtx.globalAlpha = 0.3;
+          tdCtx.fillStyle = enemy.color;
+          tdCtx.beginPath();
+          tdCtx.arc(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, enemy.w, 0, Math.PI * 2);
+          tdCtx.fill();
+          tdCtx.restore();
+        }
+        
+        if (enemy.type === "circle") {
+          tdCtx.fillStyle = enemy.color;
+          tdCtx.shadowColor = enemy.color;
+          tdCtx.shadowBlur = 10;
+          tdCtx.beginPath();
+          tdCtx.arc(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, enemy.w / 2, 0, Math.PI * 2);
+          tdCtx.fill();
+          tdCtx.shadowBlur = 0;
+        } else if (enemy.type === "triangle") {
+          tdCtx.fillStyle = enemy.color;
+          tdCtx.shadowColor = enemy.color;
+          tdCtx.shadowBlur = 10;
+          tdCtx.beginPath();
+          tdCtx.moveTo(enemy.x + enemy.w / 2, enemy.y);
+          tdCtx.lineTo(enemy.x + enemy.w, enemy.y + enemy.h);
+          tdCtx.lineTo(enemy.x, enemy.y + enemy.h);
+          tdCtx.closePath();
+          tdCtx.fill();
+          tdCtx.shadowBlur = 0;
+        } else {
+          tdCtx.fillStyle = enemy.color;
+          tdCtx.shadowColor = enemy.color;
+          tdCtx.shadowBlur = 10;
+          tdCtx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h);
+          tdCtx.shadowBlur = 0;
+        }
+        
+        if (enemy.isBoss) {
+          tdCtx.fillStyle = '#ffffff';
+          tdCtx.font = 'bold 14px Arial';
+          tdCtx.textAlign = 'center';
+          tdCtx.fillText('BOSS', enemy.x + enemy.w / 2, enemy.y - 30);
+        } else if (enemy.isMiniBoss) {
+          tdCtx.fillStyle = '#ffff00';
+          tdCtx.font = 'bold 12px Arial';
+          tdCtx.textAlign = 'center';
+          tdCtx.fillText('MINI-BOSS', enemy.x + enemy.w / 2, enemy.y - 30);
+        }
+        
+        const hpBarWidth = enemy.w;
+        const hpBarHeight = 6;
+        tdCtx.fillStyle = '#333';
+        tdCtx.fillRect(enemy.x, enemy.y - 15, hpBarWidth, hpBarHeight);
+        tdCtx.fillStyle = '#ff0000';
+        tdCtx.fillRect(enemy.x, enemy.y - 15, hpBarWidth * (enemy.hp / enemy.maxHP), hpBarHeight);
+        
+        if (enemy.shield > 0) {
+          tdCtx.fillStyle = '#444';
+          tdCtx.fillRect(enemy.x, enemy.y - 25, hpBarWidth, hpBarHeight);
+          tdCtx.fillStyle = '#00aaff';
+          tdCtx.fillRect(enemy.x, enemy.y - 25, hpBarWidth * (enemy.shield / enemy.maxShield), hpBarHeight);
+        }
+      });
+    }
+
+    function drawProjectiles() {
+      if (!tdCtx) return;
+      
+      projectiles.forEach(proj => {
+        proj.trail.forEach((t, i) => {
+          const alpha = (t.life / 0.3) * 0.5;
+          tdCtx.save();
+          tdCtx.globalAlpha = alpha;
+          tdCtx.fillStyle = proj.glowColor || proj.color;
+          tdCtx.beginPath();
+          tdCtx.arc(t.x, t.y, proj.radius * 0.7, 0, Math.PI * 2);
+          tdCtx.fill();
+          tdCtx.restore();
+        });
+        
+        if (proj.isDragonBeam) {
+          tdCtx.save();
+          tdCtx.globalAlpha = 0.8;
+          tdCtx.fillStyle = proj.color;
+          tdCtx.shadowColor = proj.glowColor;
+          tdCtx.shadowBlur = 30;
+          tdCtx.beginPath();
+          tdCtx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+          tdCtx.fill();
+          tdCtx.restore();
+        } else {
+          tdCtx.fillStyle = proj.color;
+          tdCtx.shadowColor = proj.glowColor || proj.color;
+          tdCtx.shadowBlur = proj.isCrit ? 20 : 10;
+          tdCtx.beginPath();
+          tdCtx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+          tdCtx.fill();
+          tdCtx.shadowBlur = 0;
+        }
+      });
+    }
+
+    function drawMinions() {
+      if (!tdCtx) return;
+      
+      minions.forEach(minion => {
+        tdCtx.fillStyle = minion.color;
+        tdCtx.shadowColor = minion.color;
+        tdCtx.shadowBlur = 8;
+        tdCtx.fillRect(minion.x, minion.y, minion.w, minion.h);
+        tdCtx.shadowBlur = 0;
+        
+        const hpBarWidth = minion.w;
+        const hpBarHeight = 4;
+        tdCtx.fillStyle = '#333';
+        tdCtx.fillRect(minion.x, minion.y - 10, hpBarWidth, hpBarHeight);
+        tdCtx.fillStyle = '#00ff00';
+        tdCtx.fillRect(minion.x, minion.y - 10, hpBarWidth * (minion.hp / minion.maxHP), hpBarHeight);
+      });
+    }
+
+    function drawParticles() {
+      if (!tdCtx) return;
+      
+      particles.forEach(p => {
+        const alpha = p.life / 0.8;
+        tdCtx.save();
+        tdCtx.globalAlpha = alpha;
+        tdCtx.fillStyle = p.color;
+        tdCtx.beginPath();
+        tdCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        tdCtx.fill();
+        tdCtx.restore();
+      });
+    }
+
+    function drawFloatingTexts() {
+      if (!tdCtx) return;
+      
+      floatingTexts.forEach(t => {
+        const alpha = t.life / 1.5;
+        tdCtx.save();
+        tdCtx.globalAlpha = alpha;
+        tdCtx.fillStyle = t.color;
+        tdCtx.font = 'bold 16px Arial';
+        tdCtx.textAlign = 'center';
+        tdCtx.strokeStyle = '#000';
+        tdCtx.lineWidth = 3;
+        tdCtx.strokeText(t.text, t.x, t.y);
+        tdCtx.fillText(t.text, t.x, t.y);
+        tdCtx.restore();
+      });
+    }
+
+    function drawCurrency() {
+      if (!tdCtx) return;
+      
+      currencyDrops.forEach(drop => {
+        tdCtx.save();
+        tdCtx.shadowColor = drop.type === "coin" ? "#ffff00" : "#00ffff";
+        tdCtx.shadowBlur = 10;
+        tdCtx.fillStyle = drop.type === "coin" ? "#ffff00" : "#00ffff";
+        tdCtx.beginPath();
+        tdCtx.arc(drop.x, drop.y, 8, 0, Math.PI * 2);
+        tdCtx.fill();
+        tdCtx.restore();
+      });
+    }
+
+    function drawTDHUD() {
+      if (!tdCtx || !player) return;
+      
+      tdCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      tdCtx.fillRect(0, 0, tdGameCanvas.width, 80);
+      
+      tdCtx.fillStyle = '#ffffff';
+      tdCtx.font = 'bold 20px Arial';
+      tdCtx.textAlign = 'left';
+      tdCtx.fillText(`Wave ${wave}`, 20, 30);
+      tdCtx.fillText(`Level ${player.level}`, 20, 55);
+      
+      tdCtx.fillText(`🪙 ${gameData.coins}`, 200, 30);
+      tdCtx.fillText(`💎 ${gameData.gems}`, 200, 55);
+      
+      if (combo > 1) {
+        tdCtx.fillStyle = '#ffff00';
+        tdCtx.font = 'bold 24px Arial';
+        tdCtx.textAlign = 'right';
+        tdCtx.fillText(`COMBO x${combo}`, tdGameCanvas.width - 20, 30);
+      }
+      
+      const xpBarX = tdGameCanvas.width / 2 - 150;
+      const xpBarY = 60;
+      const xpBarWidth = 300;
+      const xpBarHeight = 12;
+      
+      tdCtx.fillStyle = '#333';
+      tdCtx.fillRect(xpBarX, xpBarY, xpBarWidth, xpBarHeight);
+      tdCtx.fillStyle = '#00ff00';
+      tdCtx.fillRect(xpBarX, xpBarY, xpBarWidth * (player.xp / player.xpToNext), xpBarHeight);
+      
+      tdCtx.strokeStyle = '#fff';
+      tdCtx.lineWidth = 2;
+      tdCtx.strokeRect(xpBarX, xpBarY, xpBarWidth, xpBarHeight);
+      
+      if (potionEffects.critActive || potionEffects.damageActive || potionEffects.speedActive) {
+        tdCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        tdCtx.fillRect(tdGameCanvas.width - 220, 80, 200, 80);
+        
+        let effectY = 100;
+        if (potionEffects.critActive) {
+          tdCtx.fillStyle = '#ff0000';
+          tdCtx.font = 'bold 14px Arial';
+          tdCtx.textAlign = 'left';
+          tdCtx.fillText(`🔥 Crit Boost: ${Math.ceil(potionEffects.critTimer)}s`, tdGameCanvas.width - 210, effectY);
+          effectY += 20;
+        }
+        if (potionEffects.damageActive) {
+          tdCtx.fillStyle = '#ff8800';
+          tdCtx.fillText(`⚔️ Damage Boost: ${Math.ceil(potionEffects.damageTimer)}s`, tdGameCanvas.width - 210, effectY);
+          effectY += 20;
+        }
+        if (potionEffects.speedActive) {
+          tdCtx.fillStyle = '#ffff00';
+          tdCtx.fillText(`⚡ Speed Boost: ${Math.ceil(potionEffects.speedTimer)}s`, tdGameCanvas.width - 210, effectY);
+        }
+      }
+      
+      if (waveTimerActive) {
+        tdCtx.fillStyle = '#ffffff';
+        tdCtx.font = 'bold 32px Arial';
+        tdCtx.textAlign = 'center';
+        const timerText = Math.ceil(waveTimer);
+        tdCtx.strokeStyle = '#000';
+        tdCtx.lineWidth = 4;
+        tdCtx.strokeText(timerText.toString(), tdGameCanvas.width / 2, tdGameCanvas.height / 2);
+        tdCtx.fillText(timerText.toString(), tdGameCanvas.width / 2, tdGameCanvas.height / 2);
+      }
+    }
+
     // Initialize
     loadGameData();
     updateShopDisplay();
