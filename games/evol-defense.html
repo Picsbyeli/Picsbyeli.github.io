@@ -4097,6 +4097,861 @@
     let vecnaMonsterKillCounter = 0;
     let convertedEnemies = [];
 
+    // ==================== TOWER DEFENSE CORE FUNCTIONS ====================
+    
+    // XP & LEVELING
+    function xpForLevel(level) {
+      return Math.floor(60 * Math.pow(level, 2.1));
+    }
+
+    function giveXP(amount) {
+      player.xp += amount;
+      if (player.xp >= player.xpToNext) {
+        player.level++;
+        player.xp -= player.xpToNext;
+        player.xpToNext = xpForLevel(player.level);
+        showTDUpgradeScreen();
+      }
+    }
+
+    // ENEMY CALCULATIONS
+    function calcEnemiesForWave(w) {
+      if (w === 1) return 5;
+      if (w === 2) return 7;
+      if (w === 3) return 9;
+      if (w === 4) return 11;
+      if (w === 5) return 15;
+      
+      const base = 15;
+      const increment = (w - 5) * 3;
+      const waveBonus = Math.floor(w / 5) * 5;
+      return base + increment + waveBonus;
+    }
+
+    function getEnemyHP(wave, isBoss = false, isMiniBoss = false) {
+      const baseHP = 50;
+      const linearGrowth = wave * 15;
+      const exponentialGrowth = Math.pow(wave, 2.0) * 1.2;
+      let hp = baseHP + linearGrowth + exponentialGrowth;
+      
+      if (isBoss) hp *= 12;
+      else if (isMiniBoss) hp *= 5;
+      
+      return Math.floor(hp);
+    }
+
+    // PARTICLE EFFECTS
+    function spawnHitParticles(x, y, color, count) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          life: 0.5,
+          color,
+          radius: 2
+        });
+      }
+    }
+
+    function spawnExplosion(x, y, color, count) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
+          life: 0.8,
+          color,
+          radius: 3
+        });
+      }
+    }
+
+    function addFloatingText(x, y, text, color) {
+      floatingTexts.push({ x, y, text, color, life: 1.5, vy: -1.5 });
+    }
+
+    function updateParticles(dt) {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= dt;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    function updateFloatingTexts(dt) {
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const t = floatingTexts[i];
+        t.y += t.vy;
+        t.life -= dt;
+        if (t.life <= 0) {
+          floatingTexts.splice(i, 1);
+        }
+      }
+    }
+
+    // POTION SYSTEM
+    function resetPotions() {
+      potions.heal = 3;
+      potions.shield = 2;
+      potions.crit = 1;
+      potions.damage = 1;
+      potions.speed = 1;
+      potions.dragon = 1;
+      updatePotionDisplay();
+    }
+    
+    function updatePotionDisplay() {
+      document.getElementById('countHeal').textContent = potions.heal;
+      document.getElementById('countShield').textContent = potions.shield;
+      document.getElementById('countCrit').textContent = potions.crit;
+      document.getElementById('countDamage').textContent = potions.damage;
+      document.getElementById('countSpeed').textContent = potions.speed;
+      document.getElementById('countDragon').textContent = potions.dragon;
+    }
+    
+    function usePotion(type) {
+      if (!player || !player.alive) return;
+      if (potions[type] <= 0) return;
+      if (potionCooldowns[type] > 0) return;
+      
+      potions[type]--;
+      potionCooldowns[type] = 1.0;
+      
+      switch(type) {
+        case 'heal':
+          const healAmount = 50;
+          player.hp = Math.min(player.hp + healAmount, player.maxHP);
+          addFloatingText(player.x + player.w / 2, player.y - 30, "+" + healAmount + " HP", "#00ff00");
+          spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, "#00ff00", 10);
+          break;
+          
+        case 'shield':
+          const shieldAmount = 50;
+          if (player.maxShield === 0) player.maxShield = shieldAmount;
+          player.shield = Math.min(player.shield + shieldAmount, player.maxShield);
+          addFloatingText(player.x + player.w / 2, player.y - 30, "+" + shieldAmount + " Shield", "#00aaff");
+          spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, "#00aaff", 10);
+          break;
+          
+        case 'crit':
+          potionEffects.critActive = true;
+          potionEffects.critTimer = 10;
+          player.critChance += 0.25;
+          addFloatingText(player.x + player.w / 2, player.y - 30, "Crit Boost!", "#ff0000");
+          break;
+          
+        case 'damage':
+          potionEffects.damageActive = true;
+          potionEffects.damageTimer = 10;
+          player.damage += 10;
+          addFloatingText(player.x + player.w / 2, player.y - 30, "Damage Boost!", "#ff8800");
+          break;
+          
+        case 'speed':
+          potionEffects.speedActive = true;
+          potionEffects.speedTimer = 10;
+          player.fireRate *= 0.85;
+          addFloatingText(player.x + player.w / 2, player.y - 30, "Speed Boost!", "#ffff00");
+          break;
+          
+        case 'dragon':
+          useDragonBeam();
+          break;
+      }
+      
+      updatePotionDisplay();
+      screenShake += 3;
+    }
+    
+    function useDragonBeam() {
+      const dragonDamage = player.damage * 3;
+      
+      addFloatingText(tdGameCanvas.width / 2, 200, "🐉 DRAGON BEAM! 🐉", "#ff00ff");
+      screenShake += 25;
+      
+      projectiles.push({
+        x: player.x + player.w / 2,
+        y: player.y + player.h / 2,
+        vx: 30,
+        vy: 0,
+        radius: 30,
+        damage: dragonDamage,
+        color: "#ff4400",
+        glowColor: "#ff8800",
+        life: 3,
+        trail: [],
+        pierce: true,
+        isDragonBeam: true
+      });
+      
+      for (let i = 0; i < 80; i++) {
+        particles.push({
+          x: player.x + player.w / 2,
+          y: player.y + player.h / 2,
+          vx: Math.random() * 20 + 10,
+          vy: Math.random() * 10 - 5,
+          radius: Math.random() * 8 + 3,
+          color: i % 2 === 0 ? "#ff4400" : "#ff8800",
+          life: 2
+        });
+      }
+    }
+    
+    function updatePotionEffects(dt) {
+      if (potionEffects.critActive) {
+        potionEffects.critTimer -= dt;
+        if (potionEffects.critTimer <= 0) {
+          potionEffects.critActive = false;
+          player.critChance -= 0.25;
+        }
+      }
+      
+      if (potionEffects.damageActive) {
+        potionEffects.damageTimer -= dt;
+        if (potionEffects.damageTimer <= 0) {
+          potionEffects.damageActive = false;
+          player.damage -= 10;
+        }
+      }
+      
+      if (potionEffects.speedActive) {
+        potionEffects.speedTimer -= dt;
+        if (potionEffects.speedTimer <= 0) {
+          potionEffects.speedActive = false;
+          player.fireRate /= 0.85;
+        }
+      }
+      
+      for (let type in potionCooldowns) {
+        if (potionCooldowns[type] > 0) {
+          potionCooldowns[type] -= dt;
+          if (potionCooldowns[type] < 0) potionCooldowns[type] = 0;
+        }
+      }
+    }
+
+    // ENEMY SPAWNING
+    function spawnEnemy(wave, type = "grunt", isBoss = false, isMiniBoss = false) {
+      const enemy = {
+        x: tdGameCanvas.width + 50,
+        y: GROUND_Y - 40,
+        w: 40,
+        h: 40,
+        hp: getEnemyHP(wave, isBoss, isMiniBoss),
+        maxHP: getEnemyHP(wave, isBoss, isMiniBoss),
+        speed: 1 + wave * 0.05,
+        type: type,
+        color: "#ff0000",
+        isBoss: isBoss,
+        isMiniBoss: isMiniBoss,
+        coins: isBoss ? 50 : (isMiniBoss ? 20 : 5),
+        gems: isBoss ? 5 : (isMiniBoss ? 2 : 0),
+        xpValue: isBoss ? 100 : (isMiniBoss ? 40 : 10),
+        alive: true,
+        shootTimer: 0,
+        shootInterval: 2.0,
+        shield: 0,
+        maxShield: 0
+      };
+
+      if (type === "triangle") {
+        enemy.speed *= 1.5;
+        enemy.hp *= 0.7;
+        enemy.maxHP = enemy.hp;
+        enemy.w = 30;
+        enemy.h = 30;
+        enemy.color = "#ff8800";
+      } else if (type === "circle") {
+        enemy.speed *= 0.7;
+        enemy.hp *= 1.5;
+        enemy.maxHP = enemy.hp;
+        enemy.w = 50;
+        enemy.h = 50;
+        enemy.color = "#8800ff";
+      } else if (type === "jumper") {
+        enemy.speed *= 1.2;
+        enemy.jumpTimer = Math.random() * 2;
+        enemy.jumpInterval = 2;
+        enemy.isJumping = false;
+        enemy.jumpVelocity = 0;
+        enemy.color = "#00ff88";
+      } else if (type === "kamikaze") {
+        enemy.speed *= 2;
+        enemy.hp *= 0.5;
+        enemy.maxHP = enemy.hp;
+        enemy.damage = 30;
+        enemy.color = "#ffff00";
+      } else if (type === "shielded") {
+        enemy.shield = enemy.hp * 0.5;
+        enemy.maxShield = enemy.shield;
+        enemy.speed *= 0.9;
+        enemy.color = "#00aaff";
+      } else if (type === "shooter") {
+        enemy.speed *= 0.6;
+        enemy.hp *= 0.8;
+        enemy.maxHP = enemy.hp;
+        enemy.shootInterval = 1.5;
+        enemy.color = "#ff00ff";
+      }
+
+      if (isBoss) {
+        enemy.w = 80;
+        enemy.h = 80;
+        const patternIndex = Math.floor(wave / 10) % BOSS_PATTERNS.length;
+        enemy.pattern = BOSS_PATTERNS[patternIndex];
+        enemy.color = enemy.pattern.color;
+        enemy.patternTimer = 0;
+        enemy.rageMode = false;
+      } else if (isMiniBoss) {
+        enemy.w = 60;
+        enemy.h = 60;
+        enemy.color = "#ff00aa";
+      }
+
+      enemies.push(enemy);
+    }
+
+    function handleSpawning(dt) {
+      if (enemiesToSpawn > 0) {
+        spawnTimer += dt;
+        if (spawnTimer >= SPAWN_INTERVAL) {
+          spawnTimer = 0;
+          
+          const isBossWave = tdBossWaves.includes(wave);
+          const isMiniBossWave = tdMiniBossWaves.includes(wave);
+          
+          if (isBossWave && enemies.length === 0) {
+            spawnEnemy(wave, "grunt", true, false);
+          } else if (isMiniBossWave && enemies.length === 0) {
+            spawnEnemy(wave, "grunt", false, true);
+          } else if (!isBossWave && !isMiniBossWave) {
+            const rand = Math.random();
+            let type = "grunt";
+            
+            if (wave >= 3 && rand < 0.2) type = "triangle";
+            else if (wave >= 5 && rand < 0.4) type = "circle";
+            else if (wave >= 7 && rand < 0.5) type = "jumper";
+            else if (wave >= 10 && rand < 0.6) type = "kamikaze";
+            else if (wave >= 12 && rand < 0.7) type = "shielded";
+            else if (wave >= 15 && rand < 0.8) type = "shooter";
+            
+            spawnEnemy(wave, type, false, false);
+          }
+          
+          enemiesToSpawn--;
+        }
+      }
+    }
+
+    // SHOOTING & PROJECTILES
+    function getTargetEnemy() {
+      let closest = null;
+      let minDist = Infinity;
+      
+      for (const enemy of enemies) {
+        if (!enemy.alive) continue;
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist <= player.range && dist < minDist) {
+          minDist = dist;
+          closest = enemy;
+        }
+      }
+      
+      return closest;
+    }
+
+    function shootProjectile(targetX, targetY) {
+      const centerX = player.x + player.w / 2;
+      const centerY = player.y + player.h / 2;
+      const dx = targetX - centerX;
+      const dy = targetY - centerY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const vx = (dx / dist) * player.projectileSpeed;
+      const vy = (dy / dist) * player.projectileSpeed;
+
+      const isCrit = Math.random() < player.critChance;
+      const finalDamage = isCrit ? player.damage * 2 : player.damage;
+
+      const projectile = {
+        x: centerX,
+        y: centerY,
+        vx: vx,
+        vy: vy,
+        radius: 5,
+        damage: finalDamage,
+        color: player.color.main,
+        glowColor: player.color.glow,
+        life: 3,
+        trail: [],
+        pierce: player.pierce > 0 || player.alwaysPierce,
+        pierceRemaining: player.pierce,
+        isCrit: isCrit
+      };
+
+      projectiles.push(projectile);
+
+      if (player.multiShot > 0) {
+        for (let i = 0; i < player.multiShot; i++) {
+          const angle = (Math.PI / 12) * (i + 1) * (i % 2 === 0 ? 1 : -1);
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          const rotVx = vx * cos - vy * sin;
+          const rotVy = vx * sin + vy * cos;
+
+          projectiles.push({
+            x: centerX,
+            y: centerY,
+            vx: rotVx,
+            vy: rotVy,
+            radius: 4,
+            damage: finalDamage * 0.7,
+            color: player.color.main,
+            glowColor: player.color.glow,
+            life: 3,
+            trail: [],
+            pierce: player.pierce > 0 || player.alwaysPierce,
+            pierceRemaining: player.pierce,
+            isCrit: isCrit
+          });
+        }
+      }
+    }
+
+    function handleShooting(dt) {
+      if (!player || !player.alive) return;
+      
+      shootTimer += dt;
+      if (shootTimer >= player.fireRate) {
+        shootTimer = 0;
+        const target = getTargetEnemy();
+        if (target) {
+          shootProjectile(target.x + target.w / 2, target.y + target.h / 2);
+        }
+      }
+    }
+
+    function updateProjectiles(dt) {
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        const proj = projectiles[i];
+        
+        proj.trail.push({ x: proj.x, y: proj.y, life: 0.3 });
+        if (proj.trail.length > 5) proj.trail.shift();
+        
+        proj.x += proj.vx * dt * 60;
+        proj.y += proj.vy * dt * 60;
+        proj.life -= dt;
+
+        for (let t = proj.trail.length - 1; t >= 0; t--) {
+          proj.trail[t].life -= dt;
+          if (proj.trail[t].life <= 0) proj.trail.splice(t, 1);
+        }
+
+        if (proj.life <= 0 || proj.x > tdGameCanvas.width + 100 || proj.x < -100 || proj.y < -100 || proj.y > tdGameCanvas.height + 100) {
+          projectiles.splice(i, 1);
+          continue;
+        }
+
+        for (let j = enemies.length - 1; j >= 0; j--) {
+          const enemy = enemies[j];
+          if (!enemy.alive) continue;
+
+          const dx = proj.x - (enemy.x + enemy.w / 2);
+          const dy = proj.y - (enemy.y + enemy.h / 2);
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < proj.radius + enemy.w / 2) {
+            let damage = proj.damage;
+            
+            if (enemy.shield > 0) {
+              const shieldDamage = Math.min(damage, enemy.shield);
+              enemy.shield -= shieldDamage;
+              damage -= shieldDamage;
+              spawnHitParticles(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, "#00aaff", 3);
+            }
+            
+            enemy.hp -= damage;
+            spawnHitParticles(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, proj.color, 5);
+            addFloatingText(enemy.x + enemy.w / 2, enemy.y - 10, "-" + Math.floor(damage), proj.isCrit ? "#ffff00" : "#ffffff");
+            screenShake += proj.isCrit ? 4 : 2;
+
+            if (player.lifesteal > 0) {
+              const healAmount = damage * player.lifesteal;
+              player.hp = Math.min(player.hp + healAmount, player.maxHP);
+              addFloatingText(player.x + player.w / 2, player.y - 30, "+" + Math.floor(healAmount), "#00ff00");
+            }
+
+            if (player.chainLightning > 0 && Math.random() < 0.3) {
+              const chainTargets = enemies.filter(e => e.alive && e !== enemy);
+              if (chainTargets.length > 0) {
+                const chainTarget = chainTargets[Math.floor(Math.random() * chainTargets.length)];
+                chainTarget.hp -= proj.damage * 0.5;
+                spawnHitParticles(chainTarget.x + chainTarget.w / 2, chainTarget.y + chainTarget.h / 2, "#00ffff", 8);
+                addFloatingText(chainTarget.x + chainTarget.w / 2, chainTarget.y - 10, "⚡", "#00ffff");
+              }
+            }
+
+            if (player.explosiveRadius > 0) {
+              spawnExplosion(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, "#ff8800", 15);
+              for (const other of enemies) {
+                if (other === enemy || !other.alive) continue;
+                const dx2 = (other.x + other.w / 2) - (enemy.x + enemy.w / 2);
+                const dy2 = (other.y + other.h / 2) - (enemy.y + enemy.h / 2);
+                const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                if (dist2 < player.explosiveRadius) {
+                  other.hp -= proj.damage * 0.5;
+                  spawnHitParticles(other.x + other.w / 2, other.y + other.h / 2, "#ff8800", 5);
+                }
+              }
+            }
+
+            if (enemy.hp <= 0) {
+              enemy.alive = false;
+              enemiesKilled++;
+              giveXP(enemy.xpValue);
+              dropCurrency(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, enemy.coins, enemy.gems);
+              spawnExplosion(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, enemy.color, 20);
+              
+              combo++;
+              comboTimer = 3;
+              if (combo > maxCombo) maxCombo = combo;
+            }
+
+            if (!proj.pierce) {
+              projectiles.splice(i, 1);
+              break;
+            } else {
+              proj.pierceRemaining--;
+              if (proj.pierceRemaining <= 0 && !player.alwaysPierce) {
+                projectiles.splice(i, 1);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // ENEMY AI & UPDATES
+    function updateEnemies(dt) {
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+        
+        if (!enemy.alive) {
+          enemies.splice(i, 1);
+          continue;
+        }
+
+        if (enemy.type === "jumper") {
+          enemy.jumpTimer += dt;
+          if (!enemy.isJumping && enemy.jumpTimer >= enemy.jumpInterval) {
+            enemy.isJumping = true;
+            enemy.jumpVelocity = -12;
+            enemy.jumpTimer = 0;
+          }
+          
+          if (enemy.isJumping) {
+            enemy.jumpVelocity += 0.5;
+            enemy.y += enemy.jumpVelocity;
+            if (enemy.y >= GROUND_Y - enemy.h) {
+              enemy.y = GROUND_Y - enemy.h;
+              enemy.isJumping = false;
+              enemy.jumpVelocity = 0;
+            }
+          }
+        }
+
+        if (enemy.type === "shooter") {
+          enemy.shootTimer += dt;
+          if (enemy.shootTimer >= enemy.shootInterval && player && player.alive) {
+            enemy.shootTimer = 0;
+            const dx = player.x - enemy.x;
+            const dy = player.y - enemy.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            projectiles.push({
+              x: enemy.x + enemy.w / 2,
+              y: enemy.y + enemy.h / 2,
+              vx: (dx / dist) * 8,
+              vy: (dy / dist) * 8,
+              radius: 6,
+              damage: 15,
+              color: "#ff00ff",
+              glowColor: "#ff88ff",
+              life: 4,
+              trail: [],
+              isEnemyProjectile: true
+            });
+          }
+        }
+
+        if (enemy.isBoss) {
+          enemy.patternTimer += dt;
+          
+          if (enemy.hp < enemy.maxHP * 0.3 && !enemy.rageMode) {
+            enemy.rageMode = true;
+            enemy.speed *= 1.5;
+            addFloatingText(enemy.x + enemy.w / 2, enemy.y - 50, "RAGE MODE!", "#ff0000");
+            spawnExplosion(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, "#ff0000", 30);
+          }
+          
+          if (enemy.pattern.pattern === "charger" && enemy.patternTimer >= 3) {
+            enemy.patternTimer = 0;
+            enemy.speed = enemy.pattern.speed * 3;
+            setTimeout(() => { if (enemy.alive) enemy.speed = enemy.pattern.speed; }, 1000);
+          }
+          
+          if (enemy.pattern.pattern === "sniper" && enemy.patternTimer >= enemy.pattern.attackInterval) {
+            enemy.patternTimer = 0;
+            for (let a = 0; a < 3; a++) {
+              const angle = (Math.PI / 6) * (a - 1);
+              projectiles.push({
+                x: enemy.x + enemy.w / 2,
+                y: enemy.y + enemy.h / 2,
+                vx: Math.cos(angle) * -10,
+                vy: Math.sin(angle) * -10,
+                radius: 8,
+                damage: 25,
+                color: "#ff0000",
+                glowColor: "#ff8888",
+                life: 5,
+                trail: [],
+                isEnemyProjectile: true
+              });
+            }
+          }
+          
+          if (enemy.pattern.pattern === "tank") {
+            if (enemy.shield < enemy.maxShield * 0.5) {
+              enemy.shield = Math.min(enemy.shield + enemy.maxShield * 0.02 * dt, enemy.maxShield);
+            }
+          }
+          
+          if (enemy.pattern.pattern === "summoner" && enemy.patternTimer >= enemy.pattern.attackInterval) {
+            enemy.patternTimer = 0;
+            for (let s = 0; s < 2; s++) {
+              spawnEnemy(wave, "grunt", false, false);
+            }
+          }
+        }
+
+        enemy.x -= enemy.speed * dt * 60;
+
+        if (enemy.x + enemy.w < player.x && player.alive) {
+          const damage = enemy.type === "kamikaze" ? enemy.damage : 10;
+          if (player.shield > 0) {
+            const shieldDamage = Math.min(damage, player.shield);
+            player.shield -= shieldDamage;
+            const remainingDamage = damage - shieldDamage;
+            player.hp -= remainingDamage;
+          } else {
+            player.hp -= damage;
+          }
+          
+          spawnHitParticles(player.x + player.w / 2, player.y + player.h / 2, "#ff0000", 10);
+          screenShake += 8;
+          
+          if (enemy.type === "kamikaze") {
+            spawnExplosion(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, "#ffff00", 25);
+          }
+          
+          enemy.alive = false;
+          combo = 0;
+          
+          if (player.hp <= 0) {
+            player.hp = 0;
+            player.alive = false;
+            showTDGameOver();
+          }
+        }
+      }
+    }
+
+    // MINION SYSTEM (for Summoner class)
+    function spawnMinion() {
+      minions.push({
+        x: player.x + player.w / 2,
+        y: player.y - 50,
+        w: 20,
+        h: 20,
+        hp: 30,
+        maxHP: 30,
+        speed: 2,
+        damage: player.damage * 0.4,
+        lifetime: 10,
+        shootTimer: 0,
+        shootInterval: 1.0,
+        color: "#88ff88"
+      });
+    }
+
+    function updateMinions(dt) {
+      for (let i = minions.length - 1; i >= 0; i--) {
+        const minion = minions[i];
+        
+        minion.lifetime -= dt;
+        if (minion.lifetime <= 0 || minion.hp <= 0) {
+          spawnExplosion(minion.x + minion.w / 2, minion.y + minion.h / 2, minion.color, 10);
+          minions.splice(i, 1);
+          continue;
+        }
+
+        const target = getTargetEnemy();
+        if (target) {
+          const dx = target.x - minion.x;
+          if (Math.abs(dx) > 100) {
+            minion.x += Math.sign(dx) * minion.speed;
+          }
+          
+          minion.shootTimer += dt;
+          if (minion.shootTimer >= minion.shootInterval) {
+            minion.shootTimer = 0;
+            const dy = target.y - minion.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            projectiles.push({
+              x: minion.x + minion.w / 2,
+              y: minion.y + minion.h / 2,
+              vx: (dx / dist) * 12,
+              vy: (dy / dist) * 12,
+              radius: 4,
+              damage: minion.damage,
+              color: minion.color,
+              glowColor: "#aaffaa",
+              life: 2,
+              trail: [],
+              pierce: false
+            });
+          }
+        }
+      }
+    }
+
+    // CURRENCY DROPS
+    function dropCurrency(x, y, coins, gems) {
+      if (coins > 0) {
+        currencyDrops.push({
+          x: x + (Math.random() - 0.5) * 20,
+          y: y + (Math.random() - 0.5) * 20,
+          vx: (Math.random() - 0.5) * 3,
+          vy: -Math.random() * 5 - 3,
+          type: "coin",
+          value: coins,
+          lifetime: 10
+        });
+      }
+      
+      if (gems > 0) {
+        currencyDrops.push({
+          x: x + (Math.random() - 0.5) * 20,
+          y: y + (Math.random() - 0.5) * 20,
+          vx: (Math.random() - 0.5) * 3,
+          vy: -Math.random() * 5 - 3,
+          type: "gem",
+          value: gems,
+          lifetime: 10
+        });
+      }
+    }
+
+    function updateCurrencyDrops(dt) {
+      for (let i = currencyDrops.length - 1; i >= 0; i--) {
+        const drop = currencyDrops[i];
+        
+        drop.vy += 0.3;
+        drop.x += drop.vx;
+        drop.y += drop.vy;
+        drop.lifetime -= dt;
+        
+        if (drop.y > GROUND_Y - 10) {
+          drop.y = GROUND_Y - 10;
+          drop.vy = 0;
+          drop.vx *= 0.9;
+        }
+
+        if (player && player.alive) {
+          const dx = player.x + player.w / 2 - drop.x;
+          const dy = player.y + player.h / 2 - drop.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < 150) {
+            const magnetSpeed = 8;
+            drop.x += (dx / dist) * magnetSpeed;
+            drop.y += (dy / dist) * magnetSpeed;
+          }
+          
+          if (dist < 30) {
+            if (drop.type === "coin") {
+              gameData.coins += drop.value;
+              sessionCoins += drop.value;
+              addFloatingText(drop.x, drop.y - 20, "+" + drop.value + " 🪙", "#ffff00");
+            } else if (drop.type === "gem") {
+              gameData.gems += drop.value;
+              sessionGems += drop.value;
+              addFloatingText(drop.x, drop.y - 20, "+" + drop.value + " 💎", "#00ffff");
+            }
+            currencyDrops.splice(i, 1);
+            continue;
+          }
+        }
+        
+        if (drop.lifetime <= 0) {
+          currencyDrops.splice(i, 1);
+        }
+      }
+    }
+
+    // UPGRADE SCREEN
+    function showTDUpgradeScreen() {
+      document.getElementById('tdUpgradeScreen').style.display = 'flex';
+      
+      const upgradeKeys = Object.keys(UPGRADE_TYPES);
+      const shuffled = upgradeKeys.sort(() => Math.random() - 0.5);
+      const choices = shuffled.slice(0, 3);
+      
+      const cardsContainer = document.getElementById('upgradeCardsContainer');
+      cardsContainer.innerHTML = '';
+      
+      choices.forEach(key => {
+        const upgrade = UPGRADE_TYPES[key];
+        const card = document.createElement('div');
+        card.className = 'upgrade-card';
+        card.innerHTML = `
+          <div class="upgrade-icon">${upgrade.icon}</div>
+          <h3>${upgrade.name}</h3>
+          <p>${upgrade.desc}</p>
+        `;
+        card.onclick = () => selectUpgrade(key);
+        cardsContainer.appendChild(card);
+      });
+    }
+
+    function selectUpgrade(upgradeKey) {
+      const upgrade = UPGRADE_TYPES[upgradeKey];
+      upgrade.apply(player);
+      
+      addFloatingText(player.x + player.w / 2, player.y - 50, upgrade.name + "!", "#ffff00");
+      spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, "#ffff00", 20);
+      
+      document.getElementById('tdUpgradeScreen').style.display = 'none';
+    }
+
+    function showTDGameOver() {
+      document.getElementById('tdGameOverScreen').style.display = 'flex';
+      document.getElementById('finalWave').textContent = wave;
+      document.getElementById('finalLevel').textContent = player ? player.level : 1;
+      document.getElementById('finalKills').textContent = enemiesKilled;
+      document.getElementById('coinsEarned').textContent = sessionCoins;
+      document.getElementById('gemsEarned').textContent = sessionGems;
+    }
+
     // Initialize
     loadGameData();
     updateShopDisplay();
