@@ -1198,7 +1198,10 @@
       },
       unlockedClasses: ["Hunter"],
       purchasedClasses: [], // Track purchased classes separately
-      skillTrees: {} // Track unlocked abilities for each class
+      skillTrees: {}, // Track unlocked abilities for each class
+      overworldProgress: {}, // Track completed/unlocked nodes
+      classUpgrades: {}, // Track purchased class upgrades
+      redeemedCodes: [] // Track used redeem codes
     };
 
     // Load saved data
@@ -1232,8 +1235,28 @@
     }
 
     function saveGameData() {
+      // Save overworld node states
+      gameData.overworldProgress = {};
+      Object.values(OVERWORLD_MAP.nodes).forEach(node => {
+        gameData.overworldProgress[node.id] = {
+          completed: node.completed,
+          unlocked: node.unlocked
+        };
+      });
+      
       localStorage.setItem("evolLegendsData", JSON.stringify(gameData));
       updateTitleScreenDisplay();
+    }
+    
+    function loadOverworldProgress() {
+      if (gameData.overworldProgress) {
+        Object.keys(gameData.overworldProgress).forEach(nodeId => {
+          if (OVERWORLD_MAP.nodes[nodeId]) {
+            OVERWORLD_MAP.nodes[nodeId].completed = gameData.overworldProgress[nodeId].completed || false;
+            OVERWORLD_MAP.nodes[nodeId].unlocked = gameData.overworldProgress[nodeId].unlocked || false;
+          }
+        });
+      }
     }
 
     function updateTitleScreenDisplay() {
@@ -3462,7 +3485,11 @@
     // EVENT LISTENERS
     startBtn.addEventListener("click", () => {
       titleScreen.classList.add("hidden");
-      showClassSelection();
+      document.getElementById('overworldScreen').classList.add('active');
+      if (!overworldInitialized) {
+        initializeOverworld();
+        overworldInitialized = true;
+      }
     });
 
     shopBtn.addEventListener("click", () => {
@@ -3494,6 +3521,49 @@
       tutorialScreen.style.display = "none";
       titleScreen.classList.remove("hidden");
     });
+    
+    // OVERWORLD EVENT LISTENERS
+    overworldCanvas.addEventListener('click', onOverworldClick);
+    overworldCanvas.addEventListener('mousemove', onOverworldMove);
+    
+    document.getElementById('classUpgradesBtn').addEventListener('click', () => {
+      showClassUpgradePanel();
+    });
+    
+    document.getElementById('redeemCodeBtn').addEventListener('click', () => {
+      showRedeemCodePanel();
+    });
+    
+    document.getElementById('overworldShopBtn').addEventListener('click', () => {
+      openShopFromOverworld();
+    });
+    
+    document.getElementById('changeClassBtn').addEventListener('click', () => {
+      document.getElementById('overworldScreen').classList.remove('active');
+      showClassSelection();
+    });
+    
+    document.getElementById('returnHomeBtn').addEventListener('click', () => {
+      document.getElementById('overworldScreen').classList.remove('active');
+      titleScreen.classList.remove('hidden');
+    });
+    
+    // Initialize overworld on first load
+    function initializeOverworld() {
+      // Load saved progress
+      loadOverworldProgress();
+      
+      // Ensure starting nodes are unlocked if no save
+      if (!OVERWORLD_MAP.nodes.start.completed) {
+        OVERWORLD_MAP.nodes.start.unlocked = true;
+        OVERWORLD_MAP.nodes.start.completed = true;
+        OVERWORLD_MAP.nodes.forest_1.unlocked = true;
+        OVERWORLD_MAP.nodes.plains_1.unlocked = true;
+      }
+      
+      updateOverworldStats();
+      drawOverworldMap();
+    }
     
     // Potion click handlers
     document.getElementById('potionHeal').addEventListener('click', () => usePotion('heal'));
@@ -6155,6 +6225,30 @@
           waveTimer = 0;
         }
         
+        // Check if node is complete (wave 20)
+        if (wave === 20) {
+          // NODE COMPLETED!
+          gameRunning = false;
+          
+          // Complete the current node
+          if (OVERWORLD_MAP.currentNode) {
+            completeNode(OVERWORLD_MAP.currentNode);
+          }
+          
+          // Show victory message
+          addFloatingText(canvas.width / 2, 200, "🎉 NODE COMPLETE! 🎉", "#ffff00", 2.5);
+          addFloatingText(canvas.width / 2, 240, "Returning to Overworld...", "#00ffff", 1.5);
+          
+          // Hide game UI, return to overworld after delay
+          setTimeout(() => {
+            giveUpBtn.style.display = "none";
+            document.getElementById('overworldScreen').classList.add('active');
+            document.getElementById('nodeInfoPanel').classList.remove('active');
+          }, 3000);
+          
+          return; // Don't start next wave
+        }
+        
         // Wave complete! Start next wave immediately
         wave++;
         
@@ -6943,6 +7037,7 @@
     let selectedNode = null;
     let hoveredNode = null;
     let overworldAnimTime = 0;
+    let overworldInitialized = false;
 
     function drawOverworldMap() {
       overworldCtx.clearRect(0, 0, overworldCanvas.width, overworldCanvas.height);
@@ -7222,7 +7317,21 @@
 
     function openShrineUpgrades(className) {
       // Show class upgrade panel for specific class
-      alert(`Shrine upgrades for ${className} - Coming soon!`);
+      showClassUpgradePanel(className);
+    }
+
+    function showClassUpgradePanel(className) {
+      // TODO: Build full class upgrade UI
+      alert(`Class Upgrade Panel for ${className || 'current class'}\n\nShowing upgrade tree with tier 1-3 upgrades.\n\nThis feature is coming soon!`);
+    }
+
+    function showRedeemCodePanel() {
+      const code = prompt('Enter Redeem Code:');
+      if (code) {
+        const upperCode = code.toUpperCase();
+        // TODO: Implement proper redeem code system
+        alert(`Redeem code system coming soon!\nYou entered: ${upperCode}`);
+      }
     }
 
     function gameLoop(timestamp) {
