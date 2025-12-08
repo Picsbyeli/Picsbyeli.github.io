@@ -3148,78 +3148,95 @@
       }
     };
 
-    // OVERWORLD MAP - Node-based progression system
+    // OVERWORLD MAP - THE LEGEND OF THE FORGOTTEN WARRIOR
+    // Five Seals tracking
+    let collectedSeals = {
+      crystalKeystone: false,
+      abyssKey: false,
+      frozenFragment: false,
+      blazingSeal: false,
+      tideRune: false
+    };
+
     const OVERWORLD_MAP = {
       nodes: {
-        start: {
-          id: "start",
+        // ===== CHAPTER I: THE CALLING =====
+        beginner_village: {
+          id: "beginner_village",
           type: "start",
-          name: "Starting Point",
-          x: 100,
-          y: 500,
-          connections: ["forest_1", "plains_1"],
+          name: "Beginner Village",
+          lore: "A quiet refuge where forgotten warriors awaken...",
+          x: 120,
+          y: 80,
+          connections: ["new_night_1", "new_night_2"],
           completed: true,
           unlocked: true
         },
-        // FOREST PATH (Easy Route)
-        forest_1: {
-          id: "forest_1",
+        
+        // ===== NEW NIGHT MAP - The Awakening =====
+        new_night_1: {
+          id: "new_night_1",
           type: "survival",
-          name: "Forest Outpost",
-          x: 250,
-          y: 450,
+          name: "Twilight Outskirts",
+          lore: "Shadows whisper warnings. Learn to fight or be forgotten.",
+          x: 200,
+          y: 120,
           waves: 20,
           miniBossWaves: [5, 15],
           bossWaves: [10, 20],
           recommendedPower: 1,
-          connections: ["forest_2", "shop_1"],
-          rewards: { coins: 150, gems: 2, classXP: 40 },
+          connections: ["new_night_2", "sunny_fields_1"],
+          rewards: { coins: 100, gems: 2, story: "first_key_shard" },
           completed: false,
           unlocked: false
         },
-        forest_2: {
-          id: "forest_2",
+        new_night_2: {
+          id: "new_night_2",
           type: "survival",
-          name: "Deep Woods",
-          x: 400,
-          y: 400,
-          waves: 20,
-          miniBossWaves: [5, 15],
-          bossWaves: [10, 20],
-          recommendedPower: 2,
-          connections: ["elite_1", "shrine_knight"],
-          rewards: { coins: 200, gems: 3, classXP: 50 },
-          completed: false,
-          unlocked: false
-        },
-        // PLAINS PATH (Medium Route)
-        plains_1: {
-          id: "plains_1",
-          type: "survival",
-          name: "Open Fields",
-          x: 250,
-          y: 550,
+          name: "Moonlit Hollow",
+          lore: "Eternal twilight. Prove your resilience.",
+          x: 180,
+          y: 180,
           waves: 20,
           miniBossWaves: [5, 15],
           bossWaves: [10, 20],
           recommendedPower: 1,
-          connections: ["plains_2", "shop_1"],
-          rewards: { coins: 180, gems: 2, classXP: 45 },
+          connections: ["sunny_fields_1", "sunny_fields_2"],
+          rewards: { coins: 120, gems: 2 },
           completed: false,
           unlocked: false
         },
-        plains_2: {
-          id: "plains_2",
+        
+        // ===== SUNNY FIELDS - Trials of Light =====
+        sunny_fields_1: {
+          id: "sunny_fields_1",
           type: "survival",
-          name: "Windmill Valley",
-          x: 400,
-          y: 600,
+          name: "Sunlit Meadow",
+          lore: "Deceptively peaceful. Radiant magic corrupts all.",
+          x: 300,
+          y: 160,
           waves: 20,
           miniBossWaves: [5, 15],
           bossWaves: [10, 20],
           recommendedPower: 2,
-          connections: ["elite_2", "shrine_assassin"],
-          rewards: { coins: 220, gems: 3, classXP: 55 },
+          connections: ["sunny_fields_2", "crimson_forest_1"],
+          rewards: { coins: 150, gems: 3 },
+          completed: false,
+          unlocked: false
+        },
+        sunny_fields_2: {
+          id: "sunny_fields_2",
+          type: "survival",
+          name: "Golden Plains",
+          lore: "Wave after wave. Only the resilient survive.",
+          x: 280,
+          y: 220,
+          waves: 20,
+          miniBossWaves: [5, 15],
+          bossWaves: [10, 20],
+          recommendedPower: 2,
+          connections: ["crimson_forest_1", "crimson_forest_2"],
+          rewards: { coins: 170, gems: 3 },
           completed: false,
           unlocked: false
         },
