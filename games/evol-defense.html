@@ -5390,28 +5390,43 @@
         document.getElementById('tdGameScreen').style.display = 'none';
         document.getElementById('overworldScreen').classList.add('active');
         
-        const currentNode = OVERWORLD_MAP.find(n => n.id === currentNodeId);
+        const currentNode = OVERWORLD_MAP.nodes[currentNodeId];
         if (currentNode) {
+          // Grant rewards
           if (currentNode.rewards) {
-            if (currentNode.rewards.coins) gameData.coins += currentNode.rewards.coins;
-            if (currentNode.rewards.gems) gameData.gems += currentNode.rewards.gems;
+            if (currentNode.rewards.coins) {
+              gameData.coins += currentNode.rewards.coins;
+              sessionCoins += currentNode.rewards.coins;
+            }
+            if (currentNode.rewards.gems) {
+              gameData.gems += currentNode.rewards.gems;
+              sessionGems += currentNode.rewards.gems;
+            }
             if (currentNode.rewards.seal && !collectedSeals[currentNode.rewards.seal]) {
               collectedSeals[currentNode.rewards.seal] = true;
-              addFloatingText(600, 100, `Seal Collected: ${currentNode.rewards.seal}!`, '#ffff00');
+              // Show seal collection message on overworld
+              setTimeout(() => {
+                alert(`🎉 SEAL COLLECTED: ${currentNode.rewards.seal}! 🎉`);
+              }, 500);
             }
           }
           
+          // Mark node as completed
           currentNode.completed = true;
-          currentNode.connections.forEach(connId => {
-            const connectedNode = OVERWORLD_MAP.find(n => n.id === connId);
-            if (connectedNode && connectedNode.hidden) {
-              connectedNode.hidden = false;
-            }
-          });
+          
+          // Unlock connected nodes
+          if (currentNode.connections) {
+            currentNode.connections.forEach(connId => {
+              const connectedNode = OVERWORLD_MAP.nodes[connId];
+              if (connectedNode) {
+                connectedNode.unlocked = true;
+              }
+            });
+          }
         }
         
         saveGameData();
-        drawOverworldMap();
+        updateAllDisplays();
       }, 2000);
     }
 
@@ -5441,7 +5456,7 @@
     }
 
     function startTDGame(nodeId) {
-      const node = OVERWORLD_MAP.find(n => n.id === nodeId);
+      const node = OVERWORLD_MAP.nodes[nodeId];
       if (!node) return;
       
       currentNodeId = nodeId;
