@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVOL LEGENDS - Overworld Edition</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+      overflow: hidden;
+    }
+    
+    #gameContainer {
+      position: relative;
+      width: 1200px;
+      height: 700px;
+      background: linear-gradient(135deg, #0a0015 0%, #1a0030 50%, #0a0520 100%);
+      box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+      overflow: hidden;
+    }
+    
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    
+    /* Screens */
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    
+    .screen.active { display: flex; }
+    
+    /* Title Screen */
+    #titleScreen {
+      background: linear-gradient(135deg, #0a0015 0%, #1a0030 100%);
+    }
+    
+    .title {
+      font-size: 64px;
+      font-weight: bold;
+      color: #00ffff;
+      text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+      margin-bottom: 20px;
+      animation: glow 2s ease-in-out infinite;
+    }
+    
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff; }
+      50% { text-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff, 0 0 80px #00ffff; }
+    }
+    
+    .subtitle {
+      font-size: 24px;
+      color: #ff00ff;
+      margin-bottom: 40px;
+      text-shadow: 0 0 10px #ff00ff;
+    }
+    
+    .btn {
+      padding: 15px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #ff0080 0%, #ff8c00 100%);
+      color: #fff;
+      border: 3px solid #00ffff;
+      border-radius: 10px;
+      cursor: pointer;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+      transition: all 0.3s;
+      margin: 10px;
+    }
+    
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+    }
+    
+    /* Overworld Screen */
+    #overworldScreen {
+      background: linear-gradient(135deg, #0a0015 0%, #1a0030 50%, #0a0520 100%);
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: stretch;
+    }
+    
+    .overworld-sidebar {
+      width: 250px;
+      background: rgba(0, 0, 0, 0.8);
+      border-right: 3px solid #00ffff;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .overworld-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .overworld-header {
+      padding: 15px 20px;
+      background: rgba(0, 0, 0, 0.7);
+      border-bottom: 3px solid #00ffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .overworld-stats {
+      display: flex;
+      gap: 20px;
+      font-size: 16px;
+    }
+    
+    .map-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .node-info {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.95);
+      border: 3px solid #00ffff;
+      border-radius: 15px;
+      padding: 20px 30px;
+      display: none;
+      text-align: center;
+      min-width: 400px;
+    }
+    
+    .node-info.active { display: block; }
+    
+    .sidebar-section {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #00ffff;
+    }
+    
+    .sidebar-title {
+      font-size: 20px;
+      color: #00ffff;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .sidebar-btn {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      background: linear-gradient(135deg, #1a1a3a, #2a1a4a);
+      border: 2px solid #00ffff;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .sidebar-btn:hover {
+      background: linear-gradient(135deg, #2a2a4a, #3a2a5a);
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+    
+    /* Class Selection */
+    #classSelection {
+      background: linear-gradient(135deg, #0a0015 0%, #1a0030 100%);
+      overflow-y: auto;
+      padding: 40px;
+    }
+    
+    .class-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+    }
+    
+    .class-card {
+      background: linear-gradient(135deg, #1a1a3a, #2a1a4a);
+      border: 3px solid #00ffff;
+      border-radius: 15px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    
+    .class-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+    }
+    
+    .class-card.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: #666;
+    }
+    
+    .class-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    
+    .class-name {
+      font-size: 20px;
+      color: #ffff00;
+      margin-bottom: 10px;
+    }
+    
+    /* Upgrade Panel */
+    #upgradePanel {
+      background: rgba(0, 0, 0, 0.95);
+      padding: 40px;
+      overflow-y: auto;
+    }
+    
+    .upgrade-tier {
+      margin-bottom: 30px;
+    }
+    
+    .upgrade-tier-title {
+      font-size: 24px;
+      color: #ffff00;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #ffff00;
+    }
+    
+    .upgrade-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .upgrade-node {
+      background: linear-gradient(135deg, #1a1a3a, #2a1a4a);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .upgrade-node:hover:not(.locked):not(.purchased) {
+      transform: scale(1.03);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    }
+    
+    .upgrade-node.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #666;
+    }
+    
+    .upgrade-node.purchased {
+      background: linear-gradient(135deg, #1a3a1a, #2a4a2a);
+      border-color: #00ff00;
+    }
+    
+    .upgrade-name {
+      font-size: 16px;
+      color: #00ffff;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .upgrade-cost {
+      font-size: 14px;
+      color: #ffff00;
+      margin-bottom: 8px;
+    }
+    
+    /* Game Screen */
+    #gameScreen {
+      background: #000;
+      justify-content: flex-start;
+    }
+    
+    .game-hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 14px;
+    }
+    
+    .game-hud div {
+      margin: 5px 0;
+    }
+    
+    /* Redeem Code Modal */
+    .modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.95);
+      border: 3px solid #00ffff;
+      border-radius: 15px;
+      padding: 40px;
+      display: none;
+      z-index: 100;
+      text-align: center;
+    }
+    
+    .modal.active { display: block; }
+    
+    .modal-title {
+      font-size: 32px;
+      color: #00ffff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px #00ffff;
+    }
+    
+    .modal-input {
+      padding: 15px;
+      font-size: 18px;
+      width: 300px;
+      border: 2px solid #00ffff;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .modal-result {
+      margin: 20px 0;
+      font-size: 16px;
+      min-height: 40px;
+    }
+    
+    @keyframes celebrate {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.2) rotate(-10deg); }
+      75% { transform: scale(1.2) rotate(10deg); }
+    }
+    
+    .celebration {
+      animation: celebrate 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <!-- Title Screen -->
+    <div id="titleScreen" class="screen active">
+      <div class="title">EVOL LEGENDS</div>
+      <div class="subtitle">🗺️ OVERWORLD EDITION 🗺️</div>
+      <button class="btn" onclick="showScreen('classSelection')">START GAME</button>
+      <div style="margin-top: 30px; font-size: 14px;">
+        <div>💰 Coins: <span id="titleCoins">0</span> | 💎 Gems: <span id="titleGems">0</span></div>
+      </div>
+    </div>
+    
+    <!-- Class Selection Screen -->
+    <div id="classSelection" class="screen">
+      <h1 style="font-size: 48px; color: #00ffff; margin-bottom: 30px;">SELECT YOUR CLASS</h1>
+      <div class="class-grid" id="classGrid"></div>
+      <button class="btn" onclick="showScreen('titleScreen')" style="margin-top: 30px;">← BACK</button>
+    </div>
+    
+    <!-- Overworld Screen -->
+    <div id="overworldScreen" class="screen">
+      <div class="overworld-sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-title">📊 STATS</div>
+          <div style="font-size: 14px; color: #fff;">
+            <div>💰 <span id="sidebarCoins">0</span> Coins</div>
+            <div>💎 <span id="sidebarGems">0</span> Gems</div>
+            <div>⭐ <span id="sidebarNodes">0</span>/<span id="sidebarTotalNodes">0</span> Nodes</div>
+          </div>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-title">🎮 CURRENT CLASS</div>
+          <div style="text-align: center; font-size: 36px;" id="currentClassIcon">🏹</div>
+          <div style="text-align: center; color: #ffff00;" id="currentClassName">Hunter</div>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-title">📋 MENU</div>
+          <button class="sidebar-btn" onclick="openUpgradePanel()">⬆️ CLASS UPGRADES</button>
+          <button class="sidebar-btn" onclick="openRedeemCode()">🎁 REDEEM CODE</button>
+          <button class="sidebar-btn" onclick="showScreen('classSelection')">🔄 CHANGE CLASS</button>
+          <button class="sidebar-btn" onclick="showScreen('titleScreen')">🏠 MAIN MENU</button>
+        </div>
+      </div>
+      
+      <div class="overworld-main">
+        <div class="overworld-header">
+          <div style="font-size: 24px; color: #00ffff;">🗺️ WORLD MAP</div>
+          <div class="overworld-stats">
+            <div>Current Node: <span id="currentNodeName" style="color: #ffff00;">Start</span></div>
+          </div>
+        </div>
+        
+        <div class="map-container">
+          <canvas id="mapCanvas" width="950" height="642"></canvas>
+          
+          <div class="node-info" id="nodeInfo">
+            <h2 id="nodeInfoName" style="color: #ffff00; font-size: 28px; margin-bottom: 15px;"></h2>
+            <div id="nodeInfoDetails" style="margin-bottom: 15px; line-height: 1.8;"></div>
+            <div id="nodeInfoRewards" style="color: #00ff00; margin-bottom: 20px;"></div>
+            <button class="btn" id="nodeEnterBtn" onclick="enterNode()">ENTER NODE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Upgrade Panel Screen -->
+    <div id="upgradePanel" class="screen">
+      <h1 style="font-size: 48px; color: #ff00ff; margin-bottom: 10px;">CLASS UPGRADES</h1>
+      <h2 id="upgradePanelClass" style="font-size: 24px; color: #ffff00; margin-bottom: 30px;"></h2>
+      <div id="upgradeContent"></div>
+      <button class="btn" onclick="showScreen('overworldScreen')" style="margin-top: 30px;">← BACK TO MAP</button>
+    </div>
+    
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+      <canvas id="gameCanvas" width="1200" height="700"></canvas>
+      <div class="game-hud">
+        <div>Wave: <span id="hudWave">1</span>/20</div>
+        <div>HP: <span id="hudHP">100</span>/<span id="hudMaxHP">100</span></div>
+        <div>Enemies: <span id="hudEnemies">0</span></div>
+        <div>Kills: <span id="hudKills">0</span></div>
+      </div>
+      <button class="btn" onclick="returnToOverworld()" style="position: absolute; top: 10px; right: 10px;">🏠 RETURN</button>
+    </div>
+    
+    <!-- Redeem Code Modal -->
+    <div id="redeemModal" class="modal">
+      <div class="modal-title">🎁 REDEEM CODE</div>
+      <input type="text" class="modal-input" id="codeInput" placeholder="ENTER CODE" maxlength="20">
+      <div class="modal-result" id="codeResult"></div>
+      <button class="btn" onclick="redeemCode()">REDEEM</button>
+      <button class="btn" onclick="closeRedeemCode()">CLOSE</button>
+    </div>
+  </div>
+
+  <script>
+    // GAME DATA
+    const CLASSES = {
+      Hunter: {
+        icon: "🏹",
+        color: "#00ff88",
+        stats: { maxHP: 120, damage: 14, fireRate: 0.3, range: 650, speed: 8 },
+        description: "Balanced ranged fighter"
+      },
+      Knight: {
+        icon: "⚔️",
+        color: "#4488ff",
+        stats: { maxHP: 160, damage: 28, fireRate: 0.65, range: 260, speed: 6.5 },
+        description: "High damage tank"
+      },
+      Assassin: {
+        icon: "🗡️",
+        color: "#ff00ff",
+        stats: { maxHP: 95, damage: 9, fireRate: 0.15, range: 400, speed: 9.5 },
+        description: "Ultra-fast glass cannon"
+      },
+      Wizard: {
+        icon: "🧙",
+        color: "#8800ff",
+        stats: { maxHP: 110, damage: 16, fireRate: 0.5, range: 550, speed: 7 },
+        description: "Magical damage dealer"
+      },
+      Archer: {
+        icon: "🏹",
+        color: "#228b22",
+        stats: { maxHP: 100, damage: 18, fireRate: 0.4, range: 950, speed: 10 },
+        description: "Longest range sniper"
+      }
+    };
+
+    const CLASS_UPGRADES = {
+      Hunter: {
+        tier1: [
+          { id: "h1", name: "+10% HP", cost: { coins: 500 }, effect: "maxHP: 1.1" },
+          { id: "h2", name: "+15% Projectile Speed", cost: { coins: 600 }, effect: "speed: 1.15" },
+          { id: "h3", name: "+10% Fire Rate", cost: { coins: 700 }, effect: "fireRate: 0.9" }
+        ],
+        tier2: [
+          { id: "h4", name: "+15% Crit Chance", cost: { coins: 1500, gems: 10 }, requires: ["h1"], effect: "crit: +15%" },
+          { id: "h5", name: "+100 Range", cost: { coins: 1800, gems: 12 }, requires: ["h2"], effect: "range: +100" }
+        ],
+        tier3: [
+          { id: "h6", name: "Pierce +2 Enemies", cost: { coins: 5000, gems: 50 }, requires: ["h4", "h5"], effect: "pierce: +2" }
+        ]
+      },
+      Knight: {
+        tier1: [
+          { id: "k1", name: "+10% HP", cost: { coins: 500 }, effect: "maxHP: 1.1" },
+          { id: "k2", name: "+20% vs Mini-Bosses", cost: { coins: 800 }, effect: "bossDmg: 1.2" },
+          { id: "k3", name: "+50 Shield", cost: { coins: 600 }, effect: "shield: +50" }
+        ],
+        tier2: [
+          { id: "k4", name: "Reflect 10% Damage", cost: { coins: 2000, gems: 20 }, requires: ["k3"], effect: "reflect: 0.1" },
+          { id: "k5", name: "Charge +100 Distance", cost: { coins: 1800, gems: 15 }, requires: ["k1"], effect: "charge: +100" }
+        ],
+        tier3: [
+          { id: "k6", name: "Shield +100%", cost: { coins: 6000, gems: 70 }, requires: ["k4", "k5"], effect: "maxShield: 2x" }
+        ]
+      },
+      Assassin: {
+        tier1: [
+          { id: "a1", name: "+10% HP", cost: { coins: 500 }, effect: "maxHP: 1.1" },
+          { id: "a2", name: "+10% Fire Rate", cost: { coins: 700 }, effect: "fireRate: 0.9" },
+          { id: "a3", name: "+10% Crit", cost: { coins: 800 }, effect: "crit: +10%" }
+        ],
+        tier2: [
+          { id: "a4", name: "Backstab +50%", cost: { coins: 2000, gems: 20 }, requires: ["a3"], effect: "backstab: 1.5" },
+          { id: "a5", name: "5% Dodge", cost: { coins: 2500, gems: 25 }, requires: ["a1"], effect: "dodge: 0.05" }
+        ],
+        tier3: [
+          { id: "a6", name: "Combo Chain", cost: { coins: 6000, gems: 80 }, requires: ["a4", "a5"], effect: "combo: true" }
+        ]
+      },
+      Wizard: {
+        tier1: [
+          { id: "w1", name: "+10% HP", cost: { coins: 500 }, effect: "maxHP: 1.1" },
+          { id: "w2", name: "+50 Mana", cost: { coins: 800 }, effect: "mana: +50" },
+          { id: "w3", name: "+20% Mana Regen", cost: { coins: 700 }, effect: "regen: 1.2" }
+        ],
+        tier2: [
+          { id: "w4", name: "+5 Meteors", cost: { coins: 2500, gems: 28 }, requires: ["w2"], effect: "meteor: +5" },
+          { id: "w5", name: "+30% Spell Damage", cost: { coins: 2000, gems: 22 }, requires: ["w3"], effect: "spell: 1.3" }
+        ],
+        tier3: [
+          { id: "w6", name: "All Cooldowns -50%", cost: { coins: 8000, gems: 100 }, requires: ["w4", "w5"], effect: "cd: 0.5" }
+        ]
+      },
+      Archer: {
+        tier1: [
+          { id: "ar1", name: "+10% HP", cost: { coins: 500 }, effect: "maxHP: 1.1" },
+          { id: "ar2", name: "+100 Range", cost: { coins: 700 }, effect: "range: +100" },
+          { id: "ar3", name: "Pierce +1", cost: { coins: 800 }, effect: "pierce: +1" }
+        ],
+        tier2: [
+          { id: "ar4", name: "3-Arrow Multishot", cost: { coins: 2000, gems: 20 }, requires: ["ar2"], effect: "multi: 3" },
+          { id: "ar5", name: "Root +1s", cost: { coins: 1800, gems: 18 }, requires: ["ar3"], effect: "root: +1s" }
+        ],
+        tier3: [
+          { id: "ar6", name: "Crits 3x Damage", cost: { coins: 6000, gems: 70 }, requires: ["ar4", "ar5"], effect: "critDmg: 3x" }
+        ]
+      }
+    };
+
+    const OVERWORLD_MAP = {
+      nodes: {
+        start: { id: "start", type: "start", name: "Home Base", x: 100, y: 320, connections: ["f1", "p1"], completed: true, unlocked: true },
+        f1: { id: "f1", type: "survival", name: "Forest Path", x: 250, y: 250, waves: 20, miniBoss: [5,15], boss: [10,20], power: 1, connections: ["f2"], rewards: { coins: 150, gems: 2 }, unlocked: false },
+        f2: { id: "f2", type: "survival", name: "Deep Woods", x: 400, y: 200, waves: 20, miniBoss: [5,15], boss: [10,20], power: 2, connections: ["shop1", "e1"], rewards: { coins: 200, gems: 3 }, unlocked: false },
+        p1: { id: "p1", type: "survival", name: "Plains", x: 250, y: 390, waves: 20, miniBoss: [5,15], boss: [10,20], power: 1, connections: ["p2"], rewards: { coins: 180, gems: 2 }, unlocked: false },
+        p2: { id: "p2", type: "survival", name: "Windmill Valley", x: 400, y: 440, waves: 20, miniBoss: [5,15], boss: [10,20], power: 2, connections: ["shop1", "e2"], rewards: { coins: 220, gems: 3 }, unlocked: false },
+        shop1: { id: "shop1", type: "shop", name: "Merchant Rest", x: 550, y: 320, connections: ["e1", "e2"], unlocked: false },
+        e1: { id: "e1", type: "elite", name: "Elite Garrison", x: 700, y: 250, waves: 20, miniBoss: [4,10,16], boss: [8,20], power: 3, connections: ["m1"], rewards: { coins: 350, gems: 8 }, unlocked: false },
+        e2: { id: "e2", type: "elite", name: "Elite Arena", x: 700, y: 390, waves: 20, miniBoss: [4,10,16], boss: [8,20], power: 3, connections: ["m1"], rewards: { coins: 380, gems: 9 }, unlocked: false },
+        m1: { id: "m1", type: "boss", name: "Final Boss", x: 850, y: 320, waves: 20, miniBoss: [5,10,15], boss: [20], power: 5, connections: [], rewards: { coins: 1000, gems: 50 }, unlocked: false }
+      },
+      currentNode: "start"
+    };
+
+    const REDEEM_CODES = {
+      "WELCOME": { coins: 1000, gems: 50 },
+      "STARTER": { coins: 2000, gems: 100 },
+      "LEGENDARY": { coins: 10000, gems: 500 },
+      "KAI": { coins: 1000000, gems: 150 }
+    };
+
+    // GAME STATE
+    let gameData = {
+      coins: 0,
+      gems: 0,
+      selectedClass: "Hunter",
+      completedNodes: [],
+      purchasedUpgrades: [],
+      redeemedCodes: []
+    };
+
+    let selectedNode = null;
+    let currentLevel = null;
+    let animTime = 0;
+
+    // INITIALIZATION
+    function init() {
+      loadGameData();
+      updateAllDisplays();
+      renderClassGrid();
+      startMapAnimation();
+    }
+
+    function loadGameData() {
+      const saved = localStorage.getItem('evolLegendsOverworld');
+      if (saved) {
+        gameData = JSON.parse(saved);
+        // Unlock nodes based on completed nodes
+        gameData.completedNodes.forEach(nodeId => {
+          const node = OVERWORLD_MAP.nodes[nodeId];
+          if (node && node.connections) {
+            node.connections.forEach(connId => {
+              OVERWORLD_MAP.nodes[connId].unlocked = true;
+            });
+          }
+        });
+      }
+    }
+
+    function saveGameData() {
+      localStorage.setItem('evolLegendsOverworld', JSON.stringify(gameData));
+    }
+
+    function updateAllDisplays() {
+      document.getElementById('titleCoins').textContent = gameData.coins;
+      document.getElementById('titleGems').textContent = gameData.gems;
+      document.getElementById('sidebarCoins').textContent = gameData.coins;
+      document.getElementById('sidebarGems').textContent = gameData.gems;
+      
+      const completed = gameData.completedNodes.length;
+      const total = Object.keys(OVERWORLD_MAP.nodes).length - 1;
+      document.getElementById('sidebarNodes').textContent = completed;
+      document.getElementById('sidebarTotalNodes').textContent = total;
+      
+      const classData = CLASSES[gameData.selectedClass];
+      document.getElementById('currentClassIcon').textContent = classData.icon;
+      document.getElementById('currentClassName').textContent = gameData.selectedClass;
+    }
+
+    // SCREEN MANAGEMENT
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+      
+      if (screenId === 'overworldScreen') {
+        updateAllDisplays();
+      }
+    }
+
+    // CLASS SELECTION
+    function renderClassGrid() {
+      const grid = document.getElementById('classGrid');
+      grid.innerHTML = '';
+      
+      Object.entries(CLASSES).forEach(([name, data]) => {
+        const card = document.createElement('div');
+        card.className = 'class-card';
+        card.innerHTML = `
+          <div class="class-icon">${data.icon}</div>
+          <div class="class-name">${name}</div>
+          <div style="font-size: 12px; color: #aaa;">${data.description}</div>
+          <div style="margin-top: 10px; font-size: 14px;">
+            <div>❤️ ${data.stats.maxHP} HP</div>
+            <div>⚔️ ${data.stats.damage} DMG</div>
+            <div>📏 ${data.stats.range} RNG</div>
+          </div>
+        `;
+        card.onclick = () => selectClass(name);
+        grid.appendChild(card);
+      });
+    }
+
+    function selectClass(className) {
+      gameData.selectedClass = className;
+      saveGameData();
+      showScreen('overworldScreen');
+    }
+
+    // MAP RENDERING
+    const mapCanvas = document.getElementById('mapCanvas');
+    const mapCtx = mapCanvas.getContext('2d');
+
+    function startMapAnimation() {
+      renderMap();
+    }
+
+    function renderMap() {
+      mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+      animTime += 0.02;
+      
+      // Draw connections
+      Object.values(OVERWORLD_MAP.nodes).forEach(node => {
+        if (node.connections) {
+          node.connections.forEach(connId => {
+            const target = OVERWORLD_MAP.nodes[connId];
+            const active = node.completed || node.unlocked;
+            
+            mapCtx.strokeStyle = active ? `rgba(0,255,255,${0.3 + Math.sin(animTime) * 0.2})` : 'rgba(100,100,100,0.3)';
+            mapCtx.lineWidth = active ? 4 : 2;
+            mapCtx.beginPath();
+            mapCtx.moveTo(node.x, node.y);
+            mapCtx.lineTo(target.x, target.y);
+            mapCtx.stroke();
+          });
+        }
+      });
+      
+      // Draw nodes
+      Object.values(OVERWORLD_MAP.nodes).forEach(node => {
+        const completed = gameData.completedNodes.includes(node.id);
+        const size = 25;
+        
+        mapCtx.save();
+        mapCtx.translate(node.x, node.y);
+        
+        let color, icon;
+        if (completed) {
+          color = '#00ff00';
+          icon = '✓';
+          mapCtx.shadowColor = '#00ff00';
+          mapCtx.shadowBlur = 15;
+        } else if (node.unlocked) {
+          color = '#ffff00';
+          icon = getNodeIcon(node.type);
+          mapCtx.shadowColor = '#ffff00';
+          mapCtx.shadowBlur = 15;
+        } else {
+          color = '#666';
+          icon = '🔒';
+        }
+        
+        mapCtx.fillStyle = color;
+        mapCtx.beginPath();
+        mapCtx.arc(0, 0, size, 0, Math.PI * 2);
+        mapCtx.fill();
+        
+        mapCtx.shadowBlur = 0;
+        mapCtx.fillStyle = 'rgba(0,0,0,0.5)';
+        mapCtx.beginPath();
+        mapCtx.arc(0, 0, size - 5, 0, Math.PI * 2);
+        mapCtx.fill();
+        
+        mapCtx.font = `${size}px Arial`;
+        mapCtx.textAlign = 'center';
+        mapCtx.textBaseline = 'middle';
+        mapCtx.fillStyle = '#fff';
+        mapCtx.fillText(icon, 0, 0);
+        
+        mapCtx.font = '12px Arial';
+        mapCtx.fillStyle = '#fff';
+        mapCtx.shadowColor = '#000';
+        mapCtx.shadowBlur = 3;
+        mapCtx.fillText(node.name, 0, size + 15);
+        
+        mapCtx.restore();
+      });
+      
+      requestAnimationFrame(renderMap);
+    }
+
+    function getNodeIcon(type) {
+      const icons = { survival: '⚔️', elite: '💀', shop: '🛒', shrine: '⛩️', boss: '👑', start: '🏠' };
+      return icons[type] || '❓';
+    }
+
+    // MAP INTERACTION
+    mapCanvas.addEventListener('click', (e) => {
+      const rect = mapCanvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (mapCanvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (mapCanvas.height / rect.height);
+      
+      Object.values(OVERWORLD_MAP.nodes).forEach(node => {
+        const dist = Math.hypot(x - node.x, y - node.y);
+        if (dist < 30 && (node.unlocked || gameData.completedNodes.includes(node.id))) {
+          showNodeInfo(node);
+        }
+      });
+    });
+
+    function showNodeInfo(node) {
+      selectedNode = node;
+      const panel = document.getElementById('nodeInfo');
+      document.getElementById('nodeInfoName').textContent = node.name;
+      
+      let details = `Type: ${node.type.toUpperCase()}<br>`;
+      if (node.waves) {
+        details += `Waves: ${node.waves} | Power: ${node.power}<br>`;
+        details += `Mini-Bosses: ${node.miniBoss.join(', ')} | Boss: ${node.boss.join(', ')}`;
+      }
+      document.getElementById('nodeInfoDetails').innerHTML = details;
+      
+      if (node.rewards) {
+        document.getElementById('nodeInfoRewards').textContent = 
+          `🎁 ${node.rewards.coins} coins, ${node.rewards.gems} gems`;
+      } else {
+        document.getElementById('nodeInfoRewards').textContent = '';
+      }
+      
+      panel.classList.add('active');
+    }
+
+    function enterNode() {
+      if (!selectedNode) return;
+      
+      if (selectedNode.type === 'shop') {
+        alert('Shop system - Coming soon!');
+      } else if (selectedNode.type === 'survival' || selectedNode.type === 'elite' || selectedNode.type === 'boss') {
+        startLevel(selectedNode);
+      }
+    }
+
+    function startLevel(node) {
+      currentLevel = node;
+      document.getElementById('nodeInfo').classList.remove('active');
+      showScreen('gameScreen');
+      initGame();
+    }
+
+    // BASIC GAME LOOP
+    const gameCanvas = document.getElementById('gameCanvas');
+    const gameCtx = gameCanvas.getContext('2d');
+    let wave = 1;
+    let enemies = 0;
+    let kills = 0;
+    let playerHP = 100;
+    let maxHP = 100;
+
+    function initGame() {
+      wave = 1;
+      kills = 0;
+      enemies = 10;
+      const classStats = CLASSES[gameData.selectedClass].stats;
+      playerHP = maxHP = classStats.maxHP;
+      updateGameHUD();
+      gameLoop();
+    }
+
+    function gameLoop() {
+      gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+      gameCtx.fillStyle = '#111';
+      gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+      
+      gameCtx.fillStyle = '#fff';
+      gameCtx.font = '48px Arial';
+      gameCtx.textAlign = 'center';
+      gameCtx.fillText(`Wave ${wave}/20`, gameCanvas.width/2, gameCanvas.height/2);
+      
+      if (gameCanvas.style.display !== 'none') {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function updateGameHUD() {
+      document.getElementById('hudWave').textContent = wave;
+      document.getElementById('hudHP').textContent = Math.floor(playerHP);
+      document.getElementById('hudMaxHP').textContent = maxHP;
+      document.getElementById('hudEnemies').textContent = enemies;
+      document.getElementById('hudKills').textContent = kills;
+    }
+
+    function returnToOverworld() {
+      if (wave >= 20 && currentLevel) {
+        completeNode(currentLevel.id);
+      }
+      showScreen('overworldScreen');
+    }
+
+    function completeNode(nodeId) {
+      if (!gameData.completedNodes.includes(nodeId)) {
+        gameData.completedNodes.push(nodeId);
+        
+        const node = OVERWORLD_MAP.nodes[nodeId];
+        if (node.rewards) {
+          gameData.coins += node.rewards.coins;
+          gameData.gems += node.rewards.gems;
+        }
+        
+        if (node.connections) {
+          node.connections.forEach(connId => {
+            OVERWORLD_MAP.nodes[connId].unlocked = true;
+          });
+        }
+        
+        saveGameData();
+        updateAllDisplays();
+      }
+    }
+
+    // UPGRADE PANEL
+    function openUpgradePanel() {
+      showScreen('upgradePanel');
+      renderUpgrades();
+    }
+
+    function renderUpgrades() {
+      const className = gameData.selectedClass;
+      document.getElementById('upgradePanelClass').textContent = `${className} Upgrades`;
+      
+      const upgrades = CLASS_UPGRADES[className];
+      const content = document.getElementById('upgradeContent');
+      content.innerHTML = '';
+      
+      ['tier1', 'tier2', 'tier3'].forEach(tier => {
+        const tierDiv = document.createElement('div');
+        tierDiv.className = 'upgrade-tier';
+        tierDiv.innerHTML = `<div class="upgrade-tier-title">${tier.toUpperCase()}</div><div class="upgrade-grid"></div>`;
+        
+        const grid = tierDiv.querySelector('.upgrade-grid');
+        upgrades[tier].forEach(upg => {
+          const purchased = gameData.purchasedUpgrades.includes(upg.id);
+          const locked = upg.requires && !upg.requires.every(r => gameData.purchasedUpgrades.includes(r));
+          
+          const node = document.createElement('div');
+          node.className = `upgrade-node ${purchased ? 'purchased' : ''} ${locked ? 'locked' : ''}`;
+          node.innerHTML = `
+            <div class="upgrade-name">${upg.name}</div>
+            <div class="upgrade-cost">${upg.cost.coins} 💰 ${upg.cost.gems || 0} 💎</div>
+            <div style="font-size: 12px; color: #aaa;">${upg.effect}</div>
+            ${purchased ? '<div style="color: #00ff00; margin-top: 8px;">✓ PURCHASED</div>' : ''}
+          `;
+          
+          if (!purchased && !locked) {
+            node.onclick = () => purchaseUpgrade(upg);
+          }
+          
+          grid.appendChild(node);
+        });
+        
+        content.appendChild(tierDiv);
+      });
+    }
+
+    function purchaseUpgrade(upgrade) {
+      if (gameData.coins >= upgrade.cost.coins && gameData.gems >= (upgrade.cost.gems || 0)) {
+        gameData.coins -= upgrade.cost.coins;
+        gameData.gems -= (upgrade.cost.gems || 0);
+        gameData.purchasedUpgrades.push(upgrade.id);
+        saveGameData();
+        updateAllDisplays();
+        renderUpgrades();
+        
+        // Celebration animation
+        const result = document.getElementById('codeResult');
+        result.innerHTML = `<div style="color: #00ff00; font-size: 20px;" class="celebration">✓ UPGRADE PURCHASED!</div>`;
+        setTimeout(() => { result.innerHTML = ''; }, 2000);
+      } else {
+        alert('Not enough currency!');
+      }
+    }
+
+    // REDEEM CODE
+    function openRedeemCode() {
+      document.getElementById('redeemModal').classList.add('active');
+      document.getElementById('codeInput').value = '';
+      document.getElementById('codeResult').innerHTML = '';
+    }
+
+    function closeRedeemCode() {
+      document.getElementById('redeemModal').classList.remove('active');
+    }
+
+    function redeemCode() {
+      const code = document.getElementById('codeInput').value.trim().toUpperCase();
+      const result = document.getElementById('codeResult');
+      
+      if (!code) {
+        result.innerHTML = '<div style="color: #ff0000;">Enter a code!</div>';
+        return;
+      }
+      
+      if (gameData.redeemedCodes.includes(code)) {
+        result.innerHTML = '<div style="color: #ff9900;">Already redeemed!</div>';
+        return;
+      }
+      
+      const reward = REDEEM_CODES[code];
+      if (!reward) {
+        result.innerHTML = '<div style="color: #ff0000;">Invalid code!</div>';
+        return;
+      }
+      
+      gameData.coins += reward.coins;
+      gameData.gems += reward.gems;
+      gameData.redeemedCodes.push(code);
+      saveGameData();
+      updateAllDisplays();
+      
+      result.innerHTML = `
+        <div style="color: #00ff00; font-size: 24px;" class="celebration">
+          ✓ CODE REDEEMED!<br>
+          💰 +${reward.coins} Coins<br>
+          💎 +${reward.gems} Gems
+        </div>
+      `;
+      
+      document.getElementById('codeInput').value = '';
+    }
+
+    // Start the game
+    init();
+  </script>
+</body>
+</html>
