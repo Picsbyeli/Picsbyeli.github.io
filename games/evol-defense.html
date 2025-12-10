@@ -242,9 +242,19 @@
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: #000;
+      /* Fallback gradient matching your map's aesthetic */
+      background: linear-gradient(
+        180deg,
+        #0a0a20 0%,
+        #1a2a40 15%,
+        #2a4a30 30%,
+        #4a2a20 50%,
+        #1a2a50 70%,
+        #0a1a30 100%
+      );
       display: none;
       z-index: 170;
+      overflow: hidden;
     }
     #overworldMap.active { display: block; }
     
@@ -252,6 +262,66 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      filter: brightness(0.9);
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+    
+    /* Fog of war overlay */
+    .fog-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+    
+    /* Character marker on map */
+    .player-marker {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      transform: translate(-50%, -50%);
+      z-index: 15;
+      pointer-events: none;
+      animation: playerBounce 1s ease-in-out infinite;
+    }
+    .player-marker::before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(0,255,255,0.4) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: playerGlow 2s ease-in-out infinite;
+    }
+    .player-marker::after {
+      content: "📍";
+      font-size: 32px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 0 10px #00ffff);
+    }
+    @keyframes playerBounce {
+      0%, 100% { transform: translate(-50%, -50%); }
+      50% { transform: translate(-50%, -60%); }
+    }
+    @keyframes playerGlow {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.3); }
+    }
+    
+    /* Map connection lines */
+    .map-connections {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
     }
     
     .map-node {
@@ -265,30 +335,131 @@
       align-items: center;
       justify-content: center;
       font-size: 20px;
+      z-index: 10;
+      transform: translate(-50%, -50%);
     }
     .map-node.locked {
-      background: rgba(100, 100, 100, 0.5);
-      border: 3px dashed #666;
+      background: rgba(50, 50, 50, 0.7);
+      border: 3px dashed #444;
       cursor: not-allowed;
+      opacity: 0.5;
+    }
+    .map-node.hidden {
+      display: none !important;
     }
     .map-node.unlocked {
-      background: rgba(0, 255, 255, 0.3);
+      background: rgba(0, 255, 255, 0.4);
       border: 3px solid #00ffff;
       animation: nodePulse 2s infinite;
     }
+    .map-node.current {
+      background: rgba(255, 255, 0, 0.5);
+      border: 4px solid #ffff00;
+      animation: currentPulse 1s infinite;
+      box-shadow: 0 0 30px #ffff00;
+    }
+    @keyframes currentPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.15); }
+    }
     .map-node.completed {
-      background: rgba(0, 255, 0, 0.3);
+      background: rgba(0, 255, 0, 0.4);
       border: 3px solid #00ff00;
     }
     .map-node.boss {
-      width: 60px;
-      height: 60px;
-      font-size: 30px;
+      width: 55px;
+      height: 55px;
+      font-size: 28px;
+      border-width: 4px;
     }
-    .map-node:hover:not(.locked) {
-      transform: scale(1.3);
+    .map-node.boss.unlocked {
+      border-color: #ff0000;
+      background: rgba(255, 0, 0, 0.4);
+      animation: bossPulse 1.5s infinite;
+    }
+    @keyframes bossPulse {
+      0%, 100% { box-shadow: 0 0 20px #ff0000; }
+      50% { box-shadow: 0 0 40px #ff0000, 0 0 60px #ff4400; }
+    }
+    .map-node:hover:not(.locked):not(.hidden) {
+      transform: translate(-50%, -50%) scale(1.3);
       box-shadow: 0 0 30px #00ffff;
+      z-index: 20;
     }
+    .map-node-label {
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 8px;
+      color: #fff;
+      text-shadow: 0 0 5px #000, 0 0 10px #000;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    
+    /* Mission tracker panel */
+    .mission-panel {
+      position: absolute;
+      top: 80px;
+      right: 15px;
+      width: 280px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid #ff8800;
+      border-radius: 10px;
+      padding: 15px;
+      z-index: 25;
+    }
+    .mission-title {
+      color: #ff8800;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mission-objective {
+      color: #ffff00;
+      font-size: 11px;
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+    }
+    .mission-objective::before {
+      content: "▶";
+      position: absolute;
+      left: 0;
+      color: #00ffff;
+    }
+    .mission-hint {
+      color: #888;
+      font-size: 9px;
+      font-style: italic;
+      margin-top: 10px;
+    }
+    
+    /* Region name display */
+    .region-banner {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, transparent, rgba(0,0,0,0.9) 20%, rgba(0,0,0,0.9) 80%, transparent);
+      padding: 15px 60px;
+      z-index: 25;
+      text-align: center;
+    }
+    .region-banner .region-name {
+      font-size: 20px;
+      color: #ffff00;
+      text-shadow: 0 0 20px #ff8800;
+    }
+    .region-banner .region-desc {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: 5px;
+    }
+    
     @keyframes nodePulse {
       0%, 100% { box-shadow: 0 0 10px #00ffff; }
       50% { box-shadow: 0 0 25px #00ffff, 0 0 40px #00ffff; }
@@ -303,6 +474,7 @@
       justify-content: space-between;
       align-items: flex-start;
       pointer-events: none;
+      z-index: 30;
     }
     .map-hud > * { pointer-events: auto; }
     
@@ -319,6 +491,62 @@
       border-radius: 10px;
       padding: 15px 20px;
       font-size: 14px;
+    }
+    
+    /* Boss dialogue overlay */
+    #bossDialogue {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 300;
+    }
+    #bossDialogue.active { display: flex; }
+    
+    .dialogue-box {
+      background: linear-gradient(135deg, #1a0030 0%, #300050 100%);
+      border: 4px solid #ff0000;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 800px;
+      text-align: center;
+      animation: dialogueAppear 0.5s ease-out;
+    }
+    @keyframes dialogueAppear {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .boss-portrait {
+      font-size: 100px;
+      margin-bottom: 20px;
+      animation: bossFloat 2s ease-in-out infinite;
+    }
+    @keyframes bossFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .boss-name-dialogue {
+      font-size: 28px;
+      color: #ff0000;
+      text-shadow: 0 0 20px #ff0000;
+      margin-bottom: 15px;
+    }
+    .dialogue-text {
+      font-family: 'Crimson Text', serif;
+      font-size: 20px;
+      color: #ffffff;
+      line-height: 1.6;
+      margin-bottom: 30px;
+      font-style: italic;
+    }
+    .dialogue-continue {
+      color: #00ffff;
+      font-size: 14px;
+      animation: blink 1s infinite;
     }
     
     /* Level Modal */
@@ -946,10 +1174,14 @@
     
     <!-- Overworld Map -->
     <div id="overworldMap">
-      <img id="mapImage" src="evol-map.png" alt="Overworld Map">
+      <!-- IMPORTANT: Place your map image in games/story-map.png or update the src below -->
+      <img id="mapImage" src="story-map.png" alt="Overworld Map" onerror="this.style.display='none'">
+      <canvas id="fogCanvas" class="fog-overlay"></canvas>
+      <svg class="map-connections" id="mapConnections"></svg>
+      <div class="player-marker" id="playerMarker"></div>
       <div class="map-hud">
         <div class="map-info">
-          <div style="color: #ffff00; font-size: 14px; margin-bottom: 5px;">📍 <span id="mapRegion">Starter Village</span></div>
+          <div style="color: #ffff00; font-size: 14px; margin-bottom: 5px;">📍 <span id="mapRegion">Beginner Village</span></div>
           <div style="color: #aaa; font-size: 10px;">🗺️ Story Progress: <span id="mapProgress">0</span>%</div>
         </div>
         <div class="map-currency">
@@ -957,8 +1189,27 @@
           <div>💎 <span id="mapGems">0</span></div>
         </div>
       </div>
+      <div class="mission-panel" id="missionPanel">
+        <div class="mission-title">📋 CURRENT MISSION</div>
+        <div class="mission-objective" id="missionObjective">Defeat the Shadow Beast</div>
+        <div class="mission-hint" id="missionHint">Tip: Follow the glowing path to your next objective!</div>
+      </div>
+      <div class="region-banner" id="regionBanner">
+        <div class="region-name" id="regionName">Beginner Village</div>
+        <div class="region-desc" id="regionDesc">Where every legend begins...</div>
+      </div>
       <button class="back-btn" id="mapBackBtn">←</button>
       <div id="mapNodes"></div>
+    </div>
+    
+    <!-- Boss Dialogue -->
+    <div id="bossDialogue">
+      <div class="dialogue-box">
+        <div class="boss-portrait" id="bossPortrait">👹</div>
+        <div class="boss-name-dialogue" id="bossNameDialogue">Unknown Boss</div>
+        <div class="dialogue-text" id="dialogueText">"Prepare yourself, warrior..."</div>
+        <div class="dialogue-continue">[ Press SPACE or Click to Continue ]</div>
+      </div>
     </div>
     
     <!-- Level Modal -->
@@ -1215,8 +1466,9 @@ const DEFAULT_GAME_DATA = {
   storyProgress: 0,
   completedNodes: [],
   unlockedNodes: ["start"],
-  currentRegion: "beginner",
-  keyShards: { crystal: false, abyss: false, frozen: false, blazing: false, tide: false },
+  currentRegion: "Beginner Village",
+  playerPosition: "start",
+  keyShards: { water: false, fire: false },
   unlockedClasses: ["Hunter", "Knight", "Assassin"], // STARTERS: Hunter, Knight, Assassin
   purchasedClasses: [],
   highestWave: 1,
@@ -1947,37 +2199,281 @@ const REDEEM_CODES = {
   "POWERUP": { coins: 5000, gems: 0, message: "POWER OVERWHELMING!" }
 };
 
-// ==================== MAP NODES ====================
+// ==================== MAP NODES - MATCHES PROVIDED MAP IMAGE ====================
+// Coordinates are percentages matching the pixel-art map with branching paths
 const MAP_NODES = [
-  // Starter Village (6 nodes)
-  { id: "start", name: "Village Gate", region: "beginner", type: "normal", x: 12, y: 75, waves: 5, difficulty: 1, rewards: { coins: 50 }, unlocks: ["forest1"], description: "The journey begins here..." },
-  { id: "forest1", name: "Forest Path", region: "beginner", type: "normal", x: 18, y: 65, waves: 8, difficulty: 2, rewards: { coins: 80 }, unlocks: ["forest2", "cave1"], requiredNodes: ["start"] },
-  { id: "forest2", name: "Deep Woods", region: "beginner", type: "elite", x: 25, y: 55, waves: 10, difficulty: 3, rewards: { coins: 150, gems: 5 }, unlocks: ["boss1"], requiredNodes: ["forest1"] },
-  { id: "cave1", name: "Dark Cave", region: "beginner", type: "normal", x: 22, y: 78, waves: 8, difficulty: 2, rewards: { coins: 100 }, unlocks: ["boss1"], requiredNodes: ["forest1"] },
-  { id: "shop1", name: "Merchant's Rest", region: "beginner", type: "shop", x: 28, y: 70, waves: 0, difficulty: 0, rewards: {}, unlocks: [], requiredNodes: ["forest1"] },
-  { id: "boss1", name: "Shadow Beast Lair", region: "beginner", type: "boss", x: 35, y: 60, waves: 15, difficulty: 5, rewards: { coins: 500, gems: 25, classUnlock: "Archer" }, unlocks: ["crimson1"], requiredNodes: ["forest2", "cave1"], bossName: "Shadow Beast" },
+  // ==================== BEGINNER VILLAGE (Green Area - Top Left) ====================
+  { id: "start", name: "Village Gate", region: "Beginner Village", type: "start", x: 11, y: 34, waves: 5, difficulty: 1, rewards: { coins: 50 }, 
+    unlocks: ["path1a", "path1b"], description: "Your journey begins at the village gate. Prove your worth!", 
+    revealed: true, noEnemySpawns: true },
   
-  // Crimson Forest (8 nodes)
-  { id: "crimson1", name: "Crimson Gate", region: "crimson", type: "normal", x: 42, y: 55, waves: 12, difficulty: 4, rewards: { coins: 200 }, unlocks: ["crimson2", "crimson3"], requiredNodes: ["boss1"] },
-  { id: "crimson2", name: "Blood Grove", region: "crimson", type: "elite", x: 48, y: 45, waves: 15, difficulty: 5, rewards: { coins: 300, gems: 10 }, unlocks: ["shrine1"], requiredNodes: ["crimson1"] },
-  { id: "crimson3", name: "Thorned Path", region: "crimson", type: "normal", x: 50, y: 65, waves: 12, difficulty: 4, rewards: { coins: 250 }, unlocks: ["crimson4"], requiredNodes: ["crimson1"] },
-  { id: "shrine1", name: "Ancient Shrine", region: "crimson", type: "shrine", x: 55, y: 38, waves: 10, difficulty: 3, rewards: { gems: 20 }, unlocks: ["boss2"], requiredNodes: ["crimson2"] },
-  { id: "crimson4", name: "Burning Clearing", region: "crimson", type: "elite", x: 58, y: 58, waves: 18, difficulty: 6, rewards: { coins: 400, gems: 15 }, unlocks: ["boss2"], requiredNodes: ["crimson3"] },
-  { id: "shop2", name: "Forest Bazaar", region: "crimson", type: "shop", x: 52, y: 52, waves: 0, difficulty: 0, rewards: {}, unlocks: [], requiredNodes: ["crimson1"] },
-  { id: "boss2", name: "Bloodwood Heart", region: "crimson", type: "boss", x: 65, y: 48, waves: 20, difficulty: 7, rewards: { coins: 1000, gems: 50, keyShard: "blazing" }, unlocks: ["crystal1"], requiredNodes: ["shrine1", "crimson4"], bossName: "Bloodwood Guardian" },
+  { id: "path1a", name: "Forest Path", region: "Beginner Village", type: "normal", x: 17, y: 26, waves: 6, difficulty: 1, rewards: { coins: 75 }, 
+    unlocks: ["path2a"], requiredNodes: ["start"], description: "A winding path through ancient trees." },
   
-  // Crystal Caves (5 nodes)
-  { id: "crystal1", name: "Crystal Entrance", region: "crystal", type: "normal", x: 72, y: 42, waves: 18, difficulty: 6, rewards: { coins: 350 }, unlocks: ["crystal2", "crystal3"], requiredNodes: ["boss2"] },
-  { id: "crystal2", name: "Gem Caverns", region: "crystal", type: "elite", x: 78, y: 35, waves: 20, difficulty: 7, rewards: { coins: 500, gems: 30 }, unlocks: ["boss3"], requiredNodes: ["crystal1"] },
-  { id: "crystal3", name: "Mirror Lake", region: "crystal", type: "shrine", x: 80, y: 50, waves: 15, difficulty: 5, rewards: { gems: 40, classUnlock: "Wizard" }, unlocks: ["boss3"], requiredNodes: ["crystal1"] },
-  { id: "shop3", name: "Crystal Market", region: "crystal", type: "shop", x: 75, y: 55, waves: 0, difficulty: 0, rewards: {}, unlocks: [], requiredNodes: ["crystal1"] },
-  { id: "boss3", name: "Crystal Core", region: "crystal", type: "boss", x: 88, y: 40, waves: 25, difficulty: 8, rewards: { coins: 2000, gems: 100, keyShard: "crystal" }, unlocks: ["final1"], requiredNodes: ["crystal2", "crystal3"], bossName: "Crystal Golem" },
+  { id: "path1b", name: "Meadow Road", region: "Beginner Village", type: "normal", x: 17, y: 42, waves: 6, difficulty: 1, rewards: { coins: 75 }, 
+    unlocks: ["path2b"], requiredNodes: ["start"], description: "Peaceful meadows... for now." },
   
-  // Final Area - Forgotten City (4 nodes)
-  { id: "final1", name: "Forgotten Gates", region: "forgotten", type: "locked", x: 45, y: 25, waves: 30, difficulty: 9, rewards: { coins: 3000, gems: 150 }, unlocks: ["final2"], requiredNodes: ["boss3"], requiredKeys: ["crystal", "blazing"] },
-  { id: "final2", name: "Ruined Plaza", region: "forgotten", type: "elite", x: 52, y: 18, waves: 35, difficulty: 9, rewards: { coins: 4000, gems: 200 }, unlocks: ["finalboss"], requiredNodes: ["final1"] },
-  { id: "finalboss", name: "Throne of Memories", region: "forgotten", type: "boss", x: 60, y: 12, waves: 50, difficulty: 10, rewards: { coins: 10000, gems: 500, classUnlock: "Vecna" }, unlocks: [], requiredNodes: ["final2"], bossName: "Memory Devourer" }
+  { id: "path2a", name: "Deep Woods", region: "Beginner Village", type: "normal", x: 23, y: 18, waves: 7, difficulty: 2, rewards: { coins: 100 }, 
+    unlocks: ["path3a", "village_shop"], requiredNodes: ["path1a"], description: "The forest grows darker here." },
+  
+  { id: "path2b", name: "Old Bridge", region: "Beginner Village", type: "normal", x: 23, y: 38, waves: 7, difficulty: 2, rewards: { coins: 100 }, 
+    unlocks: ["path3b", "village_shop"], requiredNodes: ["path1b"], description: "A rickety bridge over rushing waters." },
+  
+  { id: "village_shop", name: "Village Market", region: "Beginner Village", type: "shop", x: 28, y: 28, waves: 0, difficulty: 0, rewards: {}, 
+    unlocks: [], requiredNodes: ["path2a", "path2b"], description: "Stock up on supplies before the boss!" },
+  
+  { id: "path3a", name: "Forest Edge", region: "Beginner Village", type: "elite", x: 30, y: 12, waves: 8, difficulty: 3, rewards: { coins: 150, gems: 5 }, 
+    unlocks: ["boss1"], requiredNodes: ["path2a"], description: "Elite enemies guard the path ahead." },
+  
+  { id: "path3b", name: "Hidden Grove", region: "Beginner Village", type: "elite", x: 30, y: 44, waves: 8, difficulty: 3, rewards: { coins: 150, gems: 5 }, 
+    unlocks: ["boss1"], requiredNodes: ["path2b"], description: "Something lurks in the shadows..." },
+  
+  { id: "boss1", name: "Shadow Beast Lair", region: "Beginner Village", type: "boss", x: 38, y: 10, waves: 12, difficulty: 4, 
+    rewards: { coins: 500, gems: 25, classUnlock: "Archer" }, unlocks: ["crimson_gate"], requiredNodes: ["path3a", "path3b"], 
+    bossName: "Shadow Beast", bossIcon: "🐺", noEnemySpawns: true,
+    description: "The Shadow Beast awaits. Defeat it to unlock the Crimson Forest!" },
+  
+  // ==================== CRIMSON FOREST (Red Area - Center) ====================
+  { id: "crimson_gate", name: "Crimson Gate", region: "Crimson Forest", type: "normal", x: 43, y: 26, waves: 10, difficulty: 4, rewards: { coins: 200 }, 
+    unlocks: ["crimson_path1", "crimson_path2"], requiredNodes: ["boss1"], description: "The forest bleeds red..." },
+  
+  { id: "crimson_path1", name: "Blood Grove", region: "Crimson Forest", type: "normal", x: 48, y: 18, waves: 11, difficulty: 5, rewards: { coins: 250 }, 
+    unlocks: ["crimson_elite1"], requiredNodes: ["crimson_gate"], description: "Trees drip with crimson sap." },
+  
+  { id: "crimson_path2", name: "Thorned Path", region: "Crimson Forest", type: "normal", x: 48, y: 36, waves: 11, difficulty: 5, rewards: { coins: 250 }, 
+    unlocks: ["crimson_elite2"], requiredNodes: ["crimson_gate"], description: "Deadly thorns block the way." },
+  
+  { id: "crimson_elite1", name: "Ancient Shrine", region: "Crimson Forest", type: "shrine", x: 55, y: 12, waves: 12, difficulty: 5, rewards: { gems: 30 }, 
+    unlocks: ["boss2"], requiredNodes: ["crimson_path1"], description: "A forgotten shrine of power." },
+  
+  { id: "crimson_shop", name: "Forest Bazaar", region: "Crimson Forest", type: "shop", x: 55, y: 26, waves: 0, difficulty: 0, rewards: {}, 
+    unlocks: [], requiredNodes: ["crimson_gate"], description: "A mysterious merchant awaits." },
+  
+  { id: "crimson_elite2", name: "Burning Clearing", region: "Crimson Forest", type: "elite", x: 55, y: 42, waves: 14, difficulty: 6, rewards: { coins: 350, gems: 15 }, 
+    unlocks: ["boss2"], requiredNodes: ["crimson_path2"], description: "The ground smolders with ancient fire." },
+  
+  { id: "boss2", name: "Bloodwood Heart", region: "Crimson Forest", type: "boss", x: 65, y: 24, waves: 15, difficulty: 6, 
+    rewards: { coins: 1000, gems: 50, classUnlock: "Wizard" }, unlocks: ["mountain_pass", "cave_entrance"], requiredNodes: ["crimson_elite1", "crimson_elite2"], 
+    bossName: "Bloodwood Guardian", bossIcon: "🌲", noEnemySpawns: true,
+    description: "The heart of the corrupted forest beats with malice." },
+  
+  // ==================== UNDERWATER CAVE (Blue Area - Left Side) ====================
+  { id: "cave_entrance", name: "Cave Entrance", region: "Underwater Cave", type: "normal", x: 15, y: 52, waves: 12, difficulty: 5, rewards: { coins: 280 }, 
+    unlocks: ["cave_depths"], requiredNodes: ["boss2"], description: "Crystal formations light the way." },
+  
+  { id: "cave_depths", name: "Crystal Caverns", region: "Underwater Cave", type: "normal", x: 18, y: 64, waves: 14, difficulty: 6, rewards: { coins: 320, gems: 10 }, 
+    unlocks: ["cave_lake", "cave_shrine"], requiredNodes: ["cave_entrance"], description: "Glittering gems surround you." },
+  
+  { id: "cave_shrine", name: "Underwater Shrine", region: "Underwater Cave", type: "shrine", x: 12, y: 75, waves: 10, difficulty: 4, rewards: { gems: 40 }, 
+    unlocks: ["cave_boss"], requiredNodes: ["cave_depths"], description: "An ancient altar beneath the waves." },
+  
+  { id: "cave_lake", name: "Submerged Lake", region: "Underwater Cave", type: "elite", x: 22, y: 78, waves: 16, difficulty: 7, rewards: { coins: 400, gems: 20 }, 
+    unlocks: ["cave_boss"], requiredNodes: ["cave_depths"], description: "The lake glows with bioluminescence." },
+  
+  { id: "cave_boss", name: "Leviathan's Rest", region: "Underwater Cave", type: "boss", x: 16, y: 88, waves: 18, difficulty: 7, 
+    rewards: { coins: 1500, gems: 75, keyShard: "water" }, unlocks: ["forgotten_gate"], requiredNodes: ["cave_shrine", "cave_lake"], 
+    bossName: "Crystal Leviathan", bossIcon: "🐙", noEnemySpawns: true,
+    description: "The Leviathan guards the water key shard." },
+  
+  // ==================== MOUNTAIN PEAKS (Top Right Area) ====================  
+  { id: "mountain_pass", name: "Mountain Pass", region: "Mountain Peaks", type: "normal", x: 72, y: 14, waves: 14, difficulty: 6, rewards: { coins: 350 }, 
+    unlocks: ["mountain_path1", "mountain_path2"], requiredNodes: ["boss2"], description: "The air grows thin and cold." },
+  
+  { id: "mountain_path1", name: "Frozen Trail", region: "Mountain Peaks", type: "normal", x: 78, y: 8, waves: 15, difficulty: 7, rewards: { coins: 400 }, 
+    unlocks: ["mountain_shrine"], requiredNodes: ["mountain_pass"], description: "Ice covers every surface." },
+  
+  { id: "mountain_path2", name: "Rocky Ascent", region: "Mountain Peaks", type: "elite", x: 78, y: 22, waves: 16, difficulty: 7, rewards: { coins: 450, gems: 25 }, 
+    unlocks: ["mountain_boss"], requiredNodes: ["mountain_pass"], description: "Treacherous cliffs and fierce winds." },
+  
+  { id: "mountain_shrine", name: "Summit Temple", region: "Mountain Peaks", type: "shrine", x: 85, y: 6, waves: 12, difficulty: 5, rewards: { gems: 50, classUnlock: "Paladin" }, 
+    unlocks: ["mountain_boss"], requiredNodes: ["mountain_path1"], description: "A temple at the peak of the world." },
+  
+  { id: "mountain_boss", name: "Dragon's Perch", region: "Mountain Peaks", type: "boss", x: 88, y: 16, waves: 20, difficulty: 8, 
+    rewards: { coins: 2000, gems: 100, keyShard: "fire" }, unlocks: ["forgotten_gate"], requiredNodes: ["mountain_path2", "mountain_shrine"], 
+    bossName: "Elder Frost Dragon", bossIcon: "🐉", noEnemySpawns: true,
+    description: "The ancient dragon guards the fire key shard." },
+  
+  // ==================== FORGOTTEN CITY (Bottom Center - Final Area) ====================
+  { id: "forgotten_gate", name: "Forgotten Gates", region: "Forgotten City", type: "locked", x: 55, y: 72, waves: 22, difficulty: 8, rewards: { coins: 2500, gems: 120 }, 
+    unlocks: ["forgotten_path"], requiredNodes: ["cave_boss", "mountain_boss"], requiredKeys: ["water", "fire"], 
+    description: "The gates require two key shards to open..." },
+  
+  { id: "forgotten_path", name: "Ruined Streets", region: "Forgotten City", type: "elite", x: 60, y: 82, waves: 25, difficulty: 9, rewards: { coins: 3000, gems: 150 }, 
+    unlocks: ["forgotten_plaza"], requiredNodes: ["forgotten_gate"], description: "Echoes of a lost civilization." },
+  
+  { id: "forgotten_plaza", name: "Central Plaza", region: "Forgotten City", type: "elite", x: 68, y: 88, waves: 28, difficulty: 9, rewards: { coins: 3500, gems: 175 }, 
+    unlocks: ["final_boss"], requiredNodes: ["forgotten_path"], description: "The heart of the ancient city." },
+  
+  { id: "final_boss", name: "Throne of Memories", region: "Forgotten City", type: "boss", x: 75, y: 92, waves: 35, difficulty: 10, 
+    rewards: { coins: 10000, gems: 500, classUnlock: "Vecna" }, unlocks: [], requiredNodes: ["forgotten_plaza"], 
+    bossName: "Memory Devourer", bossIcon: "☠️", noEnemySpawns: true,
+    description: "The final battle. Reclaim your memories and end this nightmare!" }
 ];
+
+// ==================== REGION DEFINITIONS ====================
+const REGIONS = {
+  "Beginner Village": { color: "#88ff88", desc: "Where every legend begins...", bgMusic: "village" },
+  "Crimson Forest": { color: "#ff4444", desc: "Blood-red trees and ancient evil...", bgMusic: "crimson" },
+  "Underwater Cave": { color: "#4488ff", desc: "Crystal caverns beneath the waves...", bgMusic: "cave" },
+  "Mountain Peaks": { color: "#aaddff", desc: "Frozen heights and dragon's breath...", bgMusic: "mountain" },
+  "Forgotten City": { color: "#ff8800", desc: "Ruins of a forgotten age...", bgMusic: "forgotten" }
+};
+
+// ==================== BOSS DIALOGUES ====================
+const BOSS_DIALOGUES = {
+  "Shadow Beast": {
+    icon: "🐺",
+    color: "#8844aa",
+    dialogues: [
+      { speaker: "boss", text: "Another fool stumbles into my lair... How delightful." },
+      { speaker: "boss", text: "The shadows have whispered of your coming, little warrior." },
+      { speaker: "boss", text: "But shadows also consume... as you will soon discover!" },
+      { speaker: "player", text: "I will not fall to darkness!" }
+    ]
+  },
+  "Bloodwood Guardian": {
+    icon: "🌲",
+    color: "#aa0000",
+    dialogues: [
+      { speaker: "boss", text: "You dare tread upon sacred ground?" },
+      { speaker: "boss", text: "This forest has stood for millennia... fed by the blood of intruders." },
+      { speaker: "boss", text: "Your essence will nourish my roots for centuries to come!" },
+      { speaker: "player", text: "Your corruption ends today, monster!" }
+    ]
+  },
+  "Crystal Leviathan": {
+    icon: "🐙",
+    color: "#0088ff",
+    dialogues: [
+      { speaker: "boss", text: "The depths welcome you, surface dweller..." },
+      { speaker: "boss", text: "None who enter my domain ever leave." },
+      { speaker: "boss", text: "The crystals will preserve your bones... forever!" },
+      { speaker: "player", text: "I need that key shard - nothing will stop me!" }
+    ]
+  },
+  "Elder Frost Dragon": {
+    icon: "🐉",
+    color: "#00ddff",
+    dialogues: [
+      { speaker: "boss", text: "A mortal dares climb to MY peak?" },
+      { speaker: "boss", text: "I have seen empires rise and fall. You are but a fleeting moment." },
+      { speaker: "boss", text: "Your frozen corpse will decorate my hoard!" },
+      { speaker: "player", text: "Even legends can fall, dragon!" }
+    ]
+  },
+  "Memory Devourer": {
+    icon: "☠️",
+    color: "#ff4400",
+    dialogues: [
+      { speaker: "boss", text: "At last... you have come to remember." },
+      { speaker: "boss", text: "I am the one who stole your past. Your identity. Your very self." },
+      { speaker: "boss", text: "And now I will consume what remains!" },
+      { speaker: "player", text: "My memories... they're coming back. You took EVERYTHING from me!" },
+      { speaker: "boss", text: "Then come, forgotten warrior. Let us end this tale together!" }
+    ]
+  }
+};
+
+// ==================== STORY MISSIONS ====================
+const STORY_MISSIONS = {
+  "start": { objective: "Begin your journey at the Village Gate", hint: "Click on the glowing node to start!" },
+  "boss1": { objective: "Defeat the Shadow Beast", hint: "Complete both paths to unlock the boss!" },
+  "boss2": { objective: "Purify the Bloodwood Guardian", hint: "The Crimson Forest hides dark secrets..." },
+  "cave_boss": { objective: "Obtain the Water Key Shard", hint: "Explore the underwater caves to find it." },
+  "mountain_boss": { objective: "Obtain the Fire Key Shard", hint: "Brave the frozen peaks to claim it." },
+  "forgotten_gate": { objective: "Open the Forgotten Gates", hint: "You need both key shards!" },
+  "final_boss": { objective: "Confront the Memory Devourer", hint: "Your destiny awaits..." }
+};
+
+// ==================== BACKGROUND MUSIC SYSTEM ====================
+let bgMusicOscillators = [];
+let bgMusicPlaying = false;
+let currentBgMusic = null;
+
+function playBackgroundMusic(type) {
+  if (!gameData?.settings?.musicVolume || currentBgMusic === type) return;
+  
+  stopBackgroundMusic();
+  currentBgMusic = type;
+  bgMusicPlaying = true;
+  
+  const volume = (gameData.settings.musicVolume || 30) / 100 * 0.15;
+  
+  // Create ambient music based on region
+  const musicPatterns = {
+    village: { baseFreq: 220, type: "sine", tempo: 0.5 },
+    crimson: { baseFreq: 165, type: "triangle", tempo: 0.7 },
+    cave: { baseFreq: 147, type: "sine", tempo: 0.4 },
+    mountain: { baseFreq: 196, type: "triangle", tempo: 0.6 },
+    forgotten: { baseFreq: 130, type: "sawtooth", tempo: 0.8 },
+    battle: { baseFreq: 110, type: "sawtooth", tempo: 1.2 },
+    boss: { baseFreq: 82, type: "sawtooth", tempo: 1.5 }
+  };
+  
+  const pattern = musicPatterns[type] || musicPatterns.village;
+  
+  // Create continuous ambient drone
+  function createDrone() {
+    if (!bgMusicPlaying) return;
+    
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.type = pattern.type;
+    osc.frequency.setValueAtTime(pattern.baseFreq, audioContext.currentTime);
+    gain.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+    
+    // Slow frequency modulation for ambience
+    osc.frequency.linearRampToValueAtTime(pattern.baseFreq * 1.02, audioContext.currentTime + 2);
+    osc.frequency.linearRampToValueAtTime(pattern.baseFreq * 0.98, audioContext.currentTime + 4);
+    osc.frequency.linearRampToValueAtTime(pattern.baseFreq, audioContext.currentTime + 6);
+    
+    osc.start();
+    osc.stop(audioContext.currentTime + 6);
+    bgMusicOscillators.push(osc);
+    
+    setTimeout(createDrone, 5500);
+  }
+  
+  // Create melodic notes
+  function playMelody() {
+    if (!bgMusicPlaying) return;
+    
+    const notes = [1, 1.25, 1.5, 1.33, 1.125, 1];
+    const noteIndex = Math.floor(Math.random() * notes.length);
+    
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(pattern.baseFreq * 2 * notes[noteIndex], audioContext.currentTime);
+    gain.gain.setValueAtTime(0, audioContext.currentTime);
+    gain.gain.linearRampToValueAtTime(volume * 0.2, audioContext.currentTime + 0.1);
+    gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1);
+    
+    osc.start();
+    osc.stop(audioContext.currentTime + 1);
+    bgMusicOscillators.push(osc);
+    
+    setTimeout(playMelody, (2000 + Math.random() * 3000) / pattern.tempo);
+  }
+  
+  createDrone();
+  setTimeout(playMelody, 1000);
+}
+
+function stopBackgroundMusic() {
+  bgMusicPlaying = false;
+  currentBgMusic = null;
+  bgMusicOscillators.forEach(osc => {
+    try { osc.stop(); } catch(e) {}
+  });
+  bgMusicOscillators = [];
+}
 
 // ==================== UPGRADE TYPES (In-Game) ====================
 const UPGRADE_TYPES = {
@@ -2531,9 +3027,26 @@ function showRedeem() {
 }
 
 // ==================== MAP RENDERING ====================
+let playerPosition = "start"; // Current player position on map
+
 function renderMapNodes() {
   const container = document.getElementById("mapNodes");
   container.innerHTML = "";
+  
+  // Determine current player position (last completed or first unlocked)
+  updatePlayerPosition();
+  
+  // Render connections between nodes
+  renderMapConnections();
+  
+  // Render fog of war
+  renderFogOfWar();
+  
+  // Update mission panel
+  updateMissionPanel();
+  
+  // Update region banner
+  updateRegionBanner();
   
   MAP_NODES.forEach(node => {
     const div = document.createElement("div");
@@ -2541,50 +3054,267 @@ function renderMapNodes() {
     
     // Determine node state
     let state = "locked";
-    if (gameData.completedNodes.includes(node.id)) {
+    const isRevealed = isNodeRevealed(node);
+    
+    if (!isRevealed) {
+      state = "hidden";
+    } else if (gameData.completedNodes.includes(node.id)) {
       state = "completed";
     } else if (gameData.unlockedNodes.includes(node.id)) {
       // Check if keys are required
       if (node.requiredKeys) {
-        const hasAllKeys = node.requiredKeys.every(key => gameData.keyShards[key]);
+        const hasAllKeys = node.requiredKeys.every(key => gameData.keyShards && gameData.keyShards[key]);
         state = hasAllKeys ? "unlocked" : "locked";
       } else {
         state = "unlocked";
       }
     }
     
+    // Check if this is current position
+    const isCurrent = node.id === playerPosition;
+    
     div.classList.add(state);
     if (node.type === "boss") div.classList.add("boss");
+    if (isCurrent && state !== "hidden") div.classList.add("current");
     
-    // Position
+    // Position (using transform for centering)
     div.style.left = node.x + "%";
     div.style.top = node.y + "%";
     
-    // Icon
+    // Icon based on type
     const icons = {
+      start: "🏠",
       normal: "⚔️",
       elite: "⭐",
-      boss: "👑",
+      boss: node.bossIcon || "👑",
       shop: "🛒",
       shrine: "🏛️",
       locked: "🔒"
     };
-    div.textContent = state === "completed" ? "✅" : icons[node.type] || "⚔️";
+    
+    if (state === "completed") {
+      div.textContent = "✅";
+    } else if (state === "locked" && node.requiredKeys) {
+      div.textContent = "🔐";
+    } else {
+      div.textContent = icons[node.type] || "⚔️";
+    }
+    
+    // Add node label
+    if (state !== "hidden") {
+      const label = document.createElement("div");
+      label.className = "map-node-label";
+      label.textContent = node.name;
+      div.appendChild(label);
+    }
     
     // Click handler
-    if (state === "unlocked") {
+    if (state === "unlocked" || (state === "completed" && node.type === "shop")) {
       div.addEventListener("click", () => selectNode(node));
     }
     
     // Tooltip on hover
-    div.title = `${node.name} (${state})`;
+    div.title = state === "hidden" ? "???" : `${node.name} - ${state}`;
     
     container.appendChild(div);
   });
+  
+  // Position player marker
+  positionPlayerMarker();
+  
+  // Update currency display
+  document.getElementById("mapCoins").textContent = gameData.totalCoins;
+  document.getElementById("mapGems").textContent = gameData.totalGems;
+}
+
+function updatePlayerPosition() {
+  // Find the furthest completed node or first unlocked
+  const completedNodes = gameData.completedNodes || [];
+  
+  if (completedNodes.length === 0) {
+    playerPosition = "start";
+    return;
+  }
+  
+  // Find last completed node that has unlocked children
+  for (let i = MAP_NODES.length - 1; i >= 0; i--) {
+    const node = MAP_NODES[i];
+    if (completedNodes.includes(node.id)) {
+      // Check if there are unlocked children
+      const unlockedChildren = node.unlocks.filter(id => 
+        gameData.unlockedNodes.includes(id) && !completedNodes.includes(id)
+      );
+      if (unlockedChildren.length > 0) {
+        playerPosition = unlockedChildren[0];
+        return;
+      }
+    }
+  }
+  
+  // Default to last completed
+  playerPosition = completedNodes[completedNodes.length - 1];
+}
+
+function positionPlayerMarker() {
+  const marker = document.getElementById("playerMarker");
+  const node = MAP_NODES.find(n => n.id === playerPosition);
+  
+  if (node && marker) {
+    marker.style.left = node.x + "%";
+    marker.style.top = node.y + "%";
+    marker.style.display = "block";
+  }
+}
+
+function renderMapConnections() {
+  const svg = document.getElementById("mapConnections");
+  svg.innerHTML = "";
+  
+  MAP_NODES.forEach(node => {
+    if (!node.unlocks) return;
+    
+    const nodeRevealed = isNodeRevealed(node);
+    
+    node.unlocks.forEach(targetId => {
+      const target = MAP_NODES.find(n => n.id === targetId);
+      if (!target) return;
+      
+      const targetRevealed = isNodeRevealed(target);
+      if (!nodeRevealed && !targetRevealed) return;
+      
+      // Determine line color based on state
+      let color = "#333"; // Hidden
+      let dasharray = "5,5";
+      
+      if (gameData.completedNodes.includes(node.id) && gameData.unlockedNodes.includes(targetId)) {
+        color = "#00ff00";
+        dasharray = "none";
+      } else if (gameData.unlockedNodes.includes(node.id)) {
+        color = "#00ffff";
+        dasharray = "none";
+      }
+      
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", node.x + "%");
+      line.setAttribute("y1", node.y + "%");
+      line.setAttribute("x2", target.x + "%");
+      line.setAttribute("y2", target.y + "%");
+      line.setAttribute("stroke", color);
+      line.setAttribute("stroke-width", "3");
+      line.setAttribute("stroke-dasharray", dasharray);
+      line.setAttribute("stroke-linecap", "round");
+      
+      svg.appendChild(line);
+    });
+  });
+}
+
+function renderFogOfWar() {
+  const canvas = document.getElementById("fogCanvas");
+  const ctx = canvas.getContext("2d");
+  
+  canvas.width = 1200;
+  canvas.height = 700;
+  
+  // Start with full fog
+  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Clear areas around revealed nodes
+  ctx.globalCompositeOperation = "destination-out";
+  
+  MAP_NODES.forEach(node => {
+    if (isNodeRevealed(node)) {
+      const x = (node.x / 100) * canvas.width;
+      const y = (node.y / 100) * canvas.height;
+      const radius = node.type === "boss" ? 120 : 80;
+      
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+      gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+      gradient.addColorStop(0.7, "rgba(0, 0, 0, 0.8)");
+      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+  
+  ctx.globalCompositeOperation = "source-over";
+}
+
+function isNodeRevealed(node) {
+  // Start node is always revealed
+  if (node.id === "start" || node.revealed) return true;
+  
+  // Node is revealed if player has completed a node that unlocks it
+  // Or if any required node is completed
+  if (node.requiredNodes) {
+    for (const reqId of node.requiredNodes) {
+      if (gameData.completedNodes.includes(reqId)) return true;
+      if (gameData.unlockedNodes.includes(reqId)) return true;
+    }
+  }
+  
+  // Or if it's unlocked
+  return gameData.unlockedNodes.includes(node.id);
+}
+
+function updateMissionPanel() {
+  const panel = document.getElementById("missionPanel");
+  const objective = document.getElementById("missionObjective");
+  const hint = document.getElementById("missionHint");
+  
+  // Find current mission
+  let currentMission = STORY_MISSIONS["start"];
+  
+  // Check which boss is next
+  const bossNodes = MAP_NODES.filter(n => n.type === "boss");
+  for (const boss of bossNodes) {
+    if (!gameData.completedNodes.includes(boss.id)) {
+      if (STORY_MISSIONS[boss.id]) {
+        currentMission = STORY_MISSIONS[boss.id];
+      } else {
+        currentMission = { 
+          objective: `Defeat ${boss.bossName || boss.name}`, 
+          hint: `Find your way to ${boss.name}!` 
+        };
+      }
+      break;
+    }
+  }
+  
+  objective.textContent = currentMission.objective;
+  hint.textContent = currentMission.hint;
+}
+
+function updateRegionBanner() {
+  const node = MAP_NODES.find(n => n.id === playerPosition);
+  if (!node) return;
+  
+  const regionName = document.getElementById("regionName");
+  const regionDesc = document.getElementById("regionDesc");
+  const mapRegion = document.getElementById("mapRegion");
+  
+  const region = REGIONS[node.region];
+  
+  regionName.textContent = node.region;
+  regionName.style.color = region ? region.color : "#ffff00";
+  regionDesc.textContent = region ? region.desc : "";
+  mapRegion.textContent = node.region;
+  
+  // Play region music
+  if (region && region.bgMusic) {
+    playBackgroundMusic(region.bgMusic);
+  }
 }
 
 function selectNode(node) {
   selectedNode = node;
+  
+  // Play select sound
+  playSound("potion");
   
   document.getElementById("levelName").textContent = node.name;
   document.getElementById("levelDesc").textContent = node.description || "A challenging area awaits...";
@@ -2593,7 +3323,8 @@ function selectNode(node) {
   let rewardText = "";
   if (node.rewards.coins) rewardText += node.rewards.coins + " coins";
   if (node.rewards.gems) rewardText += (rewardText ? ", " : "") + node.rewards.gems + " gems";
-  if (node.rewards.classUnlock) rewardText += (rewardText ? ", " : "") + "Unlock: " + node.rewards.classUnlock;
+  if (node.rewards.classUnlock) rewardText += (rewardText ? ", " : "") + "🎭 Unlock: " + node.rewards.classUnlock;
+  if (node.rewards.keyShard) rewardText += (rewardText ? ", " : "") + "🔑 " + node.rewards.keyShard.toUpperCase() + " Key Shard";
   document.getElementById("levelRewards").textContent = rewardText || "Experience";
   
   document.getElementById("levelModal").classList.add("active");
@@ -2601,9 +3332,105 @@ function selectNode(node) {
 
 function enterLevel() {
   document.getElementById("levelModal").classList.remove("active");
+  
+  // Check if this is a boss with dialogue
+  if (selectedNode.type === "boss" && selectedNode.bossName && BOSS_DIALOGUES[selectedNode.bossName]) {
+    showBossDialogue(selectedNode.bossName, () => {
+      proceedToClassSelection();
+    });
+  } else if (selectedNode.type === "shop") {
+    // Go to shop instead of battle
+    showShop();
+  } else {
+    proceedToClassSelection();
+  }
+}
+
+function proceedToClassSelection() {
   maxWaves = selectedNode.waves || 20;
+  
+  // Check if boss has no enemy spawns
+  if (selectedNode.noEnemySpawns) {
+    // Boss fight only - set flag
+    window.bossOnlyFight = true;
+  } else {
+    window.bossOnlyFight = false;
+  }
+  
   document.getElementById("classSubtitle").textContent = `Select class for: ${selectedNode.name}`;
+  
+  // Stop map music, prepare for battle music
+  stopBackgroundMusic();
+  
   showClassSelection();
+}
+
+// ==================== BOSS DIALOGUE SYSTEM ====================
+let currentDialogue = null;
+let dialogueIndex = 0;
+let dialogueCallback = null;
+
+function showBossDialogue(bossName, callback) {
+  const dialogue = BOSS_DIALOGUES[bossName];
+  if (!dialogue) {
+    callback();
+    return;
+  }
+  
+  currentDialogue = dialogue;
+  dialogueIndex = 0;
+  dialogueCallback = callback;
+  
+  // Play boss music
+  playBackgroundMusic("boss");
+  playSound("boss");
+  
+  const overlay = document.getElementById("bossDialogue");
+  overlay.classList.add("active");
+  
+  updateDialogueDisplay();
+  
+  // Add click/key listener
+  const advanceDialogue = (e) => {
+    if (e.type === "keydown" && e.code !== "Space" && e.code !== "Enter") return;
+    
+    dialogueIndex++;
+    
+    if (dialogueIndex >= currentDialogue.dialogues.length) {
+      // End dialogue
+      overlay.classList.remove("active");
+      document.removeEventListener("keydown", advanceDialogue);
+      overlay.removeEventListener("click", advanceDialogue);
+      
+      if (dialogueCallback) dialogueCallback();
+    } else {
+      updateDialogueDisplay();
+    }
+  };
+  
+  document.addEventListener("keydown", advanceDialogue);
+  overlay.addEventListener("click", advanceDialogue);
+}
+
+function updateDialogueDisplay() {
+  if (!currentDialogue) return;
+  
+  const current = currentDialogue.dialogues[dialogueIndex];
+  const portrait = document.getElementById("bossPortrait");
+  const name = document.getElementById("bossNameDialogue");
+  const text = document.getElementById("dialogueText");
+  
+  if (current.speaker === "boss") {
+    portrait.textContent = currentDialogue.icon;
+    name.textContent = Object.keys(BOSS_DIALOGUES).find(k => BOSS_DIALOGUES[k] === currentDialogue);
+    name.style.color = currentDialogue.color;
+    text.textContent = `"${current.text}"`;
+  } else {
+    portrait.textContent = "⚔️";
+    name.textContent = gameData.warriorName || "Warrior";
+    name.style.color = "#00ffff";
+    text.textContent = `"${current.text}"`;
+  }
 }
 
 // ==================== CLASS SELECTION ====================
@@ -3203,11 +4030,92 @@ function handleSpawning(dt) {
     spawnTimer = 0;
     enemiesToSpawn--;
     
+    // Check if this is a boss-only fight (story mode boss nodes)
+    const isBossOnlyFight = window.bossOnlyFight && selectedNode && selectedNode.noEnemySpawns;
+    
+    // In boss-only fights, only spawn the boss on the last wave
+    if (isBossOnlyFight) {
+      // Only spawn boss on final wave
+      if (wave === maxWaves && enemiesToSpawn === calcEnemiesForWave(wave) - 1) {
+        spawnStoryBoss();
+        return;
+      }
+      // Spawn fewer enemies in boss-only fights
+      if (Math.random() < 0.3) return; // 30% chance to skip spawn
+    }
+    
     const isBoss = wave % 10 === 0 && enemiesToSpawn === calcEnemiesForWave(wave) - 1;
     const isMiniBoss = wave % 5 === 0 && !isBoss && enemiesToSpawn === calcEnemiesForWave(wave) - 1;
     
     spawnEnemy(isBoss, isMiniBoss);
   }
+}
+
+// Spawn story mode boss based on selected node
+function spawnStoryBoss() {
+  if (!selectedNode || !selectedNode.bossName) {
+    spawnEnemy(true, false);
+    return;
+  }
+  
+  const bossName = selectedNode.bossName;
+  let pattern = null;
+  
+  // Find matching boss pattern
+  for (const [key, p] of Object.entries(BOSS_PATTERNS)) {
+    if (p.name.includes(bossName) || bossName.includes(key)) {
+      pattern = { ...p, key };
+      break;
+    }
+  }
+  
+  // Story boss stats based on node
+  const size = pattern?.size || 90;
+  const hp = getEnemyHP(wave, true, false) * (selectedNode.difficulty / 2);
+  const speed = 0.6;
+  const color = pattern?.color || "#ff00ff";
+  
+  // Announce story boss
+  addFloatingText(canvas.width / 2, 100, "⚠️ BOSS: " + bossName + " ⚠️", color);
+  playSound("boss");
+  playBackgroundMusic("boss");
+  
+  const enemy = {
+    x: canvas.width + 30,
+    y: GROUND_Y - size,
+    w: size,
+    h: size,
+    maxHP: hp,
+    hp: hp,
+    vx: -speed,
+    baseSpeed: speed,
+    color: color,
+    type: "boss",
+    isBoss: true,
+    isMiniBoss: false,
+    isStoryBoss: true,
+    storyBossName: bossName,
+    pattern: pattern,
+    damage: 30 + wave * 3,
+    shootTimer: 0,
+    attackTimer: 0,
+    specialTimer: 0,
+    chargeTimer: 0,
+    summonTimer: 0,
+    phaseTimer: 0,
+    currentAttack: null,
+    attackCooldown: 0,
+    isCharging: false,
+    isRaging: false,
+    poisonTimer: 0,
+    poisonDamage: 0,
+    frozen: false,
+    frozenTimer: 0,
+    stoneForm: false,
+    stoneTimer: 0
+  };
+  
+  enemies.push(enemy);
 }
 
 function spawnEnemy(isBoss = false, isMiniBoss = false) {
