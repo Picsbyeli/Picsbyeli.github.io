@@ -1250,65 +1250,240 @@ let gameData = JSON.parse(JSON.stringify(DEFAULT_GAME_DATA));
 
 // ==================== CLASSES ====================
 const CLASSES = {
+  // STARTER CLASSES
   Hunter: {
     icon: "🏹", color: "#00ff88", unlockWave: 0, purchasable: false,
-    stats: { maxHP: 120, damage: 14, fireRate: 0.3, range: 650, projectileSpeed: 8 },
-    description: "Balanced ranged fighter. The classic choice."
+    stats: { maxHP: 100, damage: 10, fireRate: 0.8, range: 650, projectileSpeed: 8 },
+    description: "Balanced starter class. The classic choice."
   },
   Knight: {
-    icon: "⚔️", color: "#4488ff", unlockWave: 0, purchasable: false, // STARTER
-    stats: { maxHP: 160, damage: 28, fireRate: 0.65, range: 260, projectileSpeed: 6.5 },
-    description: "High HP tank with powerful melee strikes."
+    icon: "⚔️", color: "#4488ff", unlockWave: 0, purchasable: false,
+    stats: { maxHP: 140, damage: 14, fireRate: 1.111, range: 400, projectileSpeed: 6.5 },
+    description: "Durable frontline fighter with slower heavy shots."
   },
   Assassin: {
-    icon: "🗡️", color: "#ff00ff", unlockWave: 0, purchasable: false, // STARTER
-    stats: { maxHP: 95, damage: 9, fireRate: 0.15, range: 400, projectileSpeed: 9.5 },
+    icon: "🗡️", color: "#ff00ff", unlockWave: 0, purchasable: false,
+    stats: { maxHP: 95, damage: 9, fireRate: 0.357, range: 400, projectileSpeed: 9.5 },
     description: "Ultra-fast glass cannon. Speed kills!"
   },
-  Archer: {
-    icon: "🎯", color: "#228b22", unlockWave: 15, purchasable: false,
-    stats: { maxHP: 100, damage: 18, fireRate: 0.4, range: 950, projectileSpeed: 10, pierce: true },
-    description: "Longest range with piercing shots."
+  Rookie: {
+    icon: "🎯", color: "#cccccc", unlockWave: 0, purchasable: false,
+    stats: { maxHP: 80, damage: 6, fireRate: 1.25, range: 350, projectileSpeed: 6, xpMultiplier: 1.5, powerUpMultiplier: 1.2 },
+    description: "Beginner class that levels up 50% faster and gets 20% better upgrades."
   },
-  Wizard: {
-    icon: "🔮", color: "#8800ff", unlockWave: 25, purchasable: false,
-    stats: { maxHP: 85, damage: 35, fireRate: 0.85, range: 550, projectileSpeed: 5.5, explosive: true },
-    description: "Powerful explosive magic attacks."
+  
+  // UNLOCKABLE BY WAVE
+  Thief: {
+    icon: "🥷", color: "#4a0080", unlockWave: 15, purchasable: false,
+    stats: { maxHP: 85, damage: 8, fireRate: 0.455, range: 350, projectileSpeed: 8, coinMultiplier: 5, gemMultiplier: 5 },
+    description: "Fast dagger-throwing class! Earns 5x coins and gems!"
+  },
+  Archer: {
+    icon: "🎯", color: "#228b22", unlockWave: 20, purchasable: false,
+    stats: { maxHP: 90, damage: 12, fireRate: 0.556, range: 700, projectileSpeed: 10, pierce: true },
+    description: "Rapid-firing ranged attacker with piercing shots."
+  },
+  Engineer: {
+    icon: "🔧", color: "#FF8C00", unlockWave: 25, purchasable: false,
+    stats: { maxHP: 95, damage: 7, fireRate: 1.0, range: 450, projectileSpeed: 7, turretClass: true, maxTurrets: 3 },
+    description: "Deploys defensive turrets with specialized abilities."
+  },
+  Ranger: {
+    icon: "🏹", color: "#2F4F2F", unlockWave: 25, purchasable: false,
+    stats: { maxHP: 95, damage: 20, fireRate: 0.769, range: 750, projectileSpeed: 11, pierce: true, trackingShots: true },
+    description: "Forest tracker with piercing long-range arrows."
+  },
+  Mage: {
+    icon: "🧙", color: "#9932cc", unlockWave: 30, purchasable: false,
+    stats: { maxHP: 90, damage: 32, fireRate: 1.667, range: 600, projectileSpeed: 6, magicMissiles: true },
+    description: "Basic wizard with high-damage magic missiles."
+  },
+  Berserk: {
+    icon: "🪓", color: "#8B0000", unlockWave: 40, purchasable: false,
+    stats: { maxHP: 150, damage: 25, fireRate: 0.667, range: 350, projectileSpeed: 9, rageMode: true },
+    description: "Wild berserker - stronger when damaged!"
+  },
+  Pyromancer: {
+    icon: "🔥", color: "#ff4500", unlockWave: 45, purchasable: false,
+    stats: { maxHP: 90, damage: 22, fireRate: 0.909, range: 550, projectileSpeed: 7, burnDamage: true },
+    description: "Burns enemies over time with flame shots."
+  },
+  Samurai: {
+    icon: "⚔️", color: "#C0C0C0", unlockWave: 50, purchasable: false,
+    stats: { maxHP: 110, damage: 28, fireRate: 0.909, range: 450, projectileSpeed: 10, critBonus: 1.0 },
+    description: "Honor-bound warrior with devastating crits."
+  },
+  Druid: {
+    icon: "🌿", color: "#228B22", unlockWave: 60, purchasable: false,
+    stats: { maxHP: 120, damage: 18, fireRate: 1.0, range: 500, projectileSpeed: 7, summonSpirits: true, healOverTime: 1 },
+    description: "Nature caster with spirits and healing."
   },
   Summoner: {
-    icon: "✨", color: "#88ff88", unlockWave: 35, purchasable: false,
-    stats: { maxHP: 110, damage: 12, fireRate: 0.55, range: 450, projectileSpeed: 7 },
-    description: "Summons spirit helpers to fight."
+    icon: "✨", color: "#88ff88", unlockWave: 65, purchasable: false,
+    stats: { maxHP: 110, damage: 12, fireRate: 1.0, range: 500, projectileSpeed: 7 },
+    description: "Summons spirit helpers to assist with damage."
   },
+  LightningRanger: {
+    icon: "⚡", color: "#ffd700", unlockWave: 75, purchasable: false,
+    stats: { maxHP: 105, damage: 28, fireRate: 1.176, range: 600, projectileSpeed: 9, chainLightning: 3 },
+    description: "Electric shots chain between enemies."
+  },
+  ShadowMonk: {
+    icon: "🥋", color: "#2f4f4f", unlockWave: 85, purchasable: false,
+    stats: { maxHP: 110, damage: 20, fireRate: 0.714, range: 300, projectileSpeed: 8, knockback: 40, critBonus: 0.5 },
+    description: "Crit-focused martial artist with knockback."
+  },
+  DarkMagician: {
+    icon: "🔮", color: "#8800ff", unlockWave: 95, purchasable: false,
+    stats: { maxHP: 85, damage: 35, fireRate: 1.818, range: 550, projectileSpeed: 5.5, explosive: true },
+    description: "Slow but extremely powerful caster."
+  },
+  TrickshotRogue: {
+    icon: "🎲", color: "#ff1493", unlockWave: 100, purchasable: false,
+    stats: { maxHP: 80, damage: 35, fireRate: 1.0, range: 600, projectileSpeed: 9, ricochetShots: 2 },
+    description: "Ricocheting shots with burst potential."
+  },
+  AstralGolem: {
+    icon: "🗿", color: "#708090", unlockWave: 120, purchasable: false,
+    stats: { maxHP: 400, damage: 22, fireRate: 1.818, range: 500, projectileSpeed: 5, damageReduction: 0.30 },
+    description: "Massive tank with heavy star projectiles."
+  },
+  
+  // PURCHASABLE CLASSES
   Bomber: {
     icon: "💣", color: "#ff8800", unlockWave: 0, purchasable: true,
-    cost: { coins: 5000, gems: 50 },
-    stats: { maxHP: 130, damage: 20, fireRate: 0.75, range: 500, projectileSpeed: 6, explosive: true },
-    description: "Every shot explodes! Area damage."
+    cost: { coins: 500, gems: 2 },
+    stats: { maxHP: 130, damage: 30, fireRate: 1.2, range: 500, projectileSpeed: 6, explosive: true, explosionRadius: 120 },
+    description: "Massive AOE explosions! 3x direct hit, 3x AOE blast damage!"
+  },
+  Shadowblade: {
+    icon: "⚔️", color: "#000000", unlockWave: 0, purchasable: true,
+    cost: { coins: 5000, gems: 0 },
+    stats: { maxHP: 100, damage: 12, fireRate: 0.526, range: 400, projectileSpeed: 8, curseOnHit: true, critBonus: 0.75 },
+    description: "Curses enemies and deals bonus crit damage."
   },
   Sniper: {
     icon: "🔭", color: "#00ffff", unlockWave: 0, purchasable: true,
     cost: { coins: 15000, gems: 150 },
-    stats: { maxHP: 100, damage: 45, fireRate: 1.2, range: 900, projectileSpeed: 12, critBonus: 0.3 },
-    description: "Extreme range, high crit chance."
+    stats: { maxHP: 100, damage: 45, fireRate: 2.222, range: 900, projectileSpeed: 12, alwaysCrit: true },
+    description: "Highest single-hit damage. Very slow fire rate."
+  },
+  PlagueDoctor: {
+    icon: "🦠", color: "#32cd32", unlockWave: 0, purchasable: true,
+    cost: { coins: 20000, gems: 200 },
+    stats: { maxHP: 100, damage: 16, fireRate: 0.833, range: 500, projectileSpeed: 7, stackingPoison: true, poisonSpread: true },
+    description: "Applies stacking poison that spreads."
   },
   Necromancer: {
     icon: "💀", color: "#9933ff", unlockWave: 0, purchasable: true,
     cost: { coins: 25000, gems: 250 },
-    stats: { maxHP: 105, damage: 15, fireRate: 0.45, range: 550, projectileSpeed: 7, poison: true },
-    description: "Poisons enemies, raises minions."
+    stats: { maxHP: 105, damage: 15, fireRate: 1.111, range: 550, projectileSpeed: 7, poison: true, spawnSkeletonsOnKill: true },
+    description: "Poisons enemies and raises skeletons."
+  },
+  Gunslinger: {
+    icon: "🤠", color: "#8B4513", unlockWave: 0, purchasable: true,
+    cost: { coins: 30000, gems: 300 },
+    stats: { maxHP: 100, damage: 15, fireRate: 0.333, range: 550, projectileSpeed: 12, dualWield: true, ricochetChance: 0.3 },
+    description: "Western shooter with dual pistols and ricochets."
+  },
+  CrystalGuardian: {
+    icon: "💎", color: "#9370db", unlockWave: 0, purchasable: true,
+    cost: { coins: 40000, gems: 350 },
+    stats: { maxHP: 160, damage: 12, fireRate: 1.25, range: 500, projectileSpeed: 6, startingShield: 250, reflectDamage: 0.15 },
+    description: "Crystal energy bolts and reflect defense."
+  },
+  Warlock: {
+    icon: "👹", color: "#4B0082", unlockWave: 0, purchasable: true,
+    cost: { coins: 50000, gems: 500 },
+    stats: { maxHP: 95, damage: 20, fireRate: 1.111, range: 550, projectileSpeed: 7, curseShots: true, lifesteal: 0.2 },
+    description: "Dark sorcerer with curses and life drain."
+  },
+  Illusionist: {
+    icon: "🎭", color: "#9370DB", unlockWave: 0, purchasable: true,
+    cost: { coins: 75000, gems: 750 },
+    stats: { maxHP: 110, damage: 12, fireRate: 0.909, range: 550, projectileSpeed: 7.5, createClone: true },
+    description: "Master of illusions - creates a fighting clone."
+  },
+  DrEclipse: {
+    icon: "🌙", color: "#2C1E4A", unlockWave: 0, purchasable: true,
+    cost: { coins: 100000, gems: 1000 },
+    stats: { maxHP: 115, damage: 18, fireRate: 1.111, range: 600, projectileSpeed: 7, knockback: 25, moonControl: true },
+    description: "Controls a moon that lifts enemies and slams them."
   },
   Vecna: {
     icon: "👁️", color: "#8B0000", unlockWave: 0, purchasable: true,
-    cost: { coins: 1000000, gems: 1000 },
-    stats: { maxHP: 150, damage: 25, fireRate: 0.5, range: 600, projectileSpeed: 8 },
-    description: "Master of darkness. Ultimate power.",
+    cost: { coins: 10000000, gems: 10000 },
+    stats: { maxHP: 110, damage: 18, fireRate: 1.333, range: 600, projectileSpeed: 7.5, summonMonsters: true, enemyConversion: 0.2 },
+    description: "Converts enemies, summons monsters. Ultimate power.",
     special: "monsters"
+  },
+  
+  // ACHIEVEMENT/CHALLENGE UNLOCKS
+  CryoSentinel: {
+    icon: "❄️", color: "#00bfff", unlockWave: 0, purchasable: false,
+    achievementUnlock: "freeze100",
+    stats: { maxHP: 120, damage: 14, fireRate: 1.053, range: 500, projectileSpeed: 6.5, slowOnHit: 0.5, freezeChance: 0.1 },
+    description: "Ice shots slow enemies. Unlock: Freeze 100 enemies."
+  },
+  BloodReaver: {
+    icon: "🩸", color: "#8b0000", unlockWave: 0, purchasable: false,
+    achievementUnlock: "defeat3Elites",
+    stats: { maxHP: 140, damage: 18, fireRate: 1.0, range: 450, projectileSpeed: 7, lifesteal: 0.15, bleedDamage: true },
+    description: "Lifesteal and bleed. Unlock: Defeat 3 elite enemies."
+  },
+  ArcWarden: {
+    icon: "⚡", color: "#4169e1", unlockWave: 0, purchasable: false,
+    achievementUnlock: "collect5ArcCores",
+    stats: { maxHP: 95, damage: 30, fireRate: 1.429, range: 550, projectileSpeed: 7.5, stunChance: 0.15 },
+    description: "Electric cannon with stun. Unlock: Collect 5 Arc Cores."
+  },
+  HolyCleric: {
+    icon: "✝️", color: "#ffd700", unlockWave: 0, purchasable: false,
+    achievementUnlock: "heal1000HP",
+    stats: { maxHP: 150, damage: 10, fireRate: 0.909, range: 500, projectileSpeed: 6.5, healOnHit: 2 },
+    description: "Heals on hit. Unlock: Heal 1000 total HP."
+  },
+  Starcaller: {
+    icon: "🌟", color: "#9400d3", unlockWave: 0, purchasable: false,
+    achievementUnlock: "fallingStarDrop",
+    stats: { maxHP: 115, damage: 18, fireRate: 1.0, range: 550, projectileSpeed: 7, gravityPull: true },
+    description: "Cosmic caster with gravity. Unlock: Rare drop."
+  },
+  VoidAssassin: {
+    icon: "🌑", color: "#191970", unlockWave: 0, purchasable: false,
+    achievementUnlock: "kill100In10Sec",
+    stats: { maxHP: 90, damage: 40, fireRate: 1.111, range: 450, projectileSpeed: 8.5, voidStrike: true, invulnFrames: 0.5 },
+    description: "High crit void strikes. Unlock: Kill 100 in 10 sec."
+  },
+  GuardianTank: {
+    icon: "🛡️", color: "#4169e1", unlockWave: 0, purchasable: false,
+    achievementUnlock: "5ShieldUpgradesHP200",
+    stats: { maxHP: 180, damage: 35, fireRate: 2.0, range: 500, projectileSpeed: 4.5, knockback: 80, projectileSize: 24 },
+    description: "Throws massive shields. Unlock: 5 shield upgrades + HP > 200."
+  },
+  TheForsakenOne: {
+    icon: "💀", color: "#4B0082", unlockWave: 0, purchasable: false,
+    challengeUnlock: "rejectAllPowerups",
+    stats: { maxHP: 115, damage: 17, fireRate: 0.741, range: 500, projectileSpeed: 7.5, knockback: 1.5, cursedFlux: true },
+    description: "Chaos power! Unlock: Reject all powerups, survive wave 11."
+  },
+  DrSunshine: {
+    icon: "☀️", color: "#FFD700", unlockWave: 0, purchasable: false,
+    challengeUnlock: "wave18Restart7Times",
+    stats: { maxHP: 120, damage: 15, fireRate: 1.0, range: 600, projectileSpeed: 7, miniSun: true, sunDamage: 25 },
+    description: "Controls a mini sun. Unlock: Restart at wave 18, 7 times."
+  },
+  EvolLegend: {
+    icon: "🌌", color: "#000000", unlockWave: 0, purchasable: false,
+    codeUnlock: "ZVBLUE",
+    stats: { maxHP: 130, damage: 100, fireRate: 3.0, range: 700, projectileSpeed: 6, blackHoleShots: true },
+    description: "Legendary cosmic being with black hole shots. Code: ZVBLUE."
   }
 };
 
 // ==================== SKILL TREES (ULTIMATES) ====================
 const SKILL_TREES = {
+  // STARTER CLASSES
   Hunter: {
     ult1: { name: "Rapid Barrage", icon: "🏹", desc: "Fire 8 shots in rapid succession", cooldown: 12, type: "active" },
     ult2: { name: "Hunters Mark", icon: "🎯", desc: "Mark target for 200% damage for 5 sec", cooldown: 15, type: "active" }
@@ -1321,33 +1496,159 @@ const SKILL_TREES = {
     ult1: { name: "Shadow Step", icon: "👤", desc: "Teleport to enemy and deal 500% crit damage", cooldown: 10, type: "active" },
     ult2: { name: "Blade Dance", icon: "🗡️", desc: "Throw 12 daggers in all directions", cooldown: 14, type: "active" }
   },
+  Rookie: {
+    ult1: { name: "Quick Learn", icon: "📚", desc: "Gain 500 bonus XP instantly", cooldown: 20, type: "active" },
+    ult2: { name: "Beginner Luck", icon: "🍀", desc: "Next 5 shots are guaranteed crits", cooldown: 25, type: "active" }
+  },
+  
+  // WAVE UNLOCK CLASSES
+  Thief: {
+    ult1: { name: "Coin Storm", icon: "💰", desc: "Enemies drop 10x coins for 10 sec", cooldown: 30, type: "active" },
+    ult2: { name: "Smoke Bomb", icon: "💨", desc: "Become invisible for 5 sec, +100% crit", cooldown: 20, type: "active" }
+  },
   Archer: {
     ult1: { name: "Rain of Arrows", icon: "🌧️", desc: "Rain arrows on area dealing massive damage", cooldown: 20, type: "active" },
     ult2: { name: "Cupids Bow", icon: "💕", desc: "Charm enemies to fight for you for 6 sec", cooldown: 25, type: "active" }
   },
-  Wizard: {
-    ult1: { name: "Meteor Shower", icon: "☄️", desc: "Call down meteors on all enemies", cooldown: 25, type: "active" },
-    ult2: { name: "Time Freeze", icon: "⏰", desc: "Stop time for 4 seconds", cooldown: 30, type: "active" }
+  Engineer: {
+    ult1: { name: "Mega Turret", icon: "🔧", desc: "Deploy a mega turret with 3x damage", cooldown: 25, type: "active" },
+    ult2: { name: "Repair All", icon: "🔩", desc: "Fully repair all turrets and heal player 50%", cooldown: 30, type: "active" }
+  },
+  Ranger: {
+    ult1: { name: "Tracking Arrow", icon: "🏹", desc: "Homing arrow that hits all enemies", cooldown: 18, type: "active" },
+    ult2: { name: "Camouflage", icon: "🌲", desc: "Invisible for 8 sec, +50% damage", cooldown: 25, type: "active" }
+  },
+  Mage: {
+    ult1: { name: "Arcane Blast", icon: "💫", desc: "Massive magic explosion in all directions", cooldown: 20, type: "active" },
+    ult2: { name: "Mana Shield", icon: "🔮", desc: "Convert damage to mana for 5 sec", cooldown: 22, type: "active" }
+  },
+  Berserk: {
+    ult1: { name: "Blood Rage", icon: "🪓", desc: "Lose 30% HP, gain 200% damage for 8 sec", cooldown: 15, type: "active" },
+    ult2: { name: "Unstoppable", icon: "💢", desc: "Cannot die for 5 sec, heal 50% after", cooldown: 40, type: "active" }
+  },
+  Pyromancer: {
+    ult1: { name: "Inferno", icon: "🔥", desc: "Create fire zone dealing burn damage", cooldown: 18, type: "active" },
+    ult2: { name: "Phoenix Flame", icon: "🐦‍🔥", desc: "Revive with fire explosion on death", cooldown: 60, type: "passive" }
+  },
+  Samurai: {
+    ult1: { name: "Blade Storm", icon: "⚔️", desc: "Slash all enemies in range for 400% damage", cooldown: 16, type: "active" },
+    ult2: { name: "Honor Guard", icon: "🏯", desc: "Block next 3 attacks completely", cooldown: 20, type: "active" }
+  },
+  Druid: {
+    ult1: { name: "Nature's Wrath", icon: "🌿", desc: "Summon vines that trap all enemies", cooldown: 22, type: "active" },
+    ult2: { name: "Rejuvenation", icon: "🌸", desc: "Heal 5% HP per second for 10 sec", cooldown: 30, type: "active" }
   },
   Summoner: {
     ult1: { name: "Army of Light", icon: "✨", desc: "Summon 5 spirit warriors", cooldown: 20, type: "active" },
-    ult2: { name: "Phoenix Rising", icon: "🔥", desc: "Revive with full HP when killed (once per battle)", cooldown: 60, type: "passive" }
+    ult2: { name: "Phoenix Rising", icon: "🔥", desc: "Revive with full HP when killed", cooldown: 60, type: "passive" }
   },
+  LightningRanger: {
+    ult1: { name: "Chain Lightning", icon: "⚡", desc: "Lightning chains to all enemies", cooldown: 18, type: "active" },
+    ult2: { name: "Thunder Strike", icon: "🌩️", desc: "Call down lightning on all enemies", cooldown: 25, type: "active" }
+  },
+  ShadowMonk: {
+    ult1: { name: "Shadow Fist", icon: "🥋", desc: "Rapid punch combo hitting 20 times", cooldown: 15, type: "active" },
+    ult2: { name: "Inner Peace", icon: "☯️", desc: "Heal 50% and gain 100% crit for 5 sec", cooldown: 25, type: "active" }
+  },
+  DarkMagician: {
+    ult1: { name: "Meteor Shower", icon: "☄️", desc: "Call down meteors on all enemies", cooldown: 25, type: "active" },
+    ult2: { name: "Time Freeze", icon: "⏰", desc: "Stop time for 4 seconds", cooldown: 30, type: "active" }
+  },
+  TrickshotRogue: {
+    ult1: { name: "Lucky Shot", icon: "🎲", desc: "Random powerful effect on enemies", cooldown: 12, type: "active" },
+    ult2: { name: "Ricochet Frenzy", icon: "🎯", desc: "All shots ricochet 5 times for 10 sec", cooldown: 20, type: "active" }
+  },
+  AstralGolem: {
+    ult1: { name: "Stone Skin", icon: "🗿", desc: "Take 90% less damage for 6 sec", cooldown: 25, type: "active" },
+    ult2: { name: "Gravity Slam", icon: "💫", desc: "Pull and crush all enemies together", cooldown: 30, type: "active" }
+  },
+  
+  // PURCHASABLE CLASSES
   Bomber: {
     ult1: { name: "Carpet Bomb", icon: "💣", desc: "Drop 10 bombs across the field", cooldown: 18, type: "active" },
     ult2: { name: "Nuclear Option", icon: "☢️", desc: "Massive explosion dealing 1000% damage", cooldown: 45, type: "active" }
+  },
+  Shadowblade: {
+    ult1: { name: "Dark Slash", icon: "⚔️", desc: "Teleport slash through all enemies", cooldown: 14, type: "active" },
+    ult2: { name: "Curse Wave", icon: "🌑", desc: "Curse all enemies for 50% more damage taken", cooldown: 20, type: "active" }
   },
   Sniper: {
     ult1: { name: "Headshot", icon: "🎯", desc: "Guaranteed crit dealing 500% damage", cooldown: 15, type: "active" },
     ult2: { name: "Piercing Round", icon: "🔭", desc: "Shot pierces ALL enemies for 10 seconds", cooldown: 20, type: "active" }
   },
+  PlagueDoctor: {
+    ult1: { name: "Pandemic", icon: "🦠", desc: "All enemies get max poison stacks", cooldown: 22, type: "active" },
+    ult2: { name: "Cure All", icon: "💉", desc: "Heal to full, cure all debuffs", cooldown: 30, type: "active" }
+  },
   Necromancer: {
-    ult1: { name: "Army of Dead", icon: "💀", desc: "Raise 5 skeleton warriors from killed enemies", cooldown: 22, type: "active" },
-    ult2: { name: "Death Aura", icon: "☠️", desc: "Enemies near you take poison damage for 8 sec", cooldown: 20, type: "active" }
+    ult1: { name: "Army of Dead", icon: "💀", desc: "Raise 5 skeleton warriors", cooldown: 22, type: "active" },
+    ult2: { name: "Death Aura", icon: "☠️", desc: "Enemies near you take poison damage", cooldown: 20, type: "active" }
+  },
+  Gunslinger: {
+    ult1: { name: "Fan the Hammer", icon: "🤠", desc: "Fire 12 shots in rapid succession", cooldown: 12, type: "active" },
+    ult2: { name: "High Noon", icon: "🌅", desc: "Mark and instant-kill up to 5 enemies", cooldown: 35, type: "active" }
+  },
+  CrystalGuardian: {
+    ult1: { name: "Crystal Shield", icon: "💎", desc: "Gain 500 shield and reflect all damage", cooldown: 25, type: "active" },
+    ult2: { name: "Shatter", icon: "✨", desc: "Explode shield for massive damage", cooldown: 20, type: "active" }
+  },
+  Warlock: {
+    ult1: { name: "Soul Drain", icon: "👹", desc: "Drain HP from all enemies", cooldown: 20, type: "active" },
+    ult2: { name: "Dark Pact", icon: "📜", desc: "Double damage but take 20% max HP", cooldown: 25, type: "active" }
+  },
+  Illusionist: {
+    ult1: { name: "Mirror Image", icon: "🎭", desc: "Create 3 clones that attack", cooldown: 22, type: "active" },
+    ult2: { name: "Confusion", icon: "😵", desc: "Enemies attack each other for 6 sec", cooldown: 28, type: "active" }
+  },
+  DrEclipse: {
+    ult1: { name: "Lunar Gravity", icon: "🌙", desc: "Moon pulls all enemies and slams them", cooldown: 20, type: "active" },
+    ult2: { name: "Eclipse", icon: "🌑", desc: "Darkness blinds enemies for 8 sec", cooldown: 25, type: "active" }
   },
   Vecna: {
-    ult1: { name: "Hive Mind", icon: "🧠", desc: "Convert all enemies to fight for you for 8 sec", cooldown: 40, type: "active" },
-    ult2: { name: "Upside Down", icon: "🌀", desc: "Teleport to shadow dimension - invincible for 6 sec", cooldown: 35, type: "active" }
+    ult1: { name: "Hive Mind", icon: "🧠", desc: "Convert all enemies to fight for you", cooldown: 40, type: "active" },
+    ult2: { name: "Upside Down", icon: "🌀", desc: "Teleport to shadow dimension - invincible", cooldown: 35, type: "active" }
+  },
+  
+  // ACHIEVEMENT UNLOCK CLASSES
+  CryoSentinel: {
+    ult1: { name: "Absolute Zero", icon: "❄️", desc: "Freeze all enemies for 5 sec", cooldown: 25, type: "active" },
+    ult2: { name: "Ice Age", icon: "🧊", desc: "Slow all enemies by 80% for 10 sec", cooldown: 20, type: "active" }
+  },
+  BloodReaver: {
+    ult1: { name: "Blood Boil", icon: "🩸", desc: "Enemies bleed 10% HP per sec", cooldown: 20, type: "active" },
+    ult2: { name: "Vampiric Feast", icon: "🧛", desc: "Heal 100% of damage dealt for 8 sec", cooldown: 25, type: "active" }
+  },
+  ArcWarden: {
+    ult1: { name: "Static Field", icon: "⚡", desc: "Stun all enemies for 3 sec", cooldown: 22, type: "active" },
+    ult2: { name: "Overcharge", icon: "🔋", desc: "Triple attack speed for 6 sec", cooldown: 20, type: "active" }
+  },
+  HolyCleric: {
+    ult1: { name: "Divine Light", icon: "✝️", desc: "Heal to full and damage all enemies", cooldown: 30, type: "active" },
+    ult2: { name: "Guardian Angel", icon: "👼", desc: "Auto-revive once when killed", cooldown: 60, type: "passive" }
+  },
+  Starcaller: {
+    ult1: { name: "Supernova", icon: "🌟", desc: "Massive explosion hitting all enemies", cooldown: 25, type: "active" },
+    ult2: { name: "Black Hole", icon: "🕳️", desc: "Pull all enemies to center", cooldown: 22, type: "active" }
+  },
+  VoidAssassin: {
+    ult1: { name: "Void Strike", icon: "🌑", desc: "Instant kill any non-boss enemy", cooldown: 15, type: "active" },
+    ult2: { name: "Phase Shift", icon: "👻", desc: "Invincible for 4 sec, +200% damage", cooldown: 25, type: "active" }
+  },
+  GuardianTank: {
+    ult1: { name: "Fortress", icon: "🛡️", desc: "Become immovable, reflect all damage", cooldown: 20, type: "active" },
+    ult2: { name: "Shield Bash", icon: "💥", desc: "Stun and push back all enemies", cooldown: 18, type: "active" }
+  },
+  TheForsakenOne: {
+    ult1: { name: "Chaotic Power", icon: "💀", desc: "Random powerful buff activates", cooldown: 15, type: "active" },
+    ult2: { name: "Forsaken Fury", icon: "😈", desc: "All stats doubled for 10 sec", cooldown: 35, type: "active" }
+  },
+  DrSunshine: {
+    ult1: { name: "Solar Flare", icon: "☀️", desc: "Sun explodes dealing massive damage", cooldown: 20, type: "active" },
+    ult2: { name: "Sunbeam", icon: "🌞", desc: "Continuous beam burns enemies", cooldown: 22, type: "active" }
+  },
+  EvolLegend: {
+    ult1: { name: "Event Horizon", icon: "🌌", desc: "Black hole kills all normal enemies", cooldown: 30, type: "active" },
+    ult2: { name: "Cosmic Power", icon: "✨", desc: "Become god-like for 10 seconds", cooldown: 45, type: "active" }
   }
 };
 
