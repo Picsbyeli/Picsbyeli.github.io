@@ -735,6 +735,47 @@
     .potion-count { font-size: 12px; color: #ffff00; }
     .potion-key { position: absolute; top: 2px; left: 4px; font-size: 10px; color: #aaa; }
     
+    /* Ability Bar */
+    #abilityBar {
+      position: absolute;
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 15px;
+      z-index: 143;
+      background: rgba(20, 0, 40, 0.9);
+      padding: 12px 25px;
+      border-radius: 15px;
+      border: 3px solid #ff00ff;
+      box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+    }
+    #abilityBar.active { display: flex; }
+    
+    .ability-slot {
+      width: 70px;
+      height: 80px;
+      background: linear-gradient(180deg, rgba(60, 0, 80, 0.9) 0%, rgba(30, 0, 50, 0.9) 100%);
+      border: 2px solid #8800ff;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .ability-slot:hover {
+      transform: scale(1.1);
+      border-color: #ff00ff;
+      box-shadow: 0 0 15px rgba(255, 0, 255, 0.6);
+    }
+    .ability-slot.cooldown { opacity: 0.5; cursor: not-allowed; }
+    .ability-icon { font-size: 32px; }
+    .ability-name { font-size: 8px; color: #ff88ff; margin-top: 4px; }
+    .ability-key { position: absolute; top: 2px; left: 6px; font-size: 10px; color: #ff88ff; }
+    
     /* Back Button */
     .back-btn {
       position: absolute;
@@ -1017,6 +1058,20 @@
         <div class="potion-count" id="potionDragonCount">1</div>
       </div>
     </div>
+    
+    <!-- Ability Bar -->
+    <div id="abilityBar">
+      <div class="ability-slot" onclick="useAbility('ult1')">
+        <div class="ability-key">[Q]</div>
+        <div class="ability-icon" id="ability1">🏹</div>
+        <div class="ability-name" id="ability1Name">Ultimate 1</div>
+      </div>
+      <div class="ability-slot" onclick="useAbility('ult2')">
+        <div class="ability-key">[E]</div>
+        <div class="ability-icon" id="ability2">🎯</div>
+        <div class="ability-name" id="ability2Name">Ultimate 2</div>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -1116,9 +1171,64 @@ const CLASSES = {
     icon: "👁️", color: "#8B0000", unlockWave: 0, purchasable: true,
     cost: { coins: 1000000, gems: 1000 },
     stats: { maxHP: 150, damage: 25, fireRate: 0.5, range: 600, projectileSpeed: 8 },
-    description: "Master of darkness. Ultimate power."
+    description: "Master of darkness. Ultimate power.",
+    special: "monsters"
   }
 };
+
+// ==================== SKILL TREES (ULTIMATES) ====================
+const SKILL_TREES = {
+  Hunter: {
+    ult1: { name: "Rapid Barrage", icon: "🏹", desc: "Fire 8 shots in rapid succession", cooldown: 12, type: "active" },
+    ult2: { name: "Hunters Mark", icon: "🎯", desc: "Mark target for 200% damage for 5 sec", cooldown: 15, type: "active" }
+  },
+  Knight: {
+    ult1: { name: "Shield Wall", icon: "🛡️", desc: "Block all damage for 4 seconds", cooldown: 18, type: "active" },
+    ult2: { name: "Whirlwind", icon: "⚔️", desc: "Spin attack dealing 300% damage to nearby enemies", cooldown: 15, type: "active" }
+  },
+  Assassin: {
+    ult1: { name: "Shadow Step", icon: "👤", desc: "Teleport to enemy and deal 500% crit damage", cooldown: 10, type: "active" },
+    ult2: { name: "Blade Dance", icon: "🗡️", desc: "Throw 12 daggers in all directions", cooldown: 14, type: "active" }
+  },
+  Archer: {
+    ult1: { name: "Rain of Arrows", icon: "🌧️", desc: "Rain arrows on area dealing massive damage", cooldown: 20, type: "active" },
+    ult2: { name: "Cupids Bow", icon: "💕", desc: "Charm enemies to fight for you for 6 sec", cooldown: 25, type: "active" }
+  },
+  Wizard: {
+    ult1: { name: "Meteor Shower", icon: "☄️", desc: "Call down meteors on all enemies", cooldown: 25, type: "active" },
+    ult2: { name: "Time Freeze", icon: "⏰", desc: "Stop time for 4 seconds", cooldown: 30, type: "active" }
+  },
+  Summoner: {
+    ult1: { name: "Army of Light", icon: "✨", desc: "Summon 5 spirit warriors", cooldown: 20, type: "active" },
+    ult2: { name: "Phoenix Rising", icon: "🔥", desc: "Revive with full HP when killed (once per battle)", cooldown: 60, type: "passive" }
+  },
+  Bomber: {
+    ult1: { name: "Carpet Bomb", icon: "💣", desc: "Drop 10 bombs across the field", cooldown: 18, type: "active" },
+    ult2: { name: "Nuclear Option", icon: "☢️", desc: "Massive explosion dealing 1000% damage", cooldown: 45, type: "active" }
+  },
+  Sniper: {
+    ult1: { name: "Headshot", icon: "🎯", desc: "Guaranteed crit dealing 500% damage", cooldown: 15, type: "active" },
+    ult2: { name: "Piercing Round", icon: "🔭", desc: "Shot pierces ALL enemies for 10 seconds", cooldown: 20, type: "active" }
+  },
+  Necromancer: {
+    ult1: { name: "Army of Dead", icon: "💀", desc: "Raise 5 skeleton warriors from killed enemies", cooldown: 22, type: "active" },
+    ult2: { name: "Death Aura", icon: "☠️", desc: "Enemies near you take poison damage for 8 sec", cooldown: 20, type: "active" }
+  },
+  Vecna: {
+    ult1: { name: "Hive Mind", icon: "🧠", desc: "Convert all enemies to fight for you for 8 sec", cooldown: 40, type: "active" },
+    ult2: { name: "Upside Down", icon: "🌀", desc: "Teleport to shadow dimension - invincible for 6 sec", cooldown: 35, type: "active" }
+  }
+};
+
+// ==================== BOSS PATTERNS ====================
+const BOSS_PATTERNS = [
+  { name: "Charger", color: "#ff0000", behavior: "charge", speedMult: 2.5, desc: "Charges at player rapidly" },
+  { name: "Sniper", color: "#00ff00", behavior: "ranged", projectileSpeed: 12, desc: "Fires accurate long-range shots" },
+  { name: "Tank", color: "#0088ff", behavior: "slow", hpMult: 3, damageMult: 2, desc: "Extremely durable" },
+  { name: "Summoner", color: "#ff00ff", behavior: "summon", summonCount: 3, summonTimer: 5, desc: "Summons minions" },
+  { name: "Berserker", color: "#ff8800", behavior: "berserk", rageThreshold: 0.3, desc: "Enrages at low HP" },
+  { name: "Headless", color: "#880088", behavior: "headThrow", throwCooldown: 4, desc: "Throws head as projectile" }
+];
 
 // ==================== SHOP ITEMS ====================
 const SHOP_UPGRADES = {
@@ -1232,6 +1342,8 @@ let particles = [];
 let floatingTexts = [];
 let minions = [];
 let fireZones = [];
+let charmedEnemies = []; // Enemies fighting for player
+let vecnaMonsters = []; // Vecna's special monsters
 
 let wave = 1;
 let maxWaves = 20;
@@ -1251,6 +1363,19 @@ let combo = 0;
 let comboTimer = 0;
 let maxCombo = 0;
 
+// Ability state
+let abilityCooldowns = { ult1: 0, ult2: 0 };
+let abilityEffects = {
+  huntersMark: null, // Target enemy for bonus damage
+  shieldWall: false, shieldWallTimer: 0,
+  timeFreezeActive: false, timeFreezeTimer: 0,
+  piercingRoundActive: false, piercingRoundTimer: 0,
+  deathAuraActive: false, deathAuraTimer: 0,
+  hiveMindActive: false, hiveMindTimer: 0,
+  upsideDownActive: false, upsideDownTimer: 0,
+  phoenixReady: true // Phoenix Rising passive
+};
+
 let potions = { heal: 3, shield: 2, crit: 1, damage: 1, speed: 1, dragon: 1 };
 let potionCooldowns = { heal: 0, shield: 0, crit: 0, damage: 0, speed: 0, dragon: 0 };
 let potionEffects = { critActive: false, critTimer: 0, damageActive: false, damageTimer: 0, speedActive: false, speedTimer: 0 };
@@ -1258,6 +1383,184 @@ let potionEffects = { critActive: false, critTimer: 0, damageActive: false, dama
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const GROUND_Y = 580;
+
+// ==================== SOUND SYSTEM ====================
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const soundEnabled = true;
+
+function playSound(type) {
+  if (!soundEnabled || !gameData?.settings?.sfxVolume) return;
+  
+  const volume = (gameData.settings.sfxVolume || 50) / 100;
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  switch (type) {
+    case "shoot":
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(volume * 0.15, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.1);
+      break;
+      
+    case "hit":
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.08);
+      gainNode.gain.setValueAtTime(volume * 0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.08);
+      break;
+      
+    case "kill":
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.2);
+      gainNode.gain.setValueAtTime(volume * 0.25, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.2);
+      break;
+      
+    case "potion":
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.15);
+      gainNode.gain.setValueAtTime(volume * 0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.15);
+      break;
+      
+    case "ability":
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.25);
+      gainNode.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.25);
+      
+      // Second tone for epic feel
+      setTimeout(() => {
+        const osc2 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        osc2.type = "triangle";
+        osc2.frequency.setValueAtTime(600, audioContext.currentTime);
+        osc2.frequency.exponentialRampToValueAtTime(1500, audioContext.currentTime + 0.2);
+        gain2.gain.setValueAtTime(volume * 0.2, audioContext.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        osc2.start();
+        osc2.stop(audioContext.currentTime + 0.2);
+      }, 100);
+      break;
+      
+    case "wave":
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+      oscillator.frequency.setValueAtTime(500, audioContext.currentTime + 0.1);
+      oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.2);
+      gainNode.gain.setValueAtTime(volume * 0.25, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+      break;
+      
+    case "levelUp":
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(500, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.2);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+      oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.4);
+      gainNode.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.4);
+      break;
+      
+    case "victory":
+      // Happy ascending notes
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      notes.forEach((freq, i) => {
+        setTimeout(() => {
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+          gain.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          osc.start();
+          osc.stop(audioContext.currentTime + 0.3);
+        }, i * 150);
+      });
+      return;
+      
+    case "gameOver":
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.8);
+      gainNode.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.8);
+      break;
+      
+    case "boss":
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.3);
+      gainNode.gain.setValueAtTime(volume * 0.35, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+      
+      // Ominous second tone
+      setTimeout(() => {
+        const osc2 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(100, audioContext.currentTime);
+        gain2.gain.setValueAtTime(volume * 0.25, audioContext.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        osc2.start();
+        osc2.stop(audioContext.currentTime + 0.5);
+      }, 200);
+      break;
+      
+    case "explosion":
+      // White noise for explosion
+      const bufferSize = audioContext.sampleRate * 0.2;
+      const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noise = audioContext.createBufferSource();
+      noise.buffer = buffer;
+      const noiseGain = audioContext.createGain();
+      noise.connect(noiseGain);
+      noiseGain.connect(audioContext.destination);
+      noiseGain.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      noise.start();
+      noise.stop(audioContext.currentTime + 0.2);
+      return;
+  }
+}
 
 // ==================== INITIALIZATION ====================
 function init() {
@@ -1891,9 +2194,11 @@ function redeemCode() {
 function startBattle() {
   showScreen("gameScreen");
   document.getElementById("potionBar").classList.add("active");
+  document.getElementById("abilityBar").classList.add("active");
   
   initializePlayer();
   initializePotions();
+  initializeAbilities();
   
   enemies = [];
   projectiles = [];
@@ -1901,6 +2206,8 @@ function startBattle() {
   floatingTexts = [];
   minions = [];
   fireZones = [];
+  charmedEnemies = [];
+  vecnaMonsters = [];
   
   wave = 1;
   enemiesToSpawn = calcEnemiesForWave(wave);
@@ -1917,6 +2224,38 @@ function startBattle() {
   gameRunning = true;
   gamePaused = false;
   lastTime = performance.now();
+}
+
+function initializeAbilities() {
+  abilityCooldowns = { ult1: 0, ult2: 0 };
+  abilityEffects = {
+    huntersMark: null,
+    shieldWall: false, shieldWallTimer: 0,
+    timeFreezeActive: false, timeFreezeTimer: 0,
+    piercingRoundActive: false, piercingRoundTimer: 0,
+    deathAuraActive: false, deathAuraTimer: 0,
+    hiveMindActive: false, hiveMindTimer: 0,
+    upsideDownActive: false, upsideDownTimer: 0,
+    phoenixReady: true
+  };
+  
+  // Update ability bar with class-specific abilities
+  const skillTree = SKILL_TREES[selectedClass];
+  if (skillTree) {
+    const ult1El = document.getElementById("ability1");
+    const ult2El = document.getElementById("ability2");
+    const name1El = document.getElementById("ability1Name");
+    const name2El = document.getElementById("ability2Name");
+    
+    if (ult1El && skillTree.ult1) {
+      ult1El.textContent = skillTree.ult1.icon;
+      if (name1El) name1El.textContent = skillTree.ult1.name;
+    }
+    if (ult2El && skillTree.ult2) {
+      ult2El.textContent = skillTree.ult2.icon;
+      if (name2El) name2El.textContent = skillTree.ult2.name;
+    }
+  }
 }
 
 function initializePlayer() {
@@ -2025,6 +2364,7 @@ function update(dt) {
   updateFloatingTexts(dt);
   updatePotionEffects(dt);
   updateFireZones(dt);
+  updateAbilityEffects(dt);
   
   // Regeneration
   if (player.regen > 0) {
@@ -2109,6 +2449,9 @@ function shootProjectile(target) {
   dy /= dist;
   
   const isCrit = Math.random() < player.critChance;
+  
+  // Sound
+  playSound("shoot");
   
   // Get projectile color based on cosmetic
   let projColor = player.color;
@@ -2327,11 +2670,18 @@ function updateProjectiles(dt) {
         const e = enemies[j];
         if (p.x > e.x && p.x < e.x + e.w && p.y > e.y && p.y < e.y + e.h) {
           let damage = p.damage;
+          
+          // Hunter's Mark bonus damage
+          if (abilityEffects.huntersMark && abilityEffects.huntersMark.target === e) {
+            damage *= 2;
+          }
+          
           if (p.isCrit) {
             damage *= p.critMultiplier;
             addFloatingText(e.x + e.w / 2, e.y - 30, "CRIT!", "#ff0000");
           }
           
+          playSound("hit");
           e.hp -= damage;
           spawnHitParticles(p.x, p.y, p.color, 6);
           screenShake += p.isCrit ? 4 : 2;
@@ -2349,6 +2699,7 @@ function updateProjectiles(dt) {
           
           // Explosion
           if (p.explosive) {
+            playSound("explosion");
             for (const other of enemies) {
               if (other === e) continue;
               const dx = (other.x + other.w / 2) - p.x;
@@ -2407,6 +2758,10 @@ function damagePlayer(amount) {
 }
 
 function onEnemyKilled(enemy) {
+  // Sound
+  playSound("kill");
+  if (enemy.isBoss) playSound("boss");
+  
   // XP
   let xpGain = 20 + wave * 5;
   if (enemy.isBoss) xpGain *= 5;
@@ -2457,6 +2812,7 @@ function giveXP(amount) {
     player.xp -= player.xpToNext;
     player.level++;
     player.xpToNext = Math.floor(100 * Math.pow(player.level, 1.8));
+    playSound("levelUp");
     showUpgradeScreen();
   }
 }
@@ -2499,6 +2855,8 @@ function selectUpgrade(key) {
 function nextWave() {
   wave++;
   
+  playSound("wave");
+  
   if (wave > gameData.highestWave) {
     gameData.highestWave = wave;
     saveGameData();
@@ -2520,6 +2878,9 @@ function nextWave() {
 function victory() {
   gameRunning = false;
   document.getElementById("potionBar").classList.remove("active");
+  document.getElementById("abilityBar").classList.remove("active");
+  
+  playSound("victory");
   
   // Mark node as completed in story mode
   if (gameMode === "story" && selectedNode) {
@@ -2565,6 +2926,25 @@ function victory() {
 function gameOver() {
   gameRunning = false;
   document.getElementById("potionBar").classList.remove("active");
+  document.getElementById("abilityBar").classList.remove("active");
+  
+  playSound("gameOver");
+  
+  // Check for Phoenix Rising passive (Summoner)
+  if (selectedClass === "Summoner" && abilityEffects.phoenixReady) {
+    abilityEffects.phoenixReady = false;
+    player.hp = player.maxHP;
+    player.alive = true;
+    gameRunning = true;
+    document.getElementById("potionBar").classList.add("active");
+    document.getElementById("abilityBar").classList.add("active");
+    
+    addFloatingText(player.x + player.w / 2, player.y - 50, "🔥 PHOENIX RISING! 🔥", "#ff8800");
+    spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, "#ff8800", 40);
+    screenShake += 20;
+    playSound("ability");
+    return;
+  }
   
   saveGameData();
   
@@ -2600,6 +2980,8 @@ function usePotion(type) {
   
   potions[type]--;
   potionCooldowns[type] = 1;
+  
+  playSound("potion");
   
   // Deduct from inventory
   if (gameData.potionInventory[type] > 0) {
@@ -2749,6 +3131,692 @@ function updateFireZones(dt) {
   }
 }
 
+// ==================== ABILITY SYSTEM ====================
+function useAbility(slot) {
+  if (!player || !player.alive) return;
+  if (abilityCooldowns[slot] > 0) return;
+  
+  const skillTree = SKILL_TREES[selectedClass];
+  if (!skillTree) return;
+  
+  const ability = skillTree[slot];
+  if (!ability) return;
+  
+  abilityCooldowns[slot] = ability.cooldown;
+  playSound("ability");
+  
+  // Execute ability based on class
+  switch (selectedClass) {
+    case "Hunter":
+      if (slot === "ult1") activateRapidBarrage();
+      else activateHuntersMark();
+      break;
+    case "Knight":
+      if (slot === "ult1") activateShieldWall();
+      else activateWhirlwind();
+      break;
+    case "Assassin":
+      if (slot === "ult1") activateShadowStep();
+      else activateBladeDance();
+      break;
+    case "Archer":
+      if (slot === "ult1") activateRainOfArrows();
+      else activateCupidsBow();
+      break;
+    case "Wizard":
+      if (slot === "ult1") activateMeteorShower();
+      else activateTimeFreeze();
+      break;
+    case "Summoner":
+      if (slot === "ult1") activateArmyOfLight();
+      // Phoenix Rising is passive
+      break;
+    case "Bomber":
+      if (slot === "ult1") activateCarpetBomb();
+      else activateNuclearOption();
+      break;
+    case "Sniper":
+      if (slot === "ult1") activateHeadshot();
+      else activatePiercingRound();
+      break;
+    case "Necromancer":
+      if (slot === "ult1") activateArmyOfDead();
+      else activateDeathAura();
+      break;
+    case "Vecna":
+      if (slot === "ult1") activateHiveMind();
+      else activateUpsideDown();
+      break;
+  }
+  
+  updateAbilityDisplay();
+}
+
+// Hunter Abilities
+function activateRapidBarrage() {
+  addFloatingText(player.x + player.w / 2, player.y - 50, "🏹 RAPID BARRAGE!", "#00ff88");
+  
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const target = getTargetEnemy();
+      if (target) {
+        shootProjectile(target);
+        spawnHitParticles(player.x + player.w, player.y + player.h / 2, player.color, 3);
+      }
+    }, i * 100);
+  }
+}
+
+function activateHuntersMark() {
+  const target = getTargetEnemy();
+  if (target) {
+    abilityEffects.huntersMark = { target: target, timer: 5 };
+    addFloatingText(target.x + target.w / 2, target.y - 30, "🎯 MARKED!", "#ff0000");
+    spawnExplosion(target.x + target.w / 2, target.y + target.h / 2, "#ff0000", 15);
+  }
+}
+
+// Knight Abilities
+function activateShieldWall() {
+  abilityEffects.shieldWall = true;
+  abilityEffects.shieldWallTimer = 4;
+  player.invincible = true;
+  addFloatingText(player.x + player.w / 2, player.y - 50, "🛡️ SHIELD WALL!", "#4488ff");
+  spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, "#4488ff", 25);
+}
+
+function activateWhirlwind() {
+  addFloatingText(player.x + player.w / 2, player.y - 50, "⚔️ WHIRLWIND!", "#4488ff");
+  
+  const damage = player.damage * 3;
+  enemies.forEach(e => {
+    const dx = (e.x + e.w / 2) - (player.x + player.w / 2);
+    const dy = (e.y + e.h / 2) - (player.y + player.h / 2);
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    if (dist < 200) {
+      e.hp -= damage;
+      spawnExplosion(e.x + e.w / 2, e.y + e.h / 2, "#4488ff", 8);
+    }
+  });
+  
+  // Visual spin effect
+  for (let i = 0; i < 20; i++) {
+    const angle = (i / 20) * Math.PI * 2;
+    particles.push({
+      x: player.x + player.w / 2,
+      y: player.y + player.h / 2,
+      vx: Math.cos(angle) * 6,
+      vy: Math.sin(angle) * 6,
+      radius: 5,
+      color: "#4488ff",
+      life: 1
+    });
+  }
+  screenShake += 15;
+}
+
+// Assassin Abilities
+function activateShadowStep() {
+  const target = getTargetEnemy();
+  if (target) {
+    addFloatingText(player.x + player.w / 2, player.y - 50, "👤 SHADOW STEP!", "#ff00ff");
+    
+    // Teleport effect
+    spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, "#ff00ff", 15);
+    
+    // Deal massive crit damage
+    const damage = player.damage * 5;
+    target.hp -= damage;
+    
+    addFloatingText(target.x + target.w / 2, target.y - 30, "CRIT! " + Math.floor(damage), "#ff0000");
+    spawnExplosion(target.x + target.w / 2, target.y + target.h / 2, "#ff00ff", 20);
+    screenShake += 10;
+  }
+}
+
+function activateBladeDance() {
+  addFloatingText(player.x + player.w / 2, player.y - 50, "🗡️ BLADE DANCE!", "#ff00ff");
+  
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2;
+    projectiles.push({
+      x: player.x + player.w / 2,
+      y: player.y + player.h / 2,
+      vx: Math.cos(angle) * 8,
+      vy: Math.sin(angle) * 8,
+      radius: 6,
+      damage: player.damage * 1.5,
+      color: "#ff00ff",
+      life: 2,
+      trail: [],
+      pierce: true,
+      pierceCount: 0,
+      isEnemyProjectile: false
+    });
+  }
+  screenShake += 8;
+}
+
+// Archer Abilities
+function activateRainOfArrows() {
+  addFloatingText(canvas.width / 2, 150, "🌧️ RAIN OF ARROWS!", "#228b22");
+  
+  for (let i = 0; i < 30; i++) {
+    setTimeout(() => {
+      const x = Math.random() * (canvas.width - 200) + 100;
+      projectiles.push({
+        x: x,
+        y: 0,
+        vx: 0,
+        vy: 10,
+        radius: 5,
+        damage: player.damage * 0.8,
+        color: "#228b22",
+        life: 2,
+        trail: [],
+        isEnemyProjectile: false
+      });
+    }, i * 50);
+  }
+}
+
+function activateCupidsBow() {
+  addFloatingText(player.x + player.w / 2, player.y - 50, "💕 CUPIDS BOW!", "#ff69b4");
+  
+  // Charm enemies for 6 seconds
+  enemies.forEach(e => {
+    if (!e.isBoss) {
+      e.charmed = true;
+      e.charmTimer = 6;
+      e.vx = Math.abs(e.vx); // Move away from player
+      spawnExplosion(e.x + e.w / 2, e.y + e.h / 2, "#ff69b4", 8);
+    }
+  });
+}
+
+// Wizard Abilities
+function activateMeteorShower() {
+  addFloatingText(canvas.width / 2, 150, "☄️ METEOR SHOWER!", "#8800ff");
+  
+  for (let i = 0; i < 10; i++) {
+    setTimeout(() => {
+      if (enemies.length > 0) {
+        const target = enemies[Math.floor(Math.random() * enemies.length)];
+        spawnMeteor(target.x + target.w / 2, player.damage * 3);
+      } else {
+        spawnMeteor(Math.random() * canvas.width, player.damage * 3);
+      }
+    }, i * 200);
+  }
+}
+
+function spawnMeteor(targetX, damage) {
+  // Meteor visual
+  const meteor = {
+    x: targetX + (Math.random() - 0.5) * 100,
+    y: 0,
+    targetX: targetX,
+    damage: damage
+  };
+  
+  // Animate meteor falling
+  let y = 0;
+  const interval = setInterval(() => {
+    y += 20;
+    if (y >= GROUND_Y - 30) {
+      clearInterval(interval);
+      
+      // Impact explosion
+      spawnExplosion(targetX, GROUND_Y - 30, "#ff4400", 25);
+      screenShake += 10;
+      
+      // Damage enemies in blast radius
+      enemies.forEach(e => {
+        const dx = (e.x + e.w / 2) - targetX;
+        const dist = Math.abs(dx);
+        if (dist < 80) {
+          e.hp -= damage * (1 - dist / 80);
+        }
+      });
+      
+      // Create fire zone
+      fireZones.push({
+        x: targetX,
+        y: GROUND_Y - 20,
+        radius: 60,
+        damage: damage * 0.05,
+        life: 3
+      });
+    }
+  }, 30);
+}
+
+function activateTimeFreeze() {
+  abilityEffects.timeFreezeActive = true;
+  abilityEffects.timeFreezeTimer = 4;
+  addFloatingText(canvas.width / 2, 200, "⏰ TIME FREEZE!", "#8800ff");
+  
+  // Freeze all enemies
+  enemies.forEach(e => {
+    e.frozen = true;
+    e.originalSpeed = e.vx;
+    e.vx = 0;
+  });
+  
+  screenShake += 15;
+}
+
+// Summoner Abilities
+function activateArmyOfLight() {
+  addFloatingText(player.x + player.w / 2, player.y - 50, "✨ ARMY OF LIGHT!", "#88ff88");
+  
+  for (let i = 0; i < 5; i++) {
+    minions.push({
+      x: player.x + 50 + i * 40,
+      y: GROUND_Y - 30,
+      w: 25,
+      h: 30,
+      hp: 50 + wave * 5,
+      maxHP: 50 + wave * 5,
+      damage: player.damage * 0.5,
+      fireRate: 1,
+      shootTimer: Math.random(),
+      color: "#88ff88",
+      type: "spirit",
+      life: 15
+    });
+    
+    spawnExplosion(player.x + 50 + i * 40, GROUND_Y - 30, "#88ff88", 10);
+  }
+}
+
+// Bomber Abilities
+function activateCarpetBomb() {
+  addFloatingText(canvas.width / 2, 150, "💣 CARPET BOMB!", "#ff8800");
+  
+  for (let i = 0; i < 10; i++) {
+    setTimeout(() => {
+      const x = player.x + 100 + i * 80;
+      spawnExplosion(x, GROUND_Y - 50, "#ff8800", 20);
+      screenShake += 5;
+      
+      // Damage enemies
+      enemies.forEach(e => {
+        const dx = (e.x + e.w / 2) - x;
+        if (Math.abs(dx) < 60) {
+          e.hp -= player.damage * 2;
+        }
+      });
+      
+      // Fire zone
+      fireZones.push({
+        x: x,
+        y: GROUND_Y - 20,
+        radius: 50,
+        damage: player.damage * 0.1,
+        life: 4
+      });
+    }, i * 150);
+  }
+}
+
+function activateNuclearOption() {
+  addFloatingText(canvas.width / 2, 200, "☢️ NUCLEAR OPTION! ☢️", "#ff0000");
+  screenShake += 50;
+  
+  // Massive damage to all enemies
+  const damage = player.damage * 10;
+  enemies.forEach(e => {
+    e.hp -= damage;
+    spawnExplosion(e.x + e.w / 2, e.y + e.h / 2, "#ffff00", 15);
+  });
+  
+  // Giant explosion at center
+  for (let i = 0; i < 100; i++) {
+    particles.push({
+      x: canvas.width / 2,
+      y: GROUND_Y / 2,
+      vx: (Math.random() - 0.5) * 20,
+      vy: (Math.random() - 0.5) * 20,
+      radius: Math.random() * 10 + 3,
+      color: Math.random() < 0.5 ? "#ff4400" : "#ffff00",
+      life: 2
+    });
+  }
+  
+  // Screen flash effect
+  setTimeout(() => screenShake += 30, 100);
+}
+
+// Sniper Abilities
+function activateHeadshot() {
+  const target = getTargetEnemy();
+  if (target) {
+    addFloatingText(player.x + player.w / 2, player.y - 50, "🎯 HEADSHOT!", "#00ffff");
+    
+    const damage = player.damage * 5;
+    target.hp -= damage;
+    
+    // Laser beam visual
+    projectiles.push({
+      x: player.x + player.w,
+      y: player.y + player.h / 2,
+      vx: 30,
+      vy: 0,
+      radius: 8,
+      damage: 0,
+      color: "#00ffff",
+      life: 0.5,
+      trail: [],
+      isEnemyProjectile: false
+    });
+    
+    addFloatingText(target.x + target.w / 2, target.y - 30, "💀 " + Math.floor(damage), "#ff0000");
+    spawnExplosion(target.x + target.w / 2, target.y + target.h / 2, "#00ffff", 20);
+    screenShake += 12;
+  }
+}
+
+function activatePiercingRound() {
+  abilityEffects.piercingRoundActive = true;
+  abilityEffects.piercingRoundTimer = 10;
+  player.pierce = true;
+  addFloatingText(player.x + player.w / 2, player.y - 50, "🔭 PIERCING ROUNDS!", "#00ffff");
+  spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, "#00ffff", 15);
+}
+
+// Necromancer Abilities
+function activateArmyOfDead() {
+  addFloatingText(player.x + player.w / 2, player.y - 50, "💀 ARMY OF THE DEAD!", "#9933ff");
+  
+  for (let i = 0; i < 5; i++) {
+    minions.push({
+      x: player.x + 50 + i * 50,
+      y: GROUND_Y - 35,
+      w: 30,
+      h: 35,
+      hp: 80 + wave * 8,
+      maxHP: 80 + wave * 8,
+      damage: player.damage * 0.6,
+      fireRate: 1.2,
+      shootTimer: Math.random(),
+      color: "#9933ff",
+      type: "skeleton",
+      life: 20
+    });
+    
+    spawnExplosion(player.x + 50 + i * 50, GROUND_Y - 35, "#9933ff", 10);
+  }
+}
+
+function activateDeathAura() {
+  abilityEffects.deathAuraActive = true;
+  abilityEffects.deathAuraTimer = 8;
+  addFloatingText(player.x + player.w / 2, player.y - 50, "☠️ DEATH AURA!", "#9933ff");
+}
+
+// Vecna Abilities
+function activateHiveMind() {
+  addFloatingText(canvas.width / 2, 200, "🧠 HIVE MIND CONTROL!", "#8B0000");
+  
+  abilityEffects.hiveMindActive = true;
+  abilityEffects.hiveMindTimer = 8;
+  
+  enemies.forEach(e => {
+    if (!e.isBoss) {
+      e.controlled = true;
+      e.vx = Math.abs(e.vx); // Move right (away from player)
+      spawnExplosion(e.x + e.w / 2, e.y + e.h / 2, "#8B0000", 8);
+    }
+  });
+  
+  screenShake += 20;
+}
+
+function activateUpsideDown() {
+  abilityEffects.upsideDownActive = true;
+  abilityEffects.upsideDownTimer = 6;
+  player.invincible = true;
+  
+  addFloatingText(canvas.width / 2, 200, "🌀 UPSIDE DOWN!", "#8B0000");
+  
+  // Spawn Vecna monsters
+  for (let i = 0; i < 3; i++) {
+    vecnaMonsters.push({
+      x: player.x + 80 + i * 60,
+      y: GROUND_Y - 50,
+      w: 40,
+      h: 50,
+      damage: player.damage * 0.8,
+      speed: 2,
+      life: 6,
+      color: "#4a0000"
+    });
+    spawnExplosion(player.x + 80 + i * 60, GROUND_Y - 50, "#8B0000", 15);
+  }
+  
+  screenShake += 25;
+}
+
+function updateAbilityEffects(dt) {
+  // Update cooldowns
+  for (let slot in abilityCooldowns) {
+    if (abilityCooldowns[slot] > 0) {
+      abilityCooldowns[slot] -= dt;
+      if (abilityCooldowns[slot] < 0) abilityCooldowns[slot] = 0;
+    }
+  }
+  
+  // Shield Wall
+  if (abilityEffects.shieldWall) {
+    abilityEffects.shieldWallTimer -= dt;
+    if (abilityEffects.shieldWallTimer <= 0) {
+      abilityEffects.shieldWall = false;
+      player.invincible = false;
+    }
+  }
+  
+  // Hunter's Mark
+  if (abilityEffects.huntersMark) {
+    abilityEffects.huntersMark.timer -= dt;
+    if (abilityEffects.huntersMark.timer <= 0 || !enemies.includes(abilityEffects.huntersMark.target)) {
+      abilityEffects.huntersMark = null;
+    }
+  }
+  
+  // Time Freeze
+  if (abilityEffects.timeFreezeActive) {
+    abilityEffects.timeFreezeTimer -= dt;
+    if (abilityEffects.timeFreezeTimer <= 0) {
+      abilityEffects.timeFreezeActive = false;
+      enemies.forEach(e => {
+        if (e.frozen) {
+          e.frozen = false;
+          e.vx = e.originalSpeed || -1;
+        }
+      });
+    }
+  }
+  
+  // Piercing Round
+  if (abilityEffects.piercingRoundActive) {
+    abilityEffects.piercingRoundTimer -= dt;
+    if (abilityEffects.piercingRoundTimer <= 0) {
+      abilityEffects.piercingRoundActive = false;
+      // Only remove pierce if it wasn't a class trait
+      const cls = CLASSES[selectedClass];
+      if (!cls.stats.pierce) player.pierce = false;
+    }
+  }
+  
+  // Death Aura (Necromancer)
+  if (abilityEffects.deathAuraActive) {
+    abilityEffects.deathAuraTimer -= dt;
+    
+    // Damage nearby enemies
+    enemies.forEach(e => {
+      const dx = (e.x + e.w / 2) - (player.x + player.w / 2);
+      const dy = (e.y + e.h / 2) - (player.y + player.h / 2);
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist < 150) {
+        e.hp -= player.damage * 0.5 * dt;
+        e.poisonTimer = 2;
+        e.poisonDamage = player.damage * 0.1;
+      }
+    });
+    
+    if (abilityEffects.deathAuraTimer <= 0) {
+      abilityEffects.deathAuraActive = false;
+    }
+  }
+  
+  // Hive Mind (Vecna)
+  if (abilityEffects.hiveMindActive) {
+    abilityEffects.hiveMindTimer -= dt;
+    
+    // Controlled enemies fight each other
+    enemies.forEach(e => {
+      if (e.controlled) {
+        // Attack other non-controlled enemies
+        enemies.forEach(other => {
+          if (other !== e && !other.controlled && !other.isBoss) {
+            const dx = (other.x + other.w / 2) - (e.x + e.w / 2);
+            const dy = (other.y + other.h / 2) - (e.y + e.h / 2);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < 50) {
+              other.hp -= e.damage * 0.3 * dt;
+            }
+          }
+        });
+      }
+    });
+    
+    if (abilityEffects.hiveMindTimer <= 0) {
+      abilityEffects.hiveMindActive = false;
+      enemies.forEach(e => {
+        if (e.controlled) {
+          e.controlled = false;
+          e.vx = -Math.abs(e.vx);
+        }
+      });
+    }
+  }
+  
+  // Upside Down (Vecna)
+  if (abilityEffects.upsideDownActive) {
+    abilityEffects.upsideDownTimer -= dt;
+    if (abilityEffects.upsideDownTimer <= 0) {
+      abilityEffects.upsideDownActive = false;
+      player.invincible = false;
+    }
+  }
+  
+  // Update Vecna monsters
+  updateVecnaMonsters(dt);
+  
+  // Update charmed enemies
+  updateCharmedEnemies(dt);
+  
+  // Update minions
+  updateMinions(dt);
+}
+
+function updateVecnaMonsters(dt) {
+  for (let i = vecnaMonsters.length - 1; i >= 0; i--) {
+    const m = vecnaMonsters[i];
+    m.life -= dt;
+    m.x += m.speed;
+    
+    if (m.life <= 0 || m.x > canvas.width) {
+      vecnaMonsters.splice(i, 1);
+      continue;
+    }
+    
+    // Attack enemies
+    enemies.forEach(e => {
+      if (m.x < e.x + e.w && m.x + m.w > e.x && m.y < e.y + e.h && m.y + m.h > e.y) {
+        e.hp -= m.damage * dt * 2;
+      }
+    });
+  }
+}
+
+function updateCharmedEnemies(dt) {
+  enemies.forEach(e => {
+    if (e.charmed) {
+      e.charmTimer -= dt;
+      if (e.charmTimer <= 0) {
+        e.charmed = false;
+        e.vx = -Math.abs(e.vx);
+      }
+    }
+  });
+}
+
+function updateMinions(dt) {
+  for (let i = minions.length - 1; i >= 0; i--) {
+    const m = minions[i];
+    m.life -= dt;
+    m.shootTimer += dt;
+    
+    if (m.life <= 0 || m.hp <= 0) {
+      spawnExplosion(m.x + m.w / 2, m.y + m.h / 2, m.color, 10);
+      minions.splice(i, 1);
+      continue;
+    }
+    
+    // Shoot at enemies
+    if (m.shootTimer >= m.fireRate && enemies.length > 0) {
+      m.shootTimer = 0;
+      const target = enemies[Math.floor(Math.random() * enemies.length)];
+      
+      const dx = (target.x + target.w / 2) - (m.x + m.w / 2);
+      const dy = (target.y + target.h / 2) - (m.y + m.h / 2);
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      
+      projectiles.push({
+        x: m.x + m.w / 2,
+        y: m.y + m.h / 2,
+        vx: (dx / dist) * 7,
+        vy: (dy / dist) * 7,
+        radius: 4,
+        damage: m.damage,
+        color: m.color,
+        life: 2,
+        trail: [],
+        isEnemyProjectile: false
+      });
+    }
+  }
+}
+
+function updateAbilityDisplay() {
+  const bar = document.getElementById("abilityBar");
+  if (!bar) return;
+  
+  const skillTree = SKILL_TREES[selectedClass];
+  if (!skillTree) return;
+  
+  // Update ability 1
+  const ult1 = document.getElementById("ability1");
+  if (ult1 && skillTree.ult1) {
+    const cd = abilityCooldowns.ult1;
+    ult1.textContent = cd > 0 ? Math.ceil(cd) : skillTree.ult1.icon;
+    ult1.style.opacity = cd > 0 ? "0.5" : "1";
+  }
+  
+  // Update ability 2
+  const ult2 = document.getElementById("ability2");
+  if (ult2 && skillTree.ult2) {
+    const cd = abilityCooldowns.ult2;
+    ult2.textContent = cd > 0 ? Math.ceil(cd) : skillTree.ult2.icon;
+    ult2.style.opacity = cd > 0 ? "0.5" : "1";
+  }
+}
+
 // ==================== PARTICLES & EFFECTS ====================
 function spawnHitParticles(x, y, color, count) {
   for (let i = 0; i < count; i++) {
@@ -2815,17 +3883,25 @@ function draw() {
     );
   }
   
-  // Background
-  ctx.fillStyle = "#0a0015";
+  // Background - Upside Down effect
+  if (abilityEffects.upsideDownActive) {
+    ctx.fillStyle = "#1a0010";
+  } else {
+    ctx.fillStyle = "#0a0015";
+  }
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
   // Stars
   drawStars();
   
   // Ground
-  ctx.fillStyle = "#2a1a3a";
+  if (abilityEffects.upsideDownActive) {
+    ctx.fillStyle = "#3a1020";
+  } else {
+    ctx.fillStyle = "#2a1a3a";
+  }
   ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
-  ctx.strokeStyle = "#00ffff";
+  ctx.strokeStyle = abilityEffects.upsideDownActive ? "#ff0044" : "#00ffff";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(0, GROUND_Y);
@@ -2837,6 +3913,12 @@ function draw() {
   
   // Player
   if (player) drawPlayer();
+  
+  // Minions
+  drawMinions();
+  
+  // Vecna monsters
+  drawVecnaMonsters();
   
   // Enemies
   drawEnemies();
@@ -2850,10 +3932,162 @@ function draw() {
   // Floating texts
   drawFloatingTexts();
   
+  // Ability effects visuals
+  drawAbilityEffects();
+  
   // HUD
   drawHUD();
   
   ctx.restore();
+}
+
+function drawMinions() {
+  for (const m of minions) {
+    ctx.shadowColor = m.color;
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = m.color;
+    
+    // Body
+    ctx.fillRect(m.x, m.y, m.w, m.h);
+    ctx.shadowBlur = 0;
+    
+    // Eyes
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(m.x + m.w * 0.2, m.y + m.h * 0.2, 4, 4);
+    ctx.fillRect(m.x + m.w * 0.6, m.y + m.h * 0.2, 4, 4);
+    
+    // Type indicator
+    if (m.type === "skeleton") {
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "10px 'Press Start 2P'";
+      ctx.textAlign = "center";
+      ctx.fillText("💀", m.x + m.w / 2, m.y - 5);
+    } else if (m.type === "spirit") {
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "10px 'Press Start 2P'";
+      ctx.textAlign = "center";
+      ctx.fillText("✨", m.x + m.w / 2, m.y - 5);
+    }
+    
+    // HP bar
+    const hpRatio = m.hp / m.maxHP;
+    ctx.fillStyle = "rgba(60, 0, 0, 0.8)";
+    ctx.fillRect(m.x, m.y - 8, m.w, 4);
+    ctx.fillStyle = "#44ff44";
+    ctx.fillRect(m.x, m.y - 8, m.w * hpRatio, 4);
+  }
+  ctx.textAlign = "left";
+}
+
+function drawVecnaMonsters() {
+  for (const m of vecnaMonsters) {
+    ctx.shadowColor = "#8B0000";
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = m.color;
+    
+    // Body - tentacle-like shape
+    ctx.beginPath();
+    ctx.arc(m.x + m.w / 2, m.y + m.h / 2, m.w / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // Creepy eyes
+    ctx.fillStyle = "#ff0000";
+    ctx.beginPath();
+    ctx.arc(m.x + m.w * 0.3, m.y + m.h * 0.4, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(m.x + m.w * 0.7, m.y + m.h * 0.4, 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Life indicator
+    ctx.globalAlpha = m.life / 6;
+    ctx.strokeStyle = "#8B0000";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(m.x - 2, m.y - 2, m.w + 4, m.h + 4);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawAbilityEffects() {
+  // Death Aura visual
+  if (abilityEffects.deathAuraActive && player) {
+    const gradient = ctx.createRadialGradient(
+      player.x + player.w / 2, player.y + player.h / 2, 0,
+      player.x + player.w / 2, player.y + player.h / 2, 150
+    );
+    gradient.addColorStop(0, "rgba(153, 51, 255, 0.4)");
+    gradient.addColorStop(0.5, "rgba(153, 51, 255, 0.2)");
+    gradient.addColorStop(1, "rgba(153, 51, 255, 0)");
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(player.x + player.w / 2, player.y + player.h / 2, 150, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Hunter's Mark visual
+  if (abilityEffects.huntersMark && abilityEffects.huntersMark.target) {
+    const target = abilityEffects.huntersMark.target;
+    ctx.strokeStyle = "#ff0000";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(target.x - 5, target.y - 5, target.w + 10, target.h + 10);
+    ctx.setLineDash([]);
+    
+    // Target reticle
+    ctx.beginPath();
+    ctx.arc(target.x + target.w / 2, target.y + target.h / 2, target.w * 0.8, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  
+  // Time Freeze visual
+  if (abilityEffects.timeFreezeActive) {
+    ctx.fillStyle = "rgba(136, 0, 255, 0.1)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Clock icon
+    ctx.fillStyle = "#8800ff";
+    ctx.font = "30px 'Press Start 2P'";
+    ctx.textAlign = "center";
+    ctx.fillText("⏰", canvas.width - 50, 150);
+    ctx.font = "12px 'Press Start 2P'";
+    ctx.fillText(Math.ceil(abilityEffects.timeFreezeTimer) + "s", canvas.width - 50, 175);
+    ctx.textAlign = "left";
+  }
+  
+  // Shield Wall visual
+  if (abilityEffects.shieldWall && player) {
+    ctx.strokeStyle = "#4488ff";
+    ctx.lineWidth = 5;
+    ctx.globalAlpha = 0.6 + Math.sin(Date.now() / 100) * 0.3;
+    ctx.strokeRect(player.x - 15, player.y - 15, player.w + 30, player.h + 30);
+    ctx.globalAlpha = 1;
+  }
+  
+  // Hive Mind visual
+  if (abilityEffects.hiveMindActive) {
+    // Draw lines from player to controlled enemies
+    enemies.forEach(e => {
+      if (e.controlled) {
+        ctx.strokeStyle = "rgba(139, 0, 0, 0.5)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(player.x + player.w / 2, player.y + player.h / 2);
+        ctx.lineTo(e.x + e.w / 2, e.y + e.h / 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Mind control indicator
+        ctx.fillStyle = "#8B0000";
+        ctx.font = "12px 'Press Start 2P'";
+        ctx.textAlign = "center";
+        ctx.fillText("🧠", e.x + e.w / 2, e.y - 15);
+      }
+    });
+    ctx.textAlign = "left";
+  }
 }
 
 function drawStars() {
@@ -3110,7 +4344,7 @@ function handleKeyDown(e) {
     return;
   }
   
-  // Potions (during gameplay)
+  // Potions and Abilities (during gameplay)
   if (currentScreen === "gameScreen" && gameRunning && !gamePaused) {
     if (e.key === "1") usePotion("heal");
     if (e.key === "2") usePotion("shield");
@@ -3118,6 +4352,10 @@ function handleKeyDown(e) {
     if (e.key === "4") usePotion("damage");
     if (e.key === "5") usePotion("speed");
     if (e.key === "6") usePotion("dragon");
+    
+    // Abilities
+    if (e.key === "q" || e.key === "Q") useAbility("ult1");
+    if (e.key === "e" || e.key === "E") useAbility("ult2");
     
     // Speed toggle
     if (e.key === "f" || e.key === "F") {
@@ -3147,6 +4385,7 @@ function quitToMenu() {
   gameRunning = false;
   document.getElementById("pauseMenu").classList.remove("active");
   document.getElementById("potionBar").classList.remove("active");
+  document.getElementById("abilityBar").classList.remove("active");
   showScreen("mainMenu");
 }
 
