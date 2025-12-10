@@ -572,6 +572,78 @@
       min-height: 20px;
     }
     
+    /* Tutorial/How to Play Screen */
+    #tutorialScreen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 150;
+    }
+    #tutorialScreen.active { display: flex; }
+    
+    .tutorial-container {
+      background: linear-gradient(135deg, #1a0030 0%, #2a0050 100%);
+      border: 3px solid #00ffff;
+      border-radius: 20px;
+      padding: 30px 50px;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .tutorial-section {
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    }
+    
+    .tutorial-section:last-child {
+      border-bottom: none;
+    }
+    
+    .tutorial-title {
+      font-size: 20px;
+      color: #00ffff;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .tutorial-subtitle {
+      font-size: 14px;
+      color: #ffff00;
+      margin-bottom: 10px;
+    }
+    
+    .tutorial-text {
+      font-size: 10px;
+      color: #aaa;
+      line-height: 1.8;
+    }
+    
+    .tutorial-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .control-item {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 10px;
+    }
+    
+    .control-key {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    
     /* Game Screen (Battle) */
     #gameScreen {
       position: absolute;
@@ -862,6 +934,7 @@
         <button class="menu-btn shop-btn" id="shopBtn">🛒 SHOP</button>
         <button class="menu-btn settings-btn" id="settingsBtn">⚙️ SETTINGS</button>
         <button class="menu-btn redeem-btn" id="redeemBtn">🎁 REDEEM CODE</button>
+        <button class="menu-btn" id="tutorialBtn" style="border-color: #00ffff; color: #00ffff;">📖 HOW TO PLAY</button>
       </div>
       <div class="menu-stats">
         <div>💰 Coins: <span id="menuCoins">0</span></div>
@@ -979,6 +1052,63 @@
       </div>
     </div>
     
+    <!-- Tutorial/How to Play Screen -->
+    <div id="tutorialScreen">
+      <button class="back-btn" id="tutorialBackBtn">←</button>
+      <div class="tutorial-container">
+        <div class="tutorial-title">📖 HOW TO PLAY</div>
+        
+        <div class="tutorial-section">
+          <div class="tutorial-subtitle">🎮 CONTROLS</div>
+          <div class="tutorial-controls">
+            <div class="control-item"><span class="control-key">WASD / Arrow Keys</span> - Move your character</div>
+            <div class="control-item"><span class="control-key">Mouse</span> - Aim (with Auto-Aim off)</div>
+            <div class="control-item"><span class="control-key">Q / E</span> - Use Ultimate Abilities</div>
+            <div class="control-item"><span class="control-key">1-6</span> - Use Potions</div>
+            <div class="control-item"><span class="control-key">R</span> - Toggle Auto-Start Waves</div>
+            <div class="control-item"><span class="control-key">F</span> - Toggle Game Speed (1x/2x)</div>
+            <div class="control-item"><span class="control-key">ESC</span> - Pause Game</div>
+            <div class="control-item"><span class="control-key">G</span> - Give Up (End Run)</div>
+          </div>
+        </div>
+        
+        <div class="tutorial-section">
+          <div class="tutorial-subtitle">⚔️ GAMEPLAY</div>
+          <div class="tutorial-text">
+            • Survive waves of enemies in Story Mode or Endless Mode<br>
+            • Defeat enemies to gain XP and level up<br>
+            • Choose upgrades when you level up to get stronger<br>
+            • Use potions strategically - they have cooldowns!<br>
+            • Unlock new classes by progressing through the story<br>
+            • Purchase upgrades and cosmetics from the shop
+          </div>
+        </div>
+        
+        <div class="tutorial-section">
+          <div class="tutorial-subtitle">🧪 POTIONS</div>
+          <div class="tutorial-text">
+            [1] ❤️ Heal - Restore HP<br>
+            [2] 🛡️ Shield - Gain temporary shield<br>
+            [3] 💥 Crit - 100% crit chance for 5s<br>
+            [4] ⚔️ Damage - Double damage for 5s<br>
+            [5] ⚡ Speed - Double attack speed for 5s<br>
+            [6] 🐉 Dragon - Powerful fire breath attack
+          </div>
+        </div>
+        
+        <div class="tutorial-section">
+          <div class="tutorial-subtitle">🎭 CLASSES</div>
+          <div class="tutorial-text">
+            Each class has unique stats and two Ultimate Abilities.<br>
+            Unlock more classes by completing Story Mode levels!<br>
+            Some classes can be purchased from the shop.
+          </div>
+        </div>
+        
+        <button class="btn-primary" id="tutorialCloseBtn">GOT IT!</button>
+      </div>
+    </div>
+    
     <!-- Game Screen -->
     <div id="gameScreen">
       <canvas id="gameCanvas" width="1200" height="700"></canvas>
@@ -997,6 +1127,7 @@
       <div style="font-size: 24px; color: #ffff00; margin-bottom: 10px;">🎉 LEVEL UP!</div>
       <div style="font-size: 12px; color: #00ffff; margin-bottom: 20px;">Choose Your Power-Up</div>
       <div class="upgrade-options" id="upgradeOptions"></div>
+      <button id="shuffleUpgradesBtn" style="margin-top: 15px; padding: 10px 20px; font-family: 'Press Start 2P', monospace; font-size: 10px; background: rgba(255, 136, 0, 0.8); color: #fff; border: 2px solid #ff8800; border-radius: 8px; cursor: pointer;">🔀 SHUFFLE (<span id="shufflesCount">4</span> left)</button>
     </div>
     
     <!-- Game Over Screen -->
@@ -1356,6 +1487,13 @@ let gamePaused = false;
 let lastTime = 0;
 let gameSpeed = 1;
 
+// Wave management
+let autoStartWaves = false;
+let waveTimer = 0;
+let waveTimerActive = false;
+let waveTimerMax = 30; // 30 seconds between waves
+let shufflesRemaining = 4; // Shuffle button uses
+
 let sessionCoins = 0;
 let sessionGems = 0;
 let enemiesKilled = 0;
@@ -1667,6 +1805,7 @@ function setupEventListeners() {
   document.getElementById("shopBtn").addEventListener("click", showShop);
   document.getElementById("settingsBtn").addEventListener("click", showSettings);
   document.getElementById("redeemBtn").addEventListener("click", showRedeem);
+  document.getElementById("tutorialBtn").addEventListener("click", () => showScreen("tutorialScreen"));
   
   // Back buttons
   document.getElementById("mapBackBtn").addEventListener("click", () => showScreen("mainMenu"));
@@ -1674,6 +1813,8 @@ function setupEventListeners() {
   document.getElementById("shopBackBtn").addEventListener("click", () => showScreen("mainMenu"));
   document.getElementById("settingsBackBtn").addEventListener("click", () => showScreen("mainMenu"));
   document.getElementById("redeemBackBtn").addEventListener("click", () => showScreen("mainMenu"));
+  document.getElementById("tutorialBackBtn").addEventListener("click", () => showScreen("mainMenu"));
+  document.getElementById("tutorialCloseBtn").addEventListener("click", () => showScreen("mainMenu"));
   
   // Level modal
   document.getElementById("enterLevelBtn").addEventListener("click", enterLevel);
@@ -1744,6 +1885,9 @@ function setupEventListeners() {
   document.getElementById("gameOverContinueBtn").addEventListener("click", returnToMenu);
   document.getElementById("victoryContinueBtn").addEventListener("click", handleVictoryContinue);
   
+  // Shuffle upgrades button
+  document.getElementById("shuffleUpgradesBtn").addEventListener("click", shuffleUpgrades);
+  
   // Potion slots
   document.querySelectorAll(".potion-slot").forEach(slot => {
     slot.addEventListener("click", () => usePotion(slot.dataset.type));
@@ -1764,6 +1908,7 @@ function showScreen(screenId) {
   document.getElementById("shopScreen").classList.remove("active");
   document.getElementById("settingsScreen").classList.remove("active");
   document.getElementById("redeemScreen").classList.remove("active");
+  document.getElementById("tutorialScreen").classList.remove("active");
   document.getElementById("gameScreen").classList.remove("active");
   document.getElementById("levelModal").classList.remove("active");
   document.getElementById("pauseMenu").classList.remove("active");
@@ -2221,6 +2366,11 @@ function startBattle() {
   combo = 0;
   maxCombo = 0;
   
+  // Reset wave management
+  waveTimerActive = false;
+  waveTimer = 0;
+  shufflesRemaining = 4;
+  
   gameRunning = true;
   gamePaused = false;
   lastTime = performance.now();
@@ -2385,10 +2535,35 @@ function update(dt) {
     if (comboTimer <= 0) combo = 0;
   }
   
-  // Check wave completion
-  if (enemiesToSpawn === 0 && enemies.length === 0) {
+  // Wave timer logic
+  if (enemiesToSpawn === 0 && enemies.length === 0 && !waveTimerActive) {
+    // All enemies cleared - start wave timer
     if (gameMode === "endless" || wave < maxWaves) {
+      if (autoStartWaves) {
+        // Auto-start: begin timer
+        waveTimerActive = true;
+        waveTimer = waveTimerMax;
+      }
+      // If not auto-start, player must wait or press to continue
+    }
+  }
+  
+  // Count down wave timer
+  if (waveTimerActive && waveTimer > 0) {
+    waveTimer -= dt;
+    if (waveTimer <= 0) {
+      waveTimerActive = false;
       nextWave();
+    }
+  }
+  
+  // Check wave completion (manual progression if auto-start is off)
+  if (enemiesToSpawn === 0 && enemies.length === 0 && !waveTimerActive) {
+    if (gameMode === "endless" || wave < maxWaves) {
+      if (!autoStartWaves) {
+        // Show "Press SPACE for next wave" or auto-continue
+        nextWave(); // For now, auto-continue
+      }
     } else {
       victory();
     }
@@ -2821,6 +2996,16 @@ function showUpgradeScreen() {
   gamePaused = true;
   document.getElementById("upgradeScreen").classList.add("active");
   
+  // Update shuffle count display
+  document.getElementById("shufflesCount").textContent = shufflesRemaining;
+  const shuffleBtn = document.getElementById("shuffleUpgradesBtn");
+  shuffleBtn.style.opacity = shufflesRemaining > 0 ? "1" : "0.5";
+  shuffleBtn.style.cursor = shufflesRemaining > 0 ? "pointer" : "not-allowed";
+  
+  renderUpgradeOptions();
+}
+
+function renderUpgradeOptions() {
   const container = document.getElementById("upgradeOptions");
   container.innerHTML = "";
   
@@ -2841,6 +3026,25 @@ function showUpgradeScreen() {
   });
 }
 
+function shuffleUpgrades() {
+  if (shufflesRemaining <= 0) {
+    addFloatingText(canvas.width / 2, 200, "No shuffles left!", "#ff4444");
+    return;
+  }
+  
+  shufflesRemaining--;
+  document.getElementById("shufflesCount").textContent = shufflesRemaining;
+  
+  const shuffleBtn = document.getElementById("shuffleUpgradesBtn");
+  if (shufflesRemaining <= 0) {
+    shuffleBtn.style.opacity = "0.5";
+    shuffleBtn.style.cursor = "not-allowed";
+  }
+  
+  renderUpgradeOptions();
+  playSound("upgrade");
+}
+
 function selectUpgrade(key) {
   const upgrade = UPGRADE_TYPES[key];
   upgrade.apply(player);
@@ -2854,6 +3058,10 @@ function selectUpgrade(key) {
 
 function nextWave() {
   wave++;
+  
+  // Reset wave timer state
+  waveTimerActive = false;
+  waveTimer = 0;
   
   playSound("wave");
   
@@ -4320,6 +4528,27 @@ function drawHUD() {
     ctx.fillText("🔥 COMBO: " + combo + "x", canvas.width - 200, 80);
   }
   
+  // Wave Timer (when no enemies and waiting for next wave)
+  if (waveTimerActive && waveTimer > 0) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(canvas.width / 2 - 100, 10, 200, 40);
+    ctx.strokeStyle = "#ff8800";
+    ctx.strokeRect(canvas.width / 2 - 100, 10, 200, 40);
+    ctx.fillStyle = "#ffff00";
+    ctx.font = "14px 'Press Start 2P'";
+    ctx.textAlign = "center";
+    ctx.fillText("Next Wave: " + Math.ceil(waveTimer) + "s", canvas.width / 2, 35);
+    ctx.textAlign = "left";
+  }
+  
+  // Status indicators (bottom left)
+  ctx.fillStyle = "#888";
+  ctx.font = "10px 'Press Start 2P'";
+  let statusY = canvas.height - 50;
+  ctx.fillText("[R] Auto: " + (autoStartWaves ? "ON" : "OFF"), 20, statusY);
+  ctx.fillText("[F] Speed: " + gameSpeed + "x", 20, statusY + 15);
+  ctx.fillText("[G] Give Up", 150, statusY);
+  
   // Pause button hint
   ctx.fillStyle = "#888";
   ctx.font = "10px 'Press Start 2P'";
@@ -4361,6 +4590,19 @@ function handleKeyDown(e) {
     if (e.key === "f" || e.key === "F") {
       gameSpeed = gameSpeed === 1 ? 2 : 1;
       addFloatingText(canvas.width / 2, 150, "Speed: " + gameSpeed + "x", gameSpeed === 2 ? "#ff8800" : "#ffffff");
+    }
+    
+    // Auto-start waves toggle
+    if (e.key === "r" || e.key === "R") {
+      autoStartWaves = !autoStartWaves;
+      addFloatingText(canvas.width / 2, 180, "Auto-Start: " + (autoStartWaves ? "ON" : "OFF"), autoStartWaves ? "#00ff88" : "#ff4444");
+    }
+    
+    // Give up (end run)
+    if (e.key === "g" || e.key === "G") {
+      if (confirm("Are you sure you want to give up?")) {
+        gameOver();
+      }
     }
   }
 }
