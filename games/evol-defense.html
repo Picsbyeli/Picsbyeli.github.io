@@ -982,6 +982,261 @@
     }
     #gameOverScreen.active { display: flex; }
     
+    /* Boss Defeat Dialogue Modal */
+    #bossDefeatDialogue {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 150;
+      cursor: pointer;
+    }
+    #bossDefeatDialogue.active { display: flex; }
+    
+    .defeat-dialogue-box {
+      background: linear-gradient(135deg, #1a0a2e, #16213e);
+      border: 4px solid;
+      border-radius: 15px;
+      padding: 40px;
+      max-width: 700px;
+      width: 90%;
+      box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+    }
+    
+    .defeat-dialogue-speaker {
+      font-size: 20px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .defeat-dialogue-text {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #fff;
+      min-height: 60px;
+    }
+    
+    .defeat-dialogue-continue {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 30px;
+      animation: blink 1s infinite;
+    }
+    
+    /* Achievement Popup */
+    #achievementPopup {
+      position: fixed;
+      top: 20px;
+      right: -400px;
+      width: 350px;
+      background: linear-gradient(135deg, #1a0a2e, #2d1f4e);
+      border: 3px solid #ffd700;
+      border-radius: 15px;
+      padding: 20px;
+      z-index: 200;
+      transition: right 0.5s ease;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    }
+    #achievementPopup.show { right: 20px; }
+    
+    .achievement-popup-header {
+      font-size: 14px;
+      color: #ffd700;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .achievement-popup-content {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .achievement-popup-icon {
+      font-size: 40px;
+      background: rgba(255, 215, 0, 0.2);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    
+    .achievement-popup-info h3 {
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    
+    .achievement-popup-info p {
+      color: #aaa;
+      font-size: 10px;
+    }
+    
+    .achievement-popup-reward {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #00ff00;
+      text-align: center;
+    }
+    
+    /* Achievements Screen */
+    #achievementsScreen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.98);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 160;
+      overflow-y: auto;
+      padding: 30px;
+    }
+    #achievementsScreen.active { display: flex; }
+    
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+      max-width: 1200px;
+      width: 100%;
+      margin-top: 20px;
+    }
+    
+    .achievement-card {
+      background: rgba(40, 40, 60, 0.8);
+      border: 2px solid #444;
+      border-radius: 10px;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: all 0.3s;
+    }
+    
+    .achievement-card.unlocked {
+      background: rgba(0, 100, 50, 0.3);
+      border-color: #00ff00;
+    }
+    
+    .achievement-card.locked {
+      opacity: 0.5;
+      filter: grayscale(0.8);
+    }
+    
+    .achievement-card-icon {
+      font-size: 35px;
+      min-width: 50px;
+      text-align: center;
+    }
+    
+    .achievement-card-info h3 {
+      font-size: 12px;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+    
+    .achievement-card-info p {
+      font-size: 9px;
+      color: #aaa;
+    }
+    
+    .achievement-card-reward {
+      font-size: 10px;
+      color: #ffd700;
+      margin-top: 5px;
+    }
+    
+    /* Leaderboard Screen */
+    #leaderboardScreen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.98);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 160;
+      overflow-y: auto;
+      padding: 30px;
+    }
+    #leaderboardScreen.active { display: flex; }
+    
+    .leaderboard-container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+      max-width: 1000px;
+    }
+    
+    .leaderboard-section {
+      background: linear-gradient(135deg, #1a0a2e, #16213e);
+      border: 3px solid #00ffff;
+      border-radius: 15px;
+      padding: 25px;
+      min-width: 350px;
+    }
+    
+    .leaderboard-section h2 {
+      font-size: 16px;
+      color: #00ffff;
+      margin-bottom: 20px;
+      text-align: center;
+      border-bottom: 2px solid #00ffff;
+      padding-bottom: 10px;
+    }
+    
+    .leaderboard-entry {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border-left: 4px solid #666;
+    }
+    
+    .leaderboard-entry.gold { border-left-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
+    .leaderboard-entry.silver { border-left-color: #c0c0c0; background: rgba(192, 192, 192, 0.1); }
+    .leaderboard-entry.bronze { border-left-color: #cd7f32; background: rgba(205, 127, 50, 0.1); }
+    
+    .leaderboard-rank {
+      font-size: 16px;
+      min-width: 40px;
+      color: #fff;
+    }
+    
+    .leaderboard-name {
+      flex: 1;
+      font-size: 12px;
+      color: #fff;
+    }
+    
+    .leaderboard-class {
+      font-size: 10px;
+      color: #888;
+      margin-left: 10px;
+    }
+    
+    .leaderboard-score {
+      font-size: 14px;
+      color: #ffff00;
+      font-weight: bold;
+    }
+    
+    .leaderboard-empty {
+      text-align: center;
+      color: #666;
+      font-size: 12px;
+      padding: 20px;
+    }
+    
     /* Victory Screen */
     #victoryScreen {
       position: absolute;
@@ -1160,6 +1415,8 @@
         <button class="menu-btn story-btn" id="storyModeBtn">🗺️ STORY MODE</button>
         <button class="menu-btn endless-btn" id="endlessModeBtn">♾️ ENDLESS MODE</button>
         <button class="menu-btn shop-btn" id="shopBtn">🛒 SHOP</button>
+        <button class="menu-btn" id="achievementsBtn" style="border-color: #ffd700; color: #ffd700;">🏆 ACHIEVEMENTS</button>
+        <button class="menu-btn" id="leaderboardBtn" style="border-color: #00ffff; color: #00ffff;">🏅 LEADERBOARD</button>
         <button class="menu-btn settings-btn" id="settingsBtn">⚙️ SETTINGS</button>
         <button class="menu-btn redeem-btn" id="redeemBtn">🎁 REDEEM CODE</button>
         <button class="menu-btn" id="tutorialBtn" style="border-color: #00ffff; color: #00ffff;">📖 HOW TO PLAY</button>
@@ -1407,6 +1664,56 @@
       <button class="btn-primary" id="victoryContinueBtn">CONTINUE</button>
     </div>
     
+    <!-- Boss Defeat Dialogue Modal -->
+    <div id="bossDefeatDialogue">
+      <div class="defeat-dialogue-box" id="defeatDialogueBox">
+        <div class="defeat-dialogue-speaker" id="defeatDialogueSpeaker">
+          <span id="defeatDialogueIcon"></span>
+          <span id="defeatDialogueName"></span>
+        </div>
+        <div class="defeat-dialogue-text" id="defeatDialogueText"></div>
+        <div class="defeat-dialogue-continue">▶ Click or press any key to continue...</div>
+      </div>
+    </div>
+    
+    <!-- Achievement Popup -->
+    <div id="achievementPopup">
+      <div class="achievement-popup-header">🏆 ACHIEVEMENT UNLOCKED!</div>
+      <div class="achievement-popup-content">
+        <div class="achievement-popup-icon" id="achievementPopupIcon"></div>
+        <div class="achievement-popup-info">
+          <h3 id="achievementPopupName"></h3>
+          <p id="achievementPopupDesc"></p>
+        </div>
+      </div>
+      <div class="achievement-popup-reward" id="achievementPopupReward"></div>
+    </div>
+    
+    <!-- Achievements Screen -->
+    <div id="achievementsScreen">
+      <div style="font-size: 32px; color: #ffd700; margin-bottom: 10px;">🏆 ACHIEVEMENTS 🏆</div>
+      <div style="font-size: 12px; color: #aaa; margin-bottom: 20px;" id="achievementsProgress">0 / 0 Unlocked</div>
+      <div class="achievements-grid" id="achievementsGrid"></div>
+      <button class="btn-primary" style="margin-top: 30px;" id="achievementsCloseBtn">CLOSE</button>
+    </div>
+    
+    <!-- Leaderboard Screen -->
+    <div id="leaderboardScreen">
+      <div style="font-size: 32px; color: #00ffff; margin-bottom: 10px;">🏅 LEADERBOARD 🏅</div>
+      <div style="font-size: 12px; color: #aaa; margin-bottom: 20px;">Local Rankings - No Bots Allowed!</div>
+      <div class="leaderboard-container">
+        <div class="leaderboard-section">
+          <h2>🌊 HIGHEST WAVE</h2>
+          <div id="leaderboardWaves"></div>
+        </div>
+        <div class="leaderboard-section">
+          <h2>💀 MOST KILLS</h2>
+          <div id="leaderboardKills"></div>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top: 30px;" id="leaderboardCloseBtn">CLOSE</button>
+    </div>
+    
     <!-- Potion Bar -->
     <div id="potionBar">
       <div class="potion-slot" data-type="heal">
@@ -1472,6 +1779,15 @@ const DEFAULT_GAME_DATA = {
   unlockedClasses: ["Hunter", "Knight", "Assassin"], // STARTERS: Hunter, Knight, Assassin
   purchasedClasses: [],
   highestWave: 1,
+  // Achievement Stats Tracking
+  totalKills: 0,
+  totalCoinsEarned: 0,
+  bossKills: 0,
+  storyNodesCompleted: 0,
+  defeatedBosses: [],
+  classesUnlocked: 3,
+  highestCombo: 0,
+  unlockedAchievements: [],
   permanentUpgrades: {
     damage: 0, health: 0, fireRate: 0, critChance: 0, coinMultiplier: 0, xpMultiplier: 0
   },
@@ -2385,6 +2701,153 @@ const STORY_MISSIONS = {
   "final_boss": { objective: "Confront the Memory Devourer", hint: "Your destiny awaits..." }
 };
 
+// ==================== BOSS DEFEAT DIALOGUES ====================
+const BOSS_DEFEAT_DIALOGUES = {
+  "Shadow Beast": {
+    icon: "🐺",
+    color: "#8844aa",
+    dialogues: [
+      { speaker: "boss", text: "Impossible... the shadows... they fade..." },
+      { speaker: "boss", text: "You are stronger than I foresaw, warrior..." },
+      { speaker: "player", text: "The light always conquers darkness!" },
+      { speaker: "boss", text: "Perhaps... but darker things await in the Crimson Forest... beware..." }
+    ]
+  },
+  "Bloodwood Guardian": {
+    icon: "🌲",
+    color: "#aa0000",
+    dialogues: [
+      { speaker: "boss", text: "The forest... it screams..." },
+      { speaker: "boss", text: "You have broken the cycle... the corruption fades..." },
+      { speaker: "player", text: "Rest now. Your watch is over." },
+      { speaker: "boss", text: "Thank... you... warrior... take this knowledge... two paths lie ahead..." }
+    ]
+  },
+  "Crystal Leviathan": {
+    icon: "🐙",
+    color: "#0088ff",
+    dialogues: [
+      { speaker: "boss", text: "The depths... release me at last..." },
+      { speaker: "boss", text: "Take the Water Shard... you have earned it..." },
+      { speaker: "player", text: "One shard down. One more to go." },
+      { speaker: "boss", text: "The dragon guards the other... may the tides guide you..." }
+    ]
+  },
+  "Elder Frost Dragon": {
+    icon: "🐉",
+    color: "#00ddff",
+    dialogues: [
+      { speaker: "boss", text: "In all my centuries... none have bested me..." },
+      { speaker: "boss", text: "You are worthy, mortal. Take the Fire Shard." },
+      { speaker: "player", text: "Now I can open the Forgotten Gates!" },
+      { speaker: "boss", text: "The Memory Devourer awaits... reclaim what was stolen... remember who you are..." }
+    ]
+  },
+  "Memory Devourer": {
+    icon: "☠️",
+    color: "#ff4400",
+    dialogues: [
+      { speaker: "boss", text: "NO! The memories... they're returning to you!" },
+      { speaker: "player", text: "I remember everything now... I was a guardian of this realm!" },
+      { speaker: "boss", text: "You were the GREATEST guardian... that's why I had to erase you!" },
+      { speaker: "player", text: "And now I've reclaimed my destiny. This realm is protected once more!" },
+      { speaker: "boss", text: "Perhaps... but I am eternal... we will meet again... forgotten warrior..." }
+    ]
+  }
+};
+
+// ==================== ACHIEVEMENTS SYSTEM ====================
+const ACHIEVEMENTS = {
+  // Kill Achievements
+  firstBlood: { id: "firstBlood", name: "First Blood", desc: "Kill your first enemy", icon: "🗡️", reward: { coins: 50 }, check: (stats) => stats.totalKills >= 1 },
+  slayer100: { id: "slayer100", name: "Slayer", desc: "Kill 100 enemies", icon: "⚔️", reward: { coins: 200 }, check: (stats) => stats.totalKills >= 100 },
+  slayer500: { id: "slayer500", name: "Executioner", desc: "Kill 500 enemies", icon: "🔪", reward: { coins: 500, gems: 10 }, check: (stats) => stats.totalKills >= 500 },
+  slayer1000: { id: "slayer1000", name: "Annihilator", desc: "Kill 1000 enemies", icon: "💀", reward: { coins: 1000, gems: 25 }, check: (stats) => stats.totalKills >= 1000 },
+  slayer5000: { id: "slayer5000", name: "Genocide", desc: "Kill 5000 enemies", icon: "☠️", reward: { coins: 2500, gems: 50 }, check: (stats) => stats.totalKills >= 5000 },
+  
+  // Wave Achievements
+  wave10: { id: "wave10", name: "Survivor", desc: "Reach wave 10", icon: "🌊", reward: { coins: 100 }, check: (stats) => stats.highestWave >= 10 },
+  wave25: { id: "wave25", name: "Veteran", desc: "Reach wave 25", icon: "🏅", reward: { coins: 300, gems: 15 }, check: (stats) => stats.highestWave >= 25 },
+  wave50: { id: "wave50", name: "Champion", desc: "Reach wave 50", icon: "🏆", reward: { coins: 750, gems: 35 }, check: (stats) => stats.highestWave >= 50 },
+  wave100: { id: "wave100", name: "Legend", desc: "Reach wave 100", icon: "👑", reward: { coins: 2000, gems: 100 }, check: (stats) => stats.highestWave >= 100 },
+  
+  // Boss Achievements
+  bossSlayer: { id: "bossSlayer", name: "Boss Slayer", desc: "Defeat your first boss", icon: "🐺", reward: { coins: 250 }, check: (stats) => stats.bossKills >= 1 },
+  bossHunter: { id: "bossHunter", name: "Boss Hunter", desc: "Defeat 10 bosses", icon: "🐉", reward: { coins: 500, gems: 20 }, check: (stats) => stats.bossKills >= 10 },
+  bossmaster: { id: "bossmaster", name: "Bossmaster", desc: "Defeat 50 bosses", icon: "👹", reward: { coins: 1500, gems: 75 }, check: (stats) => stats.bossKills >= 50 },
+  
+  // Story Achievements
+  storyStart: { id: "storyStart", name: "The Journey Begins", desc: "Complete your first story node", icon: "🚀", reward: { coins: 100 }, check: (stats) => stats.storyNodesCompleted >= 1 },
+  shadowSlayer: { id: "shadowSlayer", name: "Shadow Slayer", desc: "Defeat the Shadow Beast", icon: "🐺", reward: { coins: 500, gems: 25 }, check: (stats) => stats.defeatedBosses && stats.defeatedBosses.includes("Shadow Beast") },
+  forestPurifier: { id: "forestPurifier", name: "Forest Purifier", desc: "Defeat the Bloodwood Guardian", icon: "🌲", reward: { coins: 750, gems: 35 }, check: (stats) => stats.defeatedBosses && stats.defeatedBosses.includes("Bloodwood Guardian") },
+  depthExplorer: { id: "depthExplorer", name: "Depth Explorer", desc: "Defeat the Crystal Leviathan", icon: "🐙", reward: { coins: 1000, gems: 50 }, check: (stats) => stats.defeatedBosses && stats.defeatedBosses.includes("Crystal Leviathan") },
+  dragonSlayer: { id: "dragonSlayer", name: "Dragon Slayer", desc: "Defeat the Elder Frost Dragon", icon: "🐉", reward: { coins: 1500, gems: 75 }, check: (stats) => stats.defeatedBosses && stats.defeatedBosses.includes("Elder Frost Dragon") },
+  memoryRestored: { id: "memoryRestored", name: "Memory Restored", desc: "Defeat the Memory Devourer", icon: "☠️", reward: { coins: 5000, gems: 250, classUnlock: "Vecna" }, check: (stats) => stats.defeatedBosses && stats.defeatedBosses.includes("Memory Devourer") },
+  
+  // Class Achievements
+  classCollector: { id: "classCollector", name: "Class Collector", desc: "Unlock 5 classes", icon: "🎭", reward: { gems: 50 }, check: (stats) => stats.classesUnlocked >= 5 },
+  classMaster: { id: "classMaster", name: "Class Master", desc: "Unlock all classes", icon: "🌟", reward: { gems: 200 }, check: (stats) => stats.classesUnlocked >= 10 },
+  
+  // Combo Achievements
+  combo10: { id: "combo10", name: "Combo Starter", desc: "Get a 10x combo", icon: "🔥", reward: { coins: 100 }, check: (stats) => stats.highestCombo >= 10 },
+  combo50: { id: "combo50", name: "Combo King", desc: "Get a 50x combo", icon: "💥", reward: { coins: 500, gems: 25 }, check: (stats) => stats.highestCombo >= 50 },
+  combo100: { id: "combo100", name: "Combo God", desc: "Get a 100x combo", icon: "⚡", reward: { coins: 1000, gems: 50 }, check: (stats) => stats.highestCombo >= 100 },
+  
+  // Wealth Achievements
+  rich: { id: "rich", name: "Getting Rich", desc: "Earn 10,000 total coins", icon: "💰", reward: { gems: 20 }, check: (stats) => stats.totalCoinsEarned >= 10000 },
+  wealthy: { id: "wealthy", name: "Wealthy", desc: "Earn 100,000 total coins", icon: "💎", reward: { gems: 100 }, check: (stats) => stats.totalCoinsEarned >= 100000 }
+};
+
+// ==================== LEADERBOARD SYSTEM ====================
+// Note: This is local-only leaderboard. No bots - only real player entries.
+const LEADERBOARD_STORAGE_KEY = "evolLegendsLeaderboard";
+
+function getLeaderboard() {
+  const saved = localStorage.getItem(LEADERBOARD_STORAGE_KEY);
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  return { highestWave: [], mostKills: [] };
+}
+
+function saveLeaderboard(leaderboard) {
+  localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(leaderboard));
+}
+
+function submitToLeaderboard(playerName, wave, kills, className) {
+  if (!playerName || playerName.trim() === "") return;
+  
+  const leaderboard = getLeaderboard();
+  const timestamp = Date.now();
+  
+  // Add to highest wave
+  leaderboard.highestWave.push({
+    name: playerName,
+    score: wave,
+    class: className,
+    timestamp: timestamp
+  });
+  
+  // Add to most kills
+  leaderboard.mostKills.push({
+    name: playerName,
+    score: kills,
+    class: className,
+    timestamp: timestamp
+  });
+  
+  // Sort and keep top 10
+  leaderboard.highestWave.sort((a, b) => b.score - a.score);
+  leaderboard.mostKills.sort((a, b) => b.score - a.score);
+  
+  leaderboard.highestWave = leaderboard.highestWave.slice(0, 10);
+  leaderboard.mostKills = leaderboard.mostKills.slice(0, 10);
+  
+  saveLeaderboard(leaderboard);
+  
+  return leaderboard;
+}
+
 // ==================== BACKGROUND MUSIC SYSTEM ====================
 let bgMusicOscillators = [];
 let bgMusicPlaying = false;
@@ -2686,6 +3149,44 @@ function playSound(type) {
       oscillator.start();
       oscillator.stop(audioContext.currentTime + 0.8);
       break;
+    
+    case "playerDefeat":
+      // Sad descending notes for player death
+      const sadNotes = [392, 349.23, 293.66, 220]; // G4, F4, D4, A3
+      sadNotes.forEach((freq, i) => {
+        setTimeout(() => {
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+          gain.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+          osc.start();
+          osc.stop(audioContext.currentTime + 0.4);
+        }, i * 200);
+      });
+      return;
+    
+    case "bossDefeat":
+      // Epic triumphant fanfare for boss death
+      const epicNotes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1046.50]; // C5, E5, G5, C6, E6, C6
+      epicNotes.forEach((freq, i) => {
+        setTimeout(() => {
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.type = i < 4 ? "sine" : "triangle";
+          osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+          gain.gain.setValueAtTime(volume * 0.35, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+          osc.start();
+          osc.stop(audioContext.currentTime + 0.4);
+        }, i * 120);
+      });
+      return;
       
     case "boss":
       oscillator.type = "sawtooth";
@@ -2800,6 +3301,256 @@ function updateToggle(id, value) {
   }
 }
 
+// ==================== ACHIEVEMENT FUNCTIONS ====================
+function checkAchievements() {
+  const stats = {
+    totalKills: gameData.totalKills || 0,
+    highestWave: gameData.highestWave || 1,
+    bossKills: gameData.bossKills || 0,
+    storyNodesCompleted: gameData.storyNodesCompleted || 0,
+    defeatedBosses: gameData.defeatedBosses || [],
+    classesUnlocked: (gameData.unlockedClasses || []).length,
+    highestCombo: gameData.highestCombo || 0,
+    totalCoinsEarned: gameData.totalCoinsEarned || 0
+  };
+  
+  for (const [id, achievement] of Object.entries(ACHIEVEMENTS)) {
+    if (gameData.unlockedAchievements && gameData.unlockedAchievements.includes(id)) continue;
+    
+    if (achievement.check(stats)) {
+      unlockAchievement(id);
+    }
+  }
+}
+
+function unlockAchievement(achievementId) {
+  const achievement = ACHIEVEMENTS[achievementId];
+  if (!achievement) return;
+  
+  // Initialize array if needed
+  if (!gameData.unlockedAchievements) gameData.unlockedAchievements = [];
+  
+  // Already unlocked
+  if (gameData.unlockedAchievements.includes(achievementId)) return;
+  
+  // Unlock
+  gameData.unlockedAchievements.push(achievementId);
+  
+  // Give rewards
+  if (achievement.reward) {
+    if (achievement.reward.coins) {
+      gameData.totalCoins += achievement.reward.coins;
+    }
+    if (achievement.reward.gems) {
+      gameData.totalGems += achievement.reward.gems;
+    }
+    if (achievement.reward.classUnlock && !gameData.unlockedClasses.includes(achievement.reward.classUnlock)) {
+      gameData.unlockedClasses.push(achievement.reward.classUnlock);
+    }
+  }
+  
+  saveGameData();
+  showAchievementPopup(achievement);
+}
+
+function showAchievementPopup(achievement) {
+  const popup = document.getElementById("achievementPopup");
+  document.getElementById("achievementPopupIcon").textContent = achievement.icon;
+  document.getElementById("achievementPopupName").textContent = achievement.name;
+  document.getElementById("achievementPopupDesc").textContent = achievement.desc;
+  
+  let rewardText = "";
+  if (achievement.reward) {
+    const parts = [];
+    if (achievement.reward.coins) parts.push(`💰 +${achievement.reward.coins}`);
+    if (achievement.reward.gems) parts.push(`💎 +${achievement.reward.gems}`);
+    if (achievement.reward.classUnlock) parts.push(`🎭 Unlocked: ${achievement.reward.classUnlock}`);
+    rewardText = parts.join(" | ");
+  }
+  document.getElementById("achievementPopupReward").textContent = rewardText;
+  
+  popup.classList.add("show");
+  playSound("levelUp");
+  
+  setTimeout(() => {
+    popup.classList.remove("show");
+  }, 4000);
+}
+
+function showAchievementsScreen() {
+  const grid = document.getElementById("achievementsGrid");
+  grid.innerHTML = "";
+  
+  let unlocked = 0;
+  const total = Object.keys(ACHIEVEMENTS).length;
+  
+  for (const [id, achievement] of Object.entries(ACHIEVEMENTS)) {
+    const isUnlocked = gameData.unlockedAchievements && gameData.unlockedAchievements.includes(id);
+    if (isUnlocked) unlocked++;
+    
+    const card = document.createElement("div");
+    card.className = `achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+    
+    let rewardText = "";
+    if (achievement.reward) {
+      const parts = [];
+      if (achievement.reward.coins) parts.push(`💰 ${achievement.reward.coins}`);
+      if (achievement.reward.gems) parts.push(`💎 ${achievement.reward.gems}`);
+      parts.join(" ");
+      rewardText = parts.join(" ");
+    }
+    
+    card.innerHTML = `
+      <div class="achievement-card-icon">${isUnlocked ? achievement.icon : '🔒'}</div>
+      <div class="achievement-card-info">
+        <h3>${isUnlocked ? achievement.name : '???'}</h3>
+        <p>${isUnlocked ? achievement.desc : 'Keep playing to unlock!'}</p>
+        <div class="achievement-card-reward">${rewardText}</div>
+      </div>
+    `;
+    
+    grid.appendChild(card);
+  }
+  
+  document.getElementById("achievementsProgress").textContent = `${unlocked} / ${total} Unlocked`;
+  document.getElementById("achievementsScreen").classList.add("active");
+}
+
+function hideAchievementsScreen() {
+  document.getElementById("achievementsScreen").classList.remove("active");
+}
+
+// ==================== LEADERBOARD FUNCTIONS ====================
+function showLeaderboardScreen() {
+  const leaderboard = getLeaderboard();
+  
+  // Render highest wave
+  const waveContainer = document.getElementById("leaderboardWaves");
+  waveContainer.innerHTML = "";
+  
+  if (leaderboard.highestWave.length === 0) {
+    waveContainer.innerHTML = '<div class="leaderboard-empty">No entries yet. Play to be the first!</div>';
+  } else {
+    leaderboard.highestWave.forEach((entry, index) => {
+      const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+      const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+      
+      const div = document.createElement("div");
+      div.className = `leaderboard-entry ${rankClass}`;
+      div.innerHTML = `
+        <span class="leaderboard-rank">${rankIcon}</span>
+        <span class="leaderboard-name">${entry.name}</span>
+        <span class="leaderboard-class">${entry.class || 'Unknown'}</span>
+        <span class="leaderboard-score">Wave ${entry.score}</span>
+      `;
+      waveContainer.appendChild(div);
+    });
+  }
+  
+  // Render most kills
+  const killsContainer = document.getElementById("leaderboardKills");
+  killsContainer.innerHTML = "";
+  
+  if (leaderboard.mostKills.length === 0) {
+    killsContainer.innerHTML = '<div class="leaderboard-empty">No entries yet. Play to be the first!</div>';
+  } else {
+    leaderboard.mostKills.forEach((entry, index) => {
+      const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+      const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+      
+      const div = document.createElement("div");
+      div.className = `leaderboard-entry ${rankClass}`;
+      div.innerHTML = `
+        <span class="leaderboard-rank">${rankIcon}</span>
+        <span class="leaderboard-name">${entry.name}</span>
+        <span class="leaderboard-class">${entry.class || 'Unknown'}</span>
+        <span class="leaderboard-score">${entry.score} kills</span>
+      `;
+      killsContainer.appendChild(div);
+    });
+  }
+  
+  document.getElementById("leaderboardScreen").classList.add("active");
+}
+
+function hideLeaderboardScreen() {
+  document.getElementById("leaderboardScreen").classList.remove("active");
+}
+
+// ==================== BOSS DEFEAT DIALOGUE ====================
+let defeatDialogueState = {
+  active: false,
+  dialogues: [],
+  currentIndex: 0,
+  bossColor: "#ff0000",
+  bossIcon: "👹",
+  onComplete: null
+};
+
+function showBossDefeatDialogue(bossName, onComplete) {
+  const dialogueData = BOSS_DEFEAT_DIALOGUES[bossName];
+  if (!dialogueData) {
+    // No dialogue for this boss, just complete
+    if (onComplete) onComplete();
+    return;
+  }
+  
+  defeatDialogueState = {
+    active: true,
+    dialogues: dialogueData.dialogues,
+    currentIndex: 0,
+    bossColor: dialogueData.color,
+    bossIcon: dialogueData.icon,
+    onComplete: onComplete
+  };
+  
+  // Play boss defeat sound
+  playSound("bossDefeat");
+  
+  document.getElementById("defeatDialogueBox").style.borderColor = dialogueData.color;
+  document.getElementById("bossDefeatDialogue").classList.add("active");
+  
+  showNextDefeatDialogue();
+}
+
+function showNextDefeatDialogue() {
+  if (defeatDialogueState.currentIndex >= defeatDialogueState.dialogues.length) {
+    // Dialogue complete
+    document.getElementById("bossDefeatDialogue").classList.remove("active");
+    defeatDialogueState.active = false;
+    if (defeatDialogueState.onComplete) {
+      defeatDialogueState.onComplete();
+    }
+    return;
+  }
+  
+  const dialogue = defeatDialogueState.dialogues[defeatDialogueState.currentIndex];
+  const isBoss = dialogue.speaker === "boss";
+  
+  document.getElementById("defeatDialogueIcon").textContent = isBoss ? defeatDialogueState.bossIcon : "⚔️";
+  document.getElementById("defeatDialogueName").textContent = isBoss ? "BOSS" : "YOU";
+  document.getElementById("defeatDialogueName").style.color = isBoss ? defeatDialogueState.bossColor : "#00ff00";
+  document.getElementById("defeatDialogueText").textContent = dialogue.text;
+  
+  defeatDialogueState.currentIndex++;
+}
+
+function handleDefeatDialogueClick() {
+  if (defeatDialogueState.active) {
+    showNextDefeatDialogue();
+    playSound("hit");
+  }
+}
+
+// Event listeners for defeat dialogue
+document.getElementById("bossDefeatDialogue").addEventListener("click", handleDefeatDialogueClick);
+document.addEventListener("keydown", (e) => {
+  if (defeatDialogueState.active) {
+    handleDefeatDialogueClick();
+    e.preventDefault();
+  }
+});
+
 function createStarfield() {
   const starfield = document.getElementById("starfield");
   for (let i = 0; i < 100; i++) {
@@ -2838,6 +3589,8 @@ function setupEventListeners() {
   document.getElementById("settingsBtn").addEventListener("click", showSettings);
   document.getElementById("redeemBtn").addEventListener("click", showRedeem);
   document.getElementById("tutorialBtn").addEventListener("click", () => showScreen("tutorialScreen"));
+  document.getElementById("achievementsBtn").addEventListener("click", showAchievementsScreen);
+  document.getElementById("leaderboardBtn").addEventListener("click", showLeaderboardScreen);
   
   // Back buttons
   document.getElementById("mapBackBtn").addEventListener("click", () => showScreen("mainMenu"));
@@ -2847,6 +3600,8 @@ function setupEventListeners() {
   document.getElementById("redeemBackBtn").addEventListener("click", () => showScreen("mainMenu"));
   document.getElementById("tutorialBackBtn").addEventListener("click", () => showScreen("mainMenu"));
   document.getElementById("tutorialCloseBtn").addEventListener("click", () => showScreen("mainMenu"));
+  document.getElementById("achievementsCloseBtn").addEventListener("click", hideAchievementsScreen);
+  document.getElementById("leaderboardCloseBtn").addEventListener("click", hideLeaderboardScreen);
   
   // Level modal
   document.getElementById("enterLevelBtn").addEventListener("click", enterLevel);
@@ -4726,7 +5481,23 @@ function damagePlayer(amount) {
 function onEnemyKilled(enemy) {
   // Sound
   playSound("kill");
-  if (enemy.isBoss) playSound("boss");
+  if (enemy.isBoss) {
+    playSound("boss");
+  }
+  
+  // Track stats for achievements
+  gameData.totalKills = (gameData.totalKills || 0) + 1;
+  if (enemy.isBoss || enemy.isMiniBoss) {
+    gameData.bossKills = (gameData.bossKills || 0) + 1;
+  }
+  
+  // Track combo for achievements
+  combo++;
+  comboTimer = 2;
+  if (combo > maxCombo) maxCombo = combo;
+  if (combo > (gameData.highestCombo || 0)) {
+    gameData.highestCombo = combo;
+  }
   
   // XP
   let xpGain = 20 + wave * 5;
@@ -4754,6 +5525,7 @@ function onEnemyKilled(enemy) {
   sessionGems += gemDrop;
   gameData.totalCoins += coinDrop;
   gameData.totalGems += gemDrop;
+  gameData.totalCoinsEarned = (gameData.totalCoinsEarned || 0) + coinDrop;
   
   if (gameData.settings.damageNumbers) {
     addFloatingText(enemy.x + enemy.w / 2, enemy.y - 20, "+" + coinDrop + "💰", "#ffff00");
@@ -4762,12 +5534,30 @@ function onEnemyKilled(enemy) {
   // Effects
   spawnExplosion(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, enemy.color, 15);
   
-  // Combo
-  combo++;
-  comboTimer = 2;
-  if (combo > maxCombo) maxCombo = combo;
-  
   enemiesKilled++;
+  
+  // Check for boss defeat dialogue (story mode bosses)
+  if (enemy.isBoss && enemy.name && BOSS_DEFEAT_DIALOGUES[enemy.name]) {
+    // Track defeated boss
+    if (!gameData.defeatedBosses) gameData.defeatedBosses = [];
+    if (!gameData.defeatedBosses.includes(enemy.name)) {
+      gameData.defeatedBosses.push(enemy.name);
+    }
+    
+    // Pause game and show defeat dialogue
+    gamePaused = true;
+    showBossDefeatDialogue(enemy.name, () => {
+      gamePaused = false;
+      // Check achievements after boss defeat
+      checkAchievements();
+    });
+  } else {
+    // Check achievements periodically
+    if (gameData.totalKills % 10 === 0) {
+      checkAchievements();
+    }
+  }
+  
   saveGameData();
 }
 
@@ -4880,11 +5670,13 @@ function victory() {
   document.getElementById("abilityBar").classList.remove("active");
   
   playSound("victory");
+  playSound("bossDefeat"); // Epic victory sound
   
   // Mark node as completed in story mode
   if (gameMode === "story" && selectedNode) {
     if (!gameData.completedNodes.includes(selectedNode.id)) {
       gameData.completedNodes.push(selectedNode.id);
+      gameData.storyNodesCompleted = (gameData.storyNodesCompleted || 0) + 1;
     }
     
     // Unlock next nodes
@@ -4911,6 +5703,18 @@ function victory() {
     gameData.storyProgress = (gameData.completedNodes.length / MAP_NODES.length) * 100;
   }
   
+  // Update highest wave
+  if (wave > gameData.highestWave) {
+    gameData.highestWave = wave;
+  }
+  
+  // Submit to leaderboard (no bots - only real player data)
+  const playerName = gameData.warriorName || "Unknown Warrior";
+  submitToLeaderboard(playerName, wave, enemiesKilled, selectedClass);
+  
+  // Check achievements
+  checkAchievements();
+  
   saveGameData();
   
   document.getElementById("victoryCoins").textContent = sessionCoins;
@@ -4927,6 +5731,8 @@ function gameOver() {
   document.getElementById("potionBar").classList.remove("active");
   document.getElementById("abilityBar").classList.remove("active");
   
+  // Play player defeat sound
+  playSound("playerDefeat");
   playSound("gameOver");
   
   // Check for Phoenix Rising passive (Summoner)
@@ -4944,6 +5750,18 @@ function gameOver() {
     playSound("ability");
     return;
   }
+  
+  // Update highest wave
+  if (wave > gameData.highestWave) {
+    gameData.highestWave = wave;
+  }
+  
+  // Submit to leaderboard (no bots - only real player data)
+  const playerName = gameData.warriorName || "Unknown Warrior";
+  submitToLeaderboard(playerName, wave, enemiesKilled, selectedClass);
+  
+  // Check achievements
+  checkAchievements();
   
   saveGameData();
   
