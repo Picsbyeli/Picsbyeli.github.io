@@ -1653,14 +1653,249 @@ const SKILL_TREES = {
 };
 
 // ==================== BOSS PATTERNS ====================
-const BOSS_PATTERNS = [
-  { name: "Charger", color: "#ff0000", behavior: "charge", speedMult: 2.5, desc: "Charges at player rapidly" },
-  { name: "Sniper", color: "#00ff00", behavior: "ranged", projectileSpeed: 12, desc: "Fires accurate long-range shots" },
-  { name: "Tank", color: "#0088ff", behavior: "slow", hpMult: 3, damageMult: 2, desc: "Extremely durable" },
-  { name: "Summoner", color: "#ff00ff", behavior: "summon", summonCount: 3, summonTimer: 5, desc: "Summons minions" },
-  { name: "Berserker", color: "#ff8800", behavior: "berserk", rageThreshold: 0.3, desc: "Enrages at low HP" },
-  { name: "Headless", color: "#880088", behavior: "headThrow", throwCooldown: 4, desc: "Throws head as projectile" }
-];
+const BOSS_PATTERNS = {
+  // MAJOR BOSSES (Every 10 waves) - 20 unique bosses
+  Charger: { 
+    name: "The Charger", icon: "🐂", color: "#ff0000", 
+    hpMult: 10, speedMult: 0.6, size: 80,
+    attacks: [
+      { type: "charge", damage: 40, duration: 2, cooldown: 4 },
+      { type: "stomp", damage: 30, cooldown: 6 }
+    ],
+    desc: "Charges at player with devastating force"
+  },
+  Sniper: { 
+    name: "The Marksman", icon: "🎯", color: "#00ff00", 
+    hpMult: 8, speedMult: 0.4, size: 75,
+    attacks: [
+      { type: "ranged", damage: 35, duration: 3, cooldown: 2 },
+      { type: "laser", damage: 50, duration: 2, cooldown: 8 }
+    ],
+    desc: "Deadly accurate long-range shooter"
+  },
+  Tank: { 
+    name: "The Juggernaut", icon: "🛡️", color: "#0088ff", 
+    hpMult: 20, speedMult: 0.3, size: 100,
+    attacks: [
+      { type: "shield", duration: 5, cooldown: 10 },
+      { type: "stomp", damage: 50, cooldown: 5 }
+    ],
+    desc: "Nearly indestructible fortress"
+  },
+  Summoner: { 
+    name: "The Hive Queen", icon: "👑", color: "#ff00ff", 
+    hpMult: 7, speedMult: 0.5, size: 85,
+    attacks: [
+      { type: "summon", count: 4, cooldown: 8 },
+      { type: "ranged", damage: 20, duration: 2, cooldown: 3 }
+    ],
+    desc: "Calls forth endless minions"
+  },
+  Berserker: { 
+    name: "The Berserker", icon: "🪓", color: "#ff8800", 
+    hpMult: 9, speedMult: 0.7, size: 78,
+    attacks: [
+      { type: "spin", damage: 25, duration: 2, cooldown: 5 },
+      { type: "charge", damage: 35, duration: 1.5, cooldown: 4 },
+      { type: "enrage", cooldown: 0 } // Activates at low HP
+    ],
+    desc: "Enrages at low HP, becomes deadly"
+  },
+  Headless: { 
+    name: "The Headless Knight", icon: "💀", color: "#880088", 
+    hpMult: 8, speedMult: 0.6, size: 82,
+    attacks: [
+      { type: "ranged", damage: 30, duration: 2, cooldown: 3 },
+      { type: "teleport", cooldown: 5 },
+      { type: "charge", damage: 40, duration: 1, cooldown: 6 }
+    ],
+    desc: "Throws its flaming head"
+  },
+  FrostLord: { 
+    name: "Frost Lord", icon: "❄️", color: "#00ffff", 
+    hpMult: 10, speedMult: 0.5, size: 85,
+    attacks: [
+      { type: "ranged", damage: 25, duration: 3, cooldown: 2 },
+      { type: "stomp", damage: 35, cooldown: 6 }
+    ],
+    desc: "Freezes everything in its path"
+  },
+  FlameWarden: { 
+    name: "Flame Warden", icon: "🔥", color: "#ff4400", 
+    hpMult: 9, speedMult: 0.6, size: 80,
+    attacks: [
+      { type: "ranged", damage: 30, duration: 3, cooldown: 2 },
+      { type: "poison", damage: 15, cooldown: 8 }
+    ],
+    desc: "Leaves fire trails everywhere"
+  },
+  ShadowLord: { 
+    name: "Shadow Lord", icon: "🌑", color: "#2a0040", 
+    hpMult: 8, speedMult: 0.8, size: 75,
+    attacks: [
+      { type: "teleport", cooldown: 4 },
+      { type: "ranged", damage: 35, duration: 2, cooldown: 3 },
+      { type: "charge", damage: 30, duration: 1, cooldown: 5 }
+    ],
+    desc: "Teleports and strikes from shadows"
+  },
+  StormBringer: { 
+    name: "Storm Bringer", icon: "⚡", color: "#ffff00", 
+    hpMult: 9, speedMult: 0.55, size: 82,
+    attacks: [
+      { type: "ranged", damage: 40, duration: 2, cooldown: 2 },
+      { type: "stomp", damage: 45, cooldown: 5 }
+    ],
+    desc: "Commands devastating lightning"
+  },
+  PlagueBearer: { 
+    name: "Plague Bearer", icon: "🦠", color: "#00ff44", 
+    hpMult: 7, speedMult: 0.7, size: 78,
+    attacks: [
+      { type: "poison", damage: 25, cooldown: 6 },
+      { type: "ranged", damage: 20, duration: 3, cooldown: 3 }
+    ],
+    desc: "Spreads deadly poison"
+  },
+  NecroKing: { 
+    name: "Necro King", icon: "💀", color: "#9933ff", 
+    hpMult: 12, speedMult: 0.4, size: 90,
+    attacks: [
+      { type: "summon", count: 5, cooldown: 10 },
+      { type: "laser", damage: 40, duration: 3, cooldown: 8 },
+      { type: "ranged", damage: 30, duration: 2, cooldown: 3 }
+    ],
+    desc: "Raises the dead to fight"
+  },
+  Goliath: { 
+    name: "The Goliath", icon: "🗿", color: "#8b4513", 
+    hpMult: 25, speedMult: 0.2, size: 120,
+    attacks: [
+      { type: "stomp", damage: 60, cooldown: 4 },
+      { type: "ranged", damage: 45, duration: 2, cooldown: 5 }
+    ],
+    desc: "Massive and nearly unstoppable"
+  },
+  SpiderQueen: { 
+    name: "Spider Queen", icon: "🕷️", color: "#4a0080", 
+    hpMult: 8, speedMult: 0.65, size: 85,
+    attacks: [
+      { type: "summon", count: 3, cooldown: 7 },
+      { type: "poison", damage: 20, cooldown: 5 },
+      { type: "leap", cooldown: 6 }
+    ],
+    desc: "Traps and poisons victims"
+  },
+  DragonLord: { 
+    name: "Elder Dragon", icon: "🐉", color: "#ff6600", 
+    hpMult: 15, speedMult: 0.5, size: 110,
+    attacks: [
+      { type: "laser", damage: 50, duration: 3, cooldown: 6 },
+      { type: "stomp", damage: 40, cooldown: 5 },
+      { type: "ranged", damage: 35, duration: 2, cooldown: 3 }
+    ],
+    desc: "Ancient dragon of destruction"
+  },
+  VoidTitan: { 
+    name: "Void Titan", icon: "🌀", color: "#1a0033", 
+    hpMult: 14, speedMult: 0.35, size: 105,
+    attacks: [
+      { type: "teleport", cooldown: 3 },
+      { type: "stomp", damage: 50, cooldown: 6 },
+      { type: "laser", damage: 45, duration: 2, cooldown: 8 }
+    ],
+    desc: "Pulls enemies into the void"
+  },
+  CrystalGuardian: { 
+    name: "Crystal Guardian", icon: "💎", color: "#88ffff", 
+    hpMult: 11, speedMult: 0.45, size: 88,
+    attacks: [
+      { type: "shield", duration: 4, cooldown: 10 },
+      { type: "ranged", damage: 35, duration: 3, cooldown: 3 }
+    ],
+    desc: "Reflects damage with crystals"
+  },
+  DeathKnight: { 
+    name: "Death Knight", icon: "⚔️", color: "#4a0000", 
+    hpMult: 10, speedMult: 0.6, size: 85,
+    attacks: [
+      { type: "charge", damage: 45, duration: 2, cooldown: 5 },
+      { type: "spin", damage: 30, duration: 2, cooldown: 6 },
+      { type: "enrage", cooldown: 0 }
+    ],
+    desc: "Drains life with every strike"
+  },
+  Leviathan: { 
+    name: "The Leviathan", icon: "🐙", color: "#003366", 
+    hpMult: 13, speedMult: 0.4, size: 100,
+    attacks: [
+      { type: "stomp", damage: 40, cooldown: 4 },
+      { type: "summon", count: 4, cooldown: 9 },
+      { type: "poison", damage: 20, cooldown: 7 }
+    ],
+    desc: "Sea monster with many arms"
+  },
+  Apocalypse: { 
+    name: "Apocalypse", icon: "☠️", color: "#330000", 
+    hpMult: 20, speedMult: 0.5, size: 100,
+    attacks: [
+      { type: "laser", damage: 60, duration: 3, cooldown: 6 },
+      { type: "stomp", damage: 70, cooldown: 5 },
+      { type: "summon", count: 5, cooldown: 8 },
+      { type: "enrage", cooldown: 0 }
+    ],
+    desc: "The ultimate destroyer"
+  }
+};
+
+// MINI-BOSS PATTERNS (Every 5 waves) - 30 unique mini-bosses
+const MINIBOSS_PATTERNS = {
+  // Warriors
+  BladeDancer: { name: "Blade Dancer", icon: "🗡️", color: "#ff4488", hpMult: 4, speedMult: 1.5, size: 55, attacks: [{ type: "spin", damage: 15, duration: 1, cooldown: 4 }, { type: "charge", damage: 20, duration: 1, cooldown: 5 }] },
+  AxeThrower: { name: "Axe Thrower", icon: "🪓", color: "#8b4513", hpMult: 5, speedMult: 0.9, size: 58, attacks: [{ type: "ranged", damage: 25, duration: 2, cooldown: 3 }] },
+  Gladiator: { name: "Gladiator", icon: "⚔️", color: "#cd7f32", hpMult: 5, speedMult: 0.8, size: 60, attacks: [{ type: "shield", duration: 3, cooldown: 8 }, { type: "charge", damage: 25, duration: 1, cooldown: 4 }] },
+  DualBlade: { name: "Dual Blade", icon: "🔪", color: "#c0c0c0", hpMult: 3.5, speedMult: 1.8, size: 50, attacks: [{ type: "spin", damage: 12, duration: 1.5, cooldown: 3 }] },
+  WarHammer: { name: "War Hammer", icon: "🔨", color: "#696969", hpMult: 6, speedMult: 0.6, size: 62, attacks: [{ type: "stomp", damage: 35, cooldown: 4 }] },
+  
+  // Mages
+  FireMage: { name: "Fire Mage", icon: "🔥", color: "#ff6600", hpMult: 3, speedMult: 0.7, size: 52, attacks: [{ type: "ranged", damage: 25, duration: 2, cooldown: 2 }] },
+  IceMage: { name: "Ice Mage", icon: "❄️", color: "#88ddff", hpMult: 3, speedMult: 0.7, size: 52, attacks: [{ type: "ranged", damage: 20, duration: 2, cooldown: 2 }] },
+  LightningMage: { name: "Lightning Mage", icon: "⚡", color: "#ffff44", hpMult: 3, speedMult: 0.8, size: 52, attacks: [{ type: "ranged", damage: 30, duration: 1.5, cooldown: 2 }] },
+  DarkMage: { name: "Dark Mage", icon: "🔮", color: "#660099", hpMult: 3.5, speedMult: 0.6, size: 54, attacks: [{ type: "ranged", damage: 20, duration: 2, cooldown: 2 }, { type: "teleport", cooldown: 6 }] },
+  Warlock: { name: "Warlock", icon: "👹", color: "#4a0066", hpMult: 4, speedMult: 0.65, size: 55, attacks: [{ type: "summon", count: 2, cooldown: 10 }, { type: "ranged", damage: 20, duration: 2, cooldown: 3 }] },
+  
+  // Ranged
+  CrossbowElite: { name: "Crossbow Elite", icon: "🏹", color: "#8b0000", hpMult: 3, speedMult: 0.8, size: 50, attacks: [{ type: "ranged", damage: 30, duration: 2, cooldown: 2 }] },
+  Gunner: { name: "Gunner", icon: "🔫", color: "#444444", hpMult: 3.5, speedMult: 0.7, size: 52, attacks: [{ type: "ranged", damage: 15, duration: 3, cooldown: 1.5 }] },
+  PoisonArcher: { name: "Poison Archer", icon: "☠️", color: "#00aa00", hpMult: 3, speedMult: 0.9, size: 50, attacks: [{ type: "ranged", damage: 15, duration: 2, cooldown: 2 }, { type: "poison", damage: 15, cooldown: 6 }] },
+  Bombardier: { name: "Bombardier", icon: "💣", color: "#ff4400", hpMult: 4, speedMult: 0.5, size: 55, attacks: [{ type: "stomp", damage: 40, cooldown: 4 }] },
+  SniperElite: { name: "Sniper Elite", icon: "🎯", color: "#005500", hpMult: 2.5, speedMult: 0.5, size: 48, attacks: [{ type: "ranged", damage: 45, duration: 1, cooldown: 4 }] },
+  
+  // Monsters
+  Werewolf: { name: "Werewolf", icon: "🐺", color: "#555555", hpMult: 4, speedMult: 1.6, size: 55, attacks: [{ type: "leap", cooldown: 5 }, { type: "charge", damage: 25, duration: 1, cooldown: 4 }] },
+  Minotaur: { name: "Minotaur", icon: "🐂", color: "#8b4513", hpMult: 5, speedMult: 0.9, size: 60, attacks: [{ type: "charge", damage: 35, duration: 2, cooldown: 4 }] },
+  Gargoyle: { name: "Gargoyle", icon: "🗿", color: "#708090", hpMult: 4.5, speedMult: 1.0, size: 55, attacks: [{ type: "leap", cooldown: 4 }, { type: "shield", duration: 3, cooldown: 8 }] },
+  Basilisk: { name: "Basilisk", icon: "🐍", color: "#228b22", hpMult: 4, speedMult: 1.1, size: 55, attacks: [{ type: "ranged", damage: 20, duration: 2, cooldown: 2 }, { type: "poison", damage: 20, cooldown: 6 }] },
+  Harpy: { name: "Harpy", icon: "🦅", color: "#dda0dd", hpMult: 3, speedMult: 1.8, size: 48, attacks: [{ type: "leap", cooldown: 3 }, { type: "ranged", damage: 15, duration: 1, cooldown: 2 }] },
+  
+  // Undead
+  Wraith: { name: "Wraith", icon: "👻", color: "#88aaff", hpMult: 3, speedMult: 1.2, size: 50, attacks: [{ type: "teleport", cooldown: 4 }, { type: "ranged", damage: 20, duration: 2, cooldown: 3 }] },
+  SkeletonChamp: { name: "Skeleton Champion", icon: "💀", color: "#fffff0", hpMult: 4, speedMult: 1.0, size: 54, attacks: [{ type: "ranged", damage: 20, duration: 2, cooldown: 3 }, { type: "charge", damage: 25, duration: 1, cooldown: 5 }] },
+  ZombieHulk: { name: "Zombie Hulk", icon: "🧟", color: "#556b2f", hpMult: 6, speedMult: 0.5, size: 65, attacks: [{ type: "poison", damage: 15, cooldown: 5 }, { type: "stomp", damage: 30, cooldown: 5 }] },
+  VampireLord: { name: "Vampire Lord", icon: "🧛", color: "#8b0000", hpMult: 4, speedMult: 1.3, size: 55, attacks: [{ type: "teleport", cooldown: 5 }, { type: "charge", damage: 20, duration: 1, cooldown: 4 }] },
+  Lich: { name: "Lich", icon: "☠️", color: "#4a0080", hpMult: 4.5, speedMult: 0.6, size: 58, attacks: [{ type: "summon", count: 2, cooldown: 8 }, { type: "ranged", damage: 25, duration: 2, cooldown: 2 }] },
+  
+  // Elementals
+  FireElemental: { name: "Fire Elemental", icon: "🔥", color: "#ff4500", hpMult: 3.5, speedMult: 1.0, size: 52, attacks: [{ type: "ranged", damage: 25, duration: 2, cooldown: 2 }, { type: "spin", damage: 15, duration: 2, cooldown: 5 }] },
+  IceElemental: { name: "Ice Elemental", icon: "🧊", color: "#00bfff", hpMult: 3.5, speedMult: 0.8, size: 52, attacks: [{ type: "ranged", damage: 20, duration: 2, cooldown: 2 }, { type: "stomp", damage: 25, cooldown: 6 }] },
+  StormElemental: { name: "Storm Elemental", icon: "🌪️", color: "#a0a0a0", hpMult: 3.5, speedMult: 1.2, size: 52, attacks: [{ type: "spin", damage: 20, duration: 2, cooldown: 4 }, { type: "ranged", damage: 25, duration: 1, cooldown: 2 }] },
+  EarthElemental: { name: "Earth Elemental", icon: "🪨", color: "#8b4513", hpMult: 6, speedMult: 0.5, size: 65, attacks: [{ type: "stomp", damage: 40, cooldown: 4 }, { type: "shield", duration: 4, cooldown: 10 }] },
+  VoidElemental: { name: "Void Elemental", icon: "🌑", color: "#1a1a2e", hpMult: 4, speedMult: 0.9, size: 55, attacks: [{ type: "teleport", cooldown: 4 }, { type: "ranged", damage: 30, duration: 2, cooldown: 3 }] }
+};
+
+// Boss attack implementations
+let bossAttackTimer = 0;
+let bossSpecialTimer = 0;
 
 // ==================== SHOP ITEMS ====================
 const SHOP_UPGRADES = {
@@ -2976,20 +3211,43 @@ function handleSpawning(dt) {
 }
 
 function spawnEnemy(isBoss = false, isMiniBoss = false) {
-  let size, hp, speed, color, type;
+  let size, hp, speed, color, type, pattern = null;
   
   if (isBoss) {
-    size = 80;
-    hp = getEnemyHP(wave, true, false);
-    speed = 0.8;
-    color = "#ff00ff";
+    // Select unique boss pattern based on wave
+    const bossKeys = Object.keys(BOSS_PATTERNS);
+    const bossIndex = Math.floor((wave / 10) - 1) % bossKeys.length;
+    const patternKey = bossKeys[bossIndex];
+    pattern = { ...BOSS_PATTERNS[patternKey], key: patternKey };
+    
+    size = pattern.size || 80;
+    hp = getEnemyHP(wave, true, false) * (pattern.hpMult / 10);
+    speed = 0.8 * (pattern.speedMult || 1);
+    color = pattern.color;
     type = "boss";
+    
+    // Announce boss
+    addFloatingText(canvas.width / 2, 100, "⚠️ BOSS: " + pattern.name + " ⚠️", pattern.color);
+    playSound("boss");
+    
   } else if (isMiniBoss) {
-    size = 55;
-    hp = getEnemyHP(wave, false, true);
-    speed = 1.2;
-    color = "#ff8800";
+    // Select unique mini-boss pattern - no repeats within same run
+    const miniBossKeys = Object.keys(MINIBOSS_PATTERNS);
+    // Use wave number and random seed to ensure variety
+    const seed = wave * 7 + Math.floor(Math.random() * 1000);
+    const miniBossIndex = seed % miniBossKeys.length;
+    const patternKey = miniBossKeys[miniBossIndex];
+    pattern = { ...MINIBOSS_PATTERNS[patternKey], key: patternKey };
+    
+    size = pattern.size || 55;
+    hp = getEnemyHP(wave, false, true) * (pattern.hpMult / 5);
+    speed = 1.2 * (pattern.speedMult || 1);
+    color = pattern.color;
     type = "miniboss";
+    
+    // Announce mini-boss
+    addFloatingText(canvas.width / 2, 120, "⚡ " + pattern.name + " ⚡", pattern.color);
+    
   } else {
     size = 32 + Math.random() * 16;
     hp = getEnemyHP(wave);
@@ -3009,7 +3267,7 @@ function spawnEnemy(isBoss = false, isMiniBoss = false) {
     }
   }
   
-  enemies.push({
+  const enemy = {
     x: canvas.width + 30,
     y: GROUND_Y - size,
     w: size,
@@ -3017,16 +3275,32 @@ function spawnEnemy(isBoss = false, isMiniBoss = false) {
     maxHP: hp,
     hp: hp,
     vx: -speed,
+    baseSpeed: speed,
     color: color,
     type: type,
     isBoss: isBoss,
     isMiniBoss: isMiniBoss,
+    pattern: pattern,
     damage: 20 + wave * 2,
     shootTimer: 0,
     attackTimer: 0,
+    specialTimer: 0,
+    chargeTimer: 0,
+    summonTimer: 0,
+    phaseTimer: 0,
+    currentAttack: null,
+    attackCooldown: 0,
+    isCharging: false,
+    isRaging: false,
     poisonTimer: 0,
-    poisonDamage: 0
-  });
+    poisonDamage: 0,
+    frozen: false,
+    frozenTimer: 0,
+    stoneForm: false,
+    stoneTimer: 0
+  };
+  
+  enemies.push(enemy);
 }
 
 function updateEnemies(dt) {
@@ -3039,8 +3313,36 @@ function updateEnemies(dt) {
       e.hp -= e.poisonDamage * dt;
     }
     
-    // Movement
-    e.x += e.vx;
+    // Frozen status
+    if (e.frozenTimer > 0) {
+      e.frozenTimer -= dt;
+      e.frozen = e.frozenTimer > 0;
+    }
+    
+    // Stone form immunity
+    if (e.stoneTimer > 0) {
+      e.stoneTimer -= dt;
+      e.stoneForm = e.stoneTimer > 0;
+    }
+    
+    // Update boss/miniboss attack cooldowns
+    if (e.attackCooldown > 0) e.attackCooldown -= dt;
+    if (e.specialTimer > 0) e.specialTimer -= dt;
+    if (e.chargeTimer > 0) e.chargeTimer -= dt;
+    if (e.summonTimer > 0) e.summonTimer -= dt;
+    if (e.phaseTimer > 0) e.phaseTimer -= dt;
+    
+    // Boss/MiniBoss attack patterns
+    if ((e.isBoss || e.isMiniBoss) && e.pattern && player.alive) {
+      updateBossAttack(e, dt);
+    }
+    
+    // Movement (skip if frozen or stone form or charging)
+    if (!e.frozen && !e.stoneForm && !e.isCharging) {
+      e.x += e.vx;
+    } else if (e.isCharging) {
+      // Charging movement is handled in updateBossAttack
+    }
     
     // Shooter behavior
     if (e.type === "shooter" && player.alive) {
@@ -3086,6 +3388,286 @@ function updateEnemies(dt) {
     if (e.x + e.w < -50) {
       enemies.splice(i, 1);
     }
+  }
+}
+
+// Boss attack pattern handler
+function updateBossAttack(e, dt) {
+  if (e.attackCooldown > 0) return;
+  
+  const pattern = e.pattern;
+  const attacks = pattern.attacks;
+  
+  // Select next attack
+  if (!e.currentAttack) {
+    const availableAttacks = attacks.filter(a => {
+      if (a.type === "enrage" && e.hp > e.maxHP * 0.3) return false;
+      return true;
+    });
+    e.currentAttack = availableAttacks[Math.floor(Math.random() * availableAttacks.length)];
+    e.phaseTimer = e.currentAttack.duration || 2;
+  }
+  
+  const attack = e.currentAttack;
+  const distToPlayer = Math.abs(e.x - player.x);
+  
+  // Execute current attack
+  switch (attack.type) {
+    case "charge":
+      if (!e.isCharging && distToPlayer < 500) {
+        e.isCharging = true;
+        e.chargeTimer = 0.5; // Wind up
+        playSound("boss");
+      }
+      if (e.isCharging) {
+        e.chargeTimer -= dt;
+        if (e.chargeTimer <= 0 && e.chargeTimer > -attack.duration) {
+          // Charge at player
+          e.x -= 12 * (e.isBoss ? 1.5 : 1);
+          spawnParticle(e.x + e.w, e.y + e.h / 2, e.color);
+        } else if (e.chargeTimer <= -attack.duration) {
+          e.isCharging = false;
+          e.currentAttack = null;
+          e.attackCooldown = attack.cooldown;
+        }
+      }
+      break;
+      
+    case "shoot":
+    case "ranged":
+      if (e.specialTimer <= 0) {
+        // Fire projectile(s)
+        const count = e.isBoss ? 5 : 3;
+        const spread = e.isBoss ? 0.3 : 0.15;
+        for (let j = 0; j < count; j++) {
+          const angle = Math.atan2(player.y - e.y, player.x - e.x) + (j - Math.floor(count/2)) * spread;
+          shootBossProjectile(e, angle, attack.damage || e.damage * 0.3);
+        }
+        e.specialTimer = 0.5;
+        e.phaseTimer -= 0.5;
+        if (e.phaseTimer <= 0) {
+          e.currentAttack = null;
+          e.attackCooldown = attack.cooldown;
+        }
+      }
+      break;
+      
+    case "summon":
+      if (e.summonTimer <= 0) {
+        // Summon minions
+        const count = Math.min(3, attack.count || 2);
+        for (let j = 0; j < count; j++) {
+          spawnMinion(e);
+        }
+        addFloatingText(e.x + e.w/2, e.y, "SUMMON!", e.color);
+        e.summonTimer = attack.cooldown;
+        e.currentAttack = null;
+        e.attackCooldown = attack.cooldown;
+      }
+      break;
+      
+    case "stomp":
+    case "groundPound":
+      if (e.specialTimer <= 0) {
+        // Create shockwave
+        spawnShockwave(e.x + e.w/2, GROUND_Y);
+        screenShake += 20;
+        playSound("explosion");
+        e.currentAttack = null;
+        e.attackCooldown = attack.cooldown;
+      }
+      break;
+      
+    case "shield":
+      if (!e.stoneForm) {
+        e.stoneForm = true;
+        e.stoneTimer = attack.duration;
+        addFloatingText(e.x + e.w/2, e.y, "SHIELD!", "#4488ff");
+      }
+      if (e.stoneTimer <= 0) {
+        e.stoneForm = false;
+        e.currentAttack = null;
+        e.attackCooldown = attack.cooldown;
+      }
+      break;
+      
+    case "enrage":
+    case "berserk":
+      if (!e.isRaging) {
+        e.isRaging = true;
+        e.vx *= 2;
+        e.color = "#ff0000";
+        addFloatingText(e.x + e.w/2, e.y, "ENRAGED!", "#ff0000");
+        e.currentAttack = null;
+        e.attackCooldown = attack.cooldown;
+      }
+      break;
+      
+    case "spin":
+      if (e.phaseTimer > 0) {
+        // Damage nearby during spin
+        const spinRange = 100;
+        if (Math.abs(player.x - e.x) < spinRange && Math.abs(player.y - e.y) < spinRange) {
+          if (!player.invincible) damagePlayer(attack.damage * dt);
+        }
+        spawnParticle(e.x + Math.random() * e.w, e.y + Math.random() * e.h, e.color);
+      } else {
+        e.currentAttack = null;
+        e.attackCooldown = attack.cooldown;
+      }
+      break;
+      
+    case "leap":
+    case "pounce":
+      if (e.specialTimer <= 0) {
+        // Leap toward player
+        e.x = Math.max(100, player.x + 100);
+        e.y = GROUND_Y - e.h;
+        spawnExplosion(e.x + e.w/2, e.y + e.h/2, e.color, 15);
+        screenShake += 10;
+        e.currentAttack = null;
+        e.attackCooldown = attack.cooldown;
+      }
+      break;
+      
+    case "laser":
+      if (e.phaseTimer > 0) {
+        // Draw laser beam
+        e.laserActive = true;
+        if (player.y > e.y - 30 && player.y < e.y + e.h + 30 && player.x < e.x) {
+          if (!player.invincible) damagePlayer(attack.damage * dt * 2);
+        }
+      } else {
+        e.laserActive = false;
+        e.currentAttack = null;
+        e.attackCooldown = attack.cooldown;
+      }
+      break;
+      
+    case "poison":
+    case "toxicCloud":
+      if (e.specialTimer <= 0) {
+        // Create poison cloud
+        spawnPoisonCloud(e.x + e.w/2, e.y + e.h/2);
+        e.currentAttack = null;
+        e.attackCooldown = attack.cooldown;
+      }
+      break;
+      
+    case "teleport":
+      if (e.specialTimer <= 0) {
+        // Teleport behind player
+        e.x = player.x + 150 + Math.random() * 100;
+        spawnParticle(e.x, e.y, "#8800ff");
+        addFloatingText(e.x + e.w/2, e.y, "!", "#8800ff");
+        e.currentAttack = null;
+        e.attackCooldown = attack.cooldown;
+      }
+      break;
+      
+    default:
+      e.currentAttack = null;
+      e.attackCooldown = 2;
+  }
+}
+
+// Boss projectile
+function shootBossProjectile(enemy, angle, damage) {
+  const ex = enemy.x + enemy.w / 2;
+  const ey = enemy.y + enemy.h / 2;
+  
+  projectiles.push({
+    x: ex, y: ey,
+    vx: Math.cos(angle) * 8,
+    vy: Math.sin(angle) * 8,
+    radius: enemy.isBoss ? 10 : 7,
+    damage: damage,
+    color: enemy.color,
+    life: 3,
+    trail: [],
+    isEnemyProjectile: true,
+    isBossProjectile: true
+  });
+  
+  playSound("shoot");
+}
+
+// Spawn minion for summoner bosses
+function spawnMinion(boss) {
+  const size = 25;
+  const hp = getEnemyHP(wave) * 0.3;
+  
+  enemies.push({
+    x: boss.x + boss.w + 20,
+    y: GROUND_Y - size,
+    w: size,
+    h: size,
+    maxHP: hp,
+    hp: hp,
+    vx: -2,
+    baseSpeed: 2,
+    color: "#aa00aa",
+    type: "minion",
+    isBoss: false,
+    isMiniBoss: false,
+    pattern: null,
+    damage: 10 + wave,
+    shootTimer: 0,
+    attackTimer: 0,
+    specialTimer: 0,
+    chargeTimer: 0,
+    summonTimer: 0,
+    phaseTimer: 0,
+    currentAttack: null,
+    attackCooldown: 0,
+    isCharging: false,
+    isRaging: false,
+    poisonTimer: 0,
+    poisonDamage: 0,
+    frozen: false,
+    frozenTimer: 0,
+    stoneForm: false,
+    stoneTimer: 0
+  });
+}
+
+// Spawn shockwave for stomp attacks
+function spawnShockwave(x, y) {
+  // Damage player if nearby
+  if (Math.abs(player.x - x) < 300 && !player.invincible) {
+    damagePlayer(30 + wave * 2);
+  }
+  
+  // Visual effect
+  for (let i = 0; i < 20; i++) {
+    particles.push({
+      x: x + (Math.random() - 0.5) * 200,
+      y: y,
+      vx: (Math.random() - 0.5) * 5,
+      vy: -Math.random() * 3,
+      color: "#8b4513",
+      life: 0.5
+    });
+  }
+}
+
+// Spawn poison cloud
+function spawnPoisonCloud(x, y) {
+  for (let i = 0; i < 15; i++) {
+    particles.push({
+      x: x + (Math.random() - 0.5) * 80,
+      y: y + (Math.random() - 0.5) * 80,
+      vx: (Math.random() - 0.5) * 2,
+      vy: -Math.random() * 2,
+      color: "#00ff00",
+      life: 2
+    });
+  }
+  
+  // Damage player if in cloud
+  if (Math.abs(player.x - x) < 80 && Math.abs(player.y - y) < 80 && !player.invincible) {
+    player.poisonTimer = 3;
+    player.poisonDamage = 10;
   }
 }
 
@@ -4676,30 +5258,99 @@ function drawEnemies() {
   for (const e of enemies) {
     ctx.shadowColor = e.color;
     ctx.shadowBlur = e.isBoss ? 25 : e.isMiniBoss ? 18 : 10;
-    ctx.fillStyle = e.color;
     
-    const wobble = Math.sin(Date.now() / 200) * 2;
+    // Stone form visual
+    if (e.stoneForm) {
+      ctx.fillStyle = "#666666";
+    } else if (e.isRaging) {
+      ctx.fillStyle = "#ff0000";
+    } else if (e.frozen) {
+      ctx.fillStyle = "#88ccff";
+    } else {
+      ctx.fillStyle = e.color;
+    }
+    
+    const wobble = e.isCharging ? 0 : Math.sin(Date.now() / 200) * 2;
     ctx.fillRect(e.x + 2, e.y + wobble, e.w - 4, e.h - 4);
     
     ctx.shadowBlur = 0;
     
     // Eyes
-    ctx.fillStyle = "#ffff00";
+    ctx.fillStyle = e.isRaging ? "#ffff00" : e.frozen ? "#aaddff" : "#ffff00";
     const eyeSize = e.isBoss ? 8 : e.isMiniBoss ? 6 : 5;
     ctx.fillRect(e.x + e.w * 0.25, e.y + e.h * 0.2 + wobble, eyeSize, eyeSize);
     ctx.fillRect(e.x + e.w * 0.65, e.y + e.h * 0.2 + wobble, eyeSize, eyeSize);
     
-    // Labels
+    // Charging indicator
+    if (e.isCharging && e.chargeTimer > 0) {
+      ctx.strokeStyle = "#ff0000";
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 50) * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(e.x, e.y + e.h / 2);
+      ctx.lineTo(e.x - 100, e.y + e.h / 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    
+    // Laser beam
+    if (e.laserActive) {
+      ctx.strokeStyle = e.color;
+      ctx.lineWidth = 8 + Math.sin(Date.now() / 30) * 3;
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(e.x + e.w / 2, e.y + e.h / 2);
+      ctx.lineTo(0, e.y + e.h / 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    
+    // Stone form aura
+    if (e.stoneForm) {
+      ctx.strokeStyle = "#4488ff";
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = 0.6 + Math.sin(Date.now() / 100) * 0.3;
+      ctx.strokeRect(e.x - 5, e.y - 5, e.w + 10, e.h + 10);
+      ctx.globalAlpha = 1;
+    }
+    
+    // Rage aura
+    if (e.isRaging) {
+      for (let i = 0; i < 3; i++) {
+        if (Math.random() < 0.3) {
+          particles.push({
+            x: e.x + Math.random() * e.w,
+            y: e.y + e.h,
+            vx: (Math.random() - 0.5) * 2,
+            vy: -Math.random() * 3 - 1,
+            color: "#ff4400",
+            life: 0.5,
+            radius: 4
+          });
+        }
+      }
+    }
+    
+    // Labels with boss name
     if (e.isBoss) {
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 12px 'Press Start 2P'";
       ctx.textAlign = "center";
-      ctx.fillText("BOSS", e.x + e.w / 2, e.y - 25);
+      const bossName = e.pattern ? e.pattern.name : "BOSS";
+      ctx.fillText(bossName, e.x + e.w / 2, e.y - 25);
+      
+      // Show current attack
+      if (e.currentAttack) {
+        ctx.fillStyle = "#ffff00";
+        ctx.font = "bold 8px 'Press Start 2P'";
+        ctx.fillText(e.currentAttack.type.toUpperCase(), e.x + e.w / 2, e.y - 12);
+      }
     } else if (e.isMiniBoss) {
       ctx.fillStyle = "#ffff00";
       ctx.font = "bold 10px 'Press Start 2P'";
       ctx.textAlign = "center";
-      ctx.fillText("ELITE", e.x + e.w / 2, e.y - 20);
+      const miniBossName = e.pattern ? e.pattern.name : "ELITE";
+      ctx.fillText(miniBossName, e.x + e.w / 2, e.y - 20);
     }
     
     // HP bar
