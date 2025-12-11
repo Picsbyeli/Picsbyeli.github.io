@@ -574,11 +574,13 @@
       background: linear-gradient(135deg, #0a0015 0%, #1a0030 100%);
       display: none;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start; /* START AT TOP */
       align-items: center;
       z-index: 160;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 20px;
+      scroll-behavior: smooth; /* SMOOTH SCROLLING */
     }
     #classSelection.active { display: flex; }
     
@@ -2849,94 +2851,91 @@ function submitToLeaderboard(playerName, wave, kills, className) {
 }
 
 // ==================== BACKGROUND MUSIC SYSTEM ====================
-let bgMusicOscillators = [];
-let bgMusicPlaying = false;
+// Real MP3 audio player with looping support
 let currentBgMusic = null;
+let bgMusicAudio = null;
+
+// Music track definitions - add your downloaded songs here!
+// Place MP3 files in /assets/audio/ folder
+const MUSIC_TRACKS = {
+  // Main menu/title music
+  title: "../assets/audio/shattered-crown.mp3",
+  menu: "../assets/audio/shattered-crown.mp3",
+  
+  // Gameplay music - assign your songs here
+  village: "../assets/audio/shattered-crown.mp3",
+  battle: "../assets/audio/shattered-crown.mp3",
+  boss: "../assets/audio/shattered-crown.mp3",
+  crimson: "../assets/audio/shattered-crown.mp3",
+  cave: "../assets/audio/shattered-crown.mp3",
+  mountain: "../assets/audio/shattered-crown.mp3",
+  forgotten: "../assets/audio/shattered-crown.mp3",
+  victory: "../assets/audio/shattered-crown.mp3",
+  defeat: "../assets/audio/shattered-crown.mp3"
+};
 
 function playBackgroundMusic(type) {
-  if (!gameData?.settings?.musicVolume || currentBgMusic === type) return;
+  // Don't restart if already playing this track
+  if (currentBgMusic === type && bgMusicAudio && !bgMusicAudio.paused) return;
   
+  // Stop current music
   stopBackgroundMusic();
-  currentBgMusic = type;
-  bgMusicPlaying = true;
   
-  const volume = (gameData.settings.musicVolume || 30) / 100 * 0.15;
-  
-  // Create ambient music based on region
-  const musicPatterns = {
-    village: { baseFreq: 220, type: "sine", tempo: 0.5 },
-    crimson: { baseFreq: 165, type: "triangle", tempo: 0.7 },
-    cave: { baseFreq: 147, type: "sine", tempo: 0.4 },
-    mountain: { baseFreq: 196, type: "triangle", tempo: 0.6 },
-    forgotten: { baseFreq: 130, type: "sawtooth", tempo: 0.8 },
-    battle: { baseFreq: 110, type: "sawtooth", tempo: 1.2 },
-    boss: { baseFreq: 82, type: "sawtooth", tempo: 1.5 }
-  };
-  
-  const pattern = musicPatterns[type] || musicPatterns.village;
-  
-  // Create continuous ambient drone
-  function createDrone() {
-    if (!bgMusicPlaying) return;
-    
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    
-    osc.type = pattern.type;
-    osc.frequency.setValueAtTime(pattern.baseFreq, audioContext.currentTime);
-    gain.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
-    
-    // Slow frequency modulation for ambience
-    osc.frequency.linearRampToValueAtTime(pattern.baseFreq * 1.02, audioContext.currentTime + 2);
-    osc.frequency.linearRampToValueAtTime(pattern.baseFreq * 0.98, audioContext.currentTime + 4);
-    osc.frequency.linearRampToValueAtTime(pattern.baseFreq, audioContext.currentTime + 6);
-    
-    osc.start();
-    osc.stop(audioContext.currentTime + 6);
-    bgMusicOscillators.push(osc);
-    
-    setTimeout(createDrone, 5500);
+  // Get track path
+  const trackPath = MUSIC_TRACKS[type];
+  if (!trackPath) {
+    console.warn(`No music track defined for: ${type}`);
+    return;
   }
   
-  // Create melodic notes
-  function playMelody() {
-    if (!bgMusicPlaying) return;
-    
-    const notes = [1, 1.25, 1.5, 1.33, 1.125, 1];
-    const noteIndex = Math.floor(Math.random() * notes.length);
-    
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(pattern.baseFreq * 2 * notes[noteIndex], audioContext.currentTime);
-    gain.gain.setValueAtTime(0, audioContext.currentTime);
-    gain.gain.linearRampToValueAtTime(volume * 0.2, audioContext.currentTime + 0.1);
-    gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1);
-    
-    osc.start();
-    osc.stop(audioContext.currentTime + 1);
-    bgMusicOscillators.push(osc);
-    
-    setTimeout(playMelody, (2000 + Math.random() * 3000) / pattern.tempo);
-  }
+  // Create new audio element
+  bgMusicAudio = new Audio(trackPath);
+  bgMusicAudio.loop = true; // Loop the music!
   
-  createDrone();
-  setTimeout(playMelody, 1000);
+  // Set volume based on settings
+  const volume = (gameData?.settings?.musicVolume || 70) / 100;
+  bgMusicAudio.volume = volume;
+  
+  // Play the music
+  bgMusicAudio.play().then(() => {
+    currentBgMusic = type;
+    console.log(`🎵 Playing music: ${type}`);
+  }).catch(err => {
+    console.log(`Music autoplay blocked, will play on user interaction: ${err.message}`);
+    // Store pending music to play on next user interaction
+    window.pendingMusic = type;
+  });
 }
 
 function stopBackgroundMusic() {
-  bgMusicPlaying = false;
+  if (bgMusicAudio) {
+    bgMusicAudio.pause();
+    bgMusicAudio.currentTime = 0;
+    bgMusicAudio = null;
+  }
   currentBgMusic = null;
-  bgMusicOscillators.forEach(osc => {
-    try { osc.stop(); } catch(e) {}
-  });
-  bgMusicOscillators = [];
 }
+
+function setMusicVolume(volume) {
+  if (bgMusicAudio) {
+    bgMusicAudio.volume = volume / 100;
+  }
+}
+
+// Play pending music on user interaction (for autoplay policy)
+document.addEventListener('click', function playPendingMusic() {
+  if (window.pendingMusic) {
+    playBackgroundMusic(window.pendingMusic);
+    window.pendingMusic = null;
+  }
+}, { once: false });
+
+document.addEventListener('keydown', function playPendingMusicKey() {
+  if (window.pendingMusic) {
+    playBackgroundMusic(window.pendingMusic);
+    window.pendingMusic = null;
+  }
+}, { once: false });
 
 // ==================== UPGRADE TYPES (In-Game) ====================
 const UPGRADE_TYPES = {
@@ -3239,6 +3238,9 @@ function init() {
   createStarfield();
   setupEventListeners();
   updateAllDisplays();
+  
+  // Start title screen music (Shattered Crown)
+  playBackgroundMusic("title");
   
   // Start animation loop
   requestAnimationFrame(mainLoop);
@@ -3639,6 +3641,7 @@ function setupEventListeners() {
   // Volume sliders
   document.getElementById("musicVolume").addEventListener("input", (e) => {
     gameData.settings.musicVolume = parseInt(e.target.value);
+    setMusicVolume(gameData.settings.musicVolume); // Update live music volume
     saveGameData();
   });
   document.getElementById("sfxVolume").addEventListener("input", (e) => {
@@ -3718,6 +3721,9 @@ function showScreen(screenId) {
 }
 
 function goToNameEntry() {
+  // Play menu music (same as title - Shattered Crown)
+  playBackgroundMusic("menu");
+  
   if (gameData.warriorName) {
     // Already has a name, go to menu
     showScreen("mainMenu");
@@ -3756,6 +3762,11 @@ function showOverworldMap() {
 function showClassSelection() {
   showScreen("classSelection");
   renderClassCards();
+  // Scroll to top when class selection opens
+  const classScreen = document.getElementById("classSelection");
+  if (classScreen) {
+    classScreen.scrollTop = 0;
+  }
 }
 
 function handleClassBack() {
