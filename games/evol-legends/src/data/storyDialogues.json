@@ -1,0 +1,304 @@
+{
+  "intro": [
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "{playerName}... Can you hear me? You must wake up..."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "The world has changed while you slumbered. Darkness spreads across the land."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "Who... who are you? Where am I?"
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "I am your spirit guide. I have waited centuries for your return, {playerName}."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "You are the Legend spoken of in ancient prophecies. Only you can save this world."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "I... I don't remember anything. But I feel a power awakening within me..."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Your memories will return in time. For now, we must travel to the nearby village."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "The Mayor there can help us understand what has happened to the realm."
+    }
+  ],
+  
+  "firstVillage": [
+    {
+      "speaker": "mayor",
+      "portrait": "assets/images/portraits/mayor.svg",
+      "text": "By the ancient ones! Could it be? The Returner has finally awakened!"
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "You know who I am?"
+    },
+    {
+      "speaker": "mayor",
+      "portrait": "assets/images/portraits/mayor.svg",
+      "text": "The legends speak of you, {playerName}. You disappeared a thousand years ago during the Great Cataclysm."
+    },
+    {
+      "speaker": "mayor",
+      "portrait": "assets/images/portraits/mayor.svg",
+      "text": "When darkness threatened to consume everything, you sacrificed yourself to seal away the Shadow King."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "But the seal is weakening. That's why {playerName} has returned."
+    },
+    {
+      "speaker": "mayor",
+      "portrait": "assets/images/portraits/mayor.svg",
+      "text": "Then the prophecy is coming true... Monsters have been appearing from the Whispering Woods."
+    },
+    {
+      "speaker": "mayor",
+      "portrait": "assets/images/portraits/mayor.svg",
+      "text": "Please, {playerName}, help us! Clear the forest of these creatures and find out what's happening."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "I will do what I can. Something tells me this is my destiny."
+    }
+  ],
+  
+  "forestCleared": [
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Well done, {playerName}! Your skills are returning to you."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "That creature... it wasn't natural. Something corrupted it."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Yes. The Shadow King's influence grows stronger. We must find the source of this corruption."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Return to the village. I sense something important awaits us there."
+    }
+  ],
+  
+  "guildIntro": [
+    {
+      "speaker": "guildMaster",
+      "portrait": "assets/images/portraits/farmer.svg",
+      "text": "So you're the one they call the Returner! I'm the local Guild Master."
+    },
+    {
+      "speaker": "guildMaster",
+      "portrait": "assets/images/portraits/farmer.svg",
+      "text": "The Adventurer's Guild spans all the major towns in the realm."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "A guild? I'd like to join."
+    },
+    {
+      "speaker": "guildMaster",
+      "portrait": "assets/images/portraits/farmer.svg",
+      "text": "You've already proven yourself by clearing the forest. Welcome, {playerName}!"
+    },
+    {
+      "speaker": "guildMaster",
+      "portrait": "assets/images/portraits/farmer.svg",
+      "text": "You'll start at Rank F. Complete quests to raise your rank and unlock better rewards."
+    },
+    {
+      "speaker": "guildMaster",
+      "portrait": "assets/images/portraits/farmer.svg",
+      "text": "Check the quest board anytime. We're counting on you, Legend!"
+    }
+  ],
+  
+  "cryptsEntry": [
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "These are the Ancient Crypts... I sense great darkness here."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "Something feels familiar about this place."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "This is where you first battled the Shadow King's generals, a thousand years ago."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Be careful, {playerName}. The dead do not rest easy here."
+    }
+  ],
+  
+  "lichDefeated": [
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "The Lich... it spoke of a master. The Shadow King must be awakening."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Indeed. Each boss you defeat weakens the seal... but also weakens the Shadow King's generals."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "It's a race against time. We must defeat them all before the seal breaks completely."
+    }
+  ],
+  
+  "forgottenCityEntry": [
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "The Forgotten City... This was once a thriving metropolis."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "I remember... I lived here. Before everything changed."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Your memories are returning, {playerName}. This is good."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "But be warned - the city is now overrun with corrupted machines from the old era."
+    }
+  ],
+  
+  "volcanoEntry": [
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Mount Inferno... The Dragon Lord's domain."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "I can feel the heat from here. This won't be easy."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "The Dragon Lord was once your ally, {playerName}. But the Shadow King corrupted him."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Defeating him may break the corruption... or it may be too late."
+    }
+  ],
+  
+  "shadowCastleEntry": [
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "This is it, {playerName}. The Shadow Castle. The final battle awaits."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "I can feel him... The Shadow King. He knows we're coming."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "You've grown so powerful on this journey. I believe in you."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Remember - you sealed him once before. You can do it again. Permanently this time."
+    }
+  ],
+  
+  "finalBattle": [
+    {
+      "speaker": "shadowKing",
+      "portrait": "assets/images/portraits/shadow_king.svg",
+      "text": "So... the Returner has finally come. I've been expecting you, {playerName}."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "Your reign of terror ends here, Shadow King!"
+    },
+    {
+      "speaker": "shadowKing",
+      "portrait": "assets/images/portraits/shadow_king.svg",
+      "text": "A thousand years... I've had a thousand years to grow stronger while you slept."
+    },
+    {
+      "speaker": "shadowKing",
+      "portrait": "assets/images/portraits/shadow_king.svg",
+      "text": "This time, there will be no sealing. Only DESTRUCTION!"
+    }
+  ],
+  
+  "victory": [
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "You did it, {playerName}! The Shadow King is defeated... truly defeated this time."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "It's finally over... The world is safe."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "Your legend will be remembered for all eternity. You are truly the greatest hero this world has ever known."
+    },
+    {
+      "speaker": "spirit",
+      "portrait": "auto",
+      "text": "But our journey doesn't have to end here. There are still challenges to face... if you're ready."
+    },
+    {
+      "speaker": "player",
+      "portrait": "auto",
+      "text": "I am {playerName}, the Evol Legend. I was born for this. Let's go!"
+    }
+  ]
+}

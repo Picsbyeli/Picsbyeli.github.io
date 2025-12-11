@@ -1,0 +1,204 @@
+{
+  "greenleafVillage": {
+    "id": "greenleafVillage",
+    "name": "Greenleaf Village",
+    "description": "A peaceful village at the edge of the Whispering Woods.",
+    "locations": {
+      "shop": {
+        "name": "Village Shop",
+        "icon": "🏪",
+        "keeper": "Old Merchant Grim",
+        "portrait": "assets/images/portraits/shopkeeper.svg",
+        "greeting": "Welcome, {playerName}! Got some good wares for a traveling hero!",
+        "items": [
+          { "id": "health_potion", "name": "Health Potion", "icon": "❤️", "price": 50, "effect": "heal", "value": 50 },
+          { "id": "shield_potion", "name": "Shield Elixir", "icon": "🛡️", "price": 75, "effect": "shield", "value": 30 },
+          { "id": "wooden_sword", "name": "Wooden Sword", "icon": "🗡️", "price": 100, "effect": "damage", "value": 5 },
+          { "id": "leather_armor", "name": "Leather Armor", "icon": "🧥", "price": 150, "effect": "maxHp", "value": 20 }
+        ]
+      },
+      "blacksmith": {
+        "name": "Forge & Anvil",
+        "icon": "🔨",
+        "keeper": "Blacksmith Brynn",
+        "portrait": "assets/images/portraits/blacksmith.svg",
+        "greeting": "Ah, the Returner! Let me forge something worthy of your legend!",
+        "items": [
+          { "id": "iron_sword", "name": "Iron Sword", "icon": "⚔️", "price": 200, "effect": "damage", "value": 10 },
+          { "id": "iron_shield", "name": "Iron Shield", "icon": "🛡️", "price": 180, "effect": "maxShield", "value": 20 },
+          { "id": "chainmail", "name": "Chainmail", "icon": "⛓️", "price": 300, "effect": "maxHp", "value": 40 }
+        ]
+      },
+      "inn": {
+        "name": "The Sleepy Owl Inn",
+        "icon": "🏨",
+        "keeper": "Innkeeper Martha",
+        "portrait": "assets/images/portraits/farmer.svg",
+        "greeting": "Welcome, weary traveler! A warm bed and hot meal await!",
+        "restCost": 25,
+        "restDialogue": "Sweet dreams, {playerName}. May your rest be peaceful."
+      },
+      "guild": {
+        "name": "Adventurer's Guild",
+        "icon": "⚔️",
+        "keeper": "Guild Master Rex",
+        "portrait": "assets/images/portraits/farmer.svg",
+        "greeting": "The guild is always looking for capable adventurers like you, {playerName}!"
+      },
+      "mayor": {
+        "name": "Mayor's Office",
+        "icon": "🏛️",
+        "keeper": "Mayor Aldric",
+        "portrait": "assets/images/portraits/mayor.svg",
+        "greeting": "Ah, {playerName}! The village owes you a great debt. How may I assist you?"
+      }
+    }
+  },
+  
+  "crystalHaven": {
+    "id": "crystalHaven",
+    "name": "Crystal Haven",
+    "description": "A mystical town built around ancient crystal formations.",
+    "locations": {
+      "shop": {
+        "name": "Crystal Emporium",
+        "icon": "💎",
+        "keeper": "Crystal Sage Lyra",
+        "portrait": "assets/images/portraits/shopkeeper.svg",
+        "greeting": "The crystals sing of your arrival, {playerName}. What do you seek?",
+        "items": [
+          { "id": "mana_crystal", "name": "Mana Crystal", "icon": "💎", "price": 150, "effect": "mana", "value": 50 },
+          { "id": "greater_health", "name": "Greater Health Potion", "icon": "💗", "price": 150, "effect": "heal", "value": 100 },
+          { "id": "crystal_blade", "name": "Crystal Blade", "icon": "🔮", "price": 500, "effect": "damage", "value": 20 },
+          { "id": "crit_potion", "name": "Critical Elixir", "icon": "💥", "price": 200, "effect": "crit", "value": 30 }
+        ]
+      },
+      "blacksmith": {
+        "name": "The Arcane Forge",
+        "icon": "🔥",
+        "keeper": "Master Forgewright Dorn",
+        "portrait": "assets/images/portraits/blacksmith.svg",
+        "greeting": "I can infuse weapons with crystal energy. Interested, {playerName}?",
+        "items": [
+          { "id": "crystal_armor", "name": "Crystal Armor", "icon": "💠", "price": 600, "effect": "maxHp", "value": 60 },
+          { "id": "arcane_shield", "name": "Arcane Shield", "icon": "🔷", "price": 450, "effect": "maxShield", "value": 40 },
+          { "id": "enchanted_bow", "name": "Enchanted Bow", "icon": "🏹", "price": 700, "effect": "damage", "value": 25 }
+        ]
+      },
+      "inn": {
+        "name": "Crystal Dreams Inn",
+        "icon": "🌙",
+        "keeper": "Mistress Elena",
+        "portrait": "assets/images/portraits/farmer.svg",
+        "greeting": "Our crystal-infused beds will rejuvenate both body and soul!",
+        "restCost": 50,
+        "restDialogue": "The crystals will heal you as you sleep, {playerName}..."
+      },
+      "guild": {
+        "name": "Adventurer's Guild - Crystal Branch",
+        "icon": "⚔️",
+        "keeper": "Senior Guildmaster Vex",
+        "portrait": "assets/images/portraits/farmer.svg",
+        "greeting": "Your reputation precedes you, {playerName}. We have challenging quests waiting!"
+      }
+    }
+  },
+  
+  "forgottenOutpost": {
+    "id": "forgottenOutpost",
+    "name": "Forgotten Outpost",
+    "description": "The last settlement before the Forgotten City. Mostly ruins now.",
+    "locations": {
+      "shop": {
+        "name": "Scavenger's Stash",
+        "icon": "📦",
+        "keeper": "Scrapper Jules",
+        "portrait": "assets/images/portraits/shopkeeper.svg",
+        "greeting": "Everything here's salvaged from the old city. Good stuff, {playerName}!",
+        "items": [
+          { "id": "tech_component", "name": "Tech Component", "icon": "⚙️", "price": 100, "effect": "upgrade", "value": 1 },
+          { "id": "energy_cell", "name": "Energy Cell", "icon": "🔋", "price": 200, "effect": "special", "value": 1 },
+          { "id": "mega_health", "name": "Mega Health Potion", "icon": "💖", "price": 300, "effect": "heal", "value": 200 },
+          { "id": "damage_amp", "name": "Damage Amplifier", "icon": "⚡", "price": 400, "effect": "damage_buff", "value": 50 }
+        ]
+      },
+      "blacksmith": {
+        "name": "Tech Workshop",
+        "icon": "🔧",
+        "keeper": "Engineer Mira",
+        "portrait": "assets/images/portraits/blacksmith.svg",
+        "greeting": "Old tech, new tricks. Let me upgrade your gear, {playerName}!",
+        "items": [
+          { "id": "mech_armor", "name": "Mech Armor", "icon": "🤖", "price": 1000, "effect": "maxHp", "value": 100 },
+          { "id": "plasma_blade", "name": "Plasma Blade", "icon": "⚡", "price": 1200, "effect": "damage", "value": 40 },
+          { "id": "force_field", "name": "Force Field Gen", "icon": "🛡️", "price": 800, "effect": "maxShield", "value": 60 }
+        ]
+      },
+      "inn": {
+        "name": "The Last Rest",
+        "icon": "🏚️",
+        "keeper": "Keeper Orin",
+        "portrait": "assets/images/portraits/farmer.svg",
+        "greeting": "Not fancy, but it's safe. Rest up before facing the city, {playerName}.",
+        "restCost": 75,
+        "restDialogue": "Stay safe out there, Legend..."
+      },
+      "guild": {
+        "name": "Frontier Guild Post",
+        "icon": "⚔️",
+        "keeper": "Commander Steele",
+        "portrait": "assets/images/portraits/farmer.svg",
+        "greeting": "Only the strongest adventurers make it this far. Welcome, {playerName}!"
+      }
+    }
+  },
+  
+  "volcanicRefuge": {
+    "id": "volcanicRefuge",
+    "name": "Volcanic Refuge",
+    "description": "A fortress built into the volcanic rock, home to fire-resistant warriors.",
+    "locations": {
+      "shop": {
+        "name": "Flame Merchant",
+        "icon": "🔥",
+        "keeper": "Pyro Trader Kai",
+        "portrait": "assets/images/portraits/shopkeeper.svg",
+        "greeting": "Forged in fire, tested in battle! Check out my wares, {playerName}!",
+        "items": [
+          { "id": "fire_resist", "name": "Fire Resistance Potion", "icon": "🧪", "price": 250, "effect": "resist_fire", "value": 50 },
+          { "id": "ultra_health", "name": "Ultra Health Potion", "icon": "❤️‍🔥", "price": 500, "effect": "heal", "value": 300 },
+          { "id": "inferno_bomb", "name": "Inferno Bomb", "icon": "💣", "price": 300, "effect": "damage_all", "value": 100 },
+          { "id": "dragon_scale_armor", "name": "Dragon Scale Armor", "icon": "🐉", "price": 2000, "effect": "maxHp", "value": 150 }
+        ]
+      },
+      "blacksmith": {
+        "name": "Dragonfire Forge",
+        "icon": "🔥",
+        "keeper": "Flame Master Ignis",
+        "portrait": "assets/images/portraits/blacksmith.svg",
+        "greeting": "My forge burns with dragonfire itself! Only the finest weapons here!",
+        "items": [
+          { "id": "dragonfire_blade", "name": "Dragonfire Blade", "icon": "🔥", "price": 2500, "effect": "damage", "value": 60 },
+          { "id": "volcano_armor", "name": "Volcanic Armor", "icon": "🌋", "price": 2000, "effect": "maxHp", "value": 120 },
+          { "id": "magma_shield", "name": "Magma Shield", "icon": "🛡️", "price": 1800, "effect": "maxShield", "value": 80 }
+        ]
+      },
+      "inn": {
+        "name": "The Ember's Warmth",
+        "icon": "🏠",
+        "keeper": "Innkeeper Blaze",
+        "portrait": "assets/images/portraits/farmer.svg",
+        "greeting": "It's always warm here! Rest your weary bones, {playerName}.",
+        "restCost": 100,
+        "restDialogue": "The volcanic springs will restore your strength..."
+      },
+      "guild": {
+        "name": "Volcanic Guild Hall",
+        "icon": "⚔️",
+        "keeper": "Grandmaster Inferna",
+        "portrait": "assets/images/portraits/farmer.svg",
+        "greeting": "Only S-rank adventurers typically make it here. You're impressive, {playerName}!"
+      }
+    }
+  }
+}

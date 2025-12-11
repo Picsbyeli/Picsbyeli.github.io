@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#1a3a2a"/>
+  <circle cx="100" cy="70" r="40" fill="#90EE90"/>
+  <rect x="60" y="110" width="80" height="60" rx="10" fill="#8B4513"/>
+  <ellipse cx="80" cy="55" rx="15" ry="10" fill="#90EE90"/>
+  <ellipse cx="120" cy="55" rx="15" ry="10" fill="#90EE90"/>
+  <circle cx="85" cy="65" r="6" fill="black"/>
+  <circle cx="115" cy="65" r="6" fill="black"/>
+  <path d="M90 90 Q100 100 110 90" stroke="#333" stroke-width="3" fill="none"/>
+  <text x="100" y="185" text-anchor="middle" fill="white" font-family="sans-serif" font-size="12">Shopkeeper</text>
+</svg>

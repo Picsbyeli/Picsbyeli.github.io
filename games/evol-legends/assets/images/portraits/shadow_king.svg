@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="shadowGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4B0082" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="1"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" fill="#0a0a0a"/>
+  <ellipse cx="100" cy="100" rx="80" ry="85" fill="url(#shadowGlow)"/>
+  <path d="M60 50 L80 25 L100 45 L120 25 L140 50" stroke="#8B0000" stroke-width="4" fill="none"/>
+  <circle cx="100" cy="80" r="45" fill="#1a1a2a" opacity="0.9"/>
+  <circle cx="80" cy="75" r="12" fill="#FF0000"/>
+  <circle cx="120" cy="75" r="12" fill="#FF0000"/>
+  <circle cx="80" cy="75" r="5" fill="#000"/>
+  <circle cx="120" cy="75" r="5" fill="#000"/>
+  <path d="M75 105 Q100 125 125 105" stroke="#8B0000" stroke-width="4" fill="none"/>
+  <path d="M80 105 L85 115 L90 105" stroke="#8B0000" stroke-width="2" fill="none"/>
+  <path d="M110 105 L115 115 L120 105" stroke="#8B0000" stroke-width="2" fill="none"/>
+  <rect x="50" y="130" width="100" height="50" rx="10" fill="#1a1a1a"/>
+  <text x="100" y="190" text-anchor="middle" fill="#8B0000" font-family="sans-serif" font-size="11">Shadow King</text>
+</svg>

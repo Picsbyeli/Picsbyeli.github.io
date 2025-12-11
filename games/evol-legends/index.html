@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evol Legends - The Returner's Journey</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="game-container">
+    
+    <!-- ==================== TITLE SCREEN ==================== -->
+    <div id="title-screen" class="screen active">
+      <div class="starfield" id="starfield"></div>
+      <div class="title-content">
+        <h1 class="game-title">EVOL LEGENDS</h1>
+        <p class="game-subtitle">The Returner's Journey</p>
+        <div class="title-buttons">
+          <button class="btn-primary" onclick="window.game.startNewGame()">NEW GAME</button>
+          <button class="btn-secondary" onclick="window.game.continueGame()" id="continue-btn">CONTINUE</button>
+        </div>
+        <p class="title-hint">Click anywhere to start...</p>
+      </div>
+    </div>
+    
+    <!-- ==================== CHARACTER SELECT ==================== -->
+    <div id="character_select-screen" class="screen">
+      <div class="screen-content">
+        <h2>Create Your Legend</h2>
+        
+        <div class="avatar-selection">
+          <div class="avatar-option selected" data-avatar="boy" onclick="window.game.selectCharacter('boy')">
+            <img src="assets/images/portraits/player_boy.svg" alt="Boy Character">
+            <span>Warrior</span>
+          </div>
+          <div class="avatar-option" data-avatar="girl" onclick="window.game.selectCharacter('girl')">
+            <img src="assets/images/portraits/player_girl.svg" alt="Girl Character">
+            <span>Warrior</span>
+          </div>
+        </div>
+        
+        <div class="spirit-preview-container">
+          <p>Your Spirit Guide:</p>
+          <img id="spirit-preview" src="assets/images/portraits/spirit_female.svg" alt="Spirit Guide">
+          <p class="spirit-hint">The spirit will guide you on your journey</p>
+        </div>
+        
+        <div class="name-input-container">
+          <label for="player-name-input">Enter Your Name:</label>
+          <input type="text" id="player-name-input" placeholder="Your Legend Name" maxlength="20">
+        </div>
+        
+        <button class="btn-primary" onclick="window.game.confirmCharacter()">BEGIN YOUR LEGEND</button>
+      </div>
+    </div>
+    
+    <!-- ==================== MAIN MENU ==================== -->
+    <div id="menu-screen" class="screen">
+      <div class="menu-header">
+        <div class="player-info">
+          <img id="player-portrait" src="assets/images/portraits/player_boy.svg" alt="Player">
+          <div class="player-details">
+            <h3 id="player-name">Legend</h3>
+            <span id="level-display">Lv.1</span>
+            <span id="guild-rank">Rank: F</span>
+          </div>
+        </div>
+        <div class="currency-bar">
+          <span>💰 <span id="coins-display">0</span></span>
+          <span>💎 <span id="gems-display">0</span></span>
+        </div>
+      </div>
+      
+      <div class="menu-buttons">
+        <button class="menu-btn" onclick="showScreen('map')">🗺️ STORY MODE</button>
+        <button class="menu-btn" onclick="showScreen('endless')">♾️ ENDLESS MODE</button>
+        <button class="menu-btn" onclick="showScreen('class_select')">⚔️ SELECT CLASS</button>
+        <button class="menu-btn" onclick="showScreen('settings')">⚙️ SETTINGS</button>
+      </div>
+      
+      <!-- Stats Bars -->
+      <div class="stats-container">
+        <div class="stat-bar hp-bar">
+          <div class="bar-icon">❤️</div>
+          <div class="bar-container">
+            <div class="bar-fill" id="hp-bar-fill"></div>
+          </div>
+          <span class="bar-text" id="hp-text">100 / 100</span>
+        </div>
+        
+        <div class="stat-bar shield-bar">
+          <div class="bar-icon">🛡️</div>
+          <div class="bar-container">
+            <div class="bar-fill" id="shield-bar-fill"></div>
+          </div>
+          <span class="bar-text" id="shield-text">0 / 50</span>
+        </div>
+        
+        <div class="stat-bar xp-bar">
+          <div class="bar-icon">⭐</div>
+          <div class="bar-container">
+            <div class="bar-fill" id="xp-bar-fill"></div>
+          </div>
+          <span class="bar-text" id="xp-text">0 / 100</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ==================== MAP SCREEN ==================== -->
+    <div id="map-screen" class="screen">
+      <div class="map-header">
+        <button class="btn-back" onclick="showScreen('menu')">← Back</button>
+        <h2>World Map</h2>
+        <div class="currency-bar">
+          <span>💰 <span id="map-coins">0</span></span>
+          <span>💎 <span id="map-gems">0</span></span>
+        </div>
+      </div>
+      <div class="map-container">
+        <div id="map-nodes" class="map-nodes">
+          <!-- Nodes rendered by JavaScript -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- ==================== TOWN SCREEN ==================== -->
+    <div id="town-screen" class="screen">
+      <div id="town-container">
+        <!-- Rendered by towns.js -->
+      </div>
+      <div id="location-container" style="display: none;">
+        <!-- Rendered by towns.js -->
+      </div>
+    </div>
+    
+    <!-- ==================== CLASS SELECT SCREEN ==================== -->
+    <div id="class_select-screen" class="screen">
+      <div class="screen-header">
+        <button class="btn-back" onclick="showScreen('menu')">← Back</button>
+        <h2>Select Your Class</h2>
+      </div>
+      <div id="class-grid" class="class-grid">
+        <!-- Rendered by main.js -->
+      </div>
+    </div>
+    
+    <!-- ==================== GAME SCREEN ==================== -->
+    <div id="game-screen" class="screen">
+      <!-- Game Canvas -->
+      <canvas id="game-canvas" width="1200" height="700"></canvas>
+      
+      <!-- HUD -->
+      <div id="game-hud">
+        <div class="hud-left">
+          <div class="stat-bar hp-bar">
+            <span class="bar-label">HP</span>
+            <div class="bar-container">
+              <div class="bar-fill" id="game-hp-fill"></div>
+            </div>
+            <span class="bar-text" id="game-hp-text">100/100</span>
+          </div>
+          <div class="stat-bar shield-bar">
+            <span class="bar-label">🛡️</span>
+            <div class="bar-container">
+              <div class="bar-fill" id="game-shield-fill"></div>
+            </div>
+            <span class="bar-text" id="game-shield-text">0/50</span>
+          </div>
+          <div class="stat-bar xp-bar">
+            <span class="bar-label">XP</span>
+            <div class="bar-container">
+              <div class="bar-fill" id="game-xp-fill"></div>
+            </div>
+            <span class="bar-text" id="game-xp-text">0/100</span>
+          </div>
+        </div>
+        
+        <div class="hud-center">
+          <div id="wave-display">Wave 1</div>
+        </div>
+        
+        <div class="hud-right">
+          <div id="ability-bar">
+            <!-- Abilities rendered by JavaScript -->
+          </div>
+          <div id="potion-bar">
+            <div class="potion-slot" data-type="heal">
+              <span class="potion-key">[1]</span>
+              <span class="potion-icon">❤️</span>
+              <span class="potion-count">3</span>
+            </div>
+            <div class="potion-slot" data-type="shield">
+              <span class="potion-key">[2]</span>
+              <span class="potion-icon">🛡️</span>
+              <span class="potion-count">2</span>
+            </div>
+            <div class="potion-slot" data-type="crit">
+              <span class="potion-key">[3]</span>
+              <span class="potion-icon">💥</span>
+              <span class="potion-count">1</span>
+            </div>
+            <div class="potion-slot" data-type="damage">
+              <span class="potion-key">[4]</span>
+              <span class="potion-icon">⚔️</span>
+              <span class="potion-count">1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Ability Tooltip -->
+      <div id="ability-tooltip" class="tooltip">
+        <!-- Filled by JavaScript -->
+      </div>
+    </div>
+    
+    <!-- ==================== DIALOGUE BOX ==================== -->
+    <div id="dialogue-box" class="dialogue-box">
+      <div class="dialogue-portrait-container">
+        <img id="dialogue-portrait" src="" alt="Speaker">
+      </div>
+      <div class="dialogue-content">
+        <div id="dialogue-speaker" class="dialogue-speaker">Speaker</div>
+        <div id="dialogue-text" class="dialogue-text">Dialogue text goes here...</div>
+        <div id="dialogue-continue" class="dialogue-continue">▶ Click to continue...</div>
+      </div>
+    </div>
+    
+    <!-- ==================== VICTORY SCREEN ==================== -->
+    <div id="victory-screen" class="overlay-screen">
+      <div class="overlay-content">
+        <h2>🎉 VICTORY! 🎉</h2>
+        <div class="victory-stats">
+          <div class="stat-row">
+            <span>Waves Cleared:</span>
+            <span id="victory-waves">1</span>
+          </div>
+          <div class="stat-row">
+            <span>Enemies Killed:</span>
+            <span id="victory-kills">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Coins Earned:</span>
+            <span id="victory-coins">0</span>
+          </div>
+          <div class="stat-row">
+            <span>XP Earned:</span>
+            <span id="victory-xp">0</span>
+          </div>
+        </div>
+        <div id="victory-drops" class="victory-drops" style="display: none;">
+          <!-- Drops shown here -->
+        </div>
+        <div class="victory-buttons">
+          <button class="btn-primary" onclick="window.game.returnToMap()">CONTINUE</button>
+          <button class="btn-secondary" onclick="window.game.returnToMenu()">MENU</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ==================== GAME OVER SCREEN ==================== -->
+    <div id="gameover-screen" class="overlay-screen">
+      <div class="overlay-content gameover">
+        <h2>💀 GAME OVER 💀</h2>
+        <div class="gameover-stats">
+          <div class="stat-row">
+            <span>Wave Reached:</span>
+            <span id="final-wave">1</span>
+          </div>
+          <div class="stat-row">
+            <span>Enemies Killed:</span>
+            <span id="final-kills">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Coins Earned:</span>
+            <span id="earned-coins">0</span>
+          </div>
+          <div class="stat-row">
+            <span>XP Earned:</span>
+            <span id="earned-xp">0</span>
+          </div>
+        </div>
+        <div class="gameover-buttons">
+          <button class="btn-primary" onclick="window.game.returnToMenu()">RETURN TO MENU</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ==================== PAUSE MENU ==================== -->
+    <div id="pause-menu" class="overlay-screen">
+      <div class="overlay-content pause">
+        <h2>⏸️ PAUSED</h2>
+        <button class="btn-primary" onclick="window.game.resumeGame()">▶️ RESUME</button>
+        <button class="btn-secondary" onclick="window.game.quitToMenu()">🚪 QUIT TO MENU</button>
+      </div>
+    </div>
+    
+    <!-- ==================== FLOATING TEXT CONTAINER ==================== -->
+    <div id="floating-text-container"></div>
+    
+    <!-- ==================== EFFECTS CONTAINER ==================== -->
+    <div id="effects-container"></div>
+    
+    <!-- ==================== TOAST CONTAINER ==================== -->
+    <div id="toast-container"></div>
+    
+  </div>
+  
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

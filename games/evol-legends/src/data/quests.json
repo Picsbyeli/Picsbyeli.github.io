@@ -1,0 +1,290 @@
+{
+  "guildQuests": [
+    {
+      "id": "first_blood",
+      "name": "First Blood",
+      "description": "Defeat 10 enemies in any combat zone.",
+      "type": "kill",
+      "target": 10,
+      "rankRequired": "F",
+      "rewards": {
+        "coins": 100,
+        "xp": 50,
+        "guildXp": 10
+      },
+      "dialogue": {
+        "accept": "Your first quest! Show us what you've got, {playerName}!",
+        "complete": "Excellent work! You're a natural adventurer!"
+      }
+    },
+    {
+      "id": "forest_cleaner",
+      "name": "Forest Cleaner",
+      "description": "Clear the Whispering Woods of corrupted creatures.",
+      "type": "boss",
+      "target": "corrupted_treant",
+      "rankRequired": "F",
+      "rewards": {
+        "coins": 200,
+        "xp": 150,
+        "guildXp": 25,
+        "item": "forest_badge"
+      },
+      "dialogue": {
+        "accept": "The Whispering Woods are overrun. Can you help us, {playerName}?",
+        "complete": "The forest is saved! You've earned this badge of honor."
+      }
+    },
+    {
+      "id": "slayer_initiate",
+      "name": "Slayer Initiate",
+      "description": "Defeat 50 enemies total.",
+      "type": "kill",
+      "target": 50,
+      "rankRequired": "F",
+      "rewards": {
+        "coins": 300,
+        "xp": 200,
+        "guildXp": 30
+      },
+      "dialogue": {
+        "accept": "Prove your combat skills by defeating more foes.",
+        "complete": "50 enemies vanquished! You're becoming a true warrior, {playerName}!"
+      }
+    },
+    {
+      "id": "crypt_explorer",
+      "name": "Crypt Explorer",
+      "description": "Venture into the Ancient Crypts and defeat the Lich King.",
+      "type": "boss",
+      "target": "lich_king",
+      "rankRequired": "E",
+      "rewards": {
+        "coins": 500,
+        "xp": 400,
+        "guildXp": 50,
+        "item": "crypt_key"
+      },
+      "dialogue": {
+        "accept": "The crypts hold ancient dangers. Only the brave should enter.",
+        "complete": "You've defeated the Lich King! Truly remarkable, {playerName}!"
+      }
+    },
+    {
+      "id": "hundred_slayer",
+      "name": "Hundred Slayer",
+      "description": "Defeat 100 enemies in total.",
+      "type": "kill",
+      "target": 100,
+      "rankRequired": "E",
+      "rewards": {
+        "coins": 500,
+        "xp": 300,
+        "guildXp": 40
+      },
+      "dialogue": {
+        "accept": "Your next milestone awaits. 100 enemies must fall.",
+        "complete": "A hundred foes defeated! Your legend grows, {playerName}!"
+      }
+    },
+    {
+      "id": "wealthy_adventurer",
+      "name": "Wealthy Adventurer",
+      "description": "Accumulate 1000 coins.",
+      "type": "collect",
+      "target": 1000,
+      "resource": "coins",
+      "rankRequired": "E",
+      "rewards": {
+        "xp": 200,
+        "guildXp": 25,
+        "title": "Wealthy"
+      },
+      "dialogue": {
+        "accept": "An adventurer needs resources. Gather your wealth!",
+        "complete": "1000 coins! You're becoming quite prosperous, {playerName}!"
+      }
+    },
+    {
+      "id": "city_investigator",
+      "name": "City Investigator",
+      "description": "Explore the Forgotten City and defeat the Mech Overlord.",
+      "type": "boss",
+      "target": "mech_overlord",
+      "rankRequired": "D",
+      "rewards": {
+        "coins": 800,
+        "xp": 600,
+        "guildXp": 75,
+        "item": "mech_badge"
+      },
+      "dialogue": {
+        "accept": "The Forgotten City holds secrets of the old world. Uncover them!",
+        "complete": "The machines are silenced! You're unraveling the ancient mysteries!"
+      }
+    },
+    {
+      "id": "elite_hunter",
+      "name": "Elite Hunter",
+      "description": "Defeat 250 enemies in total.",
+      "type": "kill",
+      "target": 250,
+      "rankRequired": "D",
+      "rewards": {
+        "coins": 800,
+        "xp": 500,
+        "guildXp": 60
+      },
+      "dialogue": {
+        "accept": "Only the elite can claim this quest. Are you ready?",
+        "complete": "250 enemies! You've proven yourself an elite hunter, {playerName}!"
+      }
+    },
+    {
+      "id": "dragon_challenger",
+      "name": "Dragon Challenger",
+      "description": "Face the Dragon Lord in Mount Inferno.",
+      "type": "boss",
+      "target": "dragon_lord",
+      "rankRequired": "C",
+      "rewards": {
+        "coins": 1500,
+        "xp": 1000,
+        "guildXp": 100,
+        "item": "dragon_badge"
+      },
+      "dialogue": {
+        "accept": "The Dragon Lord awaits. This is a quest for only the bravest.",
+        "complete": "You've faced a dragon and lived! Legendary, {playerName}!"
+      }
+    },
+    {
+      "id": "master_slayer",
+      "name": "Master Slayer",
+      "description": "Defeat 500 enemies in total.",
+      "type": "kill",
+      "target": 500,
+      "rankRequired": "C",
+      "rewards": {
+        "coins": 1200,
+        "xp": 800,
+        "guildXp": 80
+      },
+      "dialogue": {
+        "accept": "500 enemies. Only masters achieve this feat.",
+        "complete": "500 enemies fallen! You're truly a master of combat!"
+      }
+    },
+    {
+      "id": "wave_survivor",
+      "name": "Wave Survivor",
+      "description": "Survive to wave 20 in Endless Mode.",
+      "type": "endless",
+      "target": 20,
+      "rankRequired": "B",
+      "rewards": {
+        "coins": 1000,
+        "xp": 700,
+        "guildXp": 70,
+        "title": "Survivor"
+      },
+      "dialogue": {
+        "accept": "Endless Mode tests your true endurance. Survive 20 waves!",
+        "complete": "20 waves survived! Your endurance is incredible, {playerName}!"
+      }
+    },
+    {
+      "id": "shadow_confrontation",
+      "name": "Shadow Confrontation",
+      "description": "Defeat the Shadow King and save the world.",
+      "type": "boss",
+      "target": "shadow_king",
+      "rankRequired": "A",
+      "rewards": {
+        "coins": 5000,
+        "xp": 3000,
+        "guildXp": 200,
+        "title": "World Savior",
+        "item": "legend_medal"
+      },
+      "dialogue": {
+        "accept": "This is it, {playerName}. The final battle. Defeat the Shadow King!",
+        "complete": "YOU DID IT! The Shadow King is defeated! You are the LEGEND!"
+      }
+    },
+    {
+      "id": "legendary_slayer",
+      "name": "Legendary Slayer",
+      "description": "Defeat 1000 enemies in total.",
+      "type": "kill",
+      "target": 1000,
+      "rankRequired": "A",
+      "rewards": {
+        "coins": 3000,
+        "xp": 2000,
+        "guildXp": 150,
+        "title": "Legendary Slayer"
+      },
+      "dialogue": {
+        "accept": "1000 enemies. A feat only legends can achieve.",
+        "complete": "ONE THOUSAND! You are truly a legendary slayer, {playerName}!"
+      }
+    },
+    {
+      "id": "endless_champion",
+      "name": "Endless Champion",
+      "description": "Survive to wave 50 in Endless Mode.",
+      "type": "endless",
+      "target": 50,
+      "rankRequired": "S",
+      "rewards": {
+        "coins": 5000,
+        "xp": 3000,
+        "guildXp": 200,
+        "title": "Endless Champion",
+        "item": "champion_crown"
+      },
+      "dialogue": {
+        "accept": "Only S-rank adventurers can attempt this. Survive 50 waves!",
+        "complete": "50 WAVES! You are the Endless Champion, {playerName}!"
+      }
+    },
+    {
+      "id": "true_legend",
+      "name": "True Legend",
+      "description": "Complete all other guild quests.",
+      "type": "special",
+      "target": "all_quests",
+      "rankRequired": "S",
+      "rewards": {
+        "coins": 10000,
+        "xp": 10000,
+        "title": "The True Legend",
+        "item": "evol_crown"
+      },
+      "dialogue": {
+        "accept": "Complete every quest to prove you are the True Legend.",
+        "complete": "All quests complete! You are THE TRUE LEGEND, {playerName}! The greatest hero this world has ever known!"
+      }
+    }
+  ],
+  
+  "rankRequirements": {
+    "F": { "guildXp": 0, "color": "#808080" },
+    "E": { "guildXp": 100, "color": "#8B4513" },
+    "D": { "guildXp": 300, "color": "#C0C0C0" },
+    "C": { "guildXp": 600, "color": "#FFD700" },
+    "B": { "guildXp": 1000, "color": "#00CED1" },
+    "A": { "guildXp": 1500, "color": "#9932CC" },
+    "S": { "guildXp": 2500, "color": "#FF4500" }
+  },
+  
+  "rankDialogues": {
+    "E": "Congratulations, {playerName}! You've been promoted to E-Rank! More challenging quests await.",
+    "D": "D-Rank achieved! You're becoming a recognized adventurer, {playerName}!",
+    "C": "C-Rank! The guild acknowledges your exceptional skills, {playerName}!",
+    "B": "B-Rank! Only the elite reach this level. Well done, {playerName}!",
+    "A": "A-Rank! You're among the top adventurers in the realm, {playerName}!",
+    "S": "S-RANK! The highest honor! You are a legend among legends, {playerName}!"
+  }
+}

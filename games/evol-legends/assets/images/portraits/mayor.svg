@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#2a2a4a"/>
+  <circle cx="100" cy="70" r="40" fill="#8B4513"/>
+  <rect x="60" y="110" width="80" height="60" rx="10" fill="#4a4a6a"/>
+  <circle cx="85" cy="60" r="8" fill="white"/>
+  <circle cx="115" cy="60" r="8" fill="white"/>
+  <circle cx="85" cy="60" r="4" fill="#333"/>
+  <circle cx="115" cy="60" r="4" fill="#333"/>
+  <path d="M85 85 Q100 95 115 85" stroke="#333" stroke-width="2" fill="none"/>
+  <text x="100" y="180" text-anchor="middle" fill="white" font-family="sans-serif" font-size="14">Mayor</text>
+</svg>

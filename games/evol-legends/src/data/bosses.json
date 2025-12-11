@@ -1,0 +1,204 @@
+{
+  "corrupted_treant": {
+    "id": "corrupted_treant",
+    "name": "Corrupted Treant",
+    "emoji": "🌳",
+    "region": "whisperingWoods",
+    "hp": 500,
+    "damage": 15,
+    "defense": 10,
+    "speed": 1.5,
+    "lore": "Once a guardian of the forest, now twisted by dark magic.",
+    "defeatDialogue": [
+      {
+        "speaker": "boss",
+        "text": "The... forest... weeps..."
+      },
+      {
+        "speaker": "spirit",
+        "portrait": "auto",
+        "text": "The corruption runs deep, {playerName}. But you've freed this ancient being."
+      }
+    ],
+    "drops": {
+      "coins": { "min": 100, "max": 200 },
+      "xp": 150,
+      "items": ["wood_shield", "forest_ring"]
+    }
+  },
+  
+  "lich_king": {
+    "id": "lich_king",
+    "name": "The Lich King",
+    "emoji": "💀",
+    "region": "ancientCrypts",
+    "hp": 800,
+    "damage": 25,
+    "defense": 15,
+    "speed": 2.0,
+    "lore": "A powerful necromancer who sought immortality and found only undeath.",
+    "defeatDialogue": [
+      {
+        "speaker": "boss",
+        "text": "You think... this ends me? My master... will avenge..."
+      },
+      {
+        "speaker": "player",
+        "portrait": "auto",
+        "text": "Your master? The Shadow King..."
+      },
+      {
+        "speaker": "spirit",
+        "portrait": "auto",
+        "text": "He was one of the Shadow King's generals, {playerName}. There are more."
+      }
+    ],
+    "drops": {
+      "coins": { "min": 200, "max": 400 },
+      "xp": 300,
+      "items": ["lich_staff", "death_ring", "necro_tome"]
+    }
+  },
+  
+  "mech_overlord": {
+    "id": "mech_overlord",
+    "name": "Mech Overlord",
+    "emoji": "🤖",
+    "region": "forgottenCity",
+    "hp": 1200,
+    "damage": 35,
+    "defense": 25,
+    "speed": 1.8,
+    "lore": "The city's defense system, corrupted and turned against its creators.",
+    "defeatDialogue": [
+      {
+        "speaker": "boss",
+        "text": "SYSTEM... FAILURE... PROTOCOL... TERMINATED..."
+      },
+      {
+        "speaker": "player",
+        "portrait": "auto",
+        "text": "I remember now... I helped build these machines."
+      },
+      {
+        "speaker": "spirit",
+        "portrait": "auto",
+        "text": "Your past life was that of an inventor, {playerName}. Before you became a warrior."
+      }
+    ],
+    "drops": {
+      "coins": { "min": 400, "max": 600 },
+      "xp": 500,
+      "items": ["mech_core", "laser_blade", "shield_generator"]
+    }
+  },
+  
+  "dragon_lord": {
+    "id": "dragon_lord",
+    "name": "Dragon Lord Pyraxis",
+    "emoji": "🐉",
+    "region": "volcanoLands",
+    "hp": 2000,
+    "damage": 50,
+    "defense": 30,
+    "speed": 2.5,
+    "lore": "The mightiest dragon, once an ally, now consumed by shadow fire.",
+    "defeatDialogue": [
+      {
+        "speaker": "boss",
+        "text": "Thank... you... old friend... I am free..."
+      },
+      {
+        "speaker": "player",
+        "portrait": "auto",
+        "text": "Pyraxis... I remember you. We fought together."
+      },
+      {
+        "speaker": "spirit",
+        "portrait": "auto",
+        "text": "The corruption is broken! Pyraxis's spirit is at peace now, {playerName}."
+      }
+    ],
+    "drops": {
+      "coins": { "min": 800, "max": 1200 },
+      "xp": 1000,
+      "items": ["dragon_scale", "flame_sword", "dragon_crown"]
+    }
+  },
+  
+  "shadow_king": {
+    "id": "shadow_king",
+    "name": "The Shadow King",
+    "emoji": "👿",
+    "region": "shadowCastle",
+    "hp": 5000,
+    "damage": 80,
+    "defense": 40,
+    "speed": 3.0,
+    "phases": 3,
+    "lore": "The embodiment of darkness itself, seeking to plunge the world into eternal night.",
+    "defeatDialogue": [
+      {
+        "speaker": "boss",
+        "text": "IMPOSSIBLE! I am ETERNAL! I am DARKNESS ITSELF!"
+      },
+      {
+        "speaker": "player",
+        "portrait": "auto",
+        "text": "Even darkness fades when the light is strong enough!"
+      },
+      {
+        "speaker": "boss",
+        "text": "This... is not... the end... I will return... I ALWAYS return..."
+      },
+      {
+        "speaker": "spirit",
+        "portrait": "auto",
+        "text": "It's over, {playerName}. You've done it. The Shadow King is truly destroyed!"
+      }
+    ],
+    "drops": {
+      "coins": { "min": 2000, "max": 5000 },
+      "xp": 5000,
+      "items": ["shadow_crown", "evol_blade", "legend_armor", "world_savior_title"]
+    }
+  },
+  
+  "endless_bosses": {
+    "wave_10": {
+      "name": "Elite Champion",
+      "emoji": "⚔️",
+      "hp": 800,
+      "damage": 30,
+      "speed": 2.0
+    },
+    "wave_20": {
+      "name": "Void Harbinger",
+      "emoji": "🌀",
+      "hp": 1500,
+      "damage": 50,
+      "speed": 2.5
+    },
+    "wave_30": {
+      "name": "Chaos Titan",
+      "emoji": "👹",
+      "hp": 3000,
+      "damage": 80,
+      "speed": 3.0
+    },
+    "wave_50": {
+      "name": "Reality Breaker",
+      "emoji": "💥",
+      "hp": 5000,
+      "damage": 120,
+      "speed": 3.5
+    },
+    "wave_100": {
+      "name": "The Eternal One",
+      "emoji": "🌟",
+      "hp": 10000,
+      "damage": 200,
+      "speed": 4.0
+    }
+  }
+}
