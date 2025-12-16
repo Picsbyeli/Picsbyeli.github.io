@@ -1453,15 +1453,6 @@
             50% { opacity: 0.8; transform: scale(1.1); }
         }
     </style>
-    
-    <!-- Easy-Peasy AI Bot Widget -->
-    <script 
-        src="https://bots.easy-peasy.ai/chat.min.js" 
-        data-chat-url="https://bots.easy-peasy.ai/bot/b0a8df9c-9a01-4d51-a052-81d6f0ddac59" 
-        data-btn-position="bottom-right"
-        data-widget-btn-color="#6366f1"
-        defer>
-    </script>
 </head>
 <body>
     <div class="container">
@@ -1557,53 +1548,22 @@
         <div id="ai-coach" class="content-section">
             <h2 style="margin-bottom: 20px;">🤖 Your AI Fitness Coach</h2>
 
-            <div class="chat-container">
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message ai">
-                        <div class="message-avatar">🤖</div>
-                        <div class="message-content">
-                            <strong style="display: block; margin-bottom: 8px;">AI Coach</strong>
-                            <p>Hey there! I'm your personal AI fitness coach. I can help you with:</p>
-                            <ul style="margin: 12px 0; padding-left: 20px;">
-                                <li>Custom workout plans and exercise form</li>
-                                <li>Nutrition advice and meal planning</li>
-                                <li>Body analysis from your progress photos</li>
-                                <li>Goal setting and motivation</li>
-                            </ul>
-                            <p>What would you like to know?</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="chat-input-container">
-                    <div class="chat-input-wrapper">
-                        <textarea 
-                            class="chat-input" 
-                            id="chatInput" 
-                            placeholder="Message AI Coach..."
-                            rows="1"
-                            onkeydown="handleChatKeypress(event)"
-                            oninput="autoResize(this)"
-                        ></textarea>
-                        <div id="imagePreview"></div>
-                        <div class="input-actions">
-                            <input type="file" id="chatImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-                            <button class="icon-btn" onclick="document.getElementById('chatImageUpload').click()" title="Upload image">
-                                📎
-                            </button>
-                            <button class="icon-btn send-btn" id="sendBtn" onclick="sendMessage()" title="Send message">
-                                ➤
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <div class="chat-container" style="height: 700px;">
+                <iframe 
+                    src="https://bots.easy-peasy.ai/bot/b0a8df9c-9a01-4d51-a052-81d6f0ddac59?mode=embedded" 
+                    width="100%" 
+                    height="100%"
+                    style="border: none; border-radius: 12px; display: block;"
+                    title="AI Fitness Coach"
+                ></iframe>
             </div>
 
             <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-top: 20px;">
                 <h4 style="color: var(--primary); margin-bottom: 10px;">💡 Pro Tips</h4>
                 <ul style="color: var(--text-dark); font-size: 14px; padding-left: 20px; line-height: 1.8;">
-                    <li>Upload progress photos using the 📎 button for instant AI body analysis</li>
-                    <li>Share your current fitness level and the AI will tailor advice to you</li>
-                    <li>Ask specific questions for more detailed responses</li>
+                    <li>Click the 📎 button in the chat to upload progress photos for AI analysis</li>
+                    <li>Share your current fitness level and goals for personalized advice</li>
+                    <li>Ask specific questions about workouts, nutrition, or form</li>
                     <li>Upload meal photos for nutrition feedback and calorie estimates</li>
                     <li>The AI is available 24/7 - chat anytime you need support</li>
                 </ul>
