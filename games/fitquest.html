@@ -1168,6 +1168,180 @@
             display: inline-block;
             background: var(--text-light);
             color: white;
+        }
+
+        /* Music Player Styles */
+        .music-player-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 3000;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .music-player-container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            border-radius: 20px;
+            color: white;
+        }
+
+        .music-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .music-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .music-tab {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .music-tab.active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 16px;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16,185,129,0.3);
+        }
+
+        .music-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .music-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .music-card:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-5px);
+        }
+
+        .music-thumbnail {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .music-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .music-artist {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .now-playing {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .now-playing.active {
+            display: block;
+        }
+
+        .youtube-player-container {
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .music-player-container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .music-results {
+                grid-template-columns: 1fr;
+            }
+
+            .music-tabs {
+                flex-wrap: wrap;
+            }
+        }
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 14px;
@@ -1474,9 +1648,14 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="showSection('settings')" style="background: white; border: 2px solid var(--border); border-radius: 12px; padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; transition: all 0.3s;">
-                    ⚙️ Settings
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="openMusicPlayer()" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none; border-radius: 12px; padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: white; transition: all 0.3s; box-shadow: 0 4px 15px rgba(139,92,246,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(139,92,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(139,92,246,0.3)'">
+                        🎵 Music
+                    </button>
+                    <button onclick="showSection('settings')" style="background: white; border: 2px solid var(--border); border-radius: 12px; padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; transition: all 0.3s;">
+                        ⚙️ Settings
+                    </button>
+                </div>
             </div>
 
             <!-- XP Progress -->
@@ -2504,6 +2683,72 @@
             <button class="btn btn-primary" onclick="closeModal()" style="width: 100%; margin-top: 20px;">
                 Save Changes
             </button>
+        </div>
+    </div>
+
+    <!-- Music Player Modal -->
+    <div id="musicPlayerModal" class="music-player-modal">
+        <div class="music-player-container">
+            <div class="music-header">
+                <h2 style="margin: 0;">🎵 Workout Music Player</h2>
+                <button onclick="closeMusicPlayer()" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Now Playing -->
+            <div id="nowPlayingSection" class="now-playing">
+                <h3 style="margin-bottom: 15px;">🎵 Now Playing</h3>
+                <div id="youtubePlayerContainer" class="youtube-player-container" style="display: none;">
+                    <div id="youtubePlayer"></div>
+                </div>
+                <div id="spotifyPlayerContainer" style="display: none;">
+                    <h4 id="spotifyNowPlayingTitle" style="margin-bottom: 10px;"></h4>
+                    <p id="spotifyNowPlayingArtist" style="color: rgba(255,255,255,0.7); margin-bottom: 10px;"></p>
+                    <audio id="spotifyAudioPlayer" class="audio-player" controls></audio>
+                </div>
+            </div>
+
+            <!-- Music Source Tabs -->
+            <div class="music-tabs">
+                <button class="music-tab active" onclick="switchMusicTab('youtube')">
+                    📺 YouTube Music
+                </button>
+                <button class="music-tab" onclick="switchMusicTab('spotify')">
+                    🎵 Spotify
+                </button>
+            </div>
+
+            <!-- YouTube Section -->
+            <div id="youtubeSection" class="music-section">
+                <div class="search-container">
+                    <input type="text" id="youtubeSearchInput" class="search-input" placeholder="Search for workout music..." onkeypress="if(event.key==='Enter') searchYouTube()">
+                    <button class="search-btn" onclick="searchYouTube()">🔍 Search</button>
+                </div>
+                <div id="youtubeResults" class="music-results"></div>
+            </div>
+
+            <!-- Spotify Section -->
+            <div id="spotifySection" class="music-section" style="display: none;">
+                <div class="search-container">
+                    <input type="text" id="spotifySearchInput" class="search-input" placeholder="Search Spotify..." onkeypress="if(event.key==='Enter') searchSpotify()">
+                    <button class="search-btn" onclick="searchSpotify()">🔍 Search</button>
+                </div>
+                <div id="spotifyResults" class="music-results"></div>
+            </div>
+
+            <!-- API Status -->
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-top: 20px; font-size: 14px;">
+                <strong>🎼 Music Status:</strong>
+                <div style="margin-top: 10px; display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div>
+                        <span id="youtubeMusicStatus">📺 YouTube: Checking...</span>
+                    </div>
+                    <div>
+                        <span id="spotifyMusicStatus">🎵 Spotify: Checking...</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -6325,6 +6570,323 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             document.getElementById('workoutModeOverlay').classList.remove('active');
             
             showNotification(`🎉 Workout Complete! +${xpEarned} XP earned! Streak: ${appState.user.streak} days 🔥`, 'success');
+        }
+
+        // ============================================
+        // MUSIC PLAYER FUNCTIONS
+        // ============================================
+
+        let currentMusicTab = 'youtube';
+        let youtubePlayerInstance = null;
+        let spotifyAccessToken = null;
+
+        // Open music player modal
+        function openMusicPlayer() {
+            document.getElementById('musicPlayerModal').style.display = 'block';
+            checkMusicAPIStatus();
+            
+            // Load YouTube IFrame API if not already loaded
+            if (!window.YT) {
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            }
+        }
+
+        // Close music player modal
+        function closeMusicPlayer() {
+            document.getElementById('musicPlayerModal').style.display = 'none';
+            
+            // Stop any playing media
+            if (youtubePlayerInstance) {
+                youtubePlayerInstance.stopVideo();
+            }
+            const audioPlayer = document.getElementById('spotifyAudioPlayer');
+            if (audioPlayer) {
+                audioPlayer.pause();
+            }
+        }
+
+        // Switch between YouTube and Spotify tabs
+        function switchMusicTab(tab) {
+            currentMusicTab = tab;
+            
+            // Update tab buttons
+            const tabs = document.querySelectorAll('.music-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide sections
+            document.getElementById('youtubeSection').style.display = tab === 'youtube' ? 'block' : 'none';
+            document.getElementById('spotifySection').style.display = tab === 'spotify' ? 'block' : 'none';
+        }
+
+        // Check music API status
+        function checkMusicAPIStatus() {
+            const youtubeKey = localStorage.getItem('youtubeApiKey') || 'AIzaSyAtTsnqvnVajLBFyP69xqcD2EJC7h9nV1Q';
+            const spotifyClientId = localStorage.getItem('spotifyClientId') || '836517f7831341f3a342af90f5c1390e';
+            
+            const youtubeStatus = document.getElementById('youtubeMusicStatus');
+            const spotifyStatus = document.getElementById('spotifyMusicStatus');
+            
+            if (youtubeKey) {
+                youtubeStatus.innerHTML = '📺 YouTube: ✅ Ready (Shared API)';
+                youtubeStatus.style.color = '#10b981';
+            } else {
+                youtubeStatus.innerHTML = '📺 YouTube: ❌ Not configured';
+                youtubeStatus.style.color = '#ef4444';
+            }
+            
+            if (spotifyClientId) {
+                spotifyStatus.innerHTML = '🎵 Spotify: ✅ Ready (Shared API)';
+                spotifyStatus.style.color = '#10b981';
+            } else {
+                spotifyStatus.innerHTML = '🎵 Spotify: ❌ Not configured';
+                spotifyStatus.style.color = '#ef4444';
+            }
+        }
+
+        // ============================================
+        // YOUTUBE MUSIC FUNCTIONS
+        // ============================================
+
+        // Search YouTube
+        async function searchYouTube() {
+            const query = document.getElementById('youtubeSearchInput').value.trim();
+            if (!query) {
+                showNotification('Please enter a search term', 'warning');
+                return;
+            }
+
+            const apiKey = localStorage.getItem('youtubeApiKey') || 'AIzaSyAtTsnqvnVajLBFyP69xqcD2EJC7h9nV1Q';
+            const resultsDiv = document.getElementById('youtubeResults');
+            
+            resultsDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7);">🔍 Searching YouTube...</div>';
+
+            try {
+                const response = await fetch(
+                    `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query + ' music')}&type=video&maxResults=12&key=${apiKey}`
+                );
+
+                if (!response.ok) {
+                    throw new Error('YouTube API request failed');
+                }
+
+                const data = await response.json();
+                
+                if (!data.items || data.items.length === 0) {
+                    resultsDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7);">No results found</div>';
+                    return;
+                }
+
+                displayYouTubeResults(data.items);
+            } catch (error) {
+                console.error('YouTube search error:', error);
+                resultsDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">❌ Search failed. Please check API key in Settings.</div>';
+            }
+        }
+
+        // Display YouTube results
+        function displayYouTubeResults(items) {
+            const resultsDiv = document.getElementById('youtubeResults');
+            
+            resultsDiv.innerHTML = items.map(item => `
+                <div class="music-card" onclick="playYouTubeVideo('${item.id.videoId}', '${escapeHtml(item.snippet.title)}')">
+                    <img src="${item.snippet.thumbnails.medium.url}" alt="${escapeHtml(item.snippet.title)}" class="music-thumbnail">
+                    <div class="music-title">${escapeHtml(item.snippet.title)}</div>
+                    <div class="music-artist">${escapeHtml(item.snippet.channelTitle)}</div>
+                    <div style="margin-top: 8px; color: rgba(255,255,255,0.5); font-size: 13px;">▶️ Click to play</div>
+                </div>
+            `).join('');
+        }
+
+        // Play YouTube video
+        function playYouTubeVideo(videoId, title) {
+            const nowPlaying = document.getElementById('nowPlayingSection');
+            const youtubeContainer = document.getElementById('youtubePlayerContainer');
+            const spotifyContainer = document.getElementById('spotifyPlayerContainer');
+            
+            // Show YouTube player, hide Spotify
+            nowPlaying.classList.add('active');
+            youtubeContainer.style.display = 'block';
+            spotifyContainer.style.display = 'none';
+            
+            // Scroll to now playing
+            nowPlaying.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Initialize or update player
+            if (!youtubePlayerInstance) {
+                // Wait for YouTube API to be ready
+                if (window.YT && window.YT.Player) {
+                    createYouTubePlayer(videoId);
+                } else {
+                    window.onYouTubeIframeAPIReady = function() {
+                        createYouTubePlayer(videoId);
+                    };
+                }
+            } else {
+                youtubePlayerInstance.loadVideoById(videoId);
+            }
+            
+            showNotification(`🎵 Now playing: ${title}`, 'success');
+        }
+
+        // Create YouTube player instance
+        function createYouTubePlayer(videoId) {
+            youtubePlayerInstance = new YT.Player('youtubePlayer', {
+                height: '360',
+                width: '640',
+                videoId: videoId,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1,
+                    'rel': 0
+                }
+            });
+        }
+
+        // ============================================
+        // SPOTIFY MUSIC FUNCTIONS
+        // ============================================
+
+        // Get Spotify access token
+        async function getSpotifyToken() {
+            if (spotifyAccessToken) {
+                return spotifyAccessToken;
+            }
+
+            const clientId = localStorage.getItem('spotifyClientId') || '836517f7831341f3a342af90f5c1390e';
+            const clientSecret = localStorage.getItem('spotifyClientSecret') || '07f314daeaad4525bbad0cbe3901487a';
+
+            try {
+                const response = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
+                    },
+                    body: 'grant_type=client_credentials'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to get Spotify token');
+                }
+
+                const data = await response.json();
+                spotifyAccessToken = data.access_token;
+                
+                // Token expires, so clear it after 55 minutes
+                setTimeout(() => {
+                    spotifyAccessToken = null;
+                }, 55 * 60 * 1000);
+                
+                return spotifyAccessToken;
+            } catch (error) {
+                console.error('Spotify token error:', error);
+                throw error;
+            }
+        }
+
+        // Search Spotify
+        async function searchSpotify() {
+            const query = document.getElementById('spotifySearchInput').value.trim();
+            if (!query) {
+                showNotification('Please enter a search term', 'warning');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('spotifyResults');
+            resultsDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7);">🔍 Searching Spotify...</div>';
+
+            try {
+                const token = await getSpotifyToken();
+                
+                const response = await fetch(
+                    `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=12`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Spotify search failed');
+                }
+
+                const data = await response.json();
+                
+                if (!data.tracks || !data.tracks.items || data.tracks.items.length === 0) {
+                    resultsDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7);">No results found</div>';
+                    return;
+                }
+
+                displaySpotifyResults(data.tracks.items);
+            } catch (error) {
+                console.error('Spotify search error:', error);
+                resultsDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">❌ Search failed. Please check API keys in Settings.</div>';
+            }
+        }
+
+        // Display Spotify results
+        function displaySpotifyResults(tracks) {
+            const resultsDiv = document.getElementById('spotifyResults');
+            
+            resultsDiv.innerHTML = tracks.map(track => {
+                const hasPreview = track.preview_url !== null;
+                const albumImage = track.album.images[0]?.url || '';
+                const artists = track.artists.map(a => a.name).join(', ');
+                
+                return `
+                    <div class="music-card ${hasPreview ? '' : 'opacity-50'}" ${hasPreview ? `onclick="playSpotifyTrack('${track.preview_url}', '${escapeHtml(track.name)}', '${escapeHtml(artists)}')"` : ''}>
+                        <img src="${albumImage}" alt="${escapeHtml(track.name)}" class="music-thumbnail">
+                        <div class="music-title">${escapeHtml(track.name)}</div>
+                        <div class="music-artist">${escapeHtml(artists)}</div>
+                        <div style="margin-top: 8px; color: rgba(255,255,255,0.5); font-size: 13px;">
+                            ${hasPreview ? '▶️ 30s preview' : '⚠️ No preview available'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Play Spotify track preview
+        function playSpotifyTrack(previewUrl, title, artist) {
+            const nowPlaying = document.getElementById('nowPlayingSection');
+            const youtubeContainer = document.getElementById('youtubePlayerContainer');
+            const spotifyContainer = document.getElementById('spotifyPlayerContainer');
+            const audioPlayer = document.getElementById('spotifyAudioPlayer');
+            
+            // Show Spotify player, hide YouTube
+            nowPlaying.classList.add('active');
+            youtubeContainer.style.display = 'none';
+            spotifyContainer.style.display = 'block';
+            
+            // Stop YouTube if playing
+            if (youtubePlayerInstance) {
+                youtubePlayerInstance.stopVideo();
+            }
+            
+            // Update track info
+            document.getElementById('spotifyNowPlayingTitle').textContent = title;
+            document.getElementById('spotifyNowPlayingArtist').textContent = artist;
+            
+            // Load and play preview
+            audioPlayer.src = previewUrl;
+            audioPlayer.play();
+            
+            // Scroll to now playing
+            nowPlaying.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            showNotification(`🎵 Playing: ${title}`, 'success');
+        }
+
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
     </script>
 </body>
