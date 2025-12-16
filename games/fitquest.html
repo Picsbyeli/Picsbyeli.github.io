@@ -1173,32 +1173,88 @@
         /* Music Player Styles */
         .music-player-modal {
             position: fixed;
-            top: 0;
+            bottom: 0;
             left: 0;
             right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 3000;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            z-index: 2500;
             display: none;
+            color: white;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            max-height: 70vh;
             overflow-y: auto;
         }
 
+        .music-player-modal.minimized {
+            max-height: 80px;
+            overflow: hidden;
+        }
+
         .music-player-container {
-            max-width: 1000px;
-            margin: 50px auto;
-            padding: 30px;
-            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-            border-radius: 20px;
-            color: white;
+            padding: 20px;
         }
 
         .music-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
             border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .music-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .minimize-btn, .close-music-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .minimize-btn:hover, .close-music-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .quick-playlists {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .playlist-link-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .playlist-link-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .playlist-link-btn.remove {
+            background: rgba(239,68,68,0.3);
+            border-color: rgba(239,68,68,0.5);
         }
 
         .music-tabs {
@@ -2686,26 +2742,46 @@
         </div>
     </div>
 
-    <!-- Music Player Modal -->
+    <!-- Music Player Mini-Player -->
     <div id="musicPlayerModal" class="music-player-modal">
         <div class="music-player-container">
             <div class="music-header">
-                <h2 style="margin: 0;">🎵 Workout Music Player</h2>
-                <button onclick="closeMusicPlayer()" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                    ✕
-                </button>
+                <h3 style="margin: 0; font-size: 18px;">🎵 Workout Music</h3>
+                <div class="music-controls">
+                    <button onclick="toggleMinimizeMusic()" class="minimize-btn" title="Minimize/Expand">
+                        <span id="minimizeIcon">−</span>
+                    </button>
+                    <button onclick="closeMusicPlayer()" class="close-music-btn" title="Close">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Playlist Links -->
+            <div id="quickPlaylistsSection">
+                <div class="quick-playlists" id="savedPlaylists">
+                    <!-- Saved playlists will appear here -->
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="playlistLinkInput" class="search-input" placeholder="Paste Spotify or YouTube playlist URL" style="flex: 1; padding: 10px;">
+                    <button onclick="savePlaylistLink()" class="search-btn" style="padding: 10px 20px; font-size: 14px;">+ Add</button>
+                </div>
             </div>
 
             <!-- Now Playing -->
             <div id="nowPlayingSection" class="now-playing">
-                <h3 style="margin-bottom: 15px;">🎵 Now Playing</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="margin: 0; font-size: 14px;">🎵 Now Playing</h4>
+                    <button onclick="stopAllMusic()" style="background: rgba(239,68,68,0.3); border: none; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">⏹️ Stop</button>
+                </div>
                 <div id="youtubePlayerContainer" class="youtube-player-container" style="display: none;">
                     <div id="youtubePlayer"></div>
                 </div>
                 <div id="spotifyPlayerContainer" style="display: none;">
-                    <h4 id="spotifyNowPlayingTitle" style="margin-bottom: 10px;"></h4>
-                    <p id="spotifyNowPlayingArtist" style="color: rgba(255,255,255,0.7); margin-bottom: 10px;"></p>
-                    <audio id="spotifyAudioPlayer" class="audio-player" controls></audio>
+                    <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;" id="spotifyNowPlayingTitle"></div>
+                    <div style="color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 8px;" id="spotifyNowPlayingArtist"></div>
+                    <audio id="spotifyAudioPlayer" class="audio-player" controls style="width: 100%; height: 40px;"></audio>
                 </div>
             </div>
 
@@ -6579,11 +6655,18 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         let currentMusicTab = 'youtube';
         let youtubePlayerInstance = null;
         let spotifyAccessToken = null;
+        let savedPlaylistLinks = JSON.parse(localStorage.getItem('playlistLinks') || '[]');
+        let isMusicMinimized = false;
 
-        // Open music player modal
+        // Open music player mini-player
         function openMusicPlayer() {
-            document.getElementById('musicPlayerModal').style.display = 'block';
+            const modal = document.getElementById('musicPlayerModal');
+            modal.style.display = 'block';
+            modal.classList.remove('minimized');
+            isMusicMinimized = false;
+            document.getElementById('minimizeIcon').textContent = '−';
             checkMusicAPIStatus();
+            loadSavedPlaylists();
             
             // Load YouTube IFrame API if not already loaded
             if (!window.YT) {
@@ -6594,18 +6677,120 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             }
         }
 
-        // Close music player modal
+        // Toggle minimize music player
+        function toggleMinimizeMusic() {
+            const modal = document.getElementById('musicPlayerModal');
+            isMusicMinimized = !isMusicMinimized;
+            
+            if (isMusicMinimized) {
+                modal.classList.add('minimized');
+                document.getElementById('minimizeIcon').textContent = '□';
+            } else {
+                modal.classList.remove('minimized');
+                document.getElementById('minimizeIcon').textContent = '−';
+            }
+        }
+
+        // Close music player (keeps music playing)
         function closeMusicPlayer() {
             document.getElementById('musicPlayerModal').style.display = 'none';
+            // Don't stop the music - let it play in background
+        }
+
+        // Save playlist link
+        function savePlaylistLink() {
+            const input = document.getElementById('playlistLinkInput');
+            const url = input.value.trim();
             
-            // Stop any playing media
+            if (!url) {
+                showNotification('Please paste a playlist URL', 'warning');
+                return;
+            }
+            
+            // Detect platform
+            let platform = 'other';
+            let name = 'Custom Playlist';
+            
+            if (url.includes('spotify.com')) {
+                platform = 'spotify';
+                name = 'Spotify Playlist';
+            } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                platform = 'youtube';
+                name = 'YouTube Playlist';
+            }
+            
+            const playlist = {
+                id: Date.now(),
+                url: url,
+                platform: platform,
+                name: name,
+                addedAt: new Date().toISOString()
+            };
+            
+            savedPlaylistLinks.push(playlist);
+            localStorage.setItem('playlistLinks', JSON.stringify(savedPlaylistLinks));
+            
+            input.value = '';
+            loadSavedPlaylists();
+            showNotification('✅ Playlist link saved!', 'success');
+        }
+
+        // Load saved playlists
+        function loadSavedPlaylists() {
+            const container = document.getElementById('savedPlaylists');
+            
+            if (savedPlaylistLinks.length === 0) {
+                container.innerHTML = '<div style="color: rgba(255,255,255,0.5); padding: 10px; font-size: 14px;">No saved playlists. Add your favorite workout playlists above! 🎵</div>';
+                return;
+            }
+            
+            container.innerHTML = savedPlaylistLinks.map(playlist => {
+                const icon = playlist.platform === 'spotify' ? '🎵' : playlist.platform === 'youtube' ? '📺' : '🔗';
+                return `
+                    <div class="playlist-link-btn" onclick="openPlaylist('${playlist.url}')">
+                        ${icon} ${playlist.name}
+                    </div>
+                    <button class="playlist-link-btn remove" onclick="removePlaylist(${playlist.id}); event.stopPropagation();" title="Remove">
+                        🗑️
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // Open playlist in new tab
+        function openPlaylist(url) {
+            window.open(url, '_blank');
+            showNotification('🎵 Opening playlist...', 'info');
+        }
+
+        // Remove playlist
+        function removePlaylist(id) {
+            savedPlaylistLinks = savedPlaylistLinks.filter(p => p.id !== id);
+            localStorage.setItem('playlistLinks', JSON.stringify(savedPlaylistLinks));
+            loadSavedPlaylists();
+            showNotification('Playlist removed', 'info');
+        }
+
+        // Stop all music playback
+        function stopAllMusic() {
+            // Stop YouTube
             if (youtubePlayerInstance) {
                 youtubePlayerInstance.stopVideo();
             }
+            
+            // Stop Spotify
             const audioPlayer = document.getElementById('spotifyAudioPlayer');
             if (audioPlayer) {
                 audioPlayer.pause();
+                audioPlayer.currentTime = 0;
             }
+            
+            // Hide now playing section
+            document.getElementById('nowPlayingSection').classList.remove('active');
+            document.getElementById('youtubePlayerContainer').style.display = 'none';
+            document.getElementById('spotifyPlayerContainer').style.display = 'none';
+            
+            showNotification('⏹️ Music stopped', 'info');
         }
 
         // Switch between YouTube and Spotify tabs
@@ -6712,8 +6897,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             youtubeContainer.style.display = 'block';
             spotifyContainer.style.display = 'none';
             
-            // Scroll to now playing
-            nowPlaying.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Don't scroll - let it play in background
             
             // Initialize or update player
             if (!youtubePlayerInstance) {
@@ -6735,13 +6919,14 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Create YouTube player instance
         function createYouTubePlayer(videoId) {
             youtubePlayerInstance = new YT.Player('youtubePlayer', {
-                height: '360',
-                width: '640',
+                height: '200',
+                width: '100%',
                 videoId: videoId,
                 playerVars: {
                     'autoplay': 1,
                     'controls': 1,
-                    'rel': 0
+                    'rel': 0,
+                    'modestbranding': 1
                 }
             });
         }
@@ -6876,8 +7061,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             audioPlayer.src = previewUrl;
             audioPlayer.play();
             
-            // Scroll to now playing
-            nowPlaying.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Don't scroll - let it play in background
             
             showNotification(`🎵 Playing: ${title}`, 'success');
         }
