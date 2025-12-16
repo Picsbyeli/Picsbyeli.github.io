@@ -1858,19 +1858,24 @@
 
             <!-- Quick Upload Section -->
             <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <h3 style="margin-bottom: 15px;">📷 Quick Photo Upload</h3>
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">📷 Instant AI Photo Analysis</h3>
+                    <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">AUTO-ANALYZE</span>
+                </div>
                 <p style="color: var(--text-light); margin-bottom: 15px;">
-                    Take or upload photos directly, then use the AI chat above to analyze them.
+                    Upload a photo and get <strong>instant AI analysis</strong> automatically! No manual upload needed.
                 </p>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                     <button class="btn btn-primary" onclick="document.getElementById('quickCameraInput').click()" style="padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
                         <span style="font-size: 32px;">📷</span>
                         <span>Take Photo Now</span>
+                        <span style="font-size: 11px; opacity: 0.8;">Auto AI Analysis</span>
                     </button>
                     <button class="btn btn-primary" onclick="document.getElementById('quickGalleryInput').click()" style="padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
                         <span style="font-size: 32px;">🖼️</span>
                         <span>Choose from Gallery</span>
+                        <span style="font-size: 11px; opacity: 0.8;">Auto AI Analysis</span>
                     </button>
                 </div>
                 <input type="file" id="quickCameraInput" accept="image/*" capture="environment" onchange="handleQuickPhotoUpload(event)" style="display: none;">
@@ -1878,15 +1883,15 @@
 
                 <div id="quickPhotoPreview" style="display: none; margin-top: 15px;">
                     <img id="quickPhotoImage" style="width: 100%; max-height: 400px; object-fit: contain; border-radius: 12px; border: 2px solid var(--border);">
-                    <p style="text-align: center; margin-top: 10px; color: var(--secondary); font-weight: bold;">
-                        ✓ Photo ready! Now upload it in the AI chat above using the 📎 icon.
-                    </p>
+                    <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px; border-radius: 8px; text-align: center; margin-top: 10px; font-weight: bold;">
+                        ✓ AI Analysis in progress... Check results below!
+                    </div>
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
                         <button class="btn btn-success" onclick="downloadQuickPhoto()" style="flex: 1;">
-                            💾 Save to Device
+                            💾 Save Photo
                         </button>
                         <button class="btn" onclick="clearQuickPhoto()" style="flex: 1;">
-                            🗑️ Clear
+                            🗑️ Clear & Retry
                         </button>
                     </div>
                 </div>
@@ -3992,14 +3997,16 @@
         // ============================================
         
         let quickPhotoData = null;
+        const BODY_ANALYSIS_API_KEY = '83a72fe3-b705-40d4-8122-543770479436';
+        const BODY_ANALYSIS_BOT_ID = '847c6d63-a766-4394-87a2-348b462e8e0a';
 
-        // Handle quick photo upload
-        function handleQuickPhotoUpload(event) {
+        // Handle quick photo upload with instant AI analysis
+        async function handleQuickPhotoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 quickPhotoData = e.target.result;
                 
                 // Display preview
@@ -4009,9 +4016,142 @@
                 previewImage.src = quickPhotoData;
                 previewContainer.style.display = 'block';
                 
-                showNotification('📸 Photo ready! Upload it to the AI chat above for analysis.', 'success');
+                showNotification('📸 Photo uploaded! Analyzing with AI...', 'info');
+                
+                // Trigger instant AI analysis
+                await analyzePhotoWithAI(quickPhotoData);
             };
             reader.readAsDataURL(file);
+        }
+
+        // Analyze photo with Easy-Peasy AI Bot API
+        async function analyzePhotoWithAI(photoData) {
+            try {
+                // Convert base64 to blob for API upload
+                const response = await fetch(photoData);
+                const blob = await response.blob();
+                
+                // Create form data with image
+                const formData = new FormData();
+                formData.append('image', blob, 'body-photo.jpg');
+                formData.append('message', 'Please analyze this body photo. Provide detailed analysis of: 1) Body type (ectomorph/mesomorph/endomorph), 2) Current muscle development, 3) Estimated body fat percentage, 4) Key strengths and areas to improve, 5) Specific workout recommendations, 6) Nutrition advice for my body type.');
+                
+                showNotification('🤖 AI is analyzing your photo...', 'info');
+                
+                // Call Easy-Peasy AI Bot API
+                const apiResponse = await fetch(`https://bots.easy-peasy.ai/bot/${BODY_ANALYSIS_BOT_ID}/api`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${BODY_ANALYSIS_API_KEY}`
+                    },
+                    body: formData
+                });
+
+                if (!apiResponse.ok) {
+                    throw new Error('AI analysis failed');
+                }
+
+                const analysisResult = await apiResponse.json();
+                
+                // Display AI analysis result
+                displayAIAnalysisResult(analysisResult);
+                
+                showNotification('✅ AI analysis complete!', 'success');
+                
+            } catch (error) {
+                console.error('AI Analysis Error:', error);
+                showNotification('⚠️ AI analysis unavailable. Please use the chat interface above to upload and analyze your photo.', 'warning');
+            }
+        }
+
+        // Display AI analysis results
+        function displayAIAnalysisResult(result) {
+            // Find or create analysis results section
+            let resultsSection = document.getElementById('aiAnalysisResults');
+            
+            if (!resultsSection) {
+                // Create new results section
+                const bodyScanSection = document.getElementById('body-scan');
+                resultsSection = document.createElement('div');
+                resultsSection.id = 'aiAnalysisResults';
+                resultsSection.style.cssText = 'background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px;';
+                
+                const quickUploadSection = bodyScanSection.querySelector('#quickPhotoPreview').parentElement;
+                quickUploadSection.parentElement.insertBefore(resultsSection, quickUploadSection.nextSibling);
+            }
+
+            const aiMessage = result.message || result.response || 'Analysis complete. Please check the chat above for detailed results.';
+            
+            resultsSection.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <div style="font-size: 48px;">🤖</div>
+                    <div>
+                        <h3 style="margin: 0;">AI Body Analysis Results</h3>
+                        <p style="color: var(--text-light); margin: 5px 0 0 0; font-size: 14px;">
+                            Powered by Easy-Peasy AI
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 20px; border-radius: 12px; border-left: 4px solid #6366f1; white-space: pre-wrap; line-height: 1.8;">
+                    ${aiMessage}
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="scrollToAIChat()" style="flex: 1;">
+                        💬 Ask Follow-up Questions
+                    </button>
+                    <button class="btn" onclick="saveAnalysisToProgress()" style="flex: 1;">
+                        💾 Save to Progress
+                    </button>
+                </div>
+            `;
+        }
+
+        // Scroll to AI chat for follow-up questions
+        function scrollToAIChat() {
+            const bodyScanSection = document.getElementById('body-scan');
+            const aiChatFrame = bodyScanSection.querySelector('iframe');
+            
+            if (aiChatFrame) {
+                aiChatFrame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showNotification('💬 Ask the AI any follow-up questions!', 'info');
+            }
+        }
+
+        // Save AI analysis to progress photos
+        function saveAnalysisToProgress() {
+            if (!quickPhotoData) {
+                showNotification('No photo to save', 'warning');
+                return;
+            }
+
+            const aiResults = document.getElementById('aiAnalysisResults');
+            const analysisText = aiResults ? aiResults.textContent : 'AI Analysis completed';
+
+            const photoData = {
+                data: quickPhotoData,
+                date: new Date().toISOString(),
+                bodyPart: 'ai-analysis',
+                weight: appState.user.currentWeight || null,
+                analysis: {
+                    summary: 'AI Body Analysis',
+                    details: analysisText,
+                    aiGenerated: true,
+                    timestamp: new Date().toISOString()
+                }
+            };
+
+            appState.progressPhotos.push(photoData);
+            saveData();
+            
+            showNotification('💾 Analysis saved to Progress Photos!', 'success');
+            
+            // Show slideshow button if we have 2+ photos
+            if (appState.progressPhotos.length >= 2) {
+                document.getElementById('slideshowBtn').style.display = 'inline-block';
+                document.getElementById('compareBtn').style.display = 'inline-block';
+            }
         }
 
         // Download quick photo
