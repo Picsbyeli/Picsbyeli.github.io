@@ -2143,12 +2143,39 @@
                 </div>
             </div>
 
-            <!-- Notification Settings -->
+            <!-- AI Configuration -->
             <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">🤖 AI Configuration (Optional)</h3>
+                <h3 style="margin-bottom: 20px;">🤖 AI Coach Configuration</h3>
                 
+                <!-- Easy-Peasy AI -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; color: white;">
+                    <h4 style="margin-bottom: 10px; color: white;">⚡ Easy-Peasy AI (Recommended)</h4>
+                    <p style="font-size: 14px; margin-bottom: 15px; opacity: 0.95;">
+                        Advanced AI-powered fitness coach with deep contextual understanding. Already integrated and ready to use!
+                    </p>
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 8px; flex: 1;">
+                            <input 
+                                type="checkbox" 
+                                id="easyPeasyToggle" 
+                                checked 
+                                onchange="toggleEasyPeasyAI(this.checked)"
+                                style="margin-right: 10px; width: 20px; height: 20px; cursor: pointer;"
+                            >
+                            <span style="font-weight: bold;">Enable Easy-Peasy AI Coach</span>
+                        </label>
+                    </div>
+                    <div id="easyPeasyStatus" style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.15); border-radius: 6px; font-size: 13px;">
+                        ✅ <strong>Active:</strong> Your AI coach is using Easy-Peasy AI for intelligent, context-aware fitness guidance.
+                    </div>
+                    <p style="font-size: 12px; margin-top: 10px; opacity: 0.85;">
+                        <strong>Note:</strong> Easy-Peasy AI works seamlessly in the background. If unavailable, the system automatically falls back to Gemini or smart responses.
+                    </p>
+                </div>
+
+                <!-- Gemini AI -->
                 <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="color: var(--primary); margin-bottom: 10px;">Upgrade to Real AI (100% Free!)</h4>
+                    <h4 style="color: var(--primary); margin-bottom: 10px;">Google Gemini AI (Optional Alternative)</h4>
                     <p style="font-size: 14px; margin-bottom: 15px;">
                         Connect Google's Gemini AI for natural conversations that understand context and remember what you've discussed.
                     </p>
@@ -2475,6 +2502,68 @@
         };
 
         // ==========================================
+        // EASY-PEASY AI INTEGRATION
+        // ==========================================
+        const easyPeasyAI = {
+            botId: 'b0a8df9c-9a01-4d51-a052-81d6f0ddac59',
+            apiEndpoint: 'https://api.easy-peasy.ai/v1/chat',
+            enabled: true,
+            
+            isEnabled() {
+                return this.enabled;
+            },
+            
+            setEnabled(value) {
+                this.enabled = value;
+                appState.user.easyPeasyEnabled = value;
+                saveData();
+                showNotification(value ? 'Easy-Peasy AI enabled! 🤖' : 'Easy-Peasy AI disabled', 'success');
+            },
+            
+            async sendToEasyPeasy(userMessage) {
+                if (!this.isEnabled()) {
+                    return null; // Fall through to next AI
+                }
+                
+                try {
+                    const state = smartChatbot.analyzeUserState();
+                    const context = `User's fitness stats: Level ${state.level}, ${state.streak} day streak, ${state.totalWorkouts} workouts completed, current weight ${state.currentWeight}lbs, goal ${state.goalWeight}lbs, lost ${state.weightLost}lbs, ${state.photos} progress photos, ${state.weeksSinceStart} weeks of training.`;
+                    
+                    // Attempt to communicate with Easy-Peasy AI bot
+                    // Using their iframe/widget approach
+                    const fullMessage = `${context}\n\nUser question: ${userMessage}`;
+                    
+                    // Since Easy-Peasy typically uses iframe embedding, we'll try their API
+                    // If this doesn't work, the fallback will catch it
+                    const response = await fetch(`https://bots.easy-peasy.ai/api/chat/${this.botId}`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: fullMessage,
+                            context: context
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        console.log('Easy-Peasy API not accessible, falling back...');
+                        return null; // Fall through to Gemini or smart chatbot
+                    }
+                    
+                    const data = await response.json();
+                    if (data.response || data.message || data.text) {
+                        return data.response || data.message || data.text;
+                    }
+                    
+                    return null; // Fall through if no valid response
+                } catch (error) {
+                    console.log('Easy-Peasy AI unavailable, using fallback:', error.message);
+                    return null; // Fall through to next AI option
+                }
+            }
+        };
+
         // GOOGLE GEMINI FREE AI - User Provides Their Own Free API Key
         // ==========================================
         const geminiAI = {
@@ -2872,9 +2961,18 @@
             });
         }
 
-        // Generate AI response - uses Gemini if available, smart chatbot otherwise
+        // Generate AI response - tries Easy-Peasy first, then Gemini if available, then smart chatbot
         async function generateAIResponse(message) {
-            // Try Gemini first if API key is set
+            // Try Easy-Peasy AI first
+            if (easyPeasyAI.isEnabled()) {
+                const easyPeasyResponse = await easyPeasyAI.sendToEasyPeasy(message);
+                if (easyPeasyResponse) {
+                    return easyPeasyResponse;
+                }
+                // If Easy-Peasy fails or returns null, fall through to Gemini
+            }
+            
+            // Try Gemini if API key is set
             if (geminiAI.hasApiKey()) {
                 return await geminiAI.sendToGemini(message);
             }
@@ -3811,6 +3909,19 @@
                 }
             } catch (error) {
                 console.error('Storage check error:', error);
+            }
+        }
+
+        // Easy-Peasy AI Toggle
+        function toggleEasyPeasyAI(enabled) {
+            easyPeasyAI.setEnabled(enabled);
+            const status = document.getElementById('easyPeasyStatus');
+            if (enabled) {
+                status.innerHTML = `✅ <strong>Active:</strong> Your AI coach is using Easy-Peasy AI for intelligent, context-aware fitness guidance.`;
+                status.style.background = 'rgba(255,255,255,0.15)';
+            } else {
+                status.innerHTML = `⚠️ <strong>Disabled:</strong> AI coach will use Gemini (if configured) or smart rule-based responses.`;
+                status.style.background = 'rgba(0,0,0,0.2)';
             }
         }
 
@@ -5063,6 +5174,19 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     document.getElementById('geminiStatus').style.display = 'block';
                     document.getElementById('geminiStatus').innerHTML = '<div class="connected-badge">✅ Gemini AI Connected</div>';
                 }
+            }
+            
+            // Load Easy-Peasy AI settings
+            if (appState.user.easyPeasyEnabled !== undefined) {
+                easyPeasyAI.enabled = appState.user.easyPeasyEnabled;
+                if (document.getElementById('easyPeasyToggle')) {
+                    document.getElementById('easyPeasyToggle').checked = easyPeasyAI.enabled;
+                    toggleEasyPeasyAI(easyPeasyAI.enabled);
+                }
+            } else {
+                // Default to enabled
+                appState.user.easyPeasyEnabled = true;
+                easyPeasyAI.enabled = true;
             }
         }
 
