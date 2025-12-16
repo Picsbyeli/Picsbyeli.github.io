@@ -1964,6 +1964,16 @@
             <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
                 <h3 style="margin-bottom: 20px;">🎵 Workout Music Integration</h3>
                 
+                <!-- Free Music Notice -->
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; color: white; margin-bottom: 25px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🎉</div>
+                    <h3 style="color: white; margin-bottom: 10px;">Music Features Are FREE!</h3>
+                    <p style="opacity: 0.95; font-size: 15px;">
+                        YouTube & Spotify music search is <strong>pre-configured and ready to use</strong>!<br>
+                        No API keys needed - just start searching for your workout music! 🎵
+                    </p>
+                </div>
+                
                 <!-- YouTube API Integration -->
                 <div class="setting-item">
                     <div class="setting-info">
@@ -1973,37 +1983,37 @@
                             Search and play YouTube music directly in your workouts
                         </p>
                         <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px;">
-                            <strong>🔑 Get FREE YouTube API Key:</strong>
-                            <ol style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
-                                <li>Visit <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--primary);">Google Cloud Console</a></li>
-                                <li>Create new project or select existing</li>
-                                <li>Enable "YouTube Data API v3"</li>
-                                <li>Create credentials (API Key)</li>
-                                <li>Copy key and paste below</li>
-                            </ol>
-                            <strong>✓ Free tier:</strong> 10,000 queries/day (generous for personal use!)
+                            <strong>✅ Already Working!</strong> YouTube music search is enabled with shared API access.
+                            <div style="margin-top: 10px; opacity: 0.8;">
+                                <strong>Optional:</strong> Want your own API key for unlimited personal use?
+                                <ol style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
+                                    <li>Visit <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--primary);">Google Cloud Console</a></li>
+                                    <li>Create new project → Enable "YouTube Data API v3"</li>
+                                    <li>Create API Key and paste below to override shared key</li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
                     <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">YouTube API Key</label>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">YouTube API Key (Optional - Override Shared)</label>
                         <input 
                             type="password" 
                             id="youtubeApiKeyInput" 
-                            placeholder="Paste your YouTube API key"
+                            placeholder="Leave empty to use shared API"
                             style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
                         >
                         <div style="display: flex; gap: 10px;">
                             <button class="btn btn-primary" onclick="saveYouTubeApiKey()">
-                                ✓ Connect YouTube API
+                                ✓ Save Custom Key
                             </button>
                             <button class="btn" onclick="toggleYouTubeKeyVisibility()">
                                 👁️ Show/Hide
                             </button>
-                            <button class="btn btn-success" onclick="testYouTubeAPI()" id="testYouTubeBtn" style="display: none;">
+                            <button class="btn btn-success" onclick="testYouTubeAPI()" id="testYouTubeBtn">
                                 🧪 Test API
                             </button>
                         </div>
-                        <div id="youtubeApiStatus" style="margin-top: 10px; display: none;"></div>
+                        <div id="youtubeApiStatus" style="margin-top: 10px;"></div>
                     </div>
                 </div>
 
@@ -2018,43 +2028,44 @@
                             Search Spotify's massive music library (30-second previews)
                         </p>
                         <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px;">
-                            <strong>🔑 Get FREE Spotify API Keys:</strong>
-                            <ol style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
-                                <li>Visit <a href="https://developer.spotify.com/dashboard" target="_blank" style="color: var(--primary);">Spotify Developer Dashboard</a></li>
-                                <li>Create a new app (any name)</li>
-                                <li>Copy Client ID and Client Secret</li>
-                                <li>Paste both below</li>
-                            </ol>
-                            <strong>✓ Free tier:</strong> Unlimited searches, 30-second track previews
+                            <strong>✅ Already Working!</strong> Spotify search is enabled with shared API access.
+                            <div style="margin-top: 10px; opacity: 0.8;">
+                                <strong>Optional:</strong> Want your own API keys?
+                                <ol style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
+                                    <li>Visit <a href="https://developer.spotify.com/dashboard" target="_blank" style="color: var(--primary);">Spotify Developer Dashboard</a></li>
+                                    <li>Create app → Copy Client ID & Secret</li>
+                                    <li>Paste below to override shared keys</li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
                     <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Spotify Client ID</label>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Spotify Client ID (Optional - Override Shared)</label>
                         <input 
                             type="password" 
                             id="spotifyClientIdInput" 
-                            placeholder="Paste Spotify Client ID"
+                            placeholder="Leave empty to use shared API"
                             style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
                         >
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Spotify Client Secret</label>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Spotify Client Secret (Optional - Override Shared)</label>
                         <input 
                             type="password" 
                             id="spotifyClientSecretInput" 
-                            placeholder="Paste Spotify Client Secret"
+                            placeholder="Leave empty to use shared API"
                             style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
                         >
                         <div style="display: flex; gap: 10px;">
                             <button class="btn btn-primary" onclick="saveSpotifyApiKeys()">
-                                ✓ Connect Spotify API
+                                ✓ Save Custom Keys
                             </button>
                             <button class="btn" onclick="toggleSpotifyKeysVisibility()">
                                 👁️ Show/Hide
                             </button>
-                            <button class="btn btn-success" onclick="testSpotifyAPI()" id="testSpotifyBtn" style="display: none;">
+                            <button class="btn btn-success" onclick="testSpotifyAPI()" id="testSpotifyBtn">
                                 🧪 Test API
                             </button>
                         </div>
-                        <div id="spotifyApiStatus" style="margin-top: 10px; display: none;"></div>
+                        <div id="spotifyApiStatus" style="margin-top: 10px;"></div>
                     </div>
                 </div>
 
@@ -2096,13 +2107,14 @@
 
                 <!-- Music Integration Info -->
                 <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px;">
-                    <strong>🎼 Music Player Features:</strong>
+                    <strong>🎼 How It Works:</strong>
                     <ul style="margin-top: 8px; padding-left: 20px; line-height: 1.6;">
-                        <li><strong>With API Keys:</strong> Search millions of songs, play YouTube videos, preview Spotify tracks</li>
-                        <li><strong>Without API Keys:</strong> Use quick playlist links to open your music apps</li>
-                        <li><strong>Privacy:</strong> API keys stored locally in your browser only</li>
-                        <li><strong>Free tier limits:</strong> YouTube 10k queries/day, Spotify unlimited</li>
-                        <li><strong>Security:</strong> Clear browser data to reset stored keys</li>
+                        <li><strong>FREE Access:</strong> Shared API keys let everyone search YouTube & Spotify without setup!</li>
+                        <li><strong>Search Music:</strong> Find millions of songs for your workouts</li>
+                        <li><strong>Play YouTube:</strong> Full videos play directly in the app</li>
+                        <li><strong>Preview Spotify:</strong> 30-second track previews available</li>
+                        <li><strong>Custom Keys:</strong> Optional - use your own keys for unlimited personal quota</li>
+                        <li><strong>Privacy:</strong> All keys stored locally in your browser only</li>
                     </ul>
                 </div>
             </div>
@@ -5110,7 +5122,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         }
 
         async function testYouTubeAPI() {
-            const apiKey = localStorage.getItem('youtube_api_key');
+            const apiKey = localStorage.getItem('youtube_api_key') || 'AIzaSyAtTsnqvnVajLBFyP69xqcD2EJC7h9nV1Q';
             if (!apiKey) {
                 showNotification('No API key configured', 'warning');
                 return;
@@ -5193,8 +5205,9 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         }
 
         async function getSpotifyAccessToken() {
-            const clientId = localStorage.getItem('spotify_client_id');
-            const clientSecret = localStorage.getItem('spotify_client_secret');
+            // Use user's keys if available, otherwise use default keys for free access
+            const clientId = localStorage.getItem('spotify_client_id') || '836517f7831341f3a342af90f5c1390e';
+            const clientSecret = localStorage.getItem('spotify_client_secret') || '07f314daeaad4525bbad0cbe3901487a';
             
             if (!clientId || !clientSecret) {
                 return null;
@@ -5273,33 +5286,37 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
 
         // Load saved API keys on startup
         function loadMusicAPIKeys() {
-            // Load YouTube API key
-            const youtubeKey = localStorage.getItem('youtube_api_key');
-            if (youtubeKey) {
-                appState.user.youtubeApiKey = youtubeKey;
-                const status = document.getElementById('youtubeApiStatus');
-                const testBtn = document.getElementById('testYouTubeBtn');
-                if (status) {
-                    status.style.display = 'block';
-                    status.innerHTML = '<div class="connected-badge">✅ YouTube API Connected</div>';
-                }
-                if (testBtn) testBtn.style.display = 'inline-block';
+            // Default API keys are built-in - users can use music features for FREE!
+            const youtubeKey = localStorage.getItem('youtube_api_key') || 'AIzaSyAtTsnqvnVajLBFyP69xqcD2EJC7h9nV1Q';
+            const spotifyClientId = localStorage.getItem('spotify_client_id') || '836517f7831341f3a342af90f5c1390e';
+            const spotifyClientSecret = localStorage.getItem('spotify_client_secret') || '07f314daeaad4525bbad0cbe3901487a';
+            
+            // Always show as connected since we have default keys
+            const youtubeStatus = document.getElementById('youtubeApiStatus');
+            const youtubeTestBtn = document.getElementById('testYouTubeBtn');
+            if (youtubeStatus) {
+                youtubeStatus.style.display = 'block';
+                const isDefault = !localStorage.getItem('youtube_api_key');
+                youtubeStatus.innerHTML = isDefault ? 
+                    '<div class="connected-badge">✅ YouTube Music Ready (Using Shared API)</div>' :
+                    '<div class="connected-badge">✅ YouTube API Connected (Your Key)</div>';
             }
+            if (youtubeTestBtn) youtubeTestBtn.style.display = 'inline-block';
 
-            // Load Spotify API keys
-            const spotifyClientId = localStorage.getItem('spotify_client_id');
-            const spotifyClientSecret = localStorage.getItem('spotify_client_secret');
-            if (spotifyClientId && spotifyClientSecret) {
-                appState.user.spotifyClientId = spotifyClientId;
-                appState.user.spotifyClientSecret = spotifyClientSecret;
-                const status = document.getElementById('spotifyApiStatus');
-                const testBtn = document.getElementById('testSpotifyBtn');
-                if (status) {
-                    status.style.display = 'block';
-                    status.innerHTML = '<div class="connected-badge">✅ Spotify API Connected</div>';
-                }
-                if (testBtn) testBtn.style.display = 'inline-block';
+            const spotifyStatus = document.getElementById('spotifyApiStatus');
+            const spotifyTestBtn = document.getElementById('testSpotifyBtn');
+            if (spotifyStatus) {
+                spotifyStatus.style.display = 'block';
+                const isDefault = !localStorage.getItem('spotify_client_id');
+                spotifyStatus.innerHTML = isDefault ?
+                    '<div class="connected-badge">✅ Spotify Ready (Using Shared API)</div>' :
+                    '<div class="connected-badge">✅ Spotify API Connected (Your Key)</div>';
             }
+            if (spotifyTestBtn) spotifyTestBtn.style.display = 'inline-block';
+            
+            appState.user.youtubeApiKey = youtubeKey;
+            appState.user.spotifyClientId = spotifyClientId;
+            appState.user.spotifyClientSecret = spotifyClientSecret;
         }
 
         // Open music during workout
