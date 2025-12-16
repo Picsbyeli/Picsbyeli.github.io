@@ -1324,6 +1324,15 @@
             50% { opacity: 0.8; transform: scale(1.1); }
         }
     </style>
+    
+    <!-- Easy-Peasy AI Bot Widget -->
+    <script 
+        src="https://bots.easy-peasy.ai/chat.min.js" 
+        data-chat-url="https://bots.easy-peasy.ai/bot/b0a8df9c-9a01-4d51-a052-81d6f0ddac59" 
+        data-btn-position="bottom-right"
+        data-widget-btn-color="#6366f1"
+        defer>
+    </script>
 </head>
 <body>
     <div class="container">
@@ -1418,33 +1427,60 @@
         <!-- AI Coach Section -->
         <div id="ai-coach" class="content-section">
             <h2 style="margin-bottom: 20px;">🤖 Your AI Fitness Coach</h2>
-            <p style="color: var(--text-light); margin-bottom: 20px;">
-                Ask me anything about fitness, nutrition, or your workout plan. I'll provide personalized advice based on your goals and body type.
-            </p>
-
-            <div class="chat-container">
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message ai">
-                        <strong>AI Coach</strong>
-                        <p>Hey there! I'm your personal AI fitness coach. I can help you with:
-                        <br>• Custom workout plans
-                        <br>• Exercise form corrections
-                        <br>• Nutrition advice
-                        <br>• Body type analysis
-                        <br>• Goal setting
-                        <br><br>What would you like to know?</p>
+            
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; border-radius: 20px; color: white; text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 64px; margin-bottom: 20px;">💬</div>
+                <h3 style="color: white; margin-bottom: 15px; font-size: 24px;">Easy-Peasy AI Coach Active!</h3>
+                <p style="font-size: 16px; margin-bottom: 20px; opacity: 0.95;">
+                    Your AI-powered fitness coach is ready to help you succeed. Look for the chat widget in the <strong>bottom-right corner</strong> of your screen.
+                </p>
+                <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 12px; margin-top: 25px;">
+                    <p style="font-size: 14px; margin-bottom: 15px;"><strong>Click the chat button to:</strong></p>
+                    <div style="text-align: left; max-width: 400px; margin: 0 auto;">
+                        <p style="margin: 8px 0;">✓ Get personalized workout advice</p>
+                        <p style="margin: 8px 0;">✓ Ask about nutrition and meal plans</p>
+                        <p style="margin: 8px 0;">✓ Receive form corrections and tips</p>
+                        <p style="margin: 8px 0;">✓ Track your progress with AI insights</p>
+                        <p style="margin: 8px 0;">✓ Set and achieve your fitness goals</p>
                     </div>
                 </div>
-                <div class="chat-input-container">
-                    <input 
-                        type="text" 
-                        class="chat-input" 
-                        id="chatInput" 
-                        placeholder="Ask me anything about fitness..."
-                        onkeypress="if(event.key === 'Enter') sendMessage()"
-                    >
-                    <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+            </div>
+
+            <div style="background: white; padding: 30px; border-radius: 15px; border: 2px solid var(--border);">
+                <h3 style="margin-bottom: 15px;">🎯 How to Use Your AI Coach</h3>
+                <div style="display: grid; gap: 20px; margin-top: 20px;">
+                    <div style="display: flex; gap: 15px; align-items: start;">
+                        <div style="background: var(--primary); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
+                        <div>
+                            <h4 style="margin-bottom: 5px;">Find the Chat Widget</h4>
+                            <p style="color: var(--text-light); font-size: 14px;">Look for the purple chat button in the bottom-right corner of your screen.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 15px; align-items: start;">
+                        <div style="background: var(--primary); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
+                        <div>
+                            <h4 style="margin-bottom: 5px;">Start a Conversation</h4>
+                            <p style="color: var(--text-light); font-size: 14px;">Click the widget to open the chat and ask any fitness-related question.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 15px; align-items: start;">
+                        <div style="background: var(--primary); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
+                        <div>
+                            <h4 style="margin-bottom: 5px;">Get Personalized Advice</h4>
+                            <p style="color: var(--text-light); font-size: 14px;">The AI understands your fitness journey and provides context-aware guidance.</p>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                <h4 style="color: var(--primary); margin-bottom: 10px;">💡 Pro Tips</h4>
+                <ul style="color: var(--text-dark); font-size: 14px; padding-left: 20px; line-height: 1.8;">
+                    <li>Share your current fitness level and the AI will tailor advice to you</li>
+                    <li>Ask specific questions for more detailed responses</li>
+                    <li>Use the chat for motivation when you need an extra push</li>
+                    <li>The AI is available 24/7 - chat anytime you need support</li>
+                </ul>
             </div>
         </div>
 
@@ -2147,37 +2183,31 @@
             <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
                 <h3 style="margin-bottom: 20px;">🤖 AI Coach Configuration</h3>
                 
-                <!-- Easy-Peasy AI -->
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; color: white;">
-                    <h4 style="margin-bottom: 10px; color: white;">⚡ Easy-Peasy AI (Recommended)</h4>
+                <!-- Easy-Peasy AI Widget -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; margin-bottom: 25px; color: white;">
+                    <h4 style="margin-bottom: 10px; color: white;">⚡ Easy-Peasy AI Chat Widget (Active)</h4>
                     <p style="font-size: 14px; margin-bottom: 15px; opacity: 0.95;">
-                        Advanced AI-powered fitness coach with deep contextual understanding. Already integrated and ready to use!
+                        Your AI fitness coach is embedded as a chat widget in the bottom-right corner of your screen. Click the purple button to start chatting!
                     </p>
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
-                        <label style="display: flex; align-items: center; cursor: pointer; background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 8px; flex: 1;">
-                            <input 
-                                type="checkbox" 
-                                id="easyPeasyToggle" 
-                                checked 
-                                onchange="toggleEasyPeasyAI(this.checked)"
-                                style="margin-right: 10px; width: 20px; height: 20px; cursor: pointer;"
-                            >
-                            <span style="font-weight: bold;">Enable Easy-Peasy AI Coach</span>
-                        </label>
+                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="font-size: 13px; margin-bottom: 10px;"><strong>✨ Features:</strong></p>
+                        <ul style="font-size: 13px; padding-left: 20px; line-height: 1.8;">
+                            <li>24/7 AI-powered fitness guidance</li>
+                            <li>Personalized workout and nutrition advice</li>
+                            <li>Context-aware responses based on your progress</li>
+                            <li>Always accessible from any page</li>
+                        </ul>
                     </div>
-                    <div id="easyPeasyStatus" style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.15); border-radius: 6px; font-size: 13px;">
-                        ✅ <strong>Active:</strong> Your AI coach is using Easy-Peasy AI for intelligent, context-aware fitness guidance.
+                    <div style="background: rgba(255,255,255,0.2); padding: 12px; border-radius: 6px; font-size: 13px; text-align: center;">
+                        <strong>💬 Look for the chat button → Bottom-right corner</strong>
                     </div>
-                    <p style="font-size: 12px; margin-top: 10px; opacity: 0.85;">
-                        <strong>Note:</strong> Easy-Peasy AI works seamlessly in the background. If unavailable, the system automatically falls back to Gemini or smart responses.
-                    </p>
                 </div>
 
-                <!-- Gemini AI -->
-                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="color: var(--primary); margin-bottom: 10px;">Google Gemini AI (Optional Alternative)</h4>
-                    <p style="font-size: 14px; margin-bottom: 15px;">
-                        Connect Google's Gemini AI for natural conversations that understand context and remember what you've discussed.
+                <!-- Gemini AI (Optional Alternative) -->
+                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px; opacity: 0.7;">
+                    <h4 style="color: var(--primary); margin-bottom: 10px;">Google Gemini AI (Legacy Option)</h4>
+                    <p style="font-size: 14px; margin-bottom: 15px; color: var(--text-light);">
+                        <em>Note: With Easy-Peasy AI widget active, Gemini integration is no longer needed. The settings below are kept for advanced users only.</em>
                     </p>
                     <p style="font-size: 14px; margin-bottom: 10px;">
                         <strong>How to get FREE Gemini API key:</strong>
