@@ -1962,19 +1962,112 @@
 
             <!-- Music Integration -->
             <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">🎵 Workout Music</h3>
+                <h3 style="margin-bottom: 20px;">🎵 Workout Music Integration</h3>
                 
-                <!-- Spotify -->
+                <!-- YouTube API Integration -->
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div style="font-size: 32px; margin-bottom: 10px;">📺</div>
+                        <h4>YouTube Music API</h4>
+                        <p style="color: var(--text-light); margin-top: 5px;">
+                            Search and play YouTube music directly in your workouts
+                        </p>
+                        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px;">
+                            <strong>🔑 Get FREE YouTube API Key:</strong>
+                            <ol style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
+                                <li>Visit <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--primary);">Google Cloud Console</a></li>
+                                <li>Create new project or select existing</li>
+                                <li>Enable "YouTube Data API v3"</li>
+                                <li>Create credentials (API Key)</li>
+                                <li>Copy key and paste below</li>
+                            </ol>
+                            <strong>✓ Free tier:</strong> 10,000 queries/day (generous for personal use!)
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">YouTube API Key</label>
+                        <input 
+                            type="password" 
+                            id="youtubeApiKeyInput" 
+                            placeholder="Paste your YouTube API key"
+                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
+                        >
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="saveYouTubeApiKey()">
+                                ✓ Connect YouTube API
+                            </button>
+                            <button class="btn" onclick="toggleYouTubeKeyVisibility()">
+                                👁️ Show/Hide
+                            </button>
+                            <button class="btn btn-success" onclick="testYouTubeAPI()" id="testYouTubeBtn" style="display: none;">
+                                🧪 Test API
+                            </button>
+                        </div>
+                        <div id="youtubeApiStatus" style="margin-top: 10px; display: none;"></div>
+                    </div>
+                </div>
+
+                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
+
+                <!-- Spotify API Integration -->
                 <div class="setting-item">
                     <div class="setting-info">
                         <div style="font-size: 32px; margin-bottom: 10px;">🎵</div>
-                        <h4>Spotify Playlist</h4>
+                        <h4>Spotify API</h4>
                         <p style="color: var(--text-light); margin-top: 5px;">
-                            Link a Spotify playlist to play during workouts
+                            Search Spotify's massive music library (30-second previews)
                         </p>
-                        <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
-                            <strong>✓ How it works:</strong> Enter a Spotify playlist URL. During workouts, you'll get a button to open it in Spotify app/web player.
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px;">
+                            <strong>🔑 Get FREE Spotify API Keys:</strong>
+                            <ol style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
+                                <li>Visit <a href="https://developer.spotify.com/dashboard" target="_blank" style="color: var(--primary);">Spotify Developer Dashboard</a></li>
+                                <li>Create a new app (any name)</li>
+                                <li>Copy Client ID and Client Secret</li>
+                                <li>Paste both below</li>
+                            </ol>
+                            <strong>✓ Free tier:</strong> Unlimited searches, 30-second track previews
                         </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Spotify Client ID</label>
+                        <input 
+                            type="password" 
+                            id="spotifyClientIdInput" 
+                            placeholder="Paste Spotify Client ID"
+                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
+                        >
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Spotify Client Secret</label>
+                        <input 
+                            type="password" 
+                            id="spotifyClientSecretInput" 
+                            placeholder="Paste Spotify Client Secret"
+                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
+                        >
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="saveSpotifyApiKeys()">
+                                ✓ Connect Spotify API
+                            </button>
+                            <button class="btn" onclick="toggleSpotifyKeysVisibility()">
+                                👁️ Show/Hide
+                            </button>
+                            <button class="btn btn-success" onclick="testSpotifyAPI()" id="testSpotifyBtn" style="display: none;">
+                                🧪 Test API
+                            </button>
+                        </div>
+                        <div id="spotifyApiStatus" style="margin-top: 10px; display: none;"></div>
+                    </div>
+                </div>
+
+                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
+
+                <!-- Quick Playlist Links -->
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div style="font-size: 32px; margin-bottom: 10px;">🔗</div>
+                        <h4>Quick Playlist Links</h4>
+                        <p style="color: var(--text-light); margin-top: 5px;">
+                            Save direct links to your favorite workout playlists
+                        </p>
                     </div>
                     <div style="margin-top: 15px;">
                         <input 
@@ -1983,56 +2076,10 @@
                             placeholder="Paste Spotify playlist URL"
                             style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px;"
                         >
-                        <button class="btn btn-success" onclick="saveSpotifyPlaylist()">
-                            ✓ Save Playlist
+                        <button class="btn btn-success" onclick="saveSpotifyPlaylist()" style="margin-bottom: 15px;">
+                            ✓ Save Spotify Playlist
                         </button>
-                        <div id="spotifyStatus" style="margin-top: 10px; display: none;"></div>
-                    </div>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
-
-                <!-- Apple Music -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div style="font-size: 32px; margin-bottom: 10px;">🎵</div>
-                        <h4>Apple Music Playlist</h4>
-                        <p style="color: var(--text-light); margin-top: 5px;">
-                            Link an Apple Music playlist for your workouts
-                        </p>
-                        <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
-                            <strong>✓ How it works:</strong> Enter an Apple Music playlist URL. Opens in Apple Music app when you start a workout.
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <input 
-                            type="text" 
-                            id="appleMusicPlaylistInput" 
-                            placeholder="Paste Apple Music playlist URL"
-                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px;"
-                        >
-                        <button class="btn btn-success" onclick="saveAppleMusicPlaylist()">
-                            ✓ Save Playlist
-                        </button>
-                        <div id="appleMusicStatus" style="margin-top: 10px; display: none;"></div>
-                    </div>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
-
-                <!-- YouTube Music -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div style="font-size: 32px; margin-bottom: 10px;">📺</div>
-                        <h4>YouTube Playlist</h4>
-                        <p style="color: var(--text-light); margin-top: 5px;">
-                            Link a YouTube or YouTube Music playlist
-                        </p>
-                        <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
-                            <strong>✓ How it works:</strong> Enter a YouTube playlist URL. Opens in YouTube app/site during workouts.
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px;">
+                        
                         <input 
                             type="text" 
                             id="youtubePlaylistInput" 
@@ -2040,21 +2087,22 @@
                             style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px;"
                         >
                         <button class="btn btn-success" onclick="saveYoutubePlaylist()">
-                            ✓ Save Playlist
+                            ✓ Save YouTube Playlist
                         </button>
-                        <div id="youtubeStatus" style="margin-top: 10px; display: none;"></div>
+                        
+                        <div id="playlistLinksStatus" style="margin-top: 10px; display: none;"></div>
                     </div>
                 </div>
 
                 <!-- Music Integration Info -->
                 <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px;">
-                    <strong>ℹ️ Important Notes:</strong>
+                    <strong>🎼 Music Player Features:</strong>
                     <ul style="margin-top: 8px; padding-left: 20px; line-height: 1.6;">
-                        <li>Music plays in separate app/browser tab (not embedded)</li>
-                        <li>You'll need active subscription for Spotify/Apple Music</li>
-                        <li>YouTube playlists work for free users</li>
-                        <li>Music controls happen in your music app, not here</li>
-                        <li>We provide quick-launch buttons during workouts</li>
+                        <li><strong>With API Keys:</strong> Search millions of songs, play YouTube videos, preview Spotify tracks</li>
+                        <li><strong>Without API Keys:</strong> Use quick playlist links to open your music apps</li>
+                        <li><strong>Privacy:</strong> API keys stored locally in your browser only</li>
+                        <li><strong>Free tier limits:</strong> YouTube 10k queries/day, Spotify unlimited</li>
+                        <li><strong>Security:</strong> Clear browser data to reset stored keys</li>
                     </ul>
                 </div>
             </div>
@@ -4011,6 +4059,7 @@
             await initDB();
             
             loadData();
+            loadMusicAPIKeys(); // Load YouTube/Spotify API keys
             generateFriendCode();
             renderExercises();
             renderAchievements();
@@ -5016,6 +5065,241 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             `;
             
             showNotification('YouTube playlist saved! 📺', 'success');
+        }
+
+        // ==========================================
+        // YOUTUBE & SPOTIFY API INTEGRATION
+        // ==========================================
+        
+        // YouTube API Key Management
+        function saveYouTubeApiKey() {
+            const input = document.getElementById('youtubeApiKeyInput');
+            const key = input.value.trim();
+            const status = document.getElementById('youtubeApiStatus');
+            const testBtn = document.getElementById('testYouTubeBtn');
+            
+            if (!key) {
+                showNotification('Please enter your YouTube API key', 'warning');
+                return;
+            }
+            
+            if (key.length < 30) {
+                showNotification('API key seems too short. Please check it.', 'warning');
+                return;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('youtube_api_key', key);
+            appState.user.youtubeApiKey = key;
+            saveData();
+            
+            status.style.display = 'block';
+            status.innerHTML = `
+                <div class="connected-badge">✅ YouTube API Connected</div>
+                <p style="color: var(--text-light); margin-top: 8px; font-size: 14px;">
+                    You can now search YouTube music! Try the test button.
+                </p>
+            `;
+            testBtn.style.display = 'inline-block';
+            showNotification('YouTube API connected! 🎉', 'success');
+        }
+
+        function toggleYouTubeKeyVisibility() {
+            const input = document.getElementById('youtubeApiKeyInput');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        async function testYouTubeAPI() {
+            const apiKey = localStorage.getItem('youtube_api_key');
+            if (!apiKey) {
+                showNotification('No API key configured', 'warning');
+                return;
+            }
+
+            const status = document.getElementById('youtubeApiStatus');
+            status.innerHTML = '<div style="padding: 10px; background: #e3f2fd; border-radius: 6px;">🔄 Testing YouTube API...</div>';
+
+            try {
+                const response = await fetch(
+                    `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=1&q=workout music&key=${apiKey}`
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.items && data.items.length > 0) {
+                    status.innerHTML = `
+                        <div class="connected-badge">✅ YouTube API Working!</div>
+                        <p style="color: var(--text-light); margin-top: 8px; font-size: 13px;">
+                            Test search returned: "${data.items[0].snippet.title}"
+                        </p>
+                    `;
+                    showNotification('YouTube API test successful! 🎉', 'success');
+                } else {
+                    status.innerHTML = '<div style="padding: 10px; background: #fff3cd; border-radius: 6px;">⚠️ API works but no results found</div>';
+                }
+            } catch (error) {
+                status.innerHTML = `
+                    <div style="padding: 10px; background: #fee; border-radius: 6px; color: #c00;">
+                        ❌ Test failed: ${error.message}
+                        <br><small>Check your API key and make sure YouTube Data API v3 is enabled</small>
+                    </div>
+                `;
+                showNotification('YouTube API test failed', 'warning');
+            }
+        }
+
+        // Spotify API Key Management
+        function saveSpotifyApiKeys() {
+            const clientIdInput = document.getElementById('spotifyClientIdInput');
+            const clientSecretInput = document.getElementById('spotifyClientSecretInput');
+            const clientId = clientIdInput.value.trim();
+            const clientSecret = clientSecretInput.value.trim();
+            const status = document.getElementById('spotifyApiStatus');
+            const testBtn = document.getElementById('testSpotifyBtn');
+            
+            if (!clientId || !clientSecret) {
+                showNotification('Please enter both Client ID and Client Secret', 'warning');
+                return;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('spotify_client_id', clientId);
+            localStorage.setItem('spotify_client_secret', clientSecret);
+            appState.user.spotifyClientId = clientId;
+            appState.user.spotifyClientSecret = clientSecret;
+            saveData();
+            
+            status.style.display = 'block';
+            status.innerHTML = `
+                <div class="connected-badge">✅ Spotify API Connected</div>
+                <p style="color: var(--text-light); margin-top: 8px; font-size: 14px;">
+                    You can now search Spotify's music library! Try the test button.
+                </p>
+            `;
+            testBtn.style.display = 'inline-block';
+            showNotification('Spotify API connected! 🎉', 'success');
+        }
+
+        function toggleSpotifyKeysVisibility() {
+            const clientIdInput = document.getElementById('spotifyClientIdInput');
+            const clientSecretInput = document.getElementById('spotifyClientSecretInput');
+            const newType = clientIdInput.type === 'password' ? 'text' : 'password';
+            clientIdInput.type = newType;
+            clientSecretInput.type = newType;
+        }
+
+        async function getSpotifyAccessToken() {
+            const clientId = localStorage.getItem('spotify_client_id');
+            const clientSecret = localStorage.getItem('spotify_client_secret');
+            
+            if (!clientId || !clientSecret) {
+                return null;
+            }
+
+            try {
+                const response = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
+                    },
+                    body: 'grant_type=client_credentials'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to get access token');
+                }
+
+                const data = await response.json();
+                return data.access_token;
+            } catch (error) {
+                console.error('Spotify auth error:', error);
+                return null;
+            }
+        }
+
+        async function testSpotifyAPI() {
+            const status = document.getElementById('spotifyApiStatus');
+            status.innerHTML = '<div style="padding: 10px; background: #e8f5e9; border-radius: 6px;">🔄 Testing Spotify API...</div>';
+
+            try {
+                const accessToken = await getSpotifyAccessToken();
+                
+                if (!accessToken) {
+                    throw new Error('Failed to get access token');
+                }
+
+                const response = await fetch(
+                    'https://api.spotify.com/v1/search?q=workout&type=track&limit=1',
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.tracks && data.tracks.items.length > 0) {
+                    const track = data.tracks.items[0];
+                    status.innerHTML = `
+                        <div class="connected-badge">✅ Spotify API Working!</div>
+                        <p style="color: var(--text-light); margin-top: 8px; font-size: 13px;">
+                            Test search returned: "${track.name}" by ${track.artists[0].name}
+                        </p>
+                    `;
+                    showNotification('Spotify API test successful! 🎉', 'success');
+                } else {
+                    status.innerHTML = '<div style="padding: 10px; background: #fff3cd; border-radius: 6px;">⚠️ API works but no results found</div>';
+                }
+            } catch (error) {
+                status.innerHTML = `
+                    <div style="padding: 10px; background: #fee; border-radius: 6px; color: #c00;">
+                        ❌ Test failed: ${error.message}
+                        <br><small>Check your Client ID and Client Secret</small>
+                    </div>
+                `;
+                showNotification('Spotify API test failed', 'warning');
+            }
+        }
+
+        // Load saved API keys on startup
+        function loadMusicAPIKeys() {
+            // Load YouTube API key
+            const youtubeKey = localStorage.getItem('youtube_api_key');
+            if (youtubeKey) {
+                appState.user.youtubeApiKey = youtubeKey;
+                const status = document.getElementById('youtubeApiStatus');
+                const testBtn = document.getElementById('testYouTubeBtn');
+                if (status) {
+                    status.style.display = 'block';
+                    status.innerHTML = '<div class="connected-badge">✅ YouTube API Connected</div>';
+                }
+                if (testBtn) testBtn.style.display = 'inline-block';
+            }
+
+            // Load Spotify API keys
+            const spotifyClientId = localStorage.getItem('spotify_client_id');
+            const spotifyClientSecret = localStorage.getItem('spotify_client_secret');
+            if (spotifyClientId && spotifyClientSecret) {
+                appState.user.spotifyClientId = spotifyClientId;
+                appState.user.spotifyClientSecret = spotifyClientSecret;
+                const status = document.getElementById('spotifyApiStatus');
+                const testBtn = document.getElementById('testSpotifyBtn');
+                if (status) {
+                    status.style.display = 'block';
+                    status.innerHTML = '<div class="connected-badge">✅ Spotify API Connected</div>';
+                }
+                if (testBtn) testBtn.style.display = 'inline-block';
+            }
         }
 
         // Open music during workout
