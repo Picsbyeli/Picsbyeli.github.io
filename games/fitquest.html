@@ -7,6 +7,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
     <title>FitQuest - Level Up Your Fitness</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -1682,6 +1690,158 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.8; transform: scale(1.1); }
         }
+
+        /* Auth Modal Styles */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 4000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-modal.active {
+            display: flex;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h2 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .google-btn:hover {
+            background: #f9fafb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: var(--text-light);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .divider span {
+            padding: 0 10px;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .user-badge:hover {
+            background: rgba(255,255,255,0.3);
+        }
     </style>
 </head>
 <body>
@@ -1705,6 +1865,16 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px;">
+                    <!-- Auth Status / Login Button -->
+                    <div id="authButtonContainer">
+                        <button onclick="openAuthModal()" id="loginBtn" style="background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 12px; padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: white; transition: all 0.3s; box-shadow: 0 4px 15px rgba(16,185,129,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(16,185,129,0.3)'">
+                            🔐 Login / Sign Up
+                        </button>
+                        <div id="userBadge" style="display: none;" class="user-badge" onclick="toggleUserMenu()">
+                            <span id="userEmailBadge"></span>
+                            <span>▼</span>
+                        </div>
+                    </div>
                     <button onclick="openMusicPlayer()" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none; border-radius: 12px; padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: white; transition: all 0.3s; box-shadow: 0 4px 15px rgba(139,92,246,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(139,92,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(139,92,246,0.3)'">
                         🎵 Music
                     </button>
@@ -2886,7 +3056,95 @@
         </div>
     </div>
 
+    <!-- Authentication Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h2>💪 Welcome to FitQuest!</h2>
+                <p style="color: var(--text-light);">Sign in to save your progress and compete with friends</p>
+            </div>
+
+            <!-- Google Sign In -->
+            <button class="google-btn" onclick="signInWithGoogle()">
+                <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                <span>Continue with Google</span>
+            </button>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <!-- Auth Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;">
+                    Login
+                </button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="signupName" required placeholder="Your Name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="signupEmail" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="signupPassword" required placeholder="••••••••" minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;">
+                    Create Account
+                </button>
+            </form>
+
+            <button onclick="closeAuthModal()" class="btn" style="width: 100%; margin-top: 15px;">
+                Cancel
+            </button>
+        </div>
+    </div>
+
     <script>
+        // ==========================================
+        // FIREBASE INITIALIZATION
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHag-EmC2aBgC_trA2YJVssiSZmvJbxFw",
+            authDomain: "evolfitness-42b94.firebaseapp.com",
+            databaseURL: "https://evolfitness-42b94-default-rtdb.firebaseio.com",
+            projectId: "evolfitness-42b94",
+            storageBucket: "evolfitness-42b94.firebasestorage.app",
+            messagingSenderId: "664990825140",
+            appId: "1:664990825140:web:f5706d6bdb7a02864075e1",
+            measurementId: "G-20PYX40RC6"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const storage = firebase.storage();
+        const analytics = firebase.analytics();
+
+        // Current user
+        let currentUser = null;
+
         // ==========================================
         // INDEXEDDB SETUP - 50MB Storage (5x more than localStorage)
         // ==========================================
@@ -7322,6 +7580,352 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             div.textContent = text;
             return div.innerHTML;
         }
+
+        // ============================================
+        // FIREBASE AUTHENTICATION FUNCTIONS
+        // ============================================
+
+        // Auth state observer
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('userBadge').style.display = 'flex';
+                document.getElementById('userEmailBadge').textContent = user.email.split('@')[0];
+                
+                // Load user data from Firebase
+                await loadUserDataFromFirebase(user.uid);
+                
+                showNotification(`Welcome back, ${user.displayName || user.email.split('@')[0]}! 👋`, 'success');
+            } else {
+                currentUser = null;
+                document.getElementById('loginBtn').style.display = 'flex';
+                document.getElementById('userBadge').style.display = 'none';
+                
+                // Load local data if no user
+                loadData();
+            }
+        });
+
+        // Open auth modal
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+        }
+
+        // Close auth modal
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+        }
+
+        // Switch between login and signup tabs
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const tabs = document.querySelectorAll('.auth-tab');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tab === 'login') {
+                loginForm.classList.add('active');
+                signupForm.classList.remove('active');
+            } else {
+                signupForm.classList.add('active');
+                loginForm.classList.remove('active');
+            }
+        }
+
+        // Sign in with Google
+        async function signInWithGoogle() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
+                
+                // Create user profile in database if new
+                await createOrUpdateUserProfile(result.user);
+                
+                closeAuthModal();
+                showNotification('Successfully signed in with Google! 🎉', 'success');
+            } catch (error) {
+                console.error('Google sign-in error:', error);
+                showNotification('Failed to sign in with Google: ' + error.message, 'warning');
+            }
+        }
+
+        // Handle email/password login
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                closeAuthModal();
+                showNotification('Login successful! 🎉', 'success');
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Login failed: ' + error.message, 'warning');
+            }
+        }
+
+        // Handle email/password signup
+        async function handleSignup(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            
+            try {
+                const result = await auth.createUserWithEmailAndPassword(email, password);
+                
+                // Update profile with name
+                await result.user.updateProfile({
+                    displayName: name
+                });
+                
+                // Create user profile in database
+                await createOrUpdateUserProfile(result.user, name);
+                
+                closeAuthModal();
+                showNotification('Account created successfully! 🎉', 'success');
+            } catch (error) {
+                console.error('Signup error:', error);
+                showNotification('Signup failed: ' + error.message, 'warning');
+            }
+        }
+
+        // Create or update user profile in Firebase
+        async function createOrUpdateUserProfile(user, displayName = null) {
+            const userRef = database.ref('users/' + user.uid);
+            
+            // Check if user profile exists
+            const snapshot = await userRef.once('value');
+            
+            if (!snapshot.exists()) {
+                // New user - create profile with friend code
+                const friendCode = 'FIT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                
+                await userRef.set({
+                    email: user.email,
+                    displayName: displayName || user.displayName || user.email.split('@')[0],
+                    friendCode: friendCode,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    lastActive: firebase.database.ServerValue.TIMESTAMP,
+                    level: 1,
+                    xp: 0,
+                    currentXP: 0,
+                    maxXP: 100,
+                    totalWorkouts: 0,
+                    streak: 0,
+                    achievements: []
+                });
+            } else {
+                // Existing user - update last active
+                await userRef.update({
+                    lastActive: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        }
+
+        // Load user data from Firebase
+        async function loadUserDataFromFirebase(uid) {
+            try {
+                const userRef = database.ref('users/' + uid);
+                const snapshot = await userRef.once('value');
+                const userData = snapshot.val();
+                
+                if (userData) {
+                    // Merge Firebase data with app state
+                    appState.user = {
+                        ...appState.user,
+                        ...userData,
+                        friendCode: userData.friendCode || appState.user.friendCode
+                    };
+                    
+                    // Load additional data
+                    await loadProgressPhotosFromFirebase(uid);
+                    await loadFriendsFromFirebase(uid);
+                    
+                    updateUI();
+                    renderProgressTimeline();
+                    renderLeaderboard();
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                // Fallback to local data
+                loadData();
+            }
+        }
+
+        // Save app state to Firebase
+        async function saveDataToFirebase() {
+            if (!currentUser) return;
+            
+            try {
+                const userRef = database.ref('users/' + currentUser.uid);
+                
+                await userRef.update({
+                    level: appState.user.level,
+                    xp: appState.user.xp,
+                    currentXP: appState.user.currentXP,
+                    maxXP: appState.user.maxXP,
+                    totalWorkouts: appState.user.totalWorkouts,
+                    streak: appState.user.streak,
+                    currentWeight: appState.user.currentWeight,
+                    goalWeight: appState.user.goalWeight,
+                    startWeight: appState.user.startWeight,
+                    achievements: appState.achievements,
+                    lastWorkoutDate: appState.lastWorkoutDate,
+                    lastActive: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Save progress photos
+                await saveProgressPhotosToFirebase(currentUser.uid);
+                
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
+            }
+        }
+
+        // Load progress photos from Firebase
+        async function loadProgressPhotosFromFirebase(uid) {
+            try {
+                const photosRef = database.ref('progressPhotos/' + uid);
+                const snapshot = await photosRef.once('value');
+                const photos = snapshot.val();
+                
+                if (photos) {
+                    appState.progressPhotos = Object.values(photos);
+                }
+            } catch (error) {
+                console.error('Error loading progress photos:', error);
+            }
+        }
+
+        // Save progress photos to Firebase
+        async function saveProgressPhotosToFirebase(uid) {
+            try {
+                const photosRef = database.ref('progressPhotos/' + uid);
+                
+                // Save each photo
+                const photosObject = {};
+                appState.progressPhotos.forEach((photo, index) => {
+                    photosObject[index] = photo;
+                });
+                
+                await photosRef.set(photosObject);
+            } catch (error) {
+                console.error('Error saving progress photos:', error);
+            }
+        }
+
+        // Load friends from Firebase
+        async function loadFriendsFromFirebase(uid) {
+            try {
+                const friendsRef = database.ref('friends/' + uid);
+                const snapshot = await friendsRef.once('value');
+                const friendIds = snapshot.val();
+                
+                if (friendIds) {
+                    appState.friends = [];
+                    
+                    // Load each friend's data
+                    for (const friendId in friendIds) {
+                        const friendRef = database.ref('users/' + friendId);
+                        const friendSnapshot = await friendRef.once('value');
+                        const friendData = friendSnapshot.val();
+                        
+                        if (friendData) {
+                            appState.friends.push(friendData);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading friends:', error);
+            }
+        }
+
+        // Add friend by friend code (real users only)
+        async function addFriendByCode() {
+            const input = document.getElementById('friendCodeInput');
+            const code = input.value.trim().toUpperCase();
+            
+            if (!code) {
+                showNotification('Please enter a friend code', 'warning');
+                return;
+            }
+
+            if (!currentUser) {
+                showNotification('Please login to add friends', 'warning');
+                openAuthModal();
+                return;
+            }
+
+            try {
+                // Search for user with this friend code
+                const usersRef = database.ref('users');
+                const snapshot = await usersRef.orderByChild('friendCode').equalTo(code).once('value');
+                
+                if (!snapshot.exists()) {
+                    showNotification('Friend code not found. Please check and try again.', 'warning');
+                    return;
+                }
+                
+                const friendData = Object.values(snapshot.val())[0];
+                const friendUid = Object.keys(snapshot.val())[0];
+                
+                if (friendUid === currentUser.uid) {
+                    showNotification('You cannot add yourself as a friend!', 'warning');
+                    return;
+                }
+                
+                // Check if already friends
+                const myFriendsRef = database.ref('friends/' + currentUser.uid + '/' + friendUid);
+                const existingFriend = await myFriendsRef.once('value');
+                
+                if (existingFriend.exists()) {
+                    showNotification('You are already friends with this user!', 'warning');
+                    return;
+                }
+                
+                // Add friend (bidirectional)
+                await myFriendsRef.set(true);
+                await database.ref('friends/' + friendUid + '/' + currentUser.uid).set(true);
+                
+                appState.friends.push(friendData);
+                input.value = '';
+                
+                showNotification(`Added ${friendData.displayName} as a friend! 🎉`, 'success');
+                renderFriendsList();
+                renderLeaderboard();
+                
+            } catch (error) {
+                console.error('Error adding friend:', error);
+                showNotification('Failed to add friend. Please try again.', 'warning');
+            }
+        }
+
+        // Toggle user menu
+        function toggleUserMenu() {
+            if (confirm('Do you want to sign out?')) {
+                auth.signOut().then(() => {
+                    showNotification('Signed out successfully', 'info');
+                    location.reload();
+                });
+            }
+        }
+
+        // Override saveData to use Firebase when user is logged in
+        const originalSaveData = saveData;
+        saveData = function() {
+            if (currentUser) {
+                saveDataToFirebase();
+            } else {
+                originalSaveData();
+            }
+        };
     </script>
 </body>
 </html>
