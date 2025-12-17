@@ -1859,23 +1859,23 @@
             <!-- Quick Upload Section -->
             <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                    <h3 style="margin: 0;">📷 Take/Upload Your Body Photo</h3>
-                    <span style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">STEP 1</span>
+                    <h3 style="margin: 0;">📷 Instant AI Photo Analysis</h3>
+                    <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">AUTO-ANALYZE</span>
                 </div>
                 <p style="color: var(--text-light); margin-bottom: 15px;">
-                    First, take or select your photo. Then upload it to the <strong>AI chat above</strong> using the 📎 icon for instant analysis!
+                    Upload a photo and get <strong>instant AI analysis</strong> automatically! No manual upload needed.
                 </p>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                     <button class="btn btn-primary" onclick="document.getElementById('quickCameraInput').click()" style="padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
                         <span style="font-size: 32px;">📷</span>
                         <span>Take Photo Now</span>
-                        <span style="font-size: 11px; opacity: 0.8;">Camera → AI Chat</span>
+                        <span style="font-size: 11px; opacity: 0.8;">Auto AI Analysis</span>
                     </button>
                     <button class="btn btn-primary" onclick="document.getElementById('quickGalleryInput').click()" style="padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
                         <span style="font-size: 32px;">🖼️</span>
                         <span>Choose from Gallery</span>
-                        <span style="font-size: 11px; opacity: 0.8;">Select → AI Chat</span>
+                        <span style="font-size: 11px; opacity: 0.8;">Auto AI Analysis</span>
                     </button>
                 </div>
                 <input type="file" id="quickCameraInput" accept="image/*" capture="environment" onchange="handleQuickPhotoUpload(event)" style="display: none;">
@@ -1883,22 +1883,15 @@
 
                 <div id="quickPhotoPreview" style="display: none; margin-top: 15px;">
                     <img id="quickPhotoImage" style="width: 100%; max-height: 400px; object-fit: contain; border-radius: 12px; border: 2px solid var(--border);">
-                    <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px;">
-                        <div style="font-size: 24px; margin-bottom: 8px;">✅</div>
-                        <strong style="font-size: 16px;">Photo Ready!</strong>
-                        <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.95;">
-                            Now scroll up to the AI chat and click the 📎 icon to upload this photo for analysis!
-                        </p>
+                    <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px; border-radius: 8px; text-align: center; margin-top: 10px; font-weight: bold;">
+                        ✓ AI Analysis in progress... Check results below!
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button class="btn btn-success" onclick="scrollToAIChat()" style="flex: 1;">
-                            ⬆️ Go to AI Chat
-                        </button>
-                        <button class="btn" onclick="downloadQuickPhoto()" style="flex: 1;">
+                        <button class="btn btn-success" onclick="downloadQuickPhoto()" style="flex: 1;">
                             💾 Save Photo
                         </button>
                         <button class="btn" onclick="clearQuickPhoto()" style="flex: 1;">
-                            🗑️ Clear
+                            🗑️ Clear & Retry
                         </button>
                     </div>
                 </div>
@@ -4012,127 +4005,59 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Show preview immediately
-            const previewContainer = document.getElementById('quickPhotoPreview');
-            const previewImage = document.getElementById('quickPhotoImage');
-            
             const reader = new FileReader();
             reader.onload = async function(e) {
                 quickPhotoData = e.target.result;
+                
+                // Display preview
+                const previewContainer = document.getElementById('quickPhotoPreview');
+                const previewImage = document.getElementById('quickPhotoImage');
+                
                 previewImage.src = quickPhotoData;
                 previewContainer.style.display = 'block';
                 
-                showNotification('📸 Photo ready! Analyzing with AI...', 'info');
+                showNotification('📸 Photo uploaded! Analyzing with AI...', 'info');
                 
-                // Try API analysis
-                await analyzePhotoWithAI(file);
+                // Trigger instant AI analysis
+                await analyzePhotoWithAI(quickPhotoData);
             };
             reader.readAsDataURL(file);
         }
 
         // Analyze photo with Easy-Peasy AI Bot API
-        async function analyzePhotoWithAI(file) {
+        async function analyzePhotoWithAI(photoData) {
             try {
-                // Method 1: Try sending via API with proper format
+                // Convert base64 to blob for API upload
+                const response = await fetch(photoData);
+                const blob = await response.blob();
+                
+                // Create form data with image
                 const formData = new FormData();
-                formData.append('file', file);
-                formData.append('text', 'Please analyze this body photo in detail. Provide: 1) Body type classification (ectomorph/mesomorph/endomorph), 2) Current muscle development assessment, 3) Estimated body fat percentage range, 4) Key strengths I should leverage, 5) Areas that need improvement, 6) Specific workout recommendations for my body type, 7) Nutrition advice tailored to my physique. Be honest and constructive.');
+                formData.append('image', blob, 'body-photo.jpg');
+                formData.append('message', 'Please analyze this body photo. Provide detailed analysis of: 1) Body type (ectomorph/mesomorph/endomorph), 2) Current muscle development, 3) Estimated body fat percentage, 4) Key strengths and areas to improve, 5) Specific workout recommendations, 6) Nutrition advice for my body type.');
                 
                 showNotification('🤖 AI is analyzing your photo...', 'info');
                 
-                const apiUrl = `https://bots.easy-peasy.ai/api/bot/${BODY_ANALYSIS_BOT_ID}/chat`;
-                
-                const apiResponse = await fetch(apiUrl, {
+                // Call Easy-Peasy AI Bot API
+                const apiResponse = await fetch(`https://bots.easy-peasy.ai/bot/${BODY_ANALYSIS_BOT_ID}/api`, {
                     method: 'POST',
                     headers: {
-                        'x-api-key': BODY_ANALYSIS_API_KEY
+                        'Authorization': `Bearer ${BODY_ANALYSIS_API_KEY}`
                     },
                     body: formData
                 });
 
-                if (apiResponse.ok) {
-                    const analysisResult = await apiResponse.json();
-                    displayAIAnalysisResult(analysisResult);
-                    showNotification('✅ AI analysis complete!', 'success');
-                    return;
+                if (!apiResponse.ok) {
+                    throw new Error('AI analysis failed');
                 }
-                
-                // Method 2: Alternative API format
-                const altResponse = await fetch(`https://bots.easy-peasy.ai/bot/${BODY_ANALYSIS_BOT_ID}/api`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${BODY_ANALYSIS_API_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: 'Please analyze this body photo in detail. Body type, muscle development, body fat %, strengths, areas to improve, workout recommendations, and nutrition advice.',
-                        image: quickPhotoData
-                    })
-                });
 
-                if (altResponse.ok) {
-                    const result = await altResponse.json();
-                    displayAIAnalysisResult(result);
-                    showNotification('✅ AI analysis complete!', 'success');
-                    return;
-                }
+                const analysisResult = await apiResponse.json();
                 
-                // If API fails, show manual upload instructions
-                throw new Error('API unavailable');
+                // Display AI analysis result
+                displayAIAnalysisResult(analysisResult);
                 
-            } catch (error) {
-                console.error('AI Analysis Error:', error);
+                showNotification('✅ AI analysis complete!', 'success');
                 
-                // Fallback: Show manual upload instructions
-                displayManualUploadInstructions();
-            }
-        }
-
-        // Display manual upload instructions
-        function displayManualUploadInstructions() {
-            let resultsSection = document.getElementById('aiAnalysisResults');
-            
-            if (!resultsSection) {
-                const bodyScanSection = document.getElementById('body-scan');
-                resultsSection = document.createElement('div');
-                resultsSection.id = 'aiAnalysisResults';
-                resultsSection.style.cssText = 'background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px;';
-                
-                const quickUploadSection = document.querySelector('#quickPhotoPreview').parentElement;
-                bodyScanSection.insertBefore(resultsSection, quickUploadSection.nextSibling);
-            }
-
-            resultsSection.innerHTML = `
-                <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 20px; border-radius: 12px; color: white; text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 10px;">📎</div>
-                    <h3 style="color: white; margin-bottom: 10px;">Upload Photo to AI Chat</h3>
-                    <p style="opacity: 0.95; font-size: 15px; line-height: 1.6;">
-                        Your photo is ready! Follow these steps to get AI analysis:
-                    </p>
-                </div>
-                
-                <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-top: 20px;">
-                    <h4 style="margin-bottom: 15px; color: #6366f1;">📋 How to Upload:</h4>
-                    <ol style="line-height: 2; color: var(--text); font-size: 15px;">
-                        <li><strong>Scroll up to the AI chat box</strong> (purple gradient section)</li>
-                        <li><strong>Look for the 📎 attachment icon</strong> in the chat input</li>
-                        <li><strong>Click the 📎 icon</strong> and select your photo</li>
-                        <li><strong>Type:</strong> "Analyze my body type and give me workout recommendations"</li>
-                        <li><strong>Send</strong> and get instant AI analysis!</li>
-                    </ol>
-                    
-                    <div style="background: #e0f2fe; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #6366f1;">
-                        <strong>💡 Pro Tip:</strong> You can also download the photo below and upload it directly to the AI chat for analysis!
-                    </div>
-                </div>
-                
-                <button class="btn btn-primary" onclick="scrollToAIChat()" style="width: 100%; margin-top: 15px; padding: 15px; font-size: 16px;">
-                    ⬆️ Go to AI Chat Now
-                </button>
-            `;
-            
-            showNotification('📎 Photo ready! Upload to AI chat for analysis', 'info');
-        }
             } catch (error) {
                 console.error('AI Analysis Error:', error);
                 showNotification('⚠️ AI analysis unavailable. Please use the chat interface above to upload and analyze your photo.', 'warning');
