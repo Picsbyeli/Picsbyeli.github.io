@@ -1959,6 +1959,7 @@
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="showSection('workout')">Today's Workout</button>
+            <button class="nav-tab" onclick="showSection('profile')">👤 My Profile</button>
             <button class="nav-tab" onclick="showSection('challenges')">🎯 Challenges</button>
             <button class="nav-tab" onclick="showSection('ai-coach')">AI Coach</button>
             <button class="nav-tab" onclick="showSection('body-scan')">Body Analysis</button>
@@ -2697,6 +2698,256 @@
                     ➕ Create Your First Plan
                 </button>
             </div>
+        </div>
+
+        <!-- My Profile Section -->
+        <div id="profile" class="content-section">
+            <h2 style="margin-bottom: 20px;">👤 My Profile</h2>
+            
+            <!-- Profile Card -->
+            <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 30px; border-radius: 20px; margin-bottom: 25px; color: white; text-align: center;">
+                <div style="width: 100px; height: 100px; background: white; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                    <span id="profileAvatar">👤</span>
+                </div>
+                <h3 id="profileDisplayName" style="color: white; font-size: 24px; margin-bottom: 5px;">Warrior</h3>
+                <p id="profileUsername" style="opacity: 0.9; margin-bottom: 10px;">@warrior</p>
+                <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold;" id="profileLevel">1</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Level</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold;" id="profileStreak">0</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Day Streak</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold;" id="profileWorkouts">0</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Workouts</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information -->
+            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">📝 Personal Information</h3>
+                
+                <div style="display: grid; gap: 20px;">
+                    <!-- Display Name -->
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Display Name</label>
+                        <input 
+                            type="text" 
+                            id="profileNameInput" 
+                            placeholder="Your display name"
+                            style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px; transition: border-color 0.3s;"
+                            onchange="updateProfileField('name', this.value)"
+                        >
+                    </div>
+                    
+                    <!-- Username -->
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Username</label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light);">@</span>
+                            <input 
+                                type="text" 
+                                id="profileUsernameInput" 
+                                placeholder="username"
+                                style="width: 100%; padding: 14px 14px 14px 32px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px;"
+                                onchange="updateProfileField('username', this.value)"
+                            >
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">This will be shown to friends and on the leaderboard</p>
+                    </div>
+                    
+                    <!-- Friend Code (Read Only) -->
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Your Friend Code</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input 
+                                type="text" 
+                                id="profileFriendCode" 
+                                readonly
+                                style="flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px; background: #f5f5f5; font-family: monospace; font-weight: bold;"
+                            >
+                            <button onclick="copyFriendCode()" style="padding: 14px 20px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                                📋 Copy
+                            </button>
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">Share this code with friends so they can add you</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weight & Goals -->
+            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">⚖️ Weight & Goals</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+                    <!-- Start Weight -->
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Start Weight</label>
+                        <div style="position: relative;">
+                            <input 
+                                type="number" 
+                                id="profileStartWeight" 
+                                placeholder="0"
+                                step="0.1"
+                                style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px;"
+                                onchange="updateProfileField('startWeight', this.value)"
+                            >
+                            <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light);">lbs</span>
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">When you started</p>
+                    </div>
+                    
+                    <!-- Current Weight -->
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Current Weight</label>
+                        <div style="position: relative;">
+                            <input 
+                                type="number" 
+                                id="profileCurrentWeight" 
+                                placeholder="0"
+                                step="0.1"
+                                style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px;"
+                                onchange="updateProfileField('currentWeight', this.value)"
+                            >
+                            <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light);">lbs</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Goal Weight -->
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Goal Weight</label>
+                        <div style="position: relative;">
+                            <input 
+                                type="number" 
+                                id="profileGoalWeight" 
+                                placeholder="0"
+                                step="0.1"
+                                style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px;"
+                                onchange="updateProfileField('goalWeight', this.value)"
+                            >
+                            <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light);">lbs</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div id="weightProgressContainer" style="margin-top: 25px; display: none;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-weight: 600;">Weight Progress</span>
+                        <span id="weightProgressPercent" style="color: var(--secondary); font-weight: bold;">0%</span>
+                    </div>
+                    <div style="height: 12px; background: #e5e7eb; border-radius: 6px; overflow: hidden;">
+                        <div id="weightProgressBar" style="height: 100%; background: linear-gradient(90deg, var(--secondary), #34d399); border-radius: 6px; transition: width 0.5s ease; width: 0%;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px; color: var(--text-light);">
+                        <span id="weightStart">Start: --</span>
+                        <span id="weightCurrent">Current: --</span>
+                        <span id="weightGoal">Goal: --</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Concerns -->
+            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
+                <h3 style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">🏥 Health Concerns & Limitations</h3>
+                <p style="color: var(--text-light); margin-bottom: 20px; font-size: 14px;">This information helps us customize exercises that are safe for you. Your AI coach will take these into account.</p>
+                
+                <!-- Common Health Conditions -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: var(--text-dark);">Select any that apply:</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;" id="healthConditionsGrid">
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="back-pain" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>🦴 Back Pain</span>
+                        </label>
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="knee-issues" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>🦵 Knee Issues</span>
+                        </label>
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="shoulder-injury" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>💪 Shoulder Injury</span>
+                        </label>
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="wrist-issues" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>✋ Wrist Issues</span>
+                        </label>
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="heart-condition" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>❤️ Heart Condition</span>
+                        </label>
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="asthma" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>🫁 Asthma</span>
+                        </label>
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="diabetes" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>💉 Diabetes</span>
+                        </label>
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="pregnancy" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>🤰 Pregnancy</span>
+                        </label>
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="arthritis" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>🦴 Arthritis</span>
+                        </label>
+                        <label class="health-tag" style="display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #f3f4f6; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" value="high-blood-pressure" onchange="updateHealthConditions()" style="width: 18px; height: 18px;">
+                            <span>🩺 High Blood Pressure</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Additional Notes -->
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Additional Health Notes</label>
+                    <textarea 
+                        id="healthNotesInput" 
+                        placeholder="Describe any other health concerns, injuries, or limitations that might affect your workouts..."
+                        style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; min-height: 100px; resize: vertical; font-family: inherit;"
+                        onchange="updateProfileField('healthNotes', this.value)"
+                    ></textarea>
+                    <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">⚠️ Always consult with a healthcare provider before starting any exercise program</p>
+                </div>
+            </div>
+
+            <!-- Fitness Level -->
+            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">🎯 Fitness Level</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
+                    <button class="fitness-level-btn" onclick="setFitnessLevel('beginner')" data-level="beginner" style="padding: 20px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s; text-align: center;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🌱</div>
+                        <div style="font-weight: 600;">Beginner</div>
+                        <div style="font-size: 12px; color: var(--text-light); margin-top: 5px;">New to fitness</div>
+                    </button>
+                    <button class="fitness-level-btn" onclick="setFitnessLevel('intermediate')" data-level="intermediate" style="padding: 20px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s; text-align: center;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">💪</div>
+                        <div style="font-weight: 600;">Intermediate</div>
+                        <div style="font-size: 12px; color: var(--text-light); margin-top: 5px;">Some experience</div>
+                    </button>
+                    <button class="fitness-level-btn" onclick="setFitnessLevel('advanced')" data-level="advanced" style="padding: 20px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s; text-align: center;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🔥</div>
+                        <div style="font-weight: 600;">Advanced</div>
+                        <div style="font-size: 12px; color: var(--text-light); margin-top: 5px;">Very experienced</div>
+                    </button>
+                    <button class="fitness-level-btn" onclick="setFitnessLevel('athlete')" data-level="athlete" style="padding: 20px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s; text-align: center;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🏆</div>
+                        <div style="font-weight: 600;">Athlete</div>
+                        <div style="font-size: 12px; color: var(--text-light); margin-top: 5px;">Pro level</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Save Profile Button -->
+            <button onclick="saveProfile()" class="btn btn-primary" style="width: 100%; padding: 18px; font-size: 18px; font-weight: bold;">
+                💾 Save Profile Changes
+            </button>
         </div>
 
         <!-- Settings Section -->
@@ -3790,6 +4041,7 @@
         let appState = {
             user: {
                 name: 'Warrior',
+                username: '',
                 level: 1,
                 xp: 0,
                 maxXP: 100,
@@ -3803,7 +4055,10 @@
                 lastWorkoutDate: null,
                 friendCode: null,
                 startWeight: null,
-                startDate: null
+                startDate: null,
+                healthConditions: [],
+                healthNotes: '',
+                fitnessLevel: 'beginner'
             },
             friends: [],
             workouts: [],
@@ -4085,6 +4340,11 @@
             if (navButton) {
                 navButton.classList.add('active');
             }
+            
+            // Load profile data when switching to profile tab
+            if (sectionId === 'profile') {
+                loadProfileData();
+            }
         }
         
         // Make globally accessible
@@ -4095,6 +4355,235 @@
             alert('🏋️ Starting workout mode! Complete each exercise and check them off as you go.');
         }
         window.startWorkout = startWorkout;
+
+        // ==========================================
+        // PROFILE FUNCTIONS
+        // ==========================================
+
+        // Load profile data into form
+        function loadProfileData() {
+            // Personal info
+            const nameInput = document.getElementById('profileNameInput');
+            const usernameInput = document.getElementById('profileUsernameInput');
+            const friendCodeInput = document.getElementById('profileFriendCode');
+            
+            if (nameInput) nameInput.value = appState.user.name || '';
+            if (usernameInput) usernameInput.value = appState.user.username || '';
+            if (friendCodeInput) friendCodeInput.value = appState.user.friendCode || 'FIT-XXXXXX';
+            
+            // Display name and username in header
+            const displayName = document.getElementById('profileDisplayName');
+            const displayUsername = document.getElementById('profileUsername');
+            if (displayName) displayName.textContent = appState.user.name || 'Warrior';
+            if (displayUsername) displayUsername.textContent = '@' + (appState.user.username || 'warrior');
+            
+            // Stats
+            const levelEl = document.getElementById('profileLevel');
+            const streakEl = document.getElementById('profileStreak');
+            const workoutsEl = document.getElementById('profileWorkouts');
+            if (levelEl) levelEl.textContent = appState.user.level || 1;
+            if (streakEl) streakEl.textContent = appState.user.streak || 0;
+            if (workoutsEl) workoutsEl.textContent = appState.user.totalWorkouts || 0;
+            
+            // Weight
+            const startWeight = document.getElementById('profileStartWeight');
+            const currentWeight = document.getElementById('profileCurrentWeight');
+            const goalWeight = document.getElementById('profileGoalWeight');
+            if (startWeight) startWeight.value = appState.user.startWeight || '';
+            if (currentWeight) currentWeight.value = appState.user.currentWeight || '';
+            if (goalWeight) goalWeight.value = appState.user.goalWeight || '';
+            
+            // Update weight progress
+            updateWeightProgress();
+            
+            // Health conditions
+            const checkboxes = document.querySelectorAll('#healthConditionsGrid input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = appState.user.healthConditions && appState.user.healthConditions.includes(cb.value);
+                // Update styling
+                const label = cb.closest('label');
+                if (label) {
+                    if (cb.checked) {
+                        label.style.background = '#dbeafe';
+                        label.style.borderColor = 'var(--primary)';
+                    } else {
+                        label.style.background = '#f3f4f6';
+                        label.style.borderColor = 'transparent';
+                    }
+                }
+            });
+            
+            // Health notes
+            const healthNotes = document.getElementById('healthNotesInput');
+            if (healthNotes) healthNotes.value = appState.user.healthNotes || '';
+            
+            // Fitness level
+            updateFitnessLevelUI(appState.user.fitnessLevel || 'beginner');
+        }
+        
+        // Update a profile field
+        function updateProfileField(field, value) {
+            if (field === 'startWeight' || field === 'currentWeight' || field === 'goalWeight') {
+                appState.user[field] = value ? parseFloat(value) : null;
+                updateWeightProgress();
+            } else {
+                appState.user[field] = value;
+            }
+            
+            // Update display elements if name/username changed
+            if (field === 'name') {
+                const displayName = document.getElementById('profileDisplayName');
+                if (displayName) displayName.textContent = value || 'Warrior';
+                // Also update header name
+                const headerName = document.querySelector('.user-info h2');
+                if (headerName) headerName.textContent = value || 'Warrior';
+            }
+            if (field === 'username') {
+                const displayUsername = document.getElementById('profileUsername');
+                if (displayUsername) displayUsername.textContent = '@' + (value || 'warrior');
+            }
+        }
+        window.updateProfileField = updateProfileField;
+        
+        // Update health conditions from checkboxes
+        function updateHealthConditions() {
+            const checkboxes = document.querySelectorAll('#healthConditionsGrid input[type="checkbox"]');
+            const conditions = [];
+            checkboxes.forEach(cb => {
+                const label = cb.closest('label');
+                if (cb.checked) {
+                    conditions.push(cb.value);
+                    if (label) {
+                        label.style.background = '#dbeafe';
+                        label.style.border = '2px solid var(--primary)';
+                    }
+                } else {
+                    if (label) {
+                        label.style.background = '#f3f4f6';
+                        label.style.border = '2px solid transparent';
+                    }
+                }
+            });
+            appState.user.healthConditions = conditions;
+        }
+        window.updateHealthConditions = updateHealthConditions;
+        
+        // Set fitness level
+        function setFitnessLevel(level) {
+            appState.user.fitnessLevel = level;
+            updateFitnessLevelUI(level);
+        }
+        window.setFitnessLevel = setFitnessLevel;
+        
+        // Update fitness level button styling
+        function updateFitnessLevelUI(activeLevel) {
+            const buttons = document.querySelectorAll('.fitness-level-btn');
+            buttons.forEach(btn => {
+                const level = btn.getAttribute('data-level');
+                if (level === activeLevel) {
+                    btn.style.background = 'var(--primary)';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = 'var(--primary)';
+                } else {
+                    btn.style.background = 'white';
+                    btn.style.color = 'var(--text-dark)';
+                    btn.style.borderColor = 'var(--border)';
+                }
+            });
+        }
+        
+        // Update weight progress bar
+        function updateWeightProgress() {
+            const container = document.getElementById('weightProgressContainer');
+            const bar = document.getElementById('weightProgressBar');
+            const percent = document.getElementById('weightProgressPercent');
+            const startLabel = document.getElementById('weightStart');
+            const currentLabel = document.getElementById('weightCurrent');
+            const goalLabel = document.getElementById('weightGoal');
+            
+            const start = appState.user.startWeight;
+            const current = appState.user.currentWeight;
+            const goal = appState.user.goalWeight;
+            
+            if (start && goal && container) {
+                container.style.display = 'block';
+                
+                // Calculate progress (works for both losing and gaining weight)
+                const totalChange = Math.abs(goal - start);
+                const currentChange = Math.abs(current - start);
+                let progress = totalChange > 0 ? (currentChange / totalChange) * 100 : 0;
+                
+                // Check if going in the right direction
+                if ((goal < start && current > start) || (goal > start && current < start)) {
+                    progress = 0; // Going wrong way
+                } else if ((goal < start && current < goal) || (goal > start && current > goal)) {
+                    progress = 100; // Passed goal
+                }
+                
+                progress = Math.min(100, Math.max(0, progress));
+                
+                if (bar) bar.style.width = progress + '%';
+                if (percent) percent.textContent = Math.round(progress) + '%';
+                if (startLabel) startLabel.textContent = 'Start: ' + start + ' lbs';
+                if (currentLabel) currentLabel.textContent = 'Current: ' + (current || '--') + ' lbs';
+                if (goalLabel) goalLabel.textContent = 'Goal: ' + goal + ' lbs';
+            } else if (container) {
+                container.style.display = 'none';
+            }
+        }
+        
+        // Copy friend code to clipboard
+        function copyFriendCode() {
+            const code = appState.user.friendCode;
+            if (code) {
+                navigator.clipboard.writeText(code).then(() => {
+                    showNotification('Friend code copied! 📋', 'success');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const input = document.getElementById('profileFriendCode');
+                    if (input) {
+                        input.select();
+                        document.execCommand('copy');
+                        showNotification('Friend code copied! 📋', 'success');
+                    }
+                });
+            }
+        }
+        window.copyFriendCode = copyFriendCode;
+        
+        // Save profile to Firebase and local storage
+        async function saveProfile() {
+            // Save locally first
+            saveData();
+            
+            // Save to Firebase if logged in
+            if (currentUser) {
+                try {
+                    await db.collection('users').doc(currentUser.uid).update({
+                        displayName: appState.user.name,
+                        username: appState.user.username,
+                        startWeight: appState.user.startWeight,
+                        currentWeight: appState.user.currentWeight,
+                        goalWeight: appState.user.goalWeight,
+                        healthConditions: appState.user.healthConditions || [],
+                        healthNotes: appState.user.healthNotes || '',
+                        fitnessLevel: appState.user.fitnessLevel || 'beginner',
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    showNotification('Profile saved to cloud! ☁️', 'success');
+                } catch (error) {
+                    console.error('Error saving profile to Firebase:', error);
+                    showNotification('Profile saved locally! (Cloud sync failed)', 'warning');
+                }
+            } else {
+                showNotification('Profile saved! Sign in to sync across devices.', 'success');
+            }
+            
+            // Update header
+            const headerName = document.querySelector('.user-info h2');
+            if (headerName) headerName.textContent = appState.user.name || 'Warrior';
+        }
+        window.saveProfile = saveProfile;
 
         // AI Chat functionality - ChatGPT Style
         let uploadedImage = null;
@@ -8507,6 +8996,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     appState.user = {
                         ...appState.user,
                         name: userData.displayName || userData.email?.split('@')[0] || appState.user.name,
+                        username: userData.username || '',
                         email: userData.email,
                         displayName: userData.displayName,
                         friendCode: userData.friendCode,
@@ -8520,7 +9010,10 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         goalWeight: userData.goalWeight,
                         startWeight: userData.startWeight,
                         achievements: userData.achievements || [],
-                        lastWorkoutDate: userData.lastWorkoutDate
+                        lastWorkoutDate: userData.lastWorkoutDate,
+                        healthConditions: userData.healthConditions || [],
+                        healthNotes: userData.healthNotes || '',
+                        fitnessLevel: userData.fitnessLevel || 'beginner'
                     };
                     
                     console.log('✅ Loaded user data. Friend Code:', appState.user.friendCode);
