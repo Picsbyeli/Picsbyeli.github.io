@@ -7587,23 +7587,53 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
 
         // Auth state observer
         auth.onAuthStateChanged(async (user) => {
+            console.log('Auth state changed. User:', user ? user.email : 'null');
+            
             if (user) {
                 currentUser = user;
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('userBadge').style.display = 'flex';
-                document.getElementById('userEmailBadge').textContent = user.email.split('@')[0];
                 
-                // Load user data from Firebase
-                await loadUserDataFromFirebase(user.uid);
+                try {
+                    // Update UI
+                    const loginBtn = document.getElementById('loginBtn');
+                    const userBadge = document.getElementById('userBadge');
+                    const userEmailBadge = document.getElementById('userEmailBadge');
+                    
+                    if (loginBtn) loginBtn.style.display = 'none';
+                    if (userBadge) userBadge.style.display = 'flex';
+                    if (userEmailBadge) userEmailBadge.textContent = user.email.split('@')[0];
+                    
+                    console.log('Loading user data from Firebase...');
+                    
+                    // Load user data from Firebase
+                    await loadUserDataFromFirebase(user.uid);
+                    
+                    const displayName = user.displayName || user.email.split('@')[0];
+                    console.log('User data loaded successfully for:', displayName);
+                    
+                    // Only show welcome notification on first load
+                    if (!sessionStorage.getItem('welcomeShown')) {
+                        showNotification(`Welcome back, ${displayName}! 👋`, 'success');
+                        sessionStorage.setItem('welcomeShown', 'true');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error in auth state handler:', error);
+                    showNotification('Error loading user data', 'warning');
+                }
                 
-                showNotification(`Welcome back, ${user.displayName || user.email.split('@')[0]}! 👋`, 'success');
             } else {
                 currentUser = null;
-                document.getElementById('loginBtn').style.display = 'flex';
-                document.getElementById('userBadge').style.display = 'none';
+                console.log('No user logged in, using local storage');
+                
+                const loginBtn = document.getElementById('loginBtn');
+                const userBadge = document.getElementById('userBadge');
+                
+                if (loginBtn) loginBtn.style.display = 'flex';
+                if (userBadge) userBadge.style.display = 'none';
                 
                 // Load local data if no user
                 loadData();
+                sessionStorage.removeItem('welcomeShown');
             }
         });
 
@@ -7638,19 +7668,62 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Sign in with Google
         async function signInWithGoogle() {
             try {
+                showNotification('Opening Google Sign-In...', 'info');
+                
                 const provider = new firebase.auth.GoogleAuthProvider();
-                const result = await auth.signInWithPopup(provider);
+                provider.addScope('profile');
+                provider.addScope('email');
                 
-                // Create user profile in database if new
-                await createOrUpdateUserProfile(result.user);
+                // Try popup first, fallback to redirect
+                try {
+                    const result = await auth.signInWithPopup(provider);
+                    console.log('Google sign-in successful:', result.user.email);
+                    
+                    // Create user profile in database if new
+                    await createOrUpdateUserProfile(result.user);
+                    
+                    closeAuthModal();
+                    showNotification('Successfully signed in with Google! 🎉', 'success');
+                    
+                } catch (popupError) {
+                    // If popup is blocked, use redirect
+                    if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/cancelled-popup-request') {
+                        console.log('Popup blocked, using redirect...');
+                        await auth.signInWithRedirect(provider);
+                    } else {
+                        throw popupError;
+                    }
+                }
                 
-                closeAuthModal();
-                showNotification('Successfully signed in with Google! 🎉', 'success');
             } catch (error) {
                 console.error('Google sign-in error:', error);
-                showNotification('Failed to sign in with Google: ' + error.message, 'warning');
+                let errorMessage = 'Failed to sign in with Google.';
+                
+                if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = 'Sign-in cancelled. Please try again.';
+                } else if (error.code === 'auth/network-request-failed') {
+                    errorMessage = 'Network error. Please check your connection.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showNotification(errorMessage, 'warning');
             }
         }
+
+        // Handle redirect result (for when popup is blocked)
+        auth.getRedirectResult().then(async (result) => {
+            if (result.user) {
+                console.log('Redirect sign-in successful:', result.user.email);
+                await createOrUpdateUserProfile(result.user);
+                showNotification('Successfully signed in with Google! 🎉', 'success');
+            }
+        }).catch((error) => {
+            console.error('Redirect error:', error);
+            if (error.code !== 'auth/popup-closed-by-user') {
+                showNotification('Sign-in error: ' + error.message, 'warning');
+            }
+        });
 
         // Handle email/password login
         async function handleLogin(event) {
@@ -7698,34 +7771,52 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
 
         // Create or update user profile in Firebase
         async function createOrUpdateUserProfile(user, displayName = null) {
-            const userRef = database.ref('users/' + user.uid);
-            
-            // Check if user profile exists
-            const snapshot = await userRef.once('value');
-            
-            if (!snapshot.exists()) {
-                // New user - create profile with friend code
-                const friendCode = 'FIT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            try {
+                console.log('Creating/updating profile for:', user.email);
+                const userRef = database.ref('users/' + user.uid);
                 
-                await userRef.set({
-                    email: user.email,
-                    displayName: displayName || user.displayName || user.email.split('@')[0],
-                    friendCode: friendCode,
-                    createdAt: firebase.database.ServerValue.TIMESTAMP,
-                    lastActive: firebase.database.ServerValue.TIMESTAMP,
-                    level: 1,
-                    xp: 0,
-                    currentXP: 0,
-                    maxXP: 100,
-                    totalWorkouts: 0,
-                    streak: 0,
-                    achievements: []
-                });
-            } else {
-                // Existing user - update last active
-                await userRef.update({
-                    lastActive: firebase.database.ServerValue.TIMESTAMP
-                });
+                // Check if user profile exists
+                const snapshot = await userRef.once('value');
+                
+                if (!snapshot.exists()) {
+                    // New user - create profile with friend code
+                    const friendCode = 'FIT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                    
+                    const newUserData = {
+                        email: user.email,
+                        displayName: displayName || user.displayName || user.email.split('@')[0],
+                        friendCode: friendCode,
+                        createdAt: firebase.database.ServerValue.TIMESTAMP,
+                        lastActive: firebase.database.ServerValue.TIMESTAMP,
+                        level: 1,
+                        xp: 0,
+                        currentXP: 0,
+                        maxXP: 100,
+                        totalWorkouts: 0,
+                        streak: 0,
+                        achievements: []
+                    };
+                    
+                    console.log('Creating new user profile with friend code:', friendCode);
+                    await userRef.set(newUserData);
+                    console.log('User profile created successfully');
+                    
+                } else {
+                    // Existing user - update last active
+                    console.log('Updating existing user profile');
+                    await userRef.update({
+                        lastActive: firebase.database.ServerValue.TIMESTAMP,
+                        displayName: displayName || user.displayName || snapshot.val().displayName
+                    });
+                    console.log('User profile updated');
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Error creating/updating user profile:', error);
+                showNotification('Error setting up profile. Please try again.', 'warning');
+                return false;
             }
         }
 
