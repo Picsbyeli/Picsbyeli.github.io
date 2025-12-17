@@ -9092,7 +9092,15 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     
                     console.log('Creating new user profile with friend code:', friendCode);
                     await userDocRef.set(newUserData);
-                    console.log('User profile created successfully');
+                    
+                    // Also save to publicProfiles collection for friend code lookup
+                    await db.collection('publicProfiles').doc(friendCode).set({
+                        uid: user.uid,
+                        displayName: displayName || user.displayName || user.email.split('@')[0],
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    console.log('User profile created successfully with public profile');
                     
                 } else {
                     // Existing user - update last active
@@ -9511,6 +9519,375 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 return false;
             }
         }
+
+        // ==========================================
+        // ENHANCED FIREBASE FUNCTIONS
+        // Solo workouts, friend codes, friend requests,
+        // group workouts, group challenges
+        // ==========================================
+
+        // Save/Update Friend Code in public profiles collection
+        async function saveFriendCodeToPublicProfile(code) {
+            if (!currentUser) throw new Error("Not logged in");
+            
+            const cleanCode = code.trim().toUpperCase();
+            
+            try {
+                await db.collection('publicProfiles').doc(cleanCode).set({
+                    uid: currentUser.uid,
+                    displayName: appState.user.name || currentUser.displayName || 'User',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('✅ Friend code saved to public profiles:', cleanCode);
+                return true;
+            } catch (error) {
+                console.error('❌ Error saving friend code:', error);
+                throw error;
+            }
+        }
+        window.saveFriendCodeToPublicProfile = saveFriendCodeToPublicProfile;
+
+        // Send friend request by code
+        async function sendFriendRequest(code) {
+            if (!currentUser) {
+                showNotification('Please login first', 'warning');
+                openAuthModal();
+                return false;
+            }
+            
+            const cleanCode = code.trim().toUpperCase();
+            
+            try {
+                // Look up public profile by code
+                const profileSnap = await db.collection('publicProfiles').doc(cleanCode).get();
+                
+                if (!profileSnap.exists()) {
+                    // Fallback: search users collection
+                    const userSnap = await db.collection('users').where('friendCode', '==', cleanCode).get();
+                    
+                    if (userSnap.empty) {
+                        showNotification('Invalid friend code', 'warning');
+                        return false;
+                    }
+                    
+                    let toUid = null;
+                    userSnap.forEach(doc => { toUid = doc.id; });
+                    
+                    if (toUid === currentUser.uid) {
+                        showNotification('Cannot add yourself', 'warning');
+                        return false;
+                    }
+                    
+                    // Direct add (old method as fallback)
+                    await addFriendByCode();
+                    return true;
+                }
+                
+                const { uid: toUid } = profileSnap.data();
+                
+                if (toUid === currentUser.uid) {
+                    showNotification('Cannot add yourself', 'warning');
+                    return false;
+                }
+                
+                // Create friend request
+                await db.collection('friendRequests').add({
+                    fromUid: currentUser.uid,
+                    fromName: appState.user.name || currentUser.displayName || 'User',
+                    toUid: toUid,
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showNotification('Friend request sent! 📤', 'success');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Error sending friend request:', error);
+                showNotification('Failed to send request: ' + error.message, 'warning');
+                return false;
+            }
+        }
+        window.sendFriendRequest = sendFriendRequest;
+
+        // Accept friend request
+        async function acceptFriendRequest(requestId, otherUid) {
+            if (!currentUser) return false;
+            
+            try {
+                // Update request status
+                await db.collection('friendRequests').doc(requestId).update({
+                    status: 'accepted',
+                    acceptedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Add to friends subcollection (both ways)
+                await db.collection('users').doc(currentUser.uid).collection('friends').doc(otherUid).set({
+                    friendUid: otherUid,
+                    since: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                await db.collection('users').doc(otherUid).collection('friends').doc(currentUser.uid).set({
+                    friendUid: currentUser.uid,
+                    since: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Also update the friends array in main user doc
+                await db.collection('users').doc(currentUser.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(otherUid)
+                });
+                
+                await db.collection('users').doc(otherUid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                });
+                
+                showNotification('Friend request accepted! 🎉', 'success');
+                await loadFriendsFromFirebase(currentUser.uid);
+                renderFriendsList();
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Error accepting friend request:', error);
+                showNotification('Failed to accept request', 'warning');
+                return false;
+            }
+        }
+        window.acceptFriendRequest = acceptFriendRequest;
+
+        // Decline friend request
+        async function declineFriendRequest(requestId) {
+            if (!currentUser) return false;
+            
+            try {
+                await db.collection('friendRequests').doc(requestId).update({
+                    status: 'declined',
+                    declinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showNotification('Friend request declined', 'info');
+                return true;
+            } catch (error) {
+                console.error('❌ Error declining friend request:', error);
+                return false;
+            }
+        }
+        window.declineFriendRequest = declineFriendRequest;
+
+        // Load pending friend requests
+        async function loadFriendRequests() {
+            if (!currentUser) return [];
+            
+            try {
+                const snapshot = await db.collection('friendRequests')
+                    .where('toUid', '==', currentUser.uid)
+                    .where('status', '==', 'pending')
+                    .get();
+                
+                const requests = [];
+                snapshot.forEach(doc => {
+                    requests.push({ id: doc.id, ...doc.data() });
+                });
+                
+                console.log('📬 Loaded', requests.length, 'pending friend requests');
+                return requests;
+            } catch (error) {
+                console.error('❌ Error loading friend requests:', error);
+                return [];
+            }
+        }
+        window.loadFriendRequests = loadFriendRequests;
+
+        // Save solo workout entry
+        async function saveSoloWorkout(workoutData) {
+            if (!currentUser) {
+                showNotification('Please login to save workouts', 'warning');
+                return null;
+            }
+            
+            try {
+                const workoutId = 'workout_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                
+                await db.collection('users').doc(currentUser.uid).collection('workouts').doc(workoutId).set({
+                    ...workoutData,
+                    id: workoutId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('✅ Solo workout saved:', workoutId);
+                showNotification('Workout saved! 💪', 'success');
+                return workoutId;
+            } catch (error) {
+                console.error('❌ Error saving workout:', error);
+                showNotification('Failed to save workout', 'warning');
+                return null;
+            }
+        }
+        window.saveSoloWorkout = saveSoloWorkout;
+
+        // Save solo challenge entry
+        async function saveSoloChallenge(challengeData) {
+            if (!currentUser) {
+                showNotification('Please login to save challenges', 'warning');
+                return null;
+            }
+            
+            try {
+                const challengeId = 'solo_challenge_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                
+                await db.collection('users').doc(currentUser.uid).collection('challenges').doc(challengeId).set({
+                    ...challengeData,
+                    id: challengeId,
+                    type: 'solo',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('✅ Solo challenge saved:', challengeId);
+                return challengeId;
+            } catch (error) {
+                console.error('❌ Error saving solo challenge:', error);
+                return null;
+            }
+        }
+        window.saveSoloChallenge = saveSoloChallenge;
+
+        // Create group session (workout or challenge)
+        async function createGroupSession(title, memberUids, type = 'workout') {
+            if (!currentUser) {
+                showNotification('Please login to create group sessions', 'warning');
+                return null;
+            }
+            
+            try {
+                const sessionRef = await db.collection('sessions').add({
+                    type: type, // 'workout' or 'challenge'
+                    title: title,
+                    createdBy: currentUser.uid,
+                    createdByName: appState.user.name || currentUser.displayName || 'User',
+                    members: [currentUser.uid, ...memberUids],
+                    status: 'active',
+                    inviteCode: 'GRP-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('✅ Group session created:', sessionRef.id);
+                showNotification(`Group ${type} created! Share the invite code with friends.`, 'success');
+                return sessionRef.id;
+            } catch (error) {
+                console.error('❌ Error creating group session:', error);
+                showNotification('Failed to create group session', 'warning');
+                return null;
+            }
+        }
+        window.createGroupSession = createGroupSession;
+
+        // Join group session by invite code
+        async function joinGroupSession(inviteCode) {
+            if (!currentUser) {
+                showNotification('Please login to join sessions', 'warning');
+                return false;
+            }
+            
+            try {
+                const snapshot = await db.collection('sessions')
+                    .where('inviteCode', '==', inviteCode.trim().toUpperCase())
+                    .get();
+                
+                if (snapshot.empty) {
+                    showNotification('Session not found. Check the invite code.', 'warning');
+                    return false;
+                }
+                
+                let sessionDoc = null;
+                snapshot.forEach(doc => { sessionDoc = doc; });
+                
+                const sessionId = sessionDoc.id;
+                const sessionData = sessionDoc.data();
+                
+                if (sessionData.members.includes(currentUser.uid)) {
+                    showNotification('You are already in this session!', 'info');
+                    return false;
+                }
+                
+                await db.collection('sessions').doc(sessionId).update({
+                    members: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                });
+                
+                showNotification(`Joined "${sessionData.title}"! 🎉`, 'success');
+                return true;
+            } catch (error) {
+                console.error('❌ Error joining session:', error);
+                showNotification('Failed to join session', 'warning');
+                return false;
+            }
+        }
+        window.joinGroupSession = joinGroupSession;
+
+        // Log entry to group session (progress update)
+        async function logGroupEntry(sessionId, entryData) {
+            if (!currentUser) return null;
+            
+            try {
+                const entryRef = await db.collection('sessions').doc(sessionId).collection('entries').add({
+                    uid: currentUser.uid,
+                    userName: appState.user.name || currentUser.displayName || 'User',
+                    ...entryData,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('✅ Group entry logged:', entryRef.id);
+                return entryRef.id;
+            } catch (error) {
+                console.error('❌ Error logging group entry:', error);
+                return null;
+            }
+        }
+        window.logGroupEntry = logGroupEntry;
+
+        // Load group sessions for current user
+        async function loadGroupSessions() {
+            if (!currentUser) return [];
+            
+            try {
+                const snapshot = await db.collection('sessions')
+                    .where('members', 'array-contains', currentUser.uid)
+                    .get();
+                
+                const sessions = [];
+                snapshot.forEach(doc => {
+                    sessions.push({ id: doc.id, ...doc.data() });
+                });
+                
+                console.log('📋 Loaded', sessions.length, 'group sessions');
+                return sessions;
+            } catch (error) {
+                console.error('❌ Error loading group sessions:', error);
+                return [];
+            }
+        }
+        window.loadGroupSessions = loadGroupSessions;
+
+        // Load entries for a group session
+        async function loadGroupEntries(sessionId) {
+            try {
+                const snapshot = await db.collection('sessions').doc(sessionId).collection('entries')
+                    .orderBy('createdAt', 'desc')
+                    .limit(50)
+                    .get();
+                
+                const entries = [];
+                snapshot.forEach(doc => {
+                    entries.push({ id: doc.id, ...doc.data() });
+                });
+                
+                return entries;
+            } catch (error) {
+                console.error('❌ Error loading group entries:', error);
+                return [];
+            }
+        }
+        window.loadGroupEntries = loadGroupEntries;
 
         // ==========================================
         // CHALLENGE PLANNER FUNCTIONS
