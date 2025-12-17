@@ -9705,27 +9705,61 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 }
             },
             
-            // Send friend request
-            sendFriendRequest: async function(toUid, toUsername) {
+            // Send friend request by friend code
+            sendFriendRequest: async function(friendCode) {
                 if (!currentUser) throw new Error('No user logged in');
-                if (toUid === currentUser.uid) throw new Error('Cannot send request to yourself');
+                
+                const cleanCode = friendCode.trim().toUpperCase();
+                
+                // Find user by friend code
+                const user = await this.findUserByCode(cleanCode);
+                if (!user) {
+                    showNotification('Invalid friend code', 'warning');
+                    return false;
+                }
+                
+                const toUid = user.uid;
+                const toUsername = user.username || user.displayName || 'User';
+                
+                if (toUid === currentUser.uid) {
+                    showNotification('Cannot send request to yourself', 'warning');
+                    return false;
+                }
                 
                 // Check if already friends
                 const friendDoc = await db.collection('users').doc(currentUser.uid)
                     .collection('friends').doc(toUid).get();
                 if (friendDoc.exists) {
-                    throw new Error('Already friends with this user');
+                    showNotification('Already friends with this user', 'info');
+                    return false;
                 }
                 
-                // Check for existing pending request
-                const existingSnapshot = await db.collection('friendRequests')
+                // Check for existing pending request from me to them
+                const existingOutgoing = await db.collection('friendRequests')
                     .where('fromUid', '==', currentUser.uid)
                     .where('toUid', '==', toUid)
                     .where('status', '==', 'pending')
                     .get();
                 
-                if (!existingSnapshot.empty) {
-                    throw new Error('Friend request already pending');
+                if (!existingOutgoing.empty) {
+                    showNotification('Friend request already sent', 'info');
+                    return false;
+                }
+                
+                // Check if they already sent a request to me (mutual add)
+                const existingIncoming = await db.collection('friendRequests')
+                    .where('fromUid', '==', toUid)
+                    .where('toUid', '==', currentUser.uid)
+                    .where('status', '==', 'pending')
+                    .get();
+                
+                if (!existingIncoming.empty) {
+                    // Both users added each other - auto accept!
+                    const requestId = existingIncoming.docs[0].id;
+                    const requestData = existingIncoming.docs[0].data();
+                    await this.acceptFriendRequest(requestId, requestData);
+                    showNotification('Friend request auto-accepted! You\'re now friends! 🎉', 'success');
+                    return true;
                 }
                 
                 // Create friend request
@@ -9734,7 +9768,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     fromUsername: appState.user.username || 'User',
                     fromDisplayName: appState.user.name || currentUser.displayName || 'User',
                     toUid,
-                    toUsername: toUsername || 'User',
+                    toUsername: toUsername,
                     status: 'pending',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -9986,7 +10020,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                             <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.15); border-radius: 10px; margin-bottom: 10px;">
                                 <div>
                                     <strong style="color: white;">${req.toUsername || 'User'}</strong>
-                                    <p style="font-size: 12px; color: rgba(255,255,255,0.7);">⏳ Pending...</p>
+                                    <p style="font-size: 12px; color: rgba(255,255,255,0.7);">📬 Requested</p>
                                 </div>
                                 <button onclick="friendsManager.cancelFriendRequest('${req.id}')" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
                             </div>
