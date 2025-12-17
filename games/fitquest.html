@@ -4117,11 +4117,15 @@
                 navButton.classList.add('active');
             }
         }
+        
+        // Make globally accessible
+        window.showSection = showSection;
 
         // Start workout (placeholder)
         function startWorkout() {
             alert('🏋️ Starting workout mode! Complete each exercise and check them off as you go.');
         }
+        window.startWorkout = startWorkout;
 
         // AI Chat functionality - ChatGPT Style
         let uploadedImage = null;
@@ -9805,6 +9809,97 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 originalSaveData();
             }
         };
+        
+        // ==========================================
+        // EXPORT FUNCTIONS TO GLOBAL SCOPE FOR ONCLICK
+        // ==========================================
+        window.openAuthModal = openAuthModal;
+        window.toggleUserMenu = toggleUserMenu;
+        window.openMusicPlayer = openMusicPlayer;
+        window.completeWorkout = completeWorkout;
+        window.showChallengeTab = showChallengeTab;
+        window.parseChallenge = parseChallenge;
+        window.startVoiceInput = startVoiceInput;
+        window.addChallengeTask = addChallengeTask;
+        window.createParsedChallenge = createParsedChallenge;
+        window.loadTemplate = loadTemplate;
+        window.changeCalendarView = changeCalendarView;
+        window.navigateCalendar = navigateCalendar;
+        window.toggleNotifications = toggleNotifications;
+        window.saveNotificationSettings = saveNotificationSettings;
+        window.toggleTaskCompletion = toggleTaskCompletion;
+        window.viewChallengeDetails = viewChallengeDetails;
+        window.shareChallengeInvite = shareChallengeInvite;
+        window.selectDate = selectDate;
+        window.downloadQuickPhoto = downloadQuickPhoto;
+        window.clearQuickPhoto = clearQuickPhoto;
+        window.openProgressUpload = openProgressUpload;
+        window.viewSlideshow = viewSlideshow;
+        window.comparePhotos = comparePhotos;
+        window.closeProgressUpload = closeProgressUpload;
+        window.closeSlideshow = closeSlideshow;
+        window.previousSlide = previousSlide;
+        window.nextSlide = nextSlide;
+        window.toggleAutoplay = toggleAutoplay;
+        window.closeComparison = closeComparison;
+        window.copyFriendCode = copyFriendCode;
+        window.addFriend = addFriend;
+        window.showLeaderboard = showLeaderboard;
+        window.shareProgress = shareProgress;
+        window.viewFriendProgress = viewFriendProgress;
+        window.createChallenge = createChallenge;
+        window.sendMessage = sendMessage;
+        window.uploadImage = uploadImage;
+        window.handleImageUpload = handleImageUpload;
+        window.removeUploadedImage = removeUploadedImage;
+        window.handleChatKeypress = handleChatKeypress;
+        window.autoResize = autoResize;
+        window.requestCameraPermission = requestCameraPermission;
+        window.uploadBodyPhoto = uploadBodyPhoto;
+        window.handleBodyPhotoUpload = handleBodyPhotoUpload;
+        window.handleWebcamCapture = handleWebcamCapture;
+        window.captureWebcamPhoto = captureWebcamPhoto;
+        window.retakeWebcamPhoto = retakeWebcamPhoto;
+        window.confirmWebcamPhoto = confirmWebcamPhoto;
+        window.closeWebcamModal = closeWebcamModal;
+        window.saveBodyAnalysis = saveBodyAnalysis;
+        window.uploadProgressPhoto = uploadProgressPhoto;
+        window.submitProgressPhoto = submitProgressPhoto;
+        window.addExercise = addExercise;
+        window.toggleExercise = toggleExercise;
+        window.removeExercise = removeExercise;
+        window.changeNutritionPlan = changeNutritionPlan;
+        window.updateCalorieGoal = updateCalorieGoal;
+        window.openCreatePlanModal = openCreatePlanModal;
+        window.closeCreatePlanModal = closeCreatePlanModal;
+        window.addPlanRequirement = addPlanRequirement;
+        window.addPlanChecklist = addPlanChecklist;
+        window.removeRequirement = removeRequirement;
+        window.removeChecklistItem = removeChecklistItem;
+        window.createWeeklyPlan = createWeeklyPlan;
+        window.deletePlan = deletePlan;
+        window.editPlan = editPlan;
+        window.togglePlanRequirement = togglePlanRequirement;
+        window.togglePlanChecklist = togglePlanChecklist;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.signOutUser = signOutUser;
+        window.loadSettings = loadSettings;
+        window.saveSettings = saveSettings;
+        window.setWorkoutReminder = setWorkoutReminder;
+        window.adjustBackgroundOpacity = adjustBackgroundOpacity;
+        window.changeBackgroundImage = changeBackgroundImage;
+        window.uploadCustomBackground = uploadCustomBackground;
+        window.handleBackgroundUpload = handleBackgroundUpload;
+        window.resetToDefault = resetToDefault;
+        window.connectDevice = connectDevice;
+        window.connectSpotify = connectSpotify;
+        window.requestNotificationPermission = requestNotificationPermission;
+        window.exportData = exportData;
+        window.importData = importData;
+        window.handleDataImport = handleDataImport;
+        window.clearAllData = clearAllData;
+        window.joinChallengeByCode = joinChallengeByCode;
     </script>
 </body>
 </html>
