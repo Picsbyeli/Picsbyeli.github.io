@@ -2586,6 +2586,14 @@
                 </div>
             </div>
 
+            <!-- Pending Friend Requests -->
+            <div id="friendRequestsSection" style="display: none; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
+                <h3 style="margin-bottom: 15px;">📬 Pending Friend Requests</h3>
+                <div id="friendRequestsContainer">
+                    <!-- Friend requests will be populated here -->
+                </div>
+            </div>
+
             <!-- Add Friend Section -->
             <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
                 <h3 style="margin-bottom: 15px;">➕ Add a Friend</h3>
@@ -4358,6 +4366,18 @@
             // Load profile data when switching to profile tab
             if (sectionId === 'profile') {
                 loadProfileData();
+            }
+            
+            // Refresh friends data when switching to friends tab
+            if (sectionId === 'friends') {
+                if (currentUser) {
+                    // Render current friends list
+                    renderFriendsList();
+                    // FriendsManager already has real-time listeners, but we can force refresh UI
+                    if (typeof friendsManager !== 'undefined') {
+                        friendsManager.renderFriendRequests();
+                    }
+                }
             }
         }
         
@@ -6520,11 +6540,25 @@
             });
         }
 
-        // Add friend - redirects to Firebase version if logged in
+        // Add friend - uses friend request system if logged in
         function addFriend() {
             if (currentUser) {
-                // Use Firebase version for real users
-                addFriendByCode();
+                // Use FriendsManager for friend request system
+                if (typeof friendsManager !== 'undefined' && friendsManager.sendFriendRequest) {
+                    const input = document.getElementById('addFriendInput');
+                    const code = input ? input.value.trim().toUpperCase() : '';
+                    
+                    if (!code) {
+                        showNotification('Please enter a friend code', 'warning');
+                        return;
+                    }
+                    
+                    friendsManager.sendFriendRequest(code);
+                    input.value = '';
+                } else {
+                    // Fallback to direct add
+                    addFriendByCode();
+                }
             } else {
                 // Require login to add friends
                 showNotification('Please login to add friends with real people! 🔐', 'warning');
@@ -8895,6 +8929,12 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         sessionStorage.setItem('welcomeShown', 'true');
                     }
                     
+                    // Initialize FriendsManager for real-time friend updates
+                    if (typeof friendsManager !== 'undefined' && friendsManager.init) {
+                        await friendsManager.init(user);
+                        console.log('✅ FriendsManager initialized');
+                    }
+                    
                 } catch (error) {
                     console.error('Error in auth state handler:', error);
                     showNotification('Error loading user data', 'warning');
@@ -8903,6 +8943,12 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             } else {
                 currentUser = null;
                 console.log('No user logged in, using local storage');
+                
+                // Cleanup FriendsManager listeners
+                if (typeof friendsManager !== 'undefined' && friendsManager.cleanup) {
+                    friendsManager.cleanup();
+                    console.log('🧹 FriendsManager cleaned up');
+                }
                 
                 const loginBtn = document.getElementById('loginBtn');
                 const userBadge = document.getElementById('userBadge');
@@ -9519,6 +9565,441 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 return false;
             }
         }
+
+        // ==========================================
+        // FRIENDS MANAGER - Complete Friend System
+        // Based on FriendsManager pattern
+        // ==========================================
+
+        // Friends Manager State
+        const friendsManager = {
+            friends: [],
+            friendRequests: { incoming: [], outgoing: [] },
+            unsubscribers: [],
+            
+            // Initialize the friends manager
+            init: function(user) {
+                this.cleanup();
+                if (user) {
+                    this.listenToFriendRequests();
+                    this.listenToFriends();
+                }
+            },
+            
+            // Cleanup listeners
+            cleanup: function() {
+                this.unsubscribers.forEach(unsub => {
+                    if (typeof unsub === 'function') unsub();
+                });
+                this.unsubscribers = [];
+            },
+            
+            // Generate unique 6-character friend code
+            generateFriendCode: function() {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                let code = 'FIT-';
+                for (let i = 0; i < 6; i++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return code;
+            },
+            
+            // Setup friend code for user
+            setupFriendCode: async function(username, displayName) {
+                if (!currentUser) throw new Error('No user logged in');
+                
+                // Check if user already has a code
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                let friendCode = userDoc.data()?.friendCode;
+                
+                if (!friendCode) {
+                    // Generate unique code
+                    let isUnique = false;
+                    while (!isUnique) {
+                        friendCode = this.generateFriendCode();
+                        const codeDoc = await db.collection('publicProfiles').doc(friendCode).get();
+                        if (!codeDoc.exists) {
+                            isUnique = true;
+                        }
+                    }
+                    
+                    // Save to user document
+                    await db.collection('users').doc(currentUser.uid).set({
+                        friendCode,
+                        username: username || '',
+                        displayName: displayName || username || 'User',
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+                
+                // Create/update public profile
+                await db.collection('publicProfiles').doc(friendCode).set({
+                    uid: currentUser.uid,
+                    username: username || appState.user.username || '',
+                    displayName: displayName || appState.user.name || 'User',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                appState.user.friendCode = friendCode;
+                return friendCode;
+            },
+            
+            // Get current user's friend code
+            getMyFriendCode: async function() {
+                if (!currentUser) return null;
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                return userDoc.data()?.friendCode || null;
+            },
+            
+            // Find user by friend code
+            findUserByCode: async function(friendCode) {
+                try {
+                    const cleanCode = friendCode.trim().toUpperCase();
+                    const codeDoc = await db.collection('publicProfiles').doc(cleanCode).get();
+                    
+                    if (codeDoc.exists) {
+                        const data = codeDoc.data();
+                        return {
+                            uid: data.uid,
+                            username: data.username,
+                            displayName: data.displayName,
+                            friendCode: cleanCode
+                        };
+                    }
+                    
+                    // Fallback: search users collection
+                    const snapshot = await db.collection('users').where('friendCode', '==', cleanCode).get();
+                    if (!snapshot.empty) {
+                        let userData = null;
+                        snapshot.forEach(doc => {
+                            userData = { uid: doc.id, ...doc.data(), friendCode: cleanCode };
+                        });
+                        return userData;
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.error('Error finding user by code:', error);
+                    return null;
+                }
+            },
+            
+            // Find user by username
+            findUserByUsername: async function(username) {
+                try {
+                    const snapshot = await db.collection('publicProfiles')
+                        .where('username', '==', username.toLowerCase())
+                        .get();
+                    
+                    if (!snapshot.empty) {
+                        let userData = null;
+                        snapshot.forEach(doc => {
+                            userData = { friendCode: doc.id, ...doc.data() };
+                        });
+                        return userData;
+                    }
+                    return null;
+                } catch (error) {
+                    console.error('Error finding user by username:', error);
+                    return null;
+                }
+            },
+            
+            // Send friend request
+            sendFriendRequest: async function(toUid, toUsername) {
+                if (!currentUser) throw new Error('No user logged in');
+                if (toUid === currentUser.uid) throw new Error('Cannot send request to yourself');
+                
+                // Check if already friends
+                const friendDoc = await db.collection('users').doc(currentUser.uid)
+                    .collection('friends').doc(toUid).get();
+                if (friendDoc.exists) {
+                    throw new Error('Already friends with this user');
+                }
+                
+                // Check for existing pending request
+                const existingSnapshot = await db.collection('friendRequests')
+                    .where('fromUid', '==', currentUser.uid)
+                    .where('toUid', '==', toUid)
+                    .where('status', '==', 'pending')
+                    .get();
+                
+                if (!existingSnapshot.empty) {
+                    throw new Error('Friend request already pending');
+                }
+                
+                // Create friend request
+                await db.collection('friendRequests').add({
+                    fromUid: currentUser.uid,
+                    fromUsername: appState.user.username || 'User',
+                    fromDisplayName: appState.user.name || currentUser.displayName || 'User',
+                    toUid,
+                    toUsername: toUsername || 'User',
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showNotification('Friend request sent! 📤', 'success');
+                return true;
+            },
+            
+            // Accept friend request
+            acceptFriendRequest: async function(requestId, request) {
+                if (!currentUser) throw new Error('No user logged in');
+                
+                // Update request status
+                await db.collection('friendRequests').doc(requestId).update({
+                    status: 'accepted',
+                    acceptedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Get both users' data
+                const myDoc = await db.collection('users').doc(currentUser.uid).get();
+                const theirDoc = await db.collection('users').doc(request.fromUid).get();
+                
+                const myData = myDoc.data() || {};
+                const theirData = theirDoc.data() || {};
+                
+                // Add to both users' friend subcollections
+                await db.collection('users').doc(currentUser.uid).collection('friends').doc(request.fromUid).set({
+                    friendUid: request.fromUid,
+                    username: theirData.username || request.fromUsername,
+                    displayName: theirData.displayName || request.fromDisplayName,
+                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                await db.collection('users').doc(request.fromUid).collection('friends').doc(currentUser.uid).set({
+                    friendUid: currentUser.uid,
+                    username: myData.username || appState.user.username,
+                    displayName: myData.displayName || appState.user.name,
+                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Also update friends array in main docs
+                await db.collection('users').doc(currentUser.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(request.fromUid)
+                });
+                
+                await db.collection('users').doc(request.fromUid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                });
+                
+                showNotification('Friend request accepted! 🎉', 'success');
+                await loadFriendsFromFirebase(currentUser.uid);
+                renderFriendsList();
+                
+                return true;
+            },
+            
+            // Decline friend request
+            declineFriendRequest: async function(requestId) {
+                if (!currentUser) throw new Error('No user logged in');
+                await db.collection('friendRequests').doc(requestId).delete();
+                showNotification('Friend request declined', 'info');
+                return true;
+            },
+            
+            // Cancel sent friend request
+            cancelFriendRequest: async function(requestId) {
+                if (!currentUser) throw new Error('No user logged in');
+                await db.collection('friendRequests').doc(requestId).update({
+                    status: 'cancelled',
+                    cancelledAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showNotification('Friend request cancelled', 'info');
+                return true;
+            },
+            
+            // Remove friend
+            removeFriend: async function(friendUid) {
+                if (!currentUser) throw new Error('No user logged in');
+                
+                // Remove from both users' friend lists
+                await db.collection('users').doc(currentUser.uid).collection('friends').doc(friendUid).delete();
+                await db.collection('users').doc(friendUid).collection('friends').doc(currentUser.uid).delete();
+                
+                // Also remove from arrays
+                await db.collection('users').doc(currentUser.uid).update({
+                    friends: firebase.firestore.FieldValue.arrayRemove(friendUid)
+                });
+                await db.collection('users').doc(friendUid).update({
+                    friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                });
+                
+                showNotification('Friend removed', 'info');
+                await loadFriendsFromFirebase(currentUser.uid);
+                renderFriendsList();
+                
+                return true;
+            },
+            
+            // Get all friends with stats
+            getFriends: async function() {
+                if (!currentUser) return [];
+                
+                const friendsSnapshot = await db.collection('users').doc(currentUser.uid)
+                    .collection('friends').get();
+                
+                const friends = [];
+                for (const doc of friendsSnapshot.docs) {
+                    const friendData = doc.data();
+                    const progress = await this.getFriendProgress(friendData.friendUid);
+                    friends.push({
+                        uid: friendData.friendUid,
+                        username: friendData.username,
+                        displayName: friendData.displayName,
+                        addedAt: friendData.addedAt,
+                        ...progress
+                    });
+                }
+                
+                return friends;
+            },
+            
+            // Get friend's progress/stats
+            getFriendProgress: async function(friendUid) {
+                try {
+                    const userDoc = await db.collection('users').doc(friendUid).get();
+                    if (!userDoc.exists) return {};
+                    
+                    const data = userDoc.data();
+                    return {
+                        totalWorkouts: data.totalWorkouts || 0,
+                        level: data.level || 1,
+                        xp: data.xp || 0,
+                        streak: data.streak || 0,
+                        lastActive: data.lastActive || null,
+                        achievements: data.achievements || []
+                    };
+                } catch (error) {
+                    console.error('Error fetching friend progress:', error);
+                    return {};
+                }
+            },
+            
+            // Listen to friend requests (real-time)
+            listenToFriendRequests: function(callback) {
+                if (!currentUser) return;
+                
+                // Incoming requests
+                const incomingUnsub = db.collection('friendRequests')
+                    .where('toUid', '==', currentUser.uid)
+                    .where('status', '==', 'pending')
+                    .onSnapshot(snapshot => {
+                        this.friendRequests.incoming = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            type: 'incoming',
+                            ...doc.data()
+                        }));
+                        if (callback) callback(this.friendRequests);
+                        this.renderFriendRequests();
+                    });
+                
+                // Outgoing requests
+                const outgoingUnsub = db.collection('friendRequests')
+                    .where('fromUid', '==', currentUser.uid)
+                    .where('status', '==', 'pending')
+                    .onSnapshot(snapshot => {
+                        this.friendRequests.outgoing = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            type: 'outgoing',
+                            ...doc.data()
+                        }));
+                        if (callback) callback(this.friendRequests);
+                        this.renderFriendRequests();
+                    });
+                
+                this.unsubscribers.push(incomingUnsub, outgoingUnsub);
+            },
+            
+            // Listen to friends list (real-time)
+            listenToFriends: function(callback) {
+                if (!currentUser) return;
+                
+                const unsub = db.collection('users').doc(currentUser.uid).collection('friends')
+                    .onSnapshot(async snapshot => {
+                        const friends = [];
+                        for (const doc of snapshot.docs) {
+                            const friendData = doc.data();
+                            const progress = await this.getFriendProgress(friendData.friendUid);
+                            friends.push({
+                                uid: friendData.friendUid,
+                                username: friendData.username,
+                                displayName: friendData.displayName,
+                                addedAt: friendData.addedAt,
+                                ...progress
+                            });
+                        }
+                        
+                        this.friends = friends;
+                        appState.friends = friends;
+                        if (callback) callback(friends);
+                        renderFriendsList();
+                        renderLeaderboard();
+                    });
+                
+                this.unsubscribers.push(unsub);
+            },
+            
+            // Render friend requests UI
+            renderFriendRequests: function() {
+                const container = document.getElementById('friendRequestsContainer');
+                const section = document.getElementById('friendRequestsSection');
+                if (!container) return;
+                
+                const { incoming, outgoing } = this.friendRequests;
+                
+                // Show/hide the entire section based on whether there are requests
+                if (incoming.length === 0 && outgoing.length === 0) {
+                    if (section) section.style.display = 'none';
+                    container.innerHTML = '';
+                    return;
+                }
+                
+                // Show the section if there are requests
+                if (section) section.style.display = 'block';
+                
+                let html = '';
+                
+                if (incoming.length > 0) {
+                    html += '<h4 style="margin-bottom: 10px; color: white;">📥 Incoming Requests</h4>';
+                    incoming.forEach(req => {
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-bottom: 10px;">
+                                <div>
+                                    <strong style="color: white;">${req.fromDisplayName || req.fromUsername || 'User'}</strong>
+                                    <p style="font-size: 12px; color: rgba(255,255,255,0.8);">@${req.fromUsername || 'user'}</p>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="friendsManager.acceptFriendRequest('${req.id}', ${JSON.stringify(req).replace(/"/g, '&quot;')})" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✓ Accept</button>
+                                    <button onclick="friendsManager.declineFriendRequest('${req.id}')" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✗ Decline</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                if (outgoing.length > 0) {
+                    html += '<h4 style="margin: 15px 0 10px; color: white;">📤 Sent Requests</h4>';
+                    outgoing.forEach(req => {
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.15); border-radius: 10px; margin-bottom: 10px;">
+                                <div>
+                                    <strong style="color: white;">${req.toUsername || 'User'}</strong>
+                                    <p style="font-size: 12px; color: rgba(255,255,255,0.7);">⏳ Pending...</p>
+                                </div>
+                                <button onclick="friendsManager.cancelFriendRequest('${req.id}')" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+                            </div>
+                        `;
+                    });
+                }
+                
+                container.innerHTML = html;
+            }
+        };
+        
+        // Make friendsManager globally accessible
+        window.friendsManager = friendsManager;
 
         // ==========================================
         // ENHANCED FIREBASE FUNCTIONS
