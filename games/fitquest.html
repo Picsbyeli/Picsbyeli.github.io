@@ -8,12 +8,10 @@
     <meta name="theme-color" content="#667eea">
     <title>FitQuest - Level Up Your Fitness</title>
     
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <!-- Firebase SDKs - Modular v10 -->
+    <script type="module">
+        // This will be moved to the main script section
+    </script>
     
     <style>
         * {
@@ -1842,6 +1840,55 @@
         .user-badge:hover {
             background: rgba(255,255,255,0.3);
         }
+
+        /* Challenge Planner Styles */
+        .challenge-nav-btn {
+            padding: 12px 24px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .challenge-nav-btn:hover {
+            background: #f9fafb;
+            border-color: var(--primary);
+        }
+
+        .challenge-nav-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .challenge-tab-content {
+            display: none;
+        }
+
+        .template-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -1917,10 +1964,12 @@
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="showSection('workout')">Today's Workout</button>
+            <button class="nav-tab" onclick="showSection('challenges')">🎯 Challenges</button>
             <button class="nav-tab" onclick="showSection('ai-coach')">AI Coach</button>
             <button class="nav-tab" onclick="showSection('body-scan')">Body Analysis</button>
             <button class="nav-tab" onclick="showSection('progress')">Progress Photos</button>
-            <button class="nav-tab" onclick="showSection('social')">🏆 Leaderboard</button>
+            <button class="nav-tab" onclick="showSection('friends')">👥 Friends</button>
+            <button class="nav-tab" onclick="showSection('leaderboard')">🏆 Leaderboard</button>
             <button class="nav-tab" onclick="showSection('achievements')">Achievements</button>
             <button class="nav-tab" onclick="showSection('plan')">My Plan</button>
             <button class="nav-tab" onclick="showSection('settings')">⚙️ Settings</button>
@@ -1947,6 +1996,295 @@
             <button class="btn btn-success" onclick="completeWorkout()" style="width: 100%; margin-top: 20px;">
                 ✅ Complete Workout & Earn XP
             </button>
+        </div>
+
+        <!-- Challenges Section -->
+        <div id="challenges" class="content-section">
+            <h2 style="margin-bottom: 20px;">🎯 FitQuest Challenge Planner</h2>
+            
+            <!-- Challenge Navigation -->
+            <div style="display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; border-bottom: 2px solid var(--border); padding-bottom: 15px;">
+                <button class="challenge-nav-btn active" onclick="showChallengeTab('my-challenges')" id="myChallengesTab">
+                    📋 My Challenges
+                </button>
+                <button class="challenge-nav-btn" onclick="showChallengeTab('create')" id="createTab">
+                    ✨ Create
+                </button>
+                <button class="challenge-nav-btn" onclick="showChallengeTab('templates')" id="templatesTab">
+                    📚 Templates
+                </button>
+                <button class="challenge-nav-btn" onclick="showChallengeTab('calendar')" id="calendarTab">
+                    📅 Calendar
+                </button>
+                <button class="challenge-nav-btn" onclick="showChallengeTab('notifications')" id="notificationsTab">
+                    🔔 Notifications
+                </button>
+            </div>
+
+            <!-- My Challenges Tab -->
+            <div id="my-challenges-tab" class="challenge-tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h3>Active Challenges</h3>
+                    <button class="btn btn-primary" onclick="showChallengeTab('create')">
+                        ➕ New Challenge
+                    </button>
+                </div>
+                
+                <!-- Active Challenges Grid -->
+                <div id="activeChallengesGrid" style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+                    <!-- Challenges will be populated here -->
+                </div>
+
+                <!-- Completed Challenges -->
+                <div style="margin-top: 40px;">
+                    <h3 style="margin-bottom: 20px;">✅ Completed Challenges</h3>
+                    <div id="completedChallengesGrid" style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+                        <!-- Completed challenges will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyChallengesState" style="display: none; text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 15px;">
+                    <div style="font-size: 72px; margin-bottom: 20px;">🎯</div>
+                    <h3 style="color: var(--text-light);">No active challenges yet</h3>
+                    <p style="color: var(--text-light); margin: 15px 0;">Create your first challenge to start building habits!</p>
+                    <button class="btn btn-primary" onclick="showChallengeTab('create')" style="margin-top: 15px;">
+                        ✨ Create Your First Challenge
+                    </button>
+                </div>
+            </div>
+
+            <!-- Create Challenge Tab -->
+            <div id="create-tab" class="challenge-tab-content" style="display: none;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
+                    <h3 style="margin-bottom: 10px;">✨ Create Your Challenge</h3>
+                    <p style="opacity: 0.9; font-size: 14px;">Describe your challenge naturally - our AI will parse it!</p>
+                </div>
+
+                <!-- Natural Language Input -->
+                <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border); margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600;">
+                        💬 Describe Your Challenge
+                    </label>
+                    <textarea 
+                        id="challengeDescription" 
+                        placeholder="Examples:&#10;- 30 day yoga challenge, practice every morning&#10;- Run 5K three times a week for 8 weeks&#10;- 75 Hard: workout twice daily, read 10 pages, drink a gallon of water&#10;- Meditation challenge: 10 minutes daily for 21 days"
+                        style="width: 100%; min-height: 120px; padding: 15px; border: 2px solid var(--border); border-radius: 8px; font-size: 16px; resize: vertical;"
+                    ></textarea>
+                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="parseChallenge()">
+                            🔍 Parse Challenge
+                        </button>
+                        <button class="btn" onclick="startVoiceInput()" id="voiceInputBtn">
+                            🎤 Voice Input
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Parsed Challenge Preview -->
+                <div id="parsedChallengePreview" style="display: none; background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--success); margin-bottom: 25px;">
+                    <h3 style="margin-bottom: 20px; color: var(--success);">✅ Challenge Parsed Successfully</h3>
+                    
+                    <div style="display: grid; gap: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Challenge Name</label>
+                            <input type="text" id="challengeName" class="form-input" placeholder="e.g., 30 Day Yoga Journey">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Duration (days)</label>
+                                <input type="number" id="challengeDuration" class="form-input" placeholder="30">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Start Date</label>
+                                <input type="date" id="challengeStartDate" class="form-input">
+                            </div>
+                        </div>
+
+                        <!-- Tasks List -->
+                        <div>
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">Daily Tasks</label>
+                            <div id="challengeTasksList" style="display: grid; gap: 10px;">
+                                <!-- Tasks will be added here -->
+                            </div>
+                            <button class="btn" onclick="addChallengeTask()" style="margin-top: 10px; width: 100%;">
+                                ➕ Add Task
+                            </button>
+                        </div>
+
+                        <!-- Challenge Settings -->
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="allowRestDays">
+                                <span>Allow rest days (1 per week)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
+                                <input type="checkbox" id="sendReminders" checked>
+                                <span>Send daily reminders</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
+                                <input type="checkbox" id="trackProgress">
+                                <span>Track progress with photos</span>
+                            </label>
+                        </div>
+
+                        <!-- Create Button -->
+                        <button class="btn btn-success" onclick="createParsedChallenge()" style="width: 100%; margin-top: 10px;">
+                            🚀 Create Challenge
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Templates Tab -->
+            <div id="templates-tab" class="challenge-tab-content" style="display: none;">
+                <h3 style="margin-bottom: 20px;">📚 Challenge Templates</h3>
+                <p style="color: var(--text-light); margin-bottom: 25px;">Start with proven challenge templates used by millions!</p>
+
+                <div style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+                    <!-- 75 Hard Template -->
+                    <div class="template-card" style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: transform 0.2s;" onclick="loadTemplate('75hard')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <h4 style="margin: 0;">💪 75 Hard</h4>
+                            <span style="background: #ef4444; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">EXTREME</span>
+                        </div>
+                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">75 days of intense discipline: 2 workouts daily, gallon of water, 10 pages reading, diet, progress photo</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">75 days</span>
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">No rest days</span>
+                        </div>
+                    </div>
+
+                    <!-- 30 Day Shred Template -->
+                    <div class="template-card" style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: transform 0.2s;" onclick="loadTemplate('30dayshred')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <h4 style="margin: 0;">🔥 30 Day Shred</h4>
+                            <span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">HARD</span>
+                        </div>
+                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">Transform your body in 30 days with daily 20-minute high-intensity workouts</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">30 days</span>
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">Daily workout</span>
+                        </div>
+                    </div>
+
+                    <!-- Couch to 5K Template -->
+                    <div class="template-card" style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: transform 0.2s;" onclick="loadTemplate('couch25k')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <h4 style="margin: 0;">🏃 Couch to 5K</h4>
+                            <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">BEGINNER</span>
+                        </div>
+                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">Build running endurance from zero to 5K in 9 weeks with progressive training</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">63 days</span>
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">3x per week</span>
+                        </div>
+                    </div>
+
+                    <!-- 21 Day Habit Builder Template -->
+                    <div class="template-card" style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: transform 0.2s;" onclick="loadTemplate('21dayhabit')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <h4 style="margin: 0;">✨ 21 Day Habit</h4>
+                            <span style="background: #6366f1; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">MEDIUM</span>
+                        </div>
+                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">Form a lasting habit with consistent daily practice for 21 days</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">21 days</span>
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">Customizable</span>
+                        </div>
+                    </div>
+
+                    <!-- Morning Routine Template -->
+                    <div class="template-card" style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: transform 0.2s;" onclick="loadTemplate('morningroutine')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <h4 style="margin: 0;">☀️ Morning Routine</h4>
+                            <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">EASY</span>
+                        </div>
+                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">Build a powerful morning routine: meditation, exercise, journaling, healthy breakfast</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">30 days</span>
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">Every morning</span>
+                        </div>
+                    </div>
+
+                    <!-- Hydration Challenge Template -->
+                    <div class="template-card" style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: transform 0.2s;" onclick="loadTemplate('hydration')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <h4 style="margin: 0;">💧 Hydration</h4>
+                            <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">EASY</span>
+                        </div>
+                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">Drink 8 glasses of water daily for 14 days and build a hydration habit</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">14 days</span>
+                            <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px;">Simple tracking</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div id="calendar-tab" class="challenge-tab-content" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
+                    <h3>📅 Challenge Calendar</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" onclick="changeCalendarView('month')" id="monthViewBtn">Month</button>
+                        <button class="btn" onclick="changeCalendarView('week')" id="weekViewBtn">Week</button>
+                        <button class="btn" onclick="changeCalendarView('day')" id="dayViewBtn">Day</button>
+                    </div>
+                </div>
+
+                <!-- Calendar Navigation -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <button class="btn" onclick="navigateCalendar(-1)">← Previous</button>
+                    <h3 id="calendarTitle">January 2024</h3>
+                    <button class="btn" onclick="navigateCalendar(1)">Next →</button>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div id="calendarGrid" style="background: white; padding: 20px; border-radius: 15px; border: 2px solid var(--border);">
+                    <!-- Calendar will be rendered here -->
+                </div>
+
+                <!-- Today's Tasks -->
+                <div style="margin-top: 30px; background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
+                    <h3 style="margin-bottom: 20px;">Today's Challenge Tasks</h3>
+                    <div id="todayTasksList">
+                        <!-- Today's tasks will be listed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Tab -->
+            <div id="notifications-tab" class="challenge-tab-content" style="display: none;">
+                <h3 style="margin-bottom: 20px;">🔔 Notifications & Reminders</h3>
+                
+                <!-- Notification Settings -->
+                <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border); margin-bottom: 25px;">
+                    <h4 style="margin-bottom: 15px;">⚙️ Notification Settings</h4>
+                    
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px;">
+                        <input type="checkbox" id="enableNotifications" onchange="toggleNotifications()">
+                        <span>Enable push notifications</span>
+                    </label>
+
+                    <div id="notificationTimePicker" style="display: none;">
+                        <label style="display: block; margin-bottom: 10px; font-weight: 600;">Daily Reminder Time</label>
+                        <input type="time" id="reminderTime" class="form-input" value="09:00">
+                        <button class="btn btn-primary" onclick="saveNotificationSettings()" style="margin-top: 10px;">
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Notifications -->
+                <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
+                    <h4 style="margin-bottom: 15px;">Recent Notifications</h4>
+                    <div id="notificationsList">
+                        <!-- Notifications will be listed here -->
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- AI Coach Section -->
@@ -2234,13 +2572,13 @@
             </div>
         </div>
 
-        <!-- Social/Leaderboard Section -->
-        <div id="social" class="content-section">
-            <h2 style="margin-bottom: 20px;">🏆 Leaderboard & Friends</h2>
+        <!-- Friends Section -->
+        <div id="friends" class="content-section">
+            <h2 style="margin-bottom: 20px;">👥 Friends</h2>
             
             <!-- Friend Code Section -->
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-                <h3 style="margin-bottom: 15px;">👥 Your Friend Code</h3>
+                <h3 style="margin-bottom: 15px;">🔑 Your Friend Code</h3>
                 <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <div style="font-size: 24px; font-weight: bold; letter-spacing: 2px;" id="friendCode">LOADING...</div>
@@ -2268,6 +2606,40 @@
                 </div>
             </div>
 
+            <!-- Friends List -->
+            <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
+                <h3 style="margin-bottom: 20px;">👥 My Friends</h3>
+                <div id="friendsList">
+                    <!-- Friends will be displayed here with their friend codes -->
+                </div>
+                
+                <!-- Empty State -->
+                <div id="emptyFriendsState" style="display: none; text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 64px; margin-bottom: 15px;">👥</div>
+                    <h4 style="color: var(--text-light); margin-bottom: 10px;">No friends yet</h4>
+                    <p style="color: var(--text-light); font-size: 14px;">Add friends using their friend code above!</p>
+                </div>
+            </div>
+
+            <!-- My Progress Summary (Shareable) -->
+            <div style="background: white; padding: 25px; border-radius: 15px; margin-top: 25px; border: 2px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h3>📊 My Progress Summary</h3>
+                    <button class="btn btn-success" onclick="shareProgress()">
+                        📤 Share Progress
+                    </button>
+                </div>
+                
+                <div id="progressSummary" style="display: grid; gap: 15px;">
+                    <!-- Progress summary cards -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Section -->
+        <div id="leaderboard" class="content-section">
+            <h2 style="margin-bottom: 20px;">🏆 Leaderboard</h2>
+            
             <!-- Tabs for different leaderboards -->
             <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
                 <button class="btn" onclick="showLeaderboard('friends')" id="friendsLeaderboardBtn" style="background: var(--primary); color: white;">
@@ -2286,29 +2658,7 @@
                 <!-- Leaderboard will be populated here -->
             </div>
 
-            <!-- My Progress Summary (Shareable) -->
-            <div style="background: white; padding: 25px; border-radius: 15px; margin-top: 25px; border: 2px solid var(--border);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                    <h3>📊 My Progress Summary</h3>
-                    <button class="btn btn-success" onclick="shareProgress()">
-                        📤 Share Progress
-                    </button>
-                </div>
-                
-                <div id="progressSummary" style="display: grid; gap: 15px;">
-                    <!-- Progress summary cards -->
-                </div>
-            </div>
-
-            <!-- Friends List -->
-            <div style="background: white; padding: 25px; border-radius: 15px; margin-top: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">👥 My Friends</h3>
-                <div id="friendsList">
-                    <!-- Friends will be displayed here -->
-                </div>
-            </div>
-
-            <!-- Challenge Section -->
+            <!-- Weekly Challenges -->
             <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 25px; border-radius: 15px; margin-top: 25px;">
                 <h3 style="margin-bottom: 15px;">⚔️ Weekly Challenges</h3>
                 <p style="margin-bottom: 20px; opacity: 0.9;">Compete with friends in weekly fitness challenges!</p>
@@ -2335,39 +2685,23 @@
 
         <!-- My Plan Section -->
         <div id="plan" class="content-section">
-            <h2 style="margin-bottom: 20px;">📋 Your Personalized Plan</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>📋 My Weekly Plans</h2>
+                <button class="btn btn-primary" onclick="openCreatePlanModal()">
+                    ➕ Create New Plan
+                </button>
+            </div>
             
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-                <h3>Goal: Mesomorph Transformation</h3>
-                <p style="margin-top: 10px;">Target: 210-230 lbs by Summer</p>
+            <div id="weeklyPlansContainer"></div>
+            
+            <div id="emptyPlansState" style="display: none; text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 15px;">
+                <div style="font-size: 72px; margin-bottom: 20px;">📅</div>
+                <h3 style="color: var(--text-light);">No weekly plans yet</h3>
+                <p style="color: var(--text-light); margin: 15px 0;">Create your first weekly plan with custom requirements and checklists!</p>
+                <button class="btn btn-primary" onclick="openCreatePlanModal()" style="margin-top: 15px;">
+                    ➕ Create Your First Plan
+                </button>
             </div>
-
-            <div style="display: grid; gap: 20px;">
-                <div style="background: #f9fafb; padding: 25px; border-radius: 15px;">
-                    <h3 style="margin-bottom: 15px;">📅 Weekly Schedule</h3>
-                    <div id="weeklySchedule"></div>
-                </div>
-
-                <div style="background: #f9fafb; padding: 25px; border-radius: 15px;">
-                    <h3 style="margin-bottom: 15px;">🍽️ Nutrition Guidelines</h3>
-                    <div id="nutritionPlan"></div>
-                </div>
-
-                <div style="background: #f9fafb; padding: 25px; border-radius: 15px;">
-                    <h3 style="margin-bottom: 15px;">🎯 Current Focus</h3>
-                    <p style="color: var(--text-light);">Based on your body type (Endomorph-Mesomorph), we're focusing on:</p>
-                    <ul style="margin-top: 15px; padding-left: 25px; color: var(--text-light);">
-                        <li>Strength training 4x per week</li>
-                        <li>Cardio 3-4x per week</li>
-                        <li>High protein intake (170-210g/day)</li>
-                        <li>Progressive overload for muscle building</li>
-                    </ul>
-                </div>
-            </div>
-
-            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="customizePlan()">
-                ⚙️ Customize My Plan
-            </button>
         </div>
 
         <!-- Settings Section -->
@@ -3120,10 +3454,16 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
         // ==========================================
-        // FIREBASE INITIALIZATION
+        // FIREBASE MODULAR SDK v10 - INITIALIZATION
         // ==========================================
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, onSnapshot, orderBy, limit, serverTimestamp, arrayUnion, arrayRemove, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+
         const firebaseConfig = {
             apiKey: "AIzaSyAHag-EmC2aBgC_trA2YJVssiSZmvJbxFw",
             authDomain: "evolfitness-42b94.firebaseapp.com",
@@ -3136,19 +3476,51 @@
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-        const storage = firebase.storage();
-        const analytics = firebase.analytics();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        const analytics = getAnalytics(app);
 
         // Current user
         let currentUser = null;
+        
+        // Make Firebase functions globally available
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.firebaseStorage = storage;
+        window.firebaseApp = app;
+        
+        // Export Firebase functions for use in global scope
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.signOut = signOut;
+        window.updateProfile = updateProfile;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+        window.getDocs = getDocs;
+        window.updateDoc = updateDoc;
+        window.deleteDoc = deleteDoc;
+        window.collection = collection;
+        window.doc = doc;
+        window.query = query;
+        window.where = where;
+        window.onSnapshot = onSnapshot;
+        window.orderBy = orderBy;
+        window.limit = limit;
+        window.serverTimestamp = serverTimestamp;
+        window.arrayUnion = arrayUnion;
+        window.arrayRemove = arrayRemove;
+        window.increment = increment;
+        window.storageRef = storageRef;
+        window.uploadBytes = uploadBytes;
+        window.getDownloadURL = getDownloadURL;
 
         // ==========================================
         // INDEXEDDB SETUP - 50MB Storage (5x more than localStorage)
         // ==========================================
-        let db;
+        let indexedDB_db;
         const DB_NAME = 'FitQuestDB';
         const DB_VERSION = 1;
         const STORE_NAME = 'appData';
@@ -3163,15 +3535,15 @@
                 };
                 
                 request.onsuccess = (event) => {
-                    db = event.target.result;
+                    indexedDB_db = event.target.result;
                     console.log('IndexedDB initialized - 50MB storage available');
-                    resolve(db);
+                    resolve(indexedDB_db);
                 };
                 
                 request.onupgradeneeded = (event) => {
-                    db = event.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME);
+                    indexedDB_db = event.target.result;
+                    if (!indexedDB_db.objectStoreNames.contains(STORE_NAME)) {
+                        indexedDB_db.createObjectStore(STORE_NAME);
                     }
                 };
             });
@@ -3467,6 +3839,7 @@
             friends: [],
             workouts: [],
             progressPhotos: [],
+            weeklyPlans: [],
             todayExercises: [
                 { name: 'Push-ups', sets: '4 sets', reps: '10-20 reps', xp: 10, completed: false, category: 'Push' },
                 { name: 'Pike Push-ups', sets: '3 sets', reps: '8-12 reps', xp: 10, completed: false, category: 'Push' },
@@ -3499,9 +3872,9 @@
 
         // Load saved data
         function loadData() {
-            if (db) {
+            if (indexedDB_db) {
                 // Use IndexedDB (50MB)
-                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const transaction = indexedDB_db.transaction([STORE_NAME], 'readonly');
                 const store = transaction.objectStore(STORE_NAME);
                 const request = store.get('appState');
                 
@@ -3532,10 +3905,10 @@
 
         // Save data
         function saveData() {
-            if (db) {
+            if (indexedDB_db) {
                 // Use IndexedDB (50MB storage)
                 try {
-                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const transaction = indexedDB_db.transaction([STORE_NAME], 'readwrite');
                     const store = transaction.objectStore(STORE_NAME);
                     store.put(appState, 'appState');
                     
@@ -3574,6 +3947,12 @@
 
             const xpPercent = (appState.user.xp / appState.user.maxXP) * 100;
             document.getElementById('xpFill').style.width = xpPercent + '%';
+            
+            // Update friend code display
+            const friendCodeEl = document.getElementById('friendCode');
+            if (friendCodeEl && appState.user.friendCode) {
+                friendCodeEl.textContent = appState.user.friendCode;
+            }
 
             renderExercises();
             renderAchievements();
@@ -3584,6 +3963,7 @@
             renderFriendsList();
             renderLeaderboard();
             renderChallenges();
+            renderWeeklyPlans();
         }
 
         // Render exercises
@@ -4894,6 +5274,313 @@
             document.getElementById('customModal').classList.remove('active');
         }
 
+        // Weekly Plan Management Functions
+        function renderWeeklyPlans() {
+            const container = document.getElementById('weeklyPlansContainer');
+            const emptyState = document.getElementById('emptyPlansState');
+            
+            if (!appState.weeklyPlans || appState.weeklyPlans.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'block';
+            emptyState.style.display = 'none';
+            
+            container.innerHTML = appState.weeklyPlans.map((plan, index) => {
+                const startDate = new Date(plan.startDate);
+                const currentWeek = Math.floor((new Date() - startDate) / (7 * 24 * 60 * 60 * 1000));
+                const totalChecked = plan.checklist.filter(item => item.completed).length;
+                const totalItems = plan.checklist.length;
+                const completionRate = totalItems > 0 ? Math.round((totalChecked / totalItems) * 100) : 0;
+                
+                return `
+                    <div style="background: white; border: 2px solid var(--border); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0;">${plan.title}</h3>
+                                <p style="color: var(--text-light); margin: 8px 0 0 0;">${plan.description || 'No description'}</p>
+                                <div style="margin-top: 10px; display: flex; gap: 15px; flex-wrap: wrap;">
+                                    <span style="background: #e3f2fd; color: #1976d2; padding: 6px 12px; border-radius: 20px; font-size: 14px;">
+                                        📅 Week ${currentWeek + 1}
+                                    </span>
+                                    <span style="background: #f3e5f5; color: #7b1fa2; padding: 6px 12px; border-radius: 20px; font-size: 14px;">
+                                        🔥 ${plan.streak} day streak
+                                    </span>
+                                    <span style="background: #e8f5e9; color: #388e3c; padding: 6px 12px; border-radius: 20px; font-size: 14px;">
+                                        ✅ ${completionRate}% complete
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn" onclick="editPlan(${index})" style="padding: 8px 12px;">✏️ Edit</button>
+                                <button class="btn" onclick="deletePlan(${index})" style="padding: 8px 12px; background: #fee; color: #c33;">🗑️</button>
+                            </div>
+                        </div>
+                        
+                        ${plan.requirements && plan.requirements.length > 0 ? `
+                            <div style="background: #f9fafb; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                                <h4 style="margin: 0 0 10px 0;">📋 Requirements</h4>
+                                <ul style="margin: 0; padding-left: 20px; color: var(--text-light);">
+                                    ${plan.requirements.map(req => `<li>${req}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        <div style="background: #f9fafb; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 15px 0;">📅 Weekly Calendar</h4>
+                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
+                                ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, dayIndex) => {
+                                    const dayDate = new Date(startDate);
+                                    dayDate.setDate(startDate.getDate() + (currentWeek * 7) + dayIndex);
+                                    const isToday = dayDate.toDateString() === new Date().toDateString();
+                                    const isPast = dayDate < new Date() && !isToday;
+                                    const dayData = plan.calendar && plan.calendar[currentWeek] && plan.calendar[currentWeek][dayIndex];
+                                    const isCompleted = dayData && dayData.completed;
+                                    
+                                    return `
+                                        <div onclick="toggleDayComplete(${index}, ${currentWeek}, ${dayIndex})" 
+                                             style="background: ${isCompleted ? '#4caf50' : isToday ? '#fff9c4' : isPast ? '#f5f5f5' : 'white'}; 
+                                                    border: 2px solid ${isCompleted ? '#4caf50' : isToday ? '#fbc02d' : '#e0e0e0'}; 
+                                                    border-radius: 8px; 
+                                                    padding: 12px 8px; 
+                                                    text-align: center; 
+                                                    cursor: pointer;
+                                                    transition: all 0.3s;">
+                                            <div style="font-size: 12px; font-weight: bold; color: ${isCompleted ? 'white' : 'var(--text-light)'};">${day}</div>
+                                            <div style="font-size: 20px; margin-top: 5px;">${isCompleted ? '✅' : isToday ? '📍' : isPast ? '⏸️' : '⭕'}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 style="margin: 0 0 15px 0;">✅ Checklist (${totalChecked}/${totalItems})</h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                ${plan.checklist.map((item, itemIndex) => `
+                                    <label style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${item.completed ? '#e8f5e9' : 'white'}; border: 2px solid ${item.completed ? '#4caf50' : 'var(--border)'}; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                                        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleChecklistItem(${index}, ${itemIndex})" style="width: 20px; height: 20px; cursor: pointer;">
+                                        <span style="flex: 1; ${item.completed ? 'text-decoration: line-through; color: var(--text-light);' : ''}">${item.text}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openCreatePlanModal() {
+            if (!currentUser) {
+                showNotification('Please login to create weekly plans', 'warning');
+                openAuthModal();
+                return;
+            }
+            
+            const modal = document.getElementById('customModal');
+            const content = document.getElementById('modalContent');
+            
+            content.innerHTML = `
+                <h2 style="margin-bottom: 20px;">📋 Create New Weekly Plan</h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Plan Title *</label>
+                    <input type="text" id="planTitle" placeholder="e.g., Summer Body Challenge" 
+                           style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Description</label>
+                    <textarea id="planDescription" placeholder="Brief description of your plan..." 
+                              style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; min-height: 80px; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Requirements (one per line)</label>
+                    <textarea id="planRequirements" placeholder="e.g.&#10;Workout 5 days/week&#10;Drink 8 glasses of water&#10;Sleep 7+ hours" 
+                              style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; min-height: 100px; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Checklist Items (one per line) *</label>
+                    <textarea id="planChecklist" placeholder="e.g.&#10;Complete morning workout&#10;Track calories&#10;Hit protein goal&#10;Evening walk" 
+                              style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; min-height: 120px; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Start Date</label>
+                    <input type="date" id="planStartDate" value="${new Date().toISOString().split('T')[0]}" 
+                           style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;">
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button class="btn btn-primary" onclick="savePlan()" style="flex: 1;">💾 Create Plan</button>
+                    <button class="btn" onclick="closeCreatePlanModal()" style="flex: 1;">Cancel</button>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function savePlan(editIndex = null) {
+            const title = document.getElementById('planTitle').value.trim();
+            const description = document.getElementById('planDescription').value.trim();
+            const requirementsText = document.getElementById('planRequirements').value.trim();
+            const checklistText = document.getElementById('planChecklist').value.trim();
+            const startDate = document.getElementById('planStartDate').value;
+            
+            if (!title) {
+                showNotification('Please enter a plan title', 'warning');
+                return;
+            }
+            
+            if (!checklistText) {
+                showNotification('Please add at least one checklist item', 'warning');
+                return;
+            }
+            
+            const requirements = requirementsText ? requirementsText.split('\n').filter(r => r.trim()) : [];
+            const checklist = checklistText.split('\n').filter(c => c.trim()).map(text => ({ text, completed: false }));
+            
+            const plan = {
+                title,
+                description,
+                requirements,
+                checklist,
+                startDate: startDate || new Date().toISOString().split('T')[0],
+                streak: 0,
+                calendar: {} // Week number -> day index -> {completed: boolean}
+            };
+            
+            if (editIndex !== null) {
+                // Preserve existing calendar and streak data when editing
+                plan.calendar = appState.weeklyPlans[editIndex].calendar || {};
+                plan.streak = appState.weeklyPlans[editIndex].streak || 0;
+                appState.weeklyPlans[editIndex] = plan;
+                showNotification('Plan updated! 🎉', 'success');
+            } else {
+                appState.weeklyPlans.push(plan);
+                showNotification('Plan created! 🎉', 'success');
+            }
+            
+            saveData();
+            renderWeeklyPlans();
+            closeCreatePlanModal();
+        }
+
+        function editPlan(index) {
+            const plan = appState.weeklyPlans[index];
+            const modal = document.getElementById('customModal');
+            const content = document.getElementById('modalContent');
+            
+            content.innerHTML = `
+                <h2 style="margin-bottom: 20px;">✏️ Edit Weekly Plan</h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Plan Title *</label>
+                    <input type="text" id="planTitle" value="${plan.title}" 
+                           style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Description</label>
+                    <textarea id="planDescription" style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; min-height: 80px; resize: vertical;">${plan.description || ''}</textarea>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Requirements (one per line)</label>
+                    <textarea id="planRequirements" style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; min-height: 100px; resize: vertical;">${plan.requirements ? plan.requirements.join('\n') : ''}</textarea>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Checklist Items (one per line) *</label>
+                    <textarea id="planChecklist" style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; min-height: 120px; resize: vertical;">${plan.checklist.map(item => item.text).join('\n')}</textarea>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Start Date</label>
+                    <input type="date" id="planStartDate" value="${plan.startDate}" 
+                           style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;">
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button class="btn btn-primary" onclick="savePlan(${index})" style="flex: 1;">💾 Save Changes</button>
+                    <button class="btn" onclick="closeCreatePlanModal()" style="flex: 1;">Cancel</button>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function deletePlan(index) {
+            if (confirm('Are you sure you want to delete this plan? This cannot be undone.')) {
+                appState.weeklyPlans.splice(index, 1);
+                saveData();
+                renderWeeklyPlans();
+                showNotification('Plan deleted', 'info');
+            }
+        }
+
+        function toggleChecklistItem(planIndex, itemIndex) {
+            appState.weeklyPlans[planIndex].checklist[itemIndex].completed = !appState.weeklyPlans[planIndex].checklist[itemIndex].completed;
+            saveData();
+            renderWeeklyPlans();
+        }
+
+        function toggleDayComplete(planIndex, weekIndex, dayIndex) {
+            const plan = appState.weeklyPlans[planIndex];
+            
+            if (!plan.calendar[weekIndex]) {
+                plan.calendar[weekIndex] = {};
+            }
+            
+            if (!plan.calendar[weekIndex][dayIndex]) {
+                plan.calendar[weekIndex][dayIndex] = { completed: false };
+            }
+            
+            plan.calendar[weekIndex][dayIndex].completed = !plan.calendar[weekIndex][dayIndex].completed;
+            
+            // Update streak
+            updatePlanStreak(planIndex);
+            
+            saveData();
+            renderWeeklyPlans();
+            showNotification(plan.calendar[weekIndex][dayIndex].completed ? '✅ Day completed!' : 'Day unmarked', 'success');
+        }
+
+        function updatePlanStreak(planIndex) {
+            const plan = appState.weeklyPlans[planIndex];
+            const startDate = new Date(plan.startDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let streak = 0;
+            let checkDate = new Date(today);
+            
+            // Count backwards from today to find consecutive completed days
+            while (checkDate >= startDate) {
+                const daysSinceStart = Math.floor((checkDate - startDate) / (24 * 60 * 60 * 1000));
+                const weekIndex = Math.floor(daysSinceStart / 7);
+                const dayIndex = daysSinceStart % 7;
+                
+                if (plan.calendar[weekIndex] && plan.calendar[weekIndex][dayIndex] && plan.calendar[weekIndex][dayIndex].completed) {
+                    streak++;
+                } else {
+                    break;
+                }
+                
+                checkDate.setDate(checkDate.getDate() - 1);
+            }
+            
+            plan.streak = streak;
+        }
+
+        function closeCreatePlanModal() {
+            document.getElementById('customModal').classList.remove('active');
+        }
+
         // Initialize app
         window.onload = async function() {
             // Initialize IndexedDB first (50MB storage)
@@ -4910,6 +5597,7 @@
             renderProgressSummary();
             renderFriendsList();
             renderChallenges();
+            renderWeeklyPlans(); // Render weekly plans
             loadSettings();
             updateStorageIndicator();
             checkForAutoSlideshow(); // Check if we should show slideshow
@@ -5197,18 +5885,20 @@
             saveData();
         }
 
-        // Generate unique friend code
+        // Generate unique friend code (deprecated - now done in Firestore)
         function generateFriendCode() {
-            if (!appState.user.friendCode) {
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                let code = 'FIT-';
-                for (let i = 0; i < 6; i++) {
-                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+            // Friend codes are now generated in Firestore when user signs up
+            // Just display the existing code
+            const friendCodeEl = document.getElementById('friendCode');
+            if (friendCodeEl) {
+                if (currentUser && appState.user.friendCode) {
+                    friendCodeEl.textContent = appState.user.friendCode;
+                } else if (!currentUser) {
+                    friendCodeEl.textContent = 'Login to get your code';
+                } else {
+                    friendCodeEl.textContent = 'Loading...';
                 }
-                appState.user.friendCode = code;
-                saveData();
             }
-            document.getElementById('friendCode').textContent = appState.user.friendCode;
         }
 
         // Copy friend code
@@ -5243,19 +5933,16 @@
         // Render friends list
         function renderFriendsList() {
             const container = document.getElementById('friendsList');
+            const emptyState = document.getElementById('emptyFriendsState');
             
             if (appState.friends.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">👥</div>
-                        <h3>No friends yet</h3>
-                        <p>${currentUser ? 'Add friends using their friend code to compare progress and compete!' : 'Login to add real friends and compete together!'}</p>
-                        ${!currentUser ? '<button class="btn btn-primary" onclick="openAuthModal()" style="margin-top: 15px;">🔐 Login to Add Friends</button>' : ''}
-                    </div>
-                `;
+                if (container) container.innerHTML = '';
+                if (emptyState) emptyState.style.display = 'block';
                 return;
             }
 
+            if (emptyState) emptyState.style.display = 'none';
+            
             container.innerHTML = appState.friends.map(friend => {
                 const weightLoss = friend.startWeight && friend.currentWeight ? 
                     friend.startWeight - friend.currentWeight : 0;
@@ -5265,21 +5952,25 @@
                 const level = friend.level || 1;
                 const streak = friend.streak || 0;
                 const totalWorkouts = friend.totalWorkouts || 0;
+                const friendCode = friend.friendCode || 'N/A';
                 
                 return `
-                    <div class="friend-card">
+                    <div class="friend-card" style="margin-bottom: 15px;">
                         <div style="width: 100%;">
                             <div class="friend-info">
                                 <div class="user-avatar">${displayName.charAt(0).toUpperCase()}</div>
                                 <div style="flex: 1;">
                                     <div class="user-name">${displayName}</div>
-                                    <div class="user-stats">
+                                    <div style="color: var(--primary); font-size: 12px; font-weight: 600; margin-top: 3px; letter-spacing: 1px;">
+                                        🔑 ${friendCode}
+                                    </div>
+                                    <div class="user-stats" style="margin-top: 8px;">
                                         <span>⭐ Level ${level}</span>
                                         <span>🔥 ${streak} day streak</span>
                                         <span>💪 ${totalWorkouts} workouts</span>
                                     </div>
                                 </div>
-                                <button class="btn" onclick="viewFriendProgress('${friend.friendCode}')" style="font-size: 14px; padding: 8px 16px;">
+                                <button class="btn" onclick="viewFriendProgress('${friend.uid}')" style="font-size: 14px; padding: 8px 16px;">
                                     View Progress
                                 </button>
                             </div>
@@ -5295,8 +5986,8 @@
         }
 
         // View friend's detailed progress
-        function viewFriendProgress(friendCode) {
-            const friend = appState.friends.find(f => f.friendCode === friendCode);
+        function viewFriendProgress(friendUid) {
+            const friend = appState.friends.find(f => f.uid === friendUid || f.friendCode === friendUid);
             if (!friend) return;
 
             const modal = document.getElementById('customModal');
@@ -5676,23 +6367,37 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 weightloss: 'Who can lose the most weight?'
             };
             
+            // Generate unique invite code
+            const inviteCode = 'CH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            
             const challenge = {
-                id: Date.now(),
                 name: challengeNames[type],
                 description: challengeDescriptions[type],
                 type: type,
+                inviteCode: inviteCode,
                 startDate: new Date().toISOString(),
                 endDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString(),
                 currentValue: 0,
                 targetValue: type === 'streak' ? duration : type === 'workouts' ? duration * 2 : 500,
-                participants: [appState.user.friendCode, ...appState.friends.map(f => f.friendCode)]
+                participants: currentUser ? [currentUser.uid] : [],
+                createdBy: currentUser ? currentUser.uid : null
             };
             
             appState.challenges.push(challenge);
-            saveData();
-            renderChallenges();
+            
+            // Save to Firestore if logged in
+            if (currentUser) {
+                saveChallengesToFirebase(currentUser.uid).then(() => {
+                    renderChallenges();
+                    showNotification(`Challenge created! Share invite code: ${inviteCode} 🏆`, 'success');
+                });
+            } else {
+                saveData();
+                renderChallenges();
+                showNotification('Challenge created! 🏆 Login to share with friends!', 'success');
+            }
+            
             closeModal();
-            showNotification('Challenge created! 🏆 Invite your friends!', 'success');
         }
 
         function isMobileDevice() {
@@ -7555,7 +8260,8 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // ============================================
 
         // Auth state observer
-        auth.onAuthStateChanged(async (user) => {
+        const auth = window.firebaseAuth;
+        window.onAuthStateChanged(auth, async (user) => {
             console.log('Auth state changed. User:', user ? user.email : 'null');
             
             if (user) {
@@ -7571,10 +8277,13 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     if (userBadge) userBadge.style.display = 'flex';
                     if (userEmailBadge) userEmailBadge.textContent = user.email.split('@')[0];
                     
-                    console.log('Loading user data from Firebase...');
+                    console.log('Loading user data from Firestore...');
                     
-                    // Load user data from Firebase
+                    // Load user data from Firestore
                     await loadUserDataFromFirebase(user.uid);
+                    
+                    // Load challenges from Firestore
+                    await loadChallengesFromFirebase();
                     
                     const displayName = user.displayName || user.email.split('@')[0];
                     console.log('User data loaded successfully for:', displayName);
@@ -7639,16 +8348,19 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             try {
                 showNotification('Opening Google Sign-In...', 'info');
                 
-                const provider = new firebase.auth.GoogleAuthProvider();
+                const { GoogleAuthProvider, signInWithPopup, signInWithRedirect } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                const provider = new GoogleAuthProvider();
                 provider.addScope('profile');
                 provider.addScope('email');
                 
+                const auth = window.firebaseAuth;
+                
                 // Try popup first, fallback to redirect
                 try {
-                    const result = await auth.signInWithPopup(provider);
+                    const result = await signInWithPopup(auth, provider);
                     console.log('Google sign-in successful:', result.user.email);
                     
-                    // Create user profile in database if new
+                    // Create user profile in Firestore if new
                     await createOrUpdateUserProfile(result.user);
                     
                     closeAuthModal();
@@ -7658,7 +8370,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     // If popup is blocked, use redirect
                     if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/cancelled-popup-request') {
                         console.log('Popup blocked, using redirect...');
-                        await auth.signInWithRedirect(provider);
+                        await signInWithRedirect(auth, provider);
                     } else {
                         throw popupError;
                     }
@@ -7681,18 +8393,27 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         }
 
         // Handle redirect result (for when popup is blocked)
-        auth.getRedirectResult().then(async (result) => {
-            if (result.user) {
-                console.log('Redirect sign-in successful:', result.user.email);
-                await createOrUpdateUserProfile(result.user);
-                showNotification('Successfully signed in with Google! 🎉', 'success');
+        async function checkRedirectResult() {
+            const { getRedirectResult } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const auth = window.firebaseAuth;
+            
+            try {
+                const result = await getRedirectResult(auth);
+                if (result && result.user) {
+                    console.log('Redirect sign-in successful:', result.user.email);
+                    await createOrUpdateUserProfile(result.user);
+                    showNotification('Successfully signed in with Google! 🎉', 'success');
+                }
+            } catch (error) {
+                console.error('Redirect error:', error);
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    showNotification('Sign-in error: ' + error.message, 'warning');
+                }
             }
-        }).catch((error) => {
-            console.error('Redirect error:', error);
-            if (error.code !== 'auth/popup-closed-by-user') {
-                showNotification('Sign-in error: ' + error.message, 'warning');
-            }
-        });
+        }
+        
+        // Check redirect result on page load
+        checkRedirectResult();
 
         // Handle email/password login
         async function handleLogin(event) {
@@ -7700,9 +8421,10 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            const auth = window.firebaseAuth;
             
             try {
-                await auth.signInWithEmailAndPassword(email, password);
+                await window.signInWithEmailAndPassword(auth, email, password);
                 closeAuthModal();
                 showNotification('Login successful! 🎉', 'success');
             } catch (error) {
@@ -7718,16 +8440,17 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             const name = document.getElementById('signupName').value;
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
+            const auth = window.firebaseAuth;
             
             try {
-                const result = await auth.createUserWithEmailAndPassword(email, password);
+                const result = await window.createUserWithEmailAndPassword(auth, email, password);
                 
                 // Update profile with name
-                await result.user.updateProfile({
+                await window.updateProfile(result.user, {
                     displayName: name
                 });
                 
-                // Create user profile in database
+                // Create user profile in Firestore
                 await createOrUpdateUserProfile(result.user, name);
                 
                 closeAuthModal();
@@ -7738,16 +8461,17 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             }
         }
 
-        // Create or update user profile in Firebase
+        // Create or update user profile in Firestore
         async function createOrUpdateUserProfile(user, displayName = null) {
             try {
                 console.log('Creating/updating profile for:', user.email);
-                const userRef = database.ref('users/' + user.uid);
+                const db = window.firebaseDb;
+                const userDocRef = window.doc(db, 'users', user.uid);
                 
                 // Check if user profile exists
-                const snapshot = await userRef.once('value');
+                const userDoc = await window.getDoc(userDocRef);
                 
-                if (!snapshot.exists()) {
+                if (!userDoc.exists()) {
                     // New user - create profile with friend code
                     const friendCode = 'FIT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
                     
@@ -7755,27 +8479,31 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         email: user.email,
                         displayName: displayName || user.displayName || user.email.split('@')[0],
                         friendCode: friendCode,
-                        createdAt: firebase.database.ServerValue.TIMESTAMP,
-                        lastActive: firebase.database.ServerValue.TIMESTAMP,
+                        createdAt: window.serverTimestamp(),
+                        lastActive: window.serverTimestamp(),
                         level: 1,
                         xp: 0,
                         currentXP: 0,
                         maxXP: 100,
                         totalWorkouts: 0,
                         streak: 0,
-                        achievements: []
+                        currentWeight: null,
+                        goalWeight: null,
+                        startWeight: null,
+                        achievements: [],
+                        friends: []
                     };
                     
                     console.log('Creating new user profile with friend code:', friendCode);
-                    await userRef.set(newUserData);
+                    await window.setDoc(userDocRef, newUserData);
                     console.log('User profile created successfully');
                     
                 } else {
                     // Existing user - update last active
                     console.log('Updating existing user profile');
-                    await userRef.update({
-                        lastActive: firebase.database.ServerValue.TIMESTAMP,
-                        displayName: displayName || user.displayName || snapshot.val().displayName
+                    await window.updateDoc(userDocRef, {
+                        lastActive: window.serverTimestamp(),
+                        displayName: displayName || user.displayName || userDoc.data().displayName
                     });
                     console.log('User profile updated');
                 }
@@ -7789,28 +8517,49 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             }
         }
 
-        // Load user data from Firebase
+        // Load user data from Firestore
         async function loadUserDataFromFirebase(uid) {
             try {
-                const userRef = database.ref('users/' + uid);
-                const snapshot = await userRef.once('value');
-                const userData = snapshot.val();
+                const db = window.firebaseDb;
+                const userDocRef = window.doc(db, 'users', uid);
+                const userDoc = await window.getDoc(userDocRef);
                 
-                if (userData) {
-                    // Merge Firebase data with app state
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    
+                    // Merge Firestore data with app state
                     appState.user = {
                         ...appState.user,
-                        ...userData,
-                        friendCode: userData.friendCode || appState.user.friendCode
+                        name: userData.displayName || userData.email?.split('@')[0] || appState.user.name,
+                        email: userData.email,
+                        displayName: userData.displayName,
+                        friendCode: userData.friendCode,
+                        level: userData.level || 1,
+                        xp: userData.xp || 0,
+                        currentXP: userData.currentXP || 0,
+                        maxXP: userData.maxXP || 100,
+                        totalWorkouts: userData.totalWorkouts || 0,
+                        streak: userData.streak || 0,
+                        currentWeight: userData.currentWeight,
+                        goalWeight: userData.goalWeight,
+                        startWeight: userData.startWeight,
+                        achievements: userData.achievements || [],
+                        lastWorkoutDate: userData.lastWorkoutDate
                     };
+                    
+                    console.log('✅ Loaded user data. Friend Code:', appState.user.friendCode);
                     
                     // Load additional data
                     await loadProgressPhotosFromFirebase(uid);
                     await loadFriendsFromFirebase(uid);
+                    await loadChallengesFromFirebase(uid);
                     
                     updateUI();
                     renderProgressTimeline();
                     renderLeaderboard();
+                    renderChallenges();
+                } else {
+                    console.error('User document does not exist in Firestore');
                 }
             } catch (error) {
                 console.error('Error loading user data:', error);
@@ -7819,14 +8568,26 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             }
         }
 
-        // Save app state to Firebase
+        // Save app state to Firestore
         async function saveDataToFirebase() {
             if (!currentUser) return;
             
             try {
-                const userRef = database.ref('users/' + currentUser.uid);
+                const db = window.firebaseDb;
+                const userDocRef = window.doc(db, 'users', currentUser.uid);
                 
-                await userRef.update({
+                // Ensure friend code exists before saving
+                if (!appState.user.friendCode) {
+                    console.warn('⚠️ No friend code in appState, fetching from Firestore...');
+                    const userDoc = await window.getDoc(userDocRef);
+                    if (userDoc.exists() && userDoc.data().friendCode) {
+                        appState.user.friendCode = userDoc.data().friendCode;
+                    }
+                }
+                
+                console.log('💾 Saving user data to Firestore. Friend Code:', appState.user.friendCode);
+                
+                await window.updateDoc(userDocRef, {
                     level: appState.user.level,
                     xp: appState.user.xp,
                     currentXP: appState.user.currentXP,
@@ -7837,70 +8598,117 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     goalWeight: appState.user.goalWeight,
                     startWeight: appState.user.startWeight,
                     achievements: appState.achievements,
-                    lastWorkoutDate: appState.lastWorkoutDate,
-                    lastActive: firebase.database.ServerValue.TIMESTAMP
+                    lastWorkoutDate: appState.user.lastWorkoutDate,
+                    lastActive: window.serverTimestamp()
                 });
                 
                 // Save progress photos
                 await saveProgressPhotosToFirebase(currentUser.uid);
                 
+                // Save challenges
+                await saveChallengesToFirebase(currentUser.uid);
+                
+                console.log('✅ User data saved successfully');
+                
             } catch (error) {
-                console.error('Error saving to Firebase:', error);
+                console.error('Error saving to Firestore:', error);
             }
         }
 
-        // Load progress photos from Firebase
+        // Load progress photos from Firestore
         async function loadProgressPhotosFromFirebase(uid) {
             try {
-                const photosRef = database.ref('progressPhotos/' + uid);
-                const snapshot = await photosRef.once('value');
-                const photos = snapshot.val();
+                const db = window.firebaseDb;
+                const photosCollection = window.collection(db, 'users', uid, 'progressPhotos');
+                const photosSnapshot = await window.getDocs(photosCollection);
                 
-                if (photos) {
-                    appState.progressPhotos = Object.values(photos);
-                }
+                appState.progressPhotos = [];
+                photosSnapshot.forEach((doc) => {
+                    appState.progressPhotos.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by date
+                appState.progressPhotos.sort((a, b) => {
+                    const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+                    const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+                    return dateB - dateA;
+                });
             } catch (error) {
                 console.error('Error loading progress photos:', error);
             }
         }
 
-        // Save progress photos to Firebase
+        // Save progress photos to Firestore
         async function saveProgressPhotosToFirebase(uid) {
             try {
-                const photosRef = database.ref('progressPhotos/' + uid);
+                const db = window.firebaseDb;
+                const photosCollection = window.collection(db, 'users', uid, 'progressPhotos');
                 
-                // Save each photo
-                const photosObject = {};
-                appState.progressPhotos.forEach((photo, index) => {
-                    photosObject[index] = photo;
-                });
-                
-                await photosRef.set(photosObject);
+                // Save each photo as a document
+                for (const photo of appState.progressPhotos) {
+                    if (!photo.id) {
+                        // New photo - create document
+                        const photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                        const photoDoc = window.doc(photosCollection, photoId);
+                        await window.setDoc(photoDoc, {
+                            ...photo,
+                            id: photoId,
+                            uploadedAt: window.serverTimestamp()
+                        });
+                    } else {
+                        // Update existing photo
+                        const photoDoc = window.doc(photosCollection, photo.id);
+                        await window.setDoc(photoDoc, photo, { merge: true });
+                    }
+                }
             } catch (error) {
                 console.error('Error saving progress photos:', error);
             }
         }
 
-        // Load friends from Firebase
+        // Load friends from Firestore with real-time updates
         async function loadFriendsFromFirebase(uid) {
             try {
-                const friendsRef = database.ref('friends/' + uid);
-                const snapshot = await friendsRef.once('value');
-                const friendIds = snapshot.val();
+                const db = window.firebaseDb;
+                const userDocRef = window.doc(db, 'users', uid);
+                const userDoc = await window.getDoc(userDocRef);
                 
-                if (friendIds) {
+                if (!userDoc.exists()) return;
+                
+                const userData = userDoc.data();
+                const friendIds = userData.friends || [];
+                
+                if (friendIds.length === 0) {
                     appState.friends = [];
+                    renderFriendsList();
+                    renderLeaderboard();
+                    return;
+                }
+                
+                // Load each friend's data with real-time listener
+                appState.friends = [];
+                
+                for (const friendId of friendIds) {
+                    const friendDocRef = window.doc(db, 'users', friendId);
                     
-                    // Load each friend's data
-                    for (const friendId in friendIds) {
-                        const friendRef = database.ref('users/' + friendId);
-                        const friendSnapshot = await friendRef.once('value');
-                        const friendData = friendSnapshot.val();
-                        
-                        if (friendData) {
-                            appState.friends.push(friendData);
+                    // Set up real-time listener for each friend
+                    window.onSnapshot(friendDocRef, (friendDoc) => {
+                        if (friendDoc.exists()) {
+                            const friendData = { uid: friendId, ...friendDoc.data() };
+                            
+                            // Update or add friend in the array
+                            const existingIndex = appState.friends.findIndex(f => f.uid === friendId);
+                            if (existingIndex >= 0) {
+                                appState.friends[existingIndex] = friendData;
+                            } else {
+                                appState.friends.push(friendData);
+                            }
+                            
+                            // Update UI
+                            renderFriendsList();
+                            renderLeaderboard();
                         }
-                    }
+                    });
                 }
             } catch (error) {
                 console.error('Error loading friends:', error);
@@ -7909,8 +8717,8 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
 
         // Add friend by friend code (real users only)
         async function addFriendByCode() {
-            const input = document.getElementById('friendCodeInput');
-            const code = input.value.trim().toUpperCase();
+            const input = document.getElementById('addFriendInput') || document.getElementById('friendCodeInput');
+            const code = input ? input.value.trim().toUpperCase() : '';
             
             if (!code) {
                 showNotification('Please enter a friend code', 'warning');
@@ -7924,17 +8732,30 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             }
 
             try {
-                // Search for user with this friend code
-                const usersRef = database.ref('users');
-                const snapshot = await usersRef.orderByChild('friendCode').equalTo(code).once('value');
+                console.log('🔍 Searching for friend code:', code);
+                const db = window.firebaseDb;
                 
-                if (!snapshot.exists()) {
-                    showNotification('Friend code not found. Please check and try again.', 'warning');
+                // Search for user with this friend code
+                const usersCollection = window.collection(db, 'users');
+                const q = window.query(usersCollection, window.where('friendCode', '==', code));
+                const snapshot = await window.getDocs(q);
+                
+                console.log('📊 Search results:', snapshot.size, 'users found');
+                
+                if (snapshot.empty) {
+                    showNotification('❌ Friend code not found. Please check and try again.', 'warning');
+                    console.error('No user found with friend code:', code);
                     return;
                 }
                 
-                const friendData = Object.values(snapshot.val())[0];
-                const friendUid = Object.keys(snapshot.val())[0];
+                let friendData = null;
+                let friendUid = null;
+                
+                snapshot.forEach((doc) => {
+                    friendData = doc.data();
+                    friendUid = doc.id;
+                    console.log('✅ Found user:', friendData.displayName, 'UID:', friendUid);
+                });
                 
                 if (friendUid === currentUser.uid) {
                     showNotification('You cannot add yourself as a friend!', 'warning');
@@ -7942,19 +8763,49 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 }
                 
                 // Check if already friends
-                const myFriendsRef = database.ref('friends/' + currentUser.uid + '/' + friendUid);
-                const existingFriend = await myFriendsRef.once('value');
+                const myUserDocRef = window.doc(db, 'users', currentUser.uid);
+                const myUserDoc = await window.getDoc(myUserDocRef);
+                const myFriends = myUserDoc.data().friends || [];
                 
-                if (existingFriend.exists()) {
+                if (myFriends.includes(friendUid)) {
                     showNotification('You are already friends with this user!', 'warning');
                     return;
                 }
                 
-                // Add friend (bidirectional)
-                await myFriendsRef.set(true);
-                await database.ref('friends/' + friendUid + '/' + currentUser.uid).set(true);
+                console.log('➕ Adding friend...');
                 
-                appState.friends.push(friendData);
+                // Add friend (bidirectional)
+                await window.updateDoc(myUserDocRef, {
+                    friends: window.arrayUnion(friendUid)
+                });
+                
+                const friendDocRef = window.doc(db, 'users', friendUid);
+                await window.updateDoc(friendDocRef, {
+                    friends: window.arrayUnion(currentUser.uid)
+                });
+                
+                // Add to local state
+                appState.friends.push({ uid: friendUid, ...friendData });
+                input.value = '';
+                
+                console.log('✅ Friend added successfully!');
+                showNotification(`Added ${friendData.displayName} as a friend! 🎉`, 'success');
+                renderFriendsList();
+                renderLeaderboard();
+                
+            } catch (error) {
+                console.error('❌ Error adding friend:', error);
+                showNotification('Failed to add friend: ' + error.message, 'warning');
+            }
+        }
+                
+                const friendDocRef = window.doc(db, 'users', friendUid);
+                await window.updateDoc(friendDocRef, {
+                    friends: window.arrayUnion(currentUser.uid)
+                });
+                
+                // Add to local state
+                appState.friends.push({ uid: friendUid, ...friendData });
                 input.value = '';
                 
                 showNotification(`Added ${friendData.displayName} as a friend! 🎉`, 'success');
@@ -7970,12 +8821,966 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Toggle user menu
         function toggleUserMenu() {
             if (confirm('Do you want to sign out?')) {
-                auth.signOut().then(() => {
+                const auth = window.firebaseAuth;
+                window.signOut(auth).then(() => {
                     showNotification('Signed out successfully', 'info');
+                    location.reload();
+                }).catch((error) => {
+                    console.error('Sign out error:', error);
+                    showNotification('Error signing out', 'warning');
+                });
+            }
+        }
                     location.reload();
                 });
             }
         }
+
+        // ==========================================
+        // CHALLENGES FIRESTORE FUNCTIONS
+        // ==========================================
+        
+        // Load challenges from Firestore
+        async function loadChallengesFromFirebase(uid) {
+            try {
+                const db = window.firebaseDb;
+                const challengesCollection = window.collection(db, 'challenges');
+                
+                // Load challenges where user is a participant
+                const q = window.query(
+                    challengesCollection,
+                    window.where('participants', 'array-contains', uid)
+                );
+                
+                const challengesSnapshot = await window.getDocs(q);
+                appState.challenges = [];
+                
+                challengesSnapshot.forEach((doc) => {
+                    appState.challenges.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by start date (newest first)
+                appState.challenges.sort((a, b) => {
+                    const dateA = a.startDate?.toDate ? a.startDate.toDate() : new Date(a.startDate);
+                    const dateB = b.startDate?.toDate ? b.startDate.toDate() : new Date(b.startDate);
+                    return dateB - dateA;
+                });
+                
+                console.log('Loaded', appState.challenges.length, 'challenges from Firestore');
+            } catch (error) {
+                console.error('Error loading challenges:', error);
+            }
+        }
+        
+        // Save challenges to Firestore
+        async function saveChallengesToFirebase(uid) {
+            try {
+                const db = window.firebaseDb;
+                
+                // Save each challenge
+                for (const challenge of appState.challenges) {
+                    if (!challenge.id) {
+                        // New challenge - create document
+                        const challengeId = 'challenge_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                        const challengeDoc = window.doc(window.collection(db, 'challenges'), challengeId);
+                        
+                        await window.setDoc(challengeDoc, {
+                            ...challenge,
+                            id: challengeId,
+                            createdBy: uid,
+                            createdAt: window.serverTimestamp(),
+                            lastUpdated: window.serverTimestamp()
+                        });
+                        
+                        challenge.id = challengeId; // Update local challenge with ID
+                    } else {
+                        // Update existing challenge
+                        const challengeDoc = window.doc(db, 'challenges', challenge.id);
+                        await window.setDoc(challengeDoc, {
+                            ...challenge,
+                            lastUpdated: window.serverTimestamp()
+                        }, { merge: true });
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving challenges:', error);
+            }
+        }
+        
+        // Join a challenge by invite code
+        async function joinChallengeByCode(challengeCode) {
+            if (!currentUser) {
+                showNotification('Please login to join challenges', 'warning');
+                openAuthModal();
+                return false;
+            }
+            
+            try {
+                const db = window.firebaseDb;
+                const challengesCollection = window.collection(db, 'challenges');
+                const q = window.query(challengesCollection, window.where('inviteCode', '==', challengeCode));
+                const snapshot = await window.getDocs(q);
+                
+                if (snapshot.empty) {
+                    showNotification('Challenge not found. Please check the code.', 'warning');
+                    return false;
+                }
+                
+                let challengeDoc = null;
+                snapshot.forEach((doc) => {
+                    challengeDoc = doc;
+                });
+                
+                const challengeData = challengeDoc.data();
+                const challengeId = challengeDoc.id;
+                
+                // Check if already a participant
+                if (challengeData.participants.includes(currentUser.uid)) {
+                    showNotification('You are already in this challenge!', 'warning');
+                    return false;
+                }
+                
+                // Add user to challenge
+                await window.updateDoc(window.doc(db, 'challenges', challengeId), {
+                    participants: window.arrayUnion(currentUser.uid)
+                });
+                
+                // Add challenge to local state
+                appState.challenges.push({ id: challengeId, ...challengeData });
+                renderChallenges();
+                
+                showNotification(`Joined "${challengeData.name}" challenge! 🎉`, 'success');
+                return true;
+                
+            } catch (error) {
+                console.error('Error joining challenge:', error);
+                showNotification('Failed to join challenge. Please try again.', 'warning');
+                return false;
+            }
+        }
+
+        // ==========================================
+        // CHALLENGE PLANNER FUNCTIONS
+        // ==========================================
+        
+        // Challenge Planner State
+        let challengePlannerState = {
+            challenges: [],
+            activeChallengeId: null,
+            currentView: 'month',
+            currentDate: new Date(),
+            templates: {
+                '75hard': {
+                    name: '75 Hard Challenge',
+                    duration: 75,
+                    tasks: [
+                        { name: 'Workout #1 (45 min)', type: 'workout', required: true },
+                        { name: 'Workout #2 (45 min)', type: 'workout', required: true },
+                        { name: 'Drink 1 gallon water', type: 'hydration', required: true },
+                        { name: 'Read 10 pages', type: 'reading', required: true },
+                        { name: 'Follow diet', type: 'nutrition', required: true },
+                        { name: 'Progress photo', type: 'photo', required: true }
+                    ],
+                    allowRestDays: false,
+                    difficulty: 'extreme'
+                },
+                '30dayshred': {
+                    name: '30 Day Shred',
+                    duration: 30,
+                    tasks: [
+                        { name: '20-minute HIIT workout', type: 'workout', required: true },
+                        { name: 'Log meals', type: 'nutrition', required: true }
+                    ],
+                    allowRestDays: true,
+                    difficulty: 'hard'
+                },
+                'couch25k': {
+                    name: 'Couch to 5K',
+                    duration: 63,
+                    tasks: [
+                        { name: 'Running workout', type: 'workout', required: true, frequency: 3 }
+                    ],
+                    allowRestDays: true,
+                    difficulty: 'beginner'
+                },
+                '21dayhabit': {
+                    name: '21 Day Habit Builder',
+                    duration: 21,
+                    tasks: [
+                        { name: 'Practice habit', type: 'custom', required: true }
+                    ],
+                    allowRestDays: false,
+                    difficulty: 'medium'
+                },
+                'morningroutine': {
+                    name: 'Morning Routine Challenge',
+                    duration: 30,
+                    tasks: [
+                        { name: '10 min meditation', type: 'mindfulness', required: true },
+                        { name: '20 min exercise', type: 'workout', required: true },
+                        { name: 'Healthy breakfast', type: 'nutrition', required: true },
+                        { name: '5 min journaling', type: 'journaling', required: true }
+                    ],
+                    allowRestDays: false,
+                    difficulty: 'easy'
+                },
+                'hydration': {
+                    name: 'Hydration Challenge',
+                    duration: 14,
+                    tasks: [
+                        { name: 'Drink 8 glasses water', type: 'hydration', required: true }
+                    ],
+                    allowRestDays: false,
+                    difficulty: 'easy'
+                }
+            }
+        };
+
+        // Show Challenge Tab
+        function showChallengeTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.challenge-nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabName === 'my-challenges' ? 'myChallengesTab' :
+                                   tabName === 'create' ? 'createTab' :
+                                   tabName === 'templates' ? 'templatesTab' :
+                                   tabName === 'calendar' ? 'calendarTab' : 'notificationsTab').classList.add('active');
+            
+            // Show/hide content
+            document.querySelectorAll('.challenge-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            
+            // Load content if needed
+            if (tabName === 'my-challenges') {
+                renderMyChallenges();
+            } else if (tabName === 'calendar') {
+                renderCalendar();
+            } else if (tabName === 'notifications') {
+                renderNotifications();
+            }
+        }
+
+        // Parse Challenge from Natural Language
+        function parseChallenge() {
+            const description = document.getElementById('challengeDescription').value.trim();
+            if (!description) {
+                showNotification('Please describe your challenge', 'warning');
+                return;
+            }
+
+            // Simple NLP parsing
+            const parsed = {
+                name: '',
+                duration: 30,
+                tasks: [],
+                startDate: new Date().toISOString().split('T')[0]
+            };
+
+            // Extract duration
+            const durationMatch = description.match(/(\d+)\s*(day|week|month)/i);
+            if (durationMatch) {
+                const num = parseInt(durationMatch[1]);
+                const unit = durationMatch[2].toLowerCase();
+                parsed.duration = unit === 'week' ? num * 7 : unit === 'month' ? num * 30 : num;
+            }
+
+            // Extract challenge name from first sentence or key phrases
+            const firstSentence = description.split(/[.!?]/)[0];
+            parsed.name = firstSentence.length > 50 ? firstSentence.substring(0, 47) + '...' : firstSentence;
+
+            // Extract tasks
+            const taskKeywords = {
+                'workout|exercise|train|gym': 'workout',
+                'water|hydration|drink': 'hydration',
+                'read|book|pages': 'reading',
+                'meditate|meditation|mindfulness': 'mindfulness',
+                'yoga': 'yoga',
+                'run|running|jog': 'running',
+                'diet|nutrition|eat|meal': 'nutrition',
+                'photo|picture|progress pic': 'photo',
+                'journal|write': 'journaling'
+            };
+
+            for (const [keywords, type] of Object.entries(taskKeywords)) {
+                const regex = new RegExp(keywords, 'i');
+                if (regex.test(description)) {
+                    const match = description.match(new RegExp(`(${keywords})[^.!?]*`, 'i'));
+                    if (match) {
+                        parsed.tasks.push({
+                            name: match[0].trim(),
+                            type: type,
+                            required: true
+                        });
+                    }
+                }
+            }
+
+            if (parsed.tasks.length === 0) {
+                parsed.tasks.push({ name: 'Daily task', type: 'custom', required: true });
+            }
+
+            // Display preview
+            displayParsedChallenge(parsed);
+        }
+
+        // Display Parsed Challenge
+        function displayParsedChallenge(parsed) {
+            document.getElementById('challengeName').value = parsed.name;
+            document.getElementById('challengeDuration').value = parsed.duration;
+            document.getElementById('challengeStartDate').value = parsed.startDate;
+
+            const tasksList = document.getElementById('challengeTasksList');
+            tasksList.innerHTML = parsed.tasks.map((task, index) => `
+                <div style="display: flex; gap: 10px; align-items: center; padding: 10px; background: #f9fafb; border-radius: 8px;">
+                    <input type="text" value="${task.name}" class="form-input" style="flex: 1;" id="task-${index}">
+                    <button class="btn" onclick="removeTask(${index})" style="background: #ef4444; color: white; padding: 8px 12px;">×</button>
+                </div>
+            `).join('');
+
+            document.getElementById('parsedChallengePreview').style.display = 'block';
+            showNotification('Challenge parsed successfully! Review and edit below.', 'success');
+        }
+
+        // Add Challenge Task
+        function addChallengeTask() {
+            const tasksList = document.getElementById('challengeTasksList');
+            const taskCount = tasksList.children.length;
+            const newTask = document.createElement('div');
+            newTask.style.cssText = 'display: flex; gap: 10px; align-items: center; padding: 10px; background: #f9fafb; border-radius: 8px;';
+            newTask.innerHTML = `
+                <input type="text" placeholder="New task" class="form-input" style="flex: 1;" id="task-${taskCount}">
+                <button class="btn" onclick="this.parentElement.remove()" style="background: #ef4444; color: white; padding: 8px 12px;">×</button>
+            `;
+            tasksList.appendChild(newTask);
+        }
+
+        // Voice Input for Challenge
+        function startVoiceInput() {
+            if (!('webkitSpeechRecognition' in window)) {
+                showNotification('Voice input not supported in this browser', 'warning');
+                return;
+            }
+
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            const btn = document.getElementById('voiceInputBtn');
+            btn.textContent = '🎤 Listening...';
+            btn.disabled = true;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('challengeDescription').value = transcript;
+                parseChallenge();
+            };
+
+            recognition.onerror = () => {
+                showNotification('Voice input failed. Please try again.', 'warning');
+            };
+
+            recognition.onend = () => {
+                btn.textContent = '🎤 Voice Input';
+                btn.disabled = false;
+            };
+
+            recognition.start();
+        }
+
+        // Create Parsed Challenge
+        async function createParsedChallenge() {
+            const name = document.getElementById('challengeName').value.trim();
+            const duration = parseInt(document.getElementById('challengeDuration').value);
+            const startDate = document.getElementById('challengeStartDate').value;
+            const allowRestDays = document.getElementById('allowRestDays').checked;
+            const sendReminders = document.getElementById('sendReminders').checked;
+            const trackProgress = document.getElementById('trackProgress').checked;
+
+            if (!name || !duration || !startDate) {
+                showNotification('Please fill in all required fields', 'warning');
+                return;
+            }
+
+            // Collect tasks
+            const tasks = [];
+            document.querySelectorAll('#challengeTasksList input').forEach(input => {
+                if (input.value.trim()) {
+                    tasks.push({
+                        name: input.value.trim(),
+                        type: 'custom',
+                        required: true
+                    });
+                }
+            });
+
+            if (tasks.length === 0) {
+                showNotification('Please add at least one task', 'warning');
+                return;
+            }
+
+            const challenge = {
+                id: 'ch_' + Date.now(),
+                name,
+                duration,
+                startDate,
+                tasks,
+                allowRestDays,
+                sendReminders,
+                trackProgress,
+                createdAt: new Date().toISOString(),
+                createdBy: currentUser?.uid || 'guest',
+                participants: [currentUser?.uid || 'guest'],
+                taskInstances: generateTaskInstances(tasks, duration, startDate),
+                status: 'active',
+                currentStreak: 0,
+                longestStreak: 0
+            };
+
+            // Save to Firestore if user is logged in
+            if (currentUser) {
+                try {
+                    await setDoc(doc(db, 'challenges', challenge.id), challenge);
+                    console.log('✅ Challenge saved to Firestore:', challenge.id);
+                } catch (error) {
+                    console.error('❌ Error saving challenge:', error);
+                }
+            }
+
+            // Add to local state
+            challengePlannerState.challenges.push(challenge);
+            challengePlannerState.activeChallengeId = challenge.id;
+            
+            // Save locally
+            saveToLocalStorage('challengePlannerState', challengePlannerState);
+
+            showNotification(`Challenge "${name}" created! 🎉`, 'success');
+            showChallengeTab('my-challenges');
+            
+            // Clear form
+            document.getElementById('challengeDescription').value = '';
+            document.getElementById('parsedChallengePreview').style.display = 'none';
+        }
+
+        // Generate Task Instances for each day
+        function generateTaskInstances(tasks, duration, startDate) {
+            const instances = [];
+            const start = new Date(startDate);
+
+            for (let day = 0; day < duration; day++) {
+                const date = new Date(start);
+                date.setDate(date.getDate() + day);
+                const dateStr = date.toISOString().split('T')[0];
+
+                tasks.forEach((task, taskIndex) => {
+                    instances.push({
+                        id: `task_${day}_${taskIndex}`,
+                        taskName: task.name,
+                        taskType: task.type,
+                        date: dateStr,
+                        completed: false,
+                        completedAt: null
+                    });
+                });
+            }
+
+            return instances;
+        }
+
+        // Load Template
+        function loadTemplate(templateId) {
+            const template = challengePlannerState.templates[templateId];
+            if (!template) return;
+
+            document.getElementById('challengeName').value = template.name;
+            document.getElementById('challengeDuration').value = template.duration;
+            document.getElementById('challengeStartDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('allowRestDays').checked = template.allowRestDays;
+
+            const tasksList = document.getElementById('challengeTasksList');
+            tasksList.innerHTML = template.tasks.map((task, index) => `
+                <div style="display: flex; gap: 10px; align-items: center; padding: 10px; background: #f9fafb; border-radius: 8px;">
+                    <input type="text" value="${task.name}" class="form-input" style="flex: 1;" id="task-${index}">
+                    <button class="btn" onclick="this.parentElement.remove()" style="background: #ef4444; color: white; padding: 8px 12px;">×</button>
+                </div>
+            `).join('');
+
+            document.getElementById('parsedChallengePreview').style.display = 'block';
+            showChallengeTab('create');
+            showNotification(`Template "${template.name}" loaded!`, 'success');
+        }
+
+        // Render My Challenges
+        function renderMyChallenges() {
+            const activeGrid = document.getElementById('activeChallengesGrid');
+            const completedGrid = document.getElementById('completedChallengesGrid');
+            const emptyState = document.getElementById('emptyChallengesState');
+
+            const activeChallenges = challengePlannerState.challenges.filter(c => c.status === 'active');
+            const completedChallenges = challengePlannerState.challenges.filter(c => c.status === 'completed');
+
+            if (activeChallenges.length === 0 && completedChallenges.length === 0) {
+                emptyState.style.display = 'block';
+                activeGrid.innerHTML = '';
+                completedGrid.innerHTML = '';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            // Render active challenges
+            activeGrid.innerHTML = activeChallenges.map(challenge => {
+                const progress = calculateChallengeProgress(challenge);
+                return `
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <h4 style="margin: 0;">${challenge.name}</h4>
+                            <span style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
+                                Day ${progress.currentDay}/${challenge.duration}
+                            </span>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px;">
+                                <span>Progress</span>
+                                <span>${progress.percentage}%</span>
+                            </div>
+                            <div style="background: #e5e7eb; height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: var(--success); height: 100%; width: ${progress.percentage}%; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; font-size: 14px;">
+                            <span>🔥 ${challenge.currentStreak} day streak</span>
+                            <span>✅ ${progress.completedTasks}/${progress.totalTasks} tasks</span>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="viewChallengeDetails('${challenge.id}')" style="flex: 1; font-size: 14px;">
+                                View Details
+                            </button>
+                            <button class="btn" onclick="shareChallengeInvite('${challenge.id}')" style="font-size: 14px;">
+                                📤 Share
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Render completed challenges
+            completedGrid.innerHTML = completedChallenges.map(challenge => {
+                const progress = calculateChallengeProgress(challenge);
+                return `
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--success); opacity: 0.8;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                            <h4 style="margin: 0;">${challenge.name}</h4>
+                            <span style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
+                                ✅ Completed
+                            </span>
+                        </div>
+                        <p style="font-size: 14px; color: var(--text-light);">
+                            ${progress.percentage}% completion • ${challenge.longestStreak} day streak
+                        </p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Calculate Challenge Progress
+        function calculateChallengeProgress(challenge) {
+            const today = new Date().toISOString().split('T')[0];
+            const startDate = new Date(challenge.startDate);
+            const currentDate = new Date(today);
+            const daysPassed = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+            
+            const completedTasks = challenge.taskInstances.filter(t => t.completed).length;
+            const totalTasks = challenge.taskInstances.length;
+            const percentage = Math.round((completedTasks / totalTasks) * 100);
+
+            return {
+                currentDay: Math.min(daysPassed + 1, challenge.duration),
+                completedTasks,
+                totalTasks,
+                percentage
+            };
+        }
+
+        // View Challenge Details
+        function viewChallengeDetails(challengeId) {
+            const challenge = challengePlannerState.challenges.find(c => c.id === challengeId);
+            if (!challenge) return;
+
+            const modal = document.getElementById('customModal');
+            const content = document.getElementById('modalContent');
+            const progress = calculateChallengeProgress(challenge);
+
+            // Group tasks by date
+            const tasksByDate = {};
+            challenge.taskInstances.forEach(task => {
+                if (!tasksByDate[task.date]) {
+                    tasksByDate[task.date] = [];
+                }
+                tasksByDate[task.date].push(task);
+            });
+
+            content.innerHTML = `
+                <h2>${challenge.name}</h2>
+                <div style="margin: 20px 0;">
+                    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                        <div style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--primary);">${progress.currentDay}/${challenge.duration}</div>
+                            <div style="font-size: 14px; color: var(--text-light); margin-top: 5px;">Days</div>
+                        </div>
+                        <div style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--success);">${progress.percentage}%</div>
+                            <div style="font-size: 14px; color: var(--text-light); margin-top: 5px;">Complete</div>
+                        </div>
+                        <div style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--warning);">🔥 ${challenge.currentStreak}</div>
+                            <div style="font-size: 14px; color: var(--text-light); margin-top: 5px;">Streak</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px; margin-bottom: 15px;">Today's Tasks</h3>
+                    <div id="todayTasksDetail">
+                        ${renderTodayTasks(challenge)}
+                    </div>
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        // Render Today's Tasks
+        function renderTodayTasks(challenge) {
+            const today = new Date().toISOString().split('T')[0];
+            const todayTasks = challenge.taskInstances.filter(t => t.date === today);
+
+            if (todayTasks.length === 0) {
+                return '<p style="color: var(--text-light); text-align: center; padding: 20px;">No tasks scheduled for today</p>';
+            }
+
+            return todayTasks.map(task => `
+                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: ${task.completed ? '#f0fdf4' : 'white'}; border: 2px solid ${task.completed ? 'var(--success)' : 'var(--border)'}; border-radius: 8px; margin-bottom: 10px;">
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTaskCompletion('${challenge.id}', '${task.id}')" style="width: 20px; height: 20px; cursor: pointer;">
+                    <span style="flex: 1; ${task.completed ? 'text-decoration: line-through; color: var(--text-light);' : ''}">${task.taskName}</span>
+                    ${task.completed ? `<span style="color: var(--success); font-size: 12px;">${new Date(task.completedAt).toLocaleTimeString()}</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Toggle Task Completion
+        async function toggleTaskCompletion(challengeId, taskId) {
+            const challenge = challengePlannerState.challenges.find(c => c.id === challengeId);
+            if (!challenge) return;
+
+            const task = challenge.taskInstances.find(t => t.id === taskId);
+            if (!task) return;
+
+            task.completed = !task.completed;
+            task.completedAt = task.completed ? new Date().toISOString() : null;
+
+            // Update streak
+            updateChallengeStreak(challenge);
+
+            // Save to Firestore
+            if (currentUser) {
+                try {
+                    await updateDoc(doc(db, 'challenges', challengeId), {
+                        taskInstances: challenge.taskInstances,
+                        currentStreak: challenge.currentStreak,
+                        longestStreak: challenge.longestStreak
+                    });
+                } catch (error) {
+                    console.error('Error updating challenge:', error);
+                }
+            }
+
+            // Save locally
+            saveToLocalStorage('challengePlannerState', challengePlannerState);
+
+            // Refresh view
+            viewChallengeDetails(challengeId);
+            showNotification(task.completed ? 'Task completed! 🎉' : 'Task unchecked', 'success');
+        }
+
+        // Update Challenge Streak
+        function updateChallengeStreak(challenge) {
+            const today = new Date().toISOString().split('T')[0];
+            const todayTasks = challenge.taskInstances.filter(t => t.date === today);
+            const allTodayComplete = todayTasks.length > 0 && todayTasks.every(t => t.completed);
+
+            if (allTodayComplete) {
+                challenge.currentStreak++;
+                if (challenge.currentStreak > challenge.longestStreak) {
+                    challenge.longestStreak = challenge.currentStreak;
+                }
+            }
+        }
+
+        // Share Challenge Invite
+        function shareChallengeInvite(challengeId) {
+            const challenge = challengePlannerState.challenges.find(c => c.id === challengeId);
+            if (!challenge) return;
+
+            const inviteCode = `FITQUEST-${challengeId.substring(3, 9).toUpperCase()}`;
+            const inviteText = `Join my "${challenge.name}" challenge on FitQuest! Use invite code: ${inviteCode}`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(inviteText).then(() => {
+                showNotification('Invite code copied to clipboard! 📋', 'success');
+            }).catch(() => {
+                showNotification('Invite code: ' + inviteCode, 'info');
+            });
+        }
+
+        // Calendar Navigation
+        function changeCalendarView(view) {
+            challengePlannerState.currentView = view;
+            document.querySelectorAll('#monthViewBtn, #weekViewBtn, #dayViewBtn').forEach(btn => {
+                btn.style.background = '';
+                btn.style.color = '';
+            });
+            document.getElementById(view + 'ViewBtn').style.background = 'var(--primary)';
+            document.getElementById(view + 'ViewBtn').style.color = 'white';
+            renderCalendar();
+        }
+
+        function navigateCalendar(direction) {
+            const current = challengePlannerState.currentDate;
+            if (challengePlannerState.currentView === 'month') {
+                current.setMonth(current.getMonth() + direction);
+            } else if (challengePlannerState.currentView === 'week') {
+                current.setDate(current.getDate() + (direction * 7));
+            } else {
+                current.setDate(current.getDate() + direction);
+            }
+            renderCalendar();
+        }
+
+        // Render Calendar
+        function renderCalendar() {
+            const title = document.getElementById('calendarTitle');
+            const grid = document.getElementById('calendarGrid');
+            const current = challengePlannerState.currentDate;
+
+            if (challengePlannerState.currentView === 'month') {
+                title.textContent = current.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                grid.innerHTML = renderMonthView(current);
+            } else if (challengePlannerState.currentView === 'week') {
+                const weekStart = new Date(current);
+                weekStart.setDate(current.getDate() - current.getDay());
+                title.textContent = `Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                grid.innerHTML = renderWeekView(weekStart);
+            } else {
+                title.textContent = current.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+                grid.innerHTML = renderDayView(current);
+            }
+
+            renderTodayTasksList();
+        }
+
+        function renderMonthView(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;">';
+            
+            // Day headers
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                html += `<div style="text-align: center; font-weight: bold; padding: 10px; background: #f9fafb;">${day}</div>`;
+            });
+
+            // Empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div></div>';
+            }
+
+            // Day cells
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const tasks = getTasksForDate(dateStr);
+                const completedCount = tasks.filter(t => t.completed).length;
+                const isToday = dateStr === new Date().toISOString().split('T')[0];
+
+                html += `
+                    <div style="min-height: 80px; padding: 8px; border: 2px solid ${isToday ? 'var(--primary)' : 'var(--border)'}; border-radius: 8px; cursor: pointer; background: ${isToday ? '#f0f9ff' : 'white'};" onclick="selectDate('${dateStr}')">
+                        <div style="font-weight: ${isToday ? 'bold' : 'normal'}; margin-bottom: 5px;">${day}</div>
+                        ${tasks.length > 0 ? `<div style="font-size: 11px; color: ${completedCount === tasks.length ? 'var(--success)' : 'var(--text-light)'};">${completedCount}/${tasks.length} tasks</div>` : ''}
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderWeekView(startDate) {
+            let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">';
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                const tasks = getTasksForDate(dateStr);
+                const isToday = dateStr === new Date().toISOString().split('T')[0];
+
+                html += `
+                    <div style="padding: 15px; border: 2px solid ${isToday ? 'var(--primary)' : 'var(--border)'}; border-radius: 8px; background: ${isToday ? '#f0f9ff' : 'white'};">
+                        <div style="font-weight: bold; margin-bottom: 10px;">${date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })}</div>
+                        ${tasks.map(t => `<div style="font-size: 12px; padding: 5px; margin: 3px 0; background: ${t.completed ? 'var(--success)' : '#f9fafb'}; color: ${t.completed ? 'white' : 'inherit'}; border-radius: 4px;">${t.taskName}</div>`).join('')}
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderDayView(date) {
+            const dateStr = date.toISOString().split('T')[0];
+            const tasks = getTasksForDate(dateStr);
+
+            if (tasks.length === 0) {
+                return '<p style="text-align: center; padding: 40px; color: var(--text-light);">No tasks scheduled for this day</p>';
+            }
+
+            return tasks.map(task => {
+                const challenge = challengePlannerState.challenges.find(c => 
+                    c.taskInstances.some(t => t.id === task.id)
+                );
+                return `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background: ${task.completed ? '#f0fdf4' : 'white'}; border: 2px solid ${task.completed ? 'var(--success)' : 'var(--border)'}; border-radius: 8px; margin-bottom: 10px;">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTaskCompletion('${challenge.id}', '${task.id}')" style="width: 20px; height: 20px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; ${task.completed ? 'text-decoration: line-through;' : ''}">${task.taskName}</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-top: 3px;">${challenge.name}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTasksForDate(dateStr) {
+            const allTasks = [];
+            challengePlannerState.challenges.forEach(challenge => {
+                const tasks = challenge.taskInstances.filter(t => t.date === dateStr);
+                allTasks.push(...tasks);
+            });
+            return allTasks;
+        }
+
+        function selectDate(dateStr) {
+            challengePlannerState.currentDate = new Date(dateStr);
+            changeCalendarView('day');
+        }
+
+        function renderTodayTasksList() {
+            const today = new Date().toISOString().split('T')[0];
+            const container = document.getElementById('todayTasksList');
+            const tasks = getTasksForDate(today);
+
+            if (tasks.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--text-light);">No tasks scheduled for today</p>';
+                return;
+            }
+
+            container.innerHTML = tasks.map(task => {
+                const challenge = challengePlannerState.challenges.find(c => 
+                    c.taskInstances.some(t => t.id === task.id)
+                );
+                return `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: ${task.completed ? '#f0fdf4' : 'white'}; border: 2px solid ${task.completed ? 'var(--success)' : 'var(--border)'}; border-radius: 8px; margin-bottom: 10px;">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTaskCompletion('${challenge.id}', '${task.id}')" style="width: 20px; height: 20px; cursor: pointer;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; ${task.completed ? 'text-decoration: line-through;' : ''}">${task.taskName}</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-top: 3px;">${challenge.name}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Notifications
+        function toggleNotifications() {
+            const enabled = document.getElementById('enableNotifications').checked;
+            document.getElementById('notificationTimePicker').style.display = enabled ? 'block' : 'none';
+
+            if (enabled && 'Notification' in window) {
+                Notification.requestPermission();
+            }
+        }
+
+        function saveNotificationSettings() {
+            const time = document.getElementById('reminderTime').value;
+            localStorage.setItem('challengeReminderTime', time);
+            showNotification('Notification settings saved!', 'success');
+        }
+
+        function renderNotifications() {
+            const container = document.getElementById('notificationsList');
+            container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--text-light);">No recent notifications</p>';
+        }
+
+        // Load challenges from Firestore
+        async function loadChallengesFromFirebase() {
+            if (!currentUser) return;
+
+            try {
+                const challengesQuery = query(
+                    collection(db, 'challenges'),
+                    where('participants', 'array-contains', currentUser.uid)
+                );
+
+                const snapshot = await getDocs(challengesQuery);
+                const challenges = [];
+                
+                snapshot.forEach(doc => {
+                    challenges.push({ ...doc.data(), id: doc.id });
+                });
+
+                challengePlannerState.challenges = challenges;
+                saveToLocalStorage('challengePlannerState', challengePlannerState);
+                
+                console.log('✅ Loaded', challenges.length, 'challenges from Firestore');
+            } catch (error) {
+                console.error('Error loading challenges:', error);
+            }
+        }
+
+        // Helper: Save to localStorage
+        function saveToLocalStorage(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error('LocalStorage save error:', e);
+            }
+        }
+
+        // Helper: Load from localStorage
+        function loadFromLocalStorage(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.error('LocalStorage load error:', e);
+                return null;
+            }
+        }
+
+        // Initialize Challenge Planner on page load
+        const savedChallengeState = loadFromLocalStorage('challengePlannerState');
+        if (savedChallengeState) {
+            challengePlannerState = { ...challengePlannerState, ...savedChallengeState };
+        }
+
+        // ==========================================
+        // END CHALLENGE PLANNER FUNCTIONS
+        // ==========================================
 
         // Override saveData to use Firebase when user is logged in
         const originalSaveData = saveData;
