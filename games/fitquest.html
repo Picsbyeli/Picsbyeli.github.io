@@ -5228,59 +5228,16 @@
             });
         }
 
-        // Add friend
+        // Add friend - redirects to Firebase version if logged in
         function addFriend() {
-            const input = document.getElementById('addFriendInput');
-            const code = input.value.trim().toUpperCase();
-            
-            if (!code) {
-                showNotification('Please enter a friend code', 'warning');
-                return;
+            if (currentUser) {
+                // Use Firebase version for real users
+                addFriendByCode();
+            } else {
+                // Require login to add friends
+                showNotification('Please login to add friends with real people! 🔐', 'warning');
+                openAuthModal();
             }
-
-            if (!code.startsWith('FIT-')) {
-                showNotification('Invalid friend code format. Should start with FIT-', 'warning');
-                return;
-            }
-
-            if (code === appState.user.friendCode) {
-                showNotification('You cannot add yourself as a friend!', 'warning');
-                return;
-            }
-
-            // Check if already friends
-            if (appState.friends.some(f => f.friendCode === code)) {
-                showNotification('You are already friends with this user!', 'warning');
-                return;
-            }
-
-            // Simulate finding friend (in production, this would be a backend call)
-            const friend = generateFriendData(code);
-            appState.friends.push(friend);
-            saveData();
-            
-            input.value = '';
-            showNotification(`Added ${friend.name} as a friend! 🎉`, 'success');
-            renderFriendsList();
-            renderLeaderboard();
-        }
-
-        // Generate friend data (simulated - would come from backend)
-        function generateFriendData(code) {
-            const names = ['Alex', 'Jordan', 'Sam', 'Casey', 'Taylor', 'Morgan', 'Riley', 'Avery'];
-            const randomName = names[Math.floor(Math.random() * names.length)];
-            
-            return {
-                friendCode: code,
-                name: randomName,
-                level: Math.floor(Math.random() * 10) + 1,
-                xp: Math.floor(Math.random() * 2000) + 100,
-                streak: Math.floor(Math.random() * 30),
-                totalWorkouts: Math.floor(Math.random() * 100) + 10,
-                currentWeight: Math.floor(Math.random() * 50) + 180,
-                startWeight: Math.floor(Math.random() * 50) + 220,
-                lastActive: new Date().toISOString()
-            };
         }
 
         // Render friends list
@@ -5292,7 +5249,8 @@
                     <div class="empty-state">
                         <div class="empty-state-icon">👥</div>
                         <h3>No friends yet</h3>
-                        <p>Add friends using their friend code to compare progress and compete!</p>
+                        <p>${currentUser ? 'Add friends using their friend code to compare progress and compete!' : 'Login to add real friends and compete together!'}</p>
+                        ${!currentUser ? '<button class="btn btn-primary" onclick="openAuthModal()" style="margin-top: 15px;">🔐 Login to Add Friends</button>' : ''}
                     </div>
                 `;
                 return;
@@ -5302,17 +5260,23 @@
                 const weightLoss = friend.startWeight && friend.currentWeight ? 
                     friend.startWeight - friend.currentWeight : 0;
                 
+                // Use displayName from Firebase, fallback to name or email
+                const displayName = friend.displayName || friend.name || friend.email || 'Friend';
+                const level = friend.level || 1;
+                const streak = friend.streak || 0;
+                const totalWorkouts = friend.totalWorkouts || 0;
+                
                 return `
                     <div class="friend-card">
                         <div style="width: 100%;">
                             <div class="friend-info">
-                                <div class="user-avatar">${friend.name.charAt(0)}</div>
+                                <div class="user-avatar">${displayName.charAt(0).toUpperCase()}</div>
                                 <div style="flex: 1;">
-                                    <div class="user-name">${friend.name}</div>
+                                    <div class="user-name">${displayName}</div>
                                     <div class="user-stats">
-                                        <span>⭐ Level ${friend.level}</span>
-                                        <span>🔥 ${friend.streak} day streak</span>
-                                        <span>💪 ${friend.totalWorkouts} workouts</span>
+                                        <span>⭐ Level ${level}</span>
+                                        <span>🔥 ${streak} day streak</span>
+                                        <span>💪 ${totalWorkouts} workouts</span>
                                     </div>
                                 </div>
                                 <button class="btn" onclick="viewFriendProgress('${friend.friendCode}')" style="font-size: 14px; padding: 8px 16px;">
@@ -5341,30 +5305,37 @@
             const weightLoss = friend.startWeight && friend.currentWeight ? 
                 friend.startWeight - friend.currentWeight : 0;
             
+            // Use displayName from Firebase, fallback to name or email
+            const displayName = friend.displayName || friend.name || friend.email || 'Friend';
+            const level = friend.level || 1;
+            const streak = friend.streak || 0;
+            const totalWorkouts = friend.totalWorkouts || 0;
+            const xp = friend.xp || 0;
+            
             content.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div class="user-avatar" style="width: 100px; height: 100px; font-size: 48px; margin: 0 auto 15px;">
-                        ${friend.name.charAt(0)}
+                        ${displayName.charAt(0).toUpperCase()}
                     </div>
-                    <h2>${friend.name}</h2>
-                    <p style="color: var(--text-light);">Level ${friend.level} • ${friend.friendCode}</p>
+                    <h2>${displayName}</h2>
+                    <p style="color: var(--text-light);">Level ${level} • ${friend.friendCode || 'N/A'}</p>
                 </div>
 
                 <div class="progress-grid">
                     <div class="progress-item" style="background: #f9fafb; padding: 20px; border-radius: 12px;">
-                        <div style="font-size: 32px; font-weight: bold; color: var(--primary);">${friend.streak}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: var(--primary);">${streak}</div>
                         <div style="color: var(--text-light); margin-top: 5px;">Day Streak 🔥</div>
                     </div>
                     <div class="progress-item" style="background: #f9fafb; padding: 20px; border-radius: 12px;">
-                        <div style="font-size: 32px; font-weight: bold; color: var(--primary);">${friend.totalWorkouts}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: var(--primary);">${totalWorkouts}</div>
                         <div style="color: var(--text-light); margin-top: 5px;">Total Workouts</div>
                     </div>
                     <div class="progress-item" style="background: #f9fafb; padding: 20px; border-radius: 12px;">
-                        <div style="font-size: 32px; font-weight: bold; color: var(--primary);">${friend.xp}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: var(--primary);">${xp}</div>
                         <div style="color: var(--text-light); margin-top: 5px;">Total XP</div>
                     </div>
                     <div class="progress-item" style="background: #f9fafb; padding: 20px; border-radius: 12px;">
-                        <div style="font-size: 32px; font-weight: bold; color: ${weightLoss > 0 ? 'var(--secondary)' : 'var(--primary)'};">
+                        <div style="font-size: 32px; font-weight: bold; color: ${weightLoss > 0 ? 'var(--secondary)' : 'var(--primary)'};">  
                             ${weightLoss > 0 ? `-${weightLoss}` : '--'}
                         </div>
                         <div style="color: var(--text-light); margin-top: 5px;">Weight Loss (lbs)</div>
@@ -5372,11 +5343,9 @@
                 </div>
 
                 <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 12px; text-align: center;">
-                    <strong>💪 Keep pushing! Compare your progress and stay motivated together!</strong>
+                    <strong>💪 Real data from ${displayName}'s actual workouts!</strong>
                 </div>
-            `;
-            
-            modal.classList.add('active');
+            `;            modal.classList.add('active');
         }
 
         // Show different leaderboards
