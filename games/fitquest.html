@@ -8334,16 +8334,13 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             try {
                 showNotification('Opening Google Sign-In...', 'info');
                 
-                const { GoogleAuthProvider, signInWithPopup, signInWithRedirect } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-                const provider = new GoogleAuthProvider();
+                const provider = new firebase.auth.GoogleAuthProvider();
                 provider.addScope('profile');
                 provider.addScope('email');
                 
-                const auth = window.firebaseAuth;
-                
                 // Try popup first, fallback to redirect
                 try {
-                    const result = await signInWithPopup(auth, provider);
+                    const result = await auth.signInWithPopup(provider);
                     console.log('Google sign-in successful:', result.user.email);
                     
                     // Create user profile in Firestore if new
@@ -8356,7 +8353,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     // If popup is blocked, use redirect
                     if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/cancelled-popup-request') {
                         console.log('Popup blocked, using redirect...');
-                        await signInWithRedirect(auth, provider);
+                        await auth.signInWithRedirect(provider);
                     } else {
                         throw popupError;
                     }
@@ -8380,11 +8377,8 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
 
         // Handle redirect result (for when popup is blocked)
         async function checkRedirectResult() {
-            const { getRedirectResult } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-            const auth = window.firebaseAuth;
-            
             try {
-                const result = await getRedirectResult(auth);
+                const result = await auth.getRedirectResult();
                 if (result && result.user) {
                     console.log('Redirect sign-in successful:', result.user.email);
                     await createOrUpdateUserProfile(result.user);
@@ -8407,10 +8401,9 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            const auth = window.firebaseAuth;
             
             try {
-                await window.signInWithEmailAndPassword(auth, email, password);
+                await auth.signInWithEmailAndPassword(email, password);
                 closeAuthModal();
                 showNotification('Login successful! 🎉', 'success');
             } catch (error) {
@@ -8426,13 +8419,12 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             const name = document.getElementById('signupName').value;
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
-            const auth = window.firebaseAuth;
             
             try {
-                const result = await window.createUserWithEmailAndPassword(auth, email, password);
+                const result = await auth.createUserWithEmailAndPassword(email, password);
                 
                 // Update profile with name
-                await window.updateProfile(result.user, {
+                await result.user.updateProfile({
                     displayName: name
                 });
                 
