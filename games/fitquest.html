@@ -8,11 +8,6 @@
     <meta name="theme-color" content="#667eea">
     <title>FitQuest - Level Up Your Fitness</title>
     
-    <!-- Firebase SDKs - Modular v10 -->
-    <script type="module">
-        // This will be moved to the main script section
-    </script>
-    
     <style>
         * {
             margin: 0;
@@ -3454,16 +3449,17 @@
         </div>
     </div>
 
-    <script type="module">
-        // ==========================================
-        // FIREBASE MODULAR SDK v10 - INITIALIZATION
-        // ==========================================
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, onSnapshot, orderBy, limit, serverTimestamp, arrayUnion, arrayRemove, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
-        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+    <!-- Firebase SDKs - Compat Version (Global Scope) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
 
+    <script>
+        // ==========================================
+        // FIREBASE INITIALIZATION (COMPAT - GLOBAL SCOPE)
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAHag-EmC2aBgC_trA2YJVssiSZmvJbxFw",
             authDomain: "evolfitness-42b94.firebaseapp.com",
@@ -3476,46 +3472,19 @@
         };
 
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-        const analytics = getAnalytics(app);
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        const analytics = firebase.analytics();
 
         // Current user
         let currentUser = null;
         
-        // Make Firebase functions globally available
+        // Make Firebase available globally
         window.firebaseAuth = auth;
         window.firebaseDb = db;
         window.firebaseStorage = storage;
-        window.firebaseApp = app;
-        
-        // Export Firebase functions for use in global scope
-        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.signOut = signOut;
-        window.updateProfile = updateProfile;
-        window.setDoc = setDoc;
-        window.getDoc = getDoc;
-        window.getDocs = getDocs;
-        window.updateDoc = updateDoc;
-        window.deleteDoc = deleteDoc;
-        window.collection = collection;
-        window.doc = doc;
-        window.query = query;
-        window.where = where;
-        window.onSnapshot = onSnapshot;
-        window.orderBy = orderBy;
-        window.limit = limit;
-        window.serverTimestamp = serverTimestamp;
-        window.arrayUnion = arrayUnion;
-        window.arrayRemove = arrayRemove;
-        window.increment = increment;
-        window.storageRef = storageRef;
-        window.uploadBytes = uploadBytes;
-        window.getDownloadURL = getDownloadURL;
 
         // ==========================================
         // INDEXEDDB SETUP - 50MB Storage (5x more than localStorage)
@@ -8278,8 +8247,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // ============================================
 
         // Auth state observer
-        const auth = window.firebaseAuth;
-        window.onAuthStateChanged(auth, async (user) => {
+        auth.onAuthStateChanged(async (user) => {
             console.log('Auth state changed. User:', user ? user.email : 'null');
             
             if (user) {
@@ -8483,13 +8451,12 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         async function createOrUpdateUserProfile(user, displayName = null) {
             try {
                 console.log('Creating/updating profile for:', user.email);
-                const db = window.firebaseDb;
-                const userDocRef = window.doc(db, 'users', user.uid);
+                const userDocRef = db.collection('users').doc(user.uid);
                 
                 // Check if user profile exists
-                const userDoc = await window.getDoc(userDocRef);
+                const userDoc = await userDocRef.get();
                 
-                if (!userDoc.exists()) {
+                if (!userDoc.exists) {
                     // New user - create profile with friend code
                     const friendCode = 'FIT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
                     
@@ -8497,8 +8464,8 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         email: user.email,
                         displayName: displayName || user.displayName || user.email.split('@')[0],
                         friendCode: friendCode,
-                        createdAt: window.serverTimestamp(),
-                        lastActive: window.serverTimestamp(),
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp(),
                         level: 1,
                         xp: 0,
                         currentXP: 0,
@@ -8513,14 +8480,14 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     };
                     
                     console.log('Creating new user profile with friend code:', friendCode);
-                    await window.setDoc(userDocRef, newUserData);
+                    await userDocRef.set(newUserData);
                     console.log('User profile created successfully');
                     
                 } else {
                     // Existing user - update last active
                     console.log('Updating existing user profile');
-                    await window.updateDoc(userDocRef, {
-                        lastActive: window.serverTimestamp(),
+                    await userDocRef.update({
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp(),
                         displayName: displayName || user.displayName || userDoc.data().displayName
                     });
                     console.log('User profile updated');
@@ -8538,11 +8505,10 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Load user data from Firestore
         async function loadUserDataFromFirebase(uid) {
             try {
-                const db = window.firebaseDb;
-                const userDocRef = window.doc(db, 'users', uid);
-                const userDoc = await window.getDoc(userDocRef);
+                const userDocRef = db.collection('users').doc(uid);
+                const userDoc = await userDocRef.get();
                 
-                if (userDoc.exists()) {
+                if (userDoc.exists) {
                     const userData = userDoc.data();
                     
                     // Merge Firestore data with app state
@@ -8591,21 +8557,20 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             if (!currentUser) return;
             
             try {
-                const db = window.firebaseDb;
-                const userDocRef = window.doc(db, 'users', currentUser.uid);
+                const userDocRef = db.collection('users').doc(currentUser.uid);
                 
                 // Ensure friend code exists before saving
                 if (!appState.user.friendCode) {
                     console.warn('⚠️ No friend code in appState, fetching from Firestore...');
-                    const userDoc = await window.getDoc(userDocRef);
-                    if (userDoc.exists() && userDoc.data().friendCode) {
+                    const userDoc = await userDocRef.get();
+                    if (userDoc.exists && userDoc.data().friendCode) {
                         appState.user.friendCode = userDoc.data().friendCode;
                     }
                 }
                 
                 console.log('💾 Saving user data to Firestore. Friend Code:', appState.user.friendCode);
                 
-                await window.updateDoc(userDocRef, {
+                await userDocRef.update({
                     level: appState.user.level,
                     xp: appState.user.xp,
                     currentXP: appState.user.currentXP,
@@ -8617,7 +8582,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     startWeight: appState.user.startWeight,
                     achievements: appState.achievements,
                     lastWorkoutDate: appState.user.lastWorkoutDate,
-                    lastActive: window.serverTimestamp()
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
                 // Save progress photos
@@ -8636,9 +8601,8 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Load progress photos from Firestore
         async function loadProgressPhotosFromFirebase(uid) {
             try {
-                const db = window.firebaseDb;
-                const photosCollection = window.collection(db, 'users', uid, 'progressPhotos');
-                const photosSnapshot = await window.getDocs(photosCollection);
+                const photosCollection = db.collection('users').doc(uid).collection('progressPhotos');
+                const photosSnapshot = await photosCollection.get();
                 
                 appState.progressPhotos = [];
                 photosSnapshot.forEach((doc) => {
@@ -8659,24 +8623,21 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Save progress photos to Firestore
         async function saveProgressPhotosToFirebase(uid) {
             try {
-                const db = window.firebaseDb;
-                const photosCollection = window.collection(db, 'users', uid, 'progressPhotos');
+                const photosCollection = db.collection('users').doc(uid).collection('progressPhotos');
                 
                 // Save each photo as a document
                 for (const photo of appState.progressPhotos) {
                     if (!photo.id) {
                         // New photo - create document
                         const photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substring(7);
-                        const photoDoc = window.doc(photosCollection, photoId);
-                        await window.setDoc(photoDoc, {
+                        await photosCollection.doc(photoId).set({
                             ...photo,
                             id: photoId,
-                            uploadedAt: window.serverTimestamp()
+                            uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                     } else {
                         // Update existing photo
-                        const photoDoc = window.doc(photosCollection, photo.id);
-                        await window.setDoc(photoDoc, photo, { merge: true });
+                        await photosCollection.doc(photo.id).set(photo, { merge: true });
                     }
                 }
             } catch (error) {
@@ -8687,11 +8648,10 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Load friends from Firestore with real-time updates
         async function loadFriendsFromFirebase(uid) {
             try {
-                const db = window.firebaseDb;
-                const userDocRef = window.doc(db, 'users', uid);
-                const userDoc = await window.getDoc(userDocRef);
+                const userDocRef = db.collection('users').doc(uid);
+                const userDoc = await userDocRef.get();
                 
-                if (!userDoc.exists()) return;
+                if (!userDoc.exists) return;
                 
                 const userData = userDoc.data();
                 const friendIds = userData.friends || [];
@@ -8707,11 +8667,11 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 appState.friends = [];
                 
                 for (const friendId of friendIds) {
-                    const friendDocRef = window.doc(db, 'users', friendId);
+                    const friendDocRef = db.collection('users').doc(friendId);
                     
                     // Set up real-time listener for each friend
-                    window.onSnapshot(friendDocRef, (friendDoc) => {
-                        if (friendDoc.exists()) {
+                    friendDocRef.onSnapshot((friendDoc) => {
+                        if (friendDoc.exists) {
                             const friendData = { uid: friendId, ...friendDoc.data() };
                             
                             // Update or add friend in the array
@@ -8751,12 +8711,9 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
 
             try {
                 console.log('🔍 Searching for friend code:', code);
-                const db = window.firebaseDb;
                 
                 // Search for user with this friend code
-                const usersCollection = window.collection(db, 'users');
-                const q = window.query(usersCollection, window.where('friendCode', '==', code));
-                const snapshot = await window.getDocs(q);
+                const snapshot = await db.collection('users').where('friendCode', '==', code).get();
                 
                 console.log('📊 Search results:', snapshot.size, 'users found');
                 
@@ -8781,8 +8738,8 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 }
                 
                 // Check if already friends
-                const myUserDocRef = window.doc(db, 'users', currentUser.uid);
-                const myUserDoc = await window.getDoc(myUserDocRef);
+                const myUserDocRef = db.collection('users').doc(currentUser.uid);
+                const myUserDoc = await myUserDocRef.get();
                 const myFriends = myUserDoc.data().friends || [];
                 
                 if (myFriends.includes(friendUid)) {
@@ -8793,13 +8750,12 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 console.log('➕ Adding friend...');
                 
                 // Add friend (bidirectional)
-                await window.updateDoc(myUserDocRef, {
-                    friends: window.arrayUnion(friendUid)
+                await myUserDocRef.update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(friendUid)
                 });
                 
-                const friendDocRef = window.doc(db, 'users', friendUid);
-                await window.updateDoc(friendDocRef, {
-                    friends: window.arrayUnion(currentUser.uid)
+                await db.collection('users').doc(friendUid).update({
+                    friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
                 });
                 
                 // Add to local state
@@ -8816,31 +8772,11 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 showNotification('Failed to add friend: ' + error.message, 'warning');
             }
         }
-                
-                const friendDocRef = window.doc(db, 'users', friendUid);
-                await window.updateDoc(friendDocRef, {
-                    friends: window.arrayUnion(currentUser.uid)
-                });
-                
-                // Add to local state
-                appState.friends.push({ uid: friendUid, ...friendData });
-                input.value = '';
-                
-                showNotification(`Added ${friendData.displayName} as a friend! 🎉`, 'success');
-                renderFriendsList();
-                renderLeaderboard();
-                
-            } catch (error) {
-                console.error('Error adding friend:', error);
-                showNotification('Failed to add friend. Please try again.', 'warning');
-            }
-        }
 
         // Toggle user menu
         function toggleUserMenu() {
             if (confirm('Do you want to sign out?')) {
-                const auth = window.firebaseAuth;
-                window.signOut(auth).then(() => {
+                auth.signOut().then(() => {
                     showNotification('Signed out successfully', 'info');
                     location.reload();
                 }).catch((error) => {
@@ -8861,16 +8797,11 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Load challenges from Firestore
         async function loadChallengesFromFirebase(uid) {
             try {
-                const db = window.firebaseDb;
-                const challengesCollection = window.collection(db, 'challenges');
-                
                 // Load challenges where user is a participant
-                const q = window.query(
-                    challengesCollection,
-                    window.where('participants', 'array-contains', uid)
-                );
+                const challengesSnapshot = await db.collection('challenges')
+                    .where('participants', 'array-contains', uid || currentUser?.uid)
+                    .get();
                 
-                const challengesSnapshot = await window.getDocs(q);
                 appState.challenges = [];
                 
                 challengesSnapshot.forEach((doc) => {
@@ -8893,30 +8824,26 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Save challenges to Firestore
         async function saveChallengesToFirebase(uid) {
             try {
-                const db = window.firebaseDb;
-                
                 // Save each challenge
                 for (const challenge of appState.challenges) {
                     if (!challenge.id) {
                         // New challenge - create document
                         const challengeId = 'challenge_' + Date.now() + '_' + Math.random().toString(36).substring(7);
-                        const challengeDoc = window.doc(window.collection(db, 'challenges'), challengeId);
                         
-                        await window.setDoc(challengeDoc, {
+                        await db.collection('challenges').doc(challengeId).set({
                             ...challenge,
                             id: challengeId,
                             createdBy: uid,
-                            createdAt: window.serverTimestamp(),
-                            lastUpdated: window.serverTimestamp()
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                         });
                         
                         challenge.id = challengeId; // Update local challenge with ID
                     } else {
                         // Update existing challenge
-                        const challengeDoc = window.doc(db, 'challenges', challenge.id);
-                        await window.setDoc(challengeDoc, {
+                        await db.collection('challenges').doc(challenge.id).set({
                             ...challenge,
-                            lastUpdated: window.serverTimestamp()
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                         }, { merge: true });
                     }
                 }
@@ -8934,10 +8861,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             }
             
             try {
-                const db = window.firebaseDb;
-                const challengesCollection = window.collection(db, 'challenges');
-                const q = window.query(challengesCollection, window.where('inviteCode', '==', challengeCode));
-                const snapshot = await window.getDocs(q);
+                const snapshot = await db.collection('challenges').where('inviteCode', '==', challengeCode).get();
                 
                 if (snapshot.empty) {
                     showNotification('Challenge not found. Please check the code.', 'warning');
@@ -8959,8 +8883,8 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 }
                 
                 // Add user to challenge
-                await window.updateDoc(window.doc(db, 'challenges', challengeId), {
-                    participants: window.arrayUnion(currentUser.uid)
+                await db.collection('challenges').doc(challengeId).update({
+                    participants: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
                 });
                 
                 // Add challenge to local state
