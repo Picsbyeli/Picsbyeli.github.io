@@ -2944,9 +2944,23 @@
                 </div>
             </div>
 
+            <!-- Sync Status -->
+            <div id="profileSyncStatus" style="background: #f0fdf4; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border: 2px solid #86efac;">
+                <span id="syncIcon">☁️</span>
+                <div>
+                    <strong id="syncStatusText">Ready to sync</strong>
+                    <p style="font-size: 12px; color: var(--text-light); margin-top: 3px;" id="syncStatusDetails">Changes will be saved to Firebase when logged in</p>
+                </div>
+            </div>
+
             <!-- Save Profile Button -->
-            <button onclick="saveProfile()" class="btn btn-primary" style="width: 100%; padding: 18px; font-size: 18px; font-weight: bold;">
+            <button onclick="saveProfile()" class="btn btn-primary" style="width: 100%; padding: 18px; font-size: 18px; font-weight: bold;" id="saveProfileBtn">
                 💾 Save Profile Changes
+            </button>
+            
+            <!-- Debug: Test Firebase Connection -->
+            <button onclick="testFirebaseConnection()" class="btn" style="width: 100%; padding: 14px; font-size: 14px; margin-top: 10px; background: #f3f4f6; color: var(--text-dark);">
+                🔧 Test Firebase Connection
             </button>
         </div>
 
@@ -4577,24 +4591,45 @@
             // Save to Firebase if logged in
             if (currentUser) {
                 try {
-                    await db.collection('users').doc(currentUser.uid).update({
+                    console.log('💾 Saving profile to Firebase for user:', currentUser.uid);
+                    console.log('Profile data:', {
                         displayName: appState.user.name,
                         username: appState.user.username,
                         startWeight: appState.user.startWeight,
                         currentWeight: appState.user.currentWeight,
                         goalWeight: appState.user.goalWeight,
+                        healthConditions: appState.user.healthConditions,
+                        healthNotes: appState.user.healthNotes,
+                        fitnessLevel: appState.user.fitnessLevel
+                    });
+                    
+                    // Use set with merge to create or update
+                    await db.collection('users').doc(currentUser.uid).set({
+                        displayName: appState.user.name || '',
+                        username: appState.user.username || '',
+                        startWeight: appState.user.startWeight || null,
+                        currentWeight: appState.user.currentWeight || null,
+                        goalWeight: appState.user.goalWeight || null,
                         healthConditions: appState.user.healthConditions || [],
                         healthNotes: appState.user.healthNotes || '',
                         fitnessLevel: appState.user.fitnessLevel || 'beginner',
                         lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    }, { merge: true });
+                    
+                    console.log('✅ Profile saved to Firebase successfully!');
+                    updateSyncStatus('success', 'Synced to cloud!', 'Last saved: ' + new Date().toLocaleTimeString());
                     showNotification('Profile saved to cloud! ☁️', 'success');
                 } catch (error) {
-                    console.error('Error saving profile to Firebase:', error);
-                    showNotification('Profile saved locally! (Cloud sync failed)', 'warning');
+                    console.error('❌ Error saving profile to Firebase:', error);
+                    console.error('Error code:', error.code);
+                    console.error('Error message:', error.message);
+                    updateSyncStatus('error', 'Sync failed', error.message);
+                    showNotification('Cloud sync failed: ' + error.message, 'warning');
                 }
             } else {
-                showNotification('Profile saved! Sign in to sync across devices.', 'success');
+                console.log('⚠️ No user logged in, saving locally only');
+                updateSyncStatus('warning', 'Saved locally', 'Sign in to sync to cloud');
+                showNotification('Profile saved locally! Sign in to sync across devices.', 'info');
             }
             
             // Update header
@@ -4602,6 +4637,79 @@
             if (headerName) headerName.textContent = appState.user.name || 'Warrior';
         }
         window.saveProfile = saveProfile;
+        
+        // Update sync status display
+        function updateSyncStatus(status, title, details) {
+            const container = document.getElementById('profileSyncStatus');
+            const icon = document.getElementById('syncIcon');
+            const text = document.getElementById('syncStatusText');
+            const detailsEl = document.getElementById('syncStatusDetails');
+            
+            if (!container) return;
+            
+            if (status === 'success') {
+                container.style.background = '#f0fdf4';
+                container.style.borderColor = '#86efac';
+                if (icon) icon.textContent = '✅';
+            } else if (status === 'error') {
+                container.style.background = '#fef2f2';
+                container.style.borderColor = '#fca5a5';
+                if (icon) icon.textContent = '❌';
+            } else if (status === 'warning') {
+                container.style.background = '#fffbeb';
+                container.style.borderColor = '#fcd34d';
+                if (icon) icon.textContent = '⚠️';
+            } else if (status === 'syncing') {
+                container.style.background = '#eff6ff';
+                container.style.borderColor = '#93c5fd';
+                if (icon) icon.textContent = '🔄';
+            }
+            
+            if (text) text.textContent = title;
+            if (detailsEl) detailsEl.textContent = details;
+        }
+        
+        // Test Firebase connection
+        async function testFirebaseConnection() {
+            console.log('🔧 Testing Firebase connection...');
+            showNotification('Testing Firebase connection...', 'info');
+            
+            // Check auth state
+            console.log('Current user:', currentUser ? currentUser.email : 'Not logged in');
+            
+            if (!currentUser) {
+                showNotification('Please login first to test Firebase connection', 'warning');
+                updateSyncStatus('warning', 'Not logged in', 'Please sign in to sync data');
+                return;
+            }
+            
+            try {
+                // Try to read from Firestore
+                console.log('Reading user doc...');
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                console.log('User doc exists:', userDoc.exists);
+                if (userDoc.exists) {
+                    console.log('User data:', userDoc.data());
+                }
+                
+                // Try to write a test field
+                console.log('Writing test field...');
+                await db.collection('users').doc(currentUser.uid).set({
+                    testField: 'Connection test at ' + new Date().toISOString(),
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                
+                console.log('✅ Firebase connection test successful!');
+                showNotification('Firebase connection working! ✅', 'success');
+                updateSyncStatus('success', 'Connection OK', 'Firebase is working properly');
+                
+            } catch (error) {
+                console.error('❌ Firebase test failed:', error);
+                showNotification('Firebase test failed: ' + error.message, 'warning');
+                updateSyncStatus('error', 'Connection failed', error.message);
+            }
+        }
+        window.testFirebaseConnection = testFirebaseConnection;
 
         // AI Chat functionality - ChatGPT Style
         let uploadedImage = null;
