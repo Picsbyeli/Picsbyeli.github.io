@@ -4106,8 +4106,16 @@
                 tab.classList.remove('active');
             });
             
-            document.getElementById(sectionId).classList.add('active');
-            event.target.classList.add('active');
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.add('active');
+            }
+            
+            // Find and activate the corresponding nav button
+            const navButton = document.querySelector(`[onclick*="showSection('${sectionId}')"]`);
+            if (navButton) {
+                navButton.classList.add('active');
+            }
         }
 
         // Start workout (placeholder)
@@ -5641,6 +5649,12 @@
 
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+            
+            // Initialize the first nav tab as active
+            const firstNavTab = document.querySelector('.nav-tab');
+            if (firstNavTab) {
+                firstNavTab.classList.add('active');
             }
         };
 
