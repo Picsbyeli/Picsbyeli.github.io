@@ -4360,6 +4360,17 @@
         // PROFILE FUNCTIONS
         // ==========================================
 
+        // Debounced save to avoid too many Firebase writes
+        let profileSaveTimeout = null;
+        function debouncedSaveProfile() {
+            if (profileSaveTimeout) {
+                clearTimeout(profileSaveTimeout);
+            }
+            profileSaveTimeout = setTimeout(() => {
+                saveProfile();
+            }, 1500); // Save 1.5 seconds after last change
+        }
+
         // Load profile data into form
         function loadProfileData() {
             // Personal info
@@ -4442,6 +4453,9 @@
                 const displayUsername = document.getElementById('profileUsername');
                 if (displayUsername) displayUsername.textContent = '@' + (value || 'warrior');
             }
+            
+            // Auto-save to Firebase (debounced)
+            debouncedSaveProfile();
         }
         window.updateProfileField = updateProfileField;
         
@@ -4465,6 +4479,8 @@
                 }
             });
             appState.user.healthConditions = conditions;
+            // Auto-save when conditions change
+            debouncedSaveProfile();
         }
         window.updateHealthConditions = updateHealthConditions;
         
@@ -4472,6 +4488,8 @@
         function setFitnessLevel(level) {
             appState.user.fitnessLevel = level;
             updateFitnessLevelUI(level);
+            // Auto-save when level changes
+            debouncedSaveProfile();
         }
         window.setFitnessLevel = setFitnessLevel;
         
@@ -8944,6 +8962,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     const newUserData = {
                         email: user.email,
                         displayName: displayName || user.displayName || user.email.split('@')[0],
+                        username: '',
                         friendCode: friendCode,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         lastActive: firebase.firestore.FieldValue.serverTimestamp(),
@@ -8957,7 +8976,10 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         goalWeight: null,
                         startWeight: null,
                         achievements: [],
-                        friends: []
+                        friends: [],
+                        healthConditions: [],
+                        healthNotes: '',
+                        fitnessLevel: 'beginner'
                     };
                     
                     console.log('Creating new user profile with friend code:', friendCode);
