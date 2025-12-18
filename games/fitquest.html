@@ -2651,22 +2651,22 @@
                     <!-- Add Friend Tab -->
                     <div id="friendsContentAdd" style="display: none;">
                         <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Add Friend</h3>
-                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 20px;">You can add friends with their FitQuest Friend Code.</p>
+                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 20px;">You can add friends by their username.</p>
                         
                         <div style="display: flex; gap: 10px; padding: 15px; background: var(--bg-light); border-radius: 10px; border: 2px solid var(--border); margin-bottom: 25px;">
-                            <input type="text" id="addFriendInput" placeholder="Enter a Friend Code (e.g., FIT-ABC123)" 
+                            <input type="text" id="addFriendInput" placeholder="Enter username (e.g., fitnessfan123)" 
                                    style="flex: 1; padding: 12px 15px; border: none; background: white; border-radius: 8px; font-size: 15px; outline: none;"
                                    onkeypress="if(event.key==='Enter') addFriend()">
                             <button class="btn btn-primary" onclick="addFriend()" style="padding: 12px 24px; white-space: nowrap;">Send Request</button>
                         </div>
 
                         <div style="padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px;">
-                            <h4 style="margin-bottom: 10px; font-size: 14px;">🔑 YOUR FRIEND CODE</h4>
+                            <h4 style="margin-bottom: 10px; font-size: 14px;">👤 YOUR USERNAME</h4>
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                <div style="font-size: 22px; font-weight: bold; letter-spacing: 2px;" id="friendCode">LOADING...</div>
+                                <div style="font-size: 22px; font-weight: bold; letter-spacing: 1px;" id="friendCode">LOADING...</div>
                                 <button onclick="copyFriendCode()" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; font-weight: 600;">Copy</button>
                             </div>
-                            <p style="margin-top: 10px; font-size: 13px; opacity: 0.9;">Share this code with friends so they can add you!</p>
+                            <p style="margin-top: 10px; font-size: 13px; opacity: 0.9;">Share your username with friends so they can add you!</p>
                         </div>
                     </div>
                 </div>
@@ -4626,21 +4626,24 @@
             }
         }
         
-        // Copy friend code to clipboard
+        // Copy username to clipboard (for friend adding)
         function copyFriendCode() {
-            const code = appState.user.friendCode;
-            if (code) {
-                navigator.clipboard.writeText(code).then(() => {
-                    showNotification('Friend code copied! 📋', 'success');
+            const username = appState.user.username || appState.user.name;
+            if (username) {
+                navigator.clipboard.writeText(username).then(() => {
+                    showNotification('Username copied! 📋', 'success');
                 }).catch(() => {
                     // Fallback for older browsers
-                    const input = document.getElementById('profileFriendCode');
-                    if (input) {
-                        input.select();
-                        document.execCommand('copy');
-                        showNotification('Friend code copied! 📋', 'success');
-                    }
+                    const tempInput = document.createElement('input');
+                    tempInput.value = username;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    showNotification('Username copied! 📋', 'success');
                 });
+            } else {
+                showNotification('Set a username first in your profile settings', 'warning');
             }
         }
         window.copyFriendCode = copyFriendCode;
@@ -6549,30 +6552,33 @@
             saveData();
         }
 
-        // Generate unique friend code (deprecated - now done in Firestore)
+        // Display username for friend adding (replaces old friend code display)
         function generateFriendCode() {
-            // Friend codes are now generated in Firestore when user signs up
-            // Just display the existing code
+            // Now displays username instead of friend code
             const friendCodeEl = document.getElementById('friendCode');
             if (friendCodeEl) {
-                if (currentUser && appState.user.friendCode) {
-                    friendCodeEl.textContent = appState.user.friendCode;
+                if (currentUser && appState.user.username) {
+                    friendCodeEl.textContent = appState.user.username;
+                } else if (currentUser && appState.user.name) {
+                    friendCodeEl.textContent = appState.user.name;
                 } else if (!currentUser) {
-                    friendCodeEl.textContent = 'Login to get your code';
+                    friendCodeEl.textContent = 'Login to see your username';
                 } else {
-                    friendCodeEl.textContent = 'Loading...';
+                    friendCodeEl.textContent = 'Set a username in settings';
                 }
             }
             
-            // Also update header friend code display
+            // Also update header display
             const friendCodeHeader = document.getElementById('friendCodeHeader');
             if (friendCodeHeader) {
-                if (currentUser && appState.user.friendCode) {
-                    friendCodeHeader.textContent = appState.user.friendCode;
+                if (currentUser && appState.user.username) {
+                    friendCodeHeader.textContent = appState.user.username;
+                } else if (currentUser && appState.user.name) {
+                    friendCodeHeader.textContent = appState.user.name;
                 } else if (!currentUser) {
                     friendCodeHeader.textContent = 'Login';
                 } else {
-                    friendCodeHeader.textContent = 'Loading...';
+                    friendCodeHeader.textContent = 'Set username';
                 }
             }
         }
@@ -6611,10 +6617,10 @@
                 // Use FriendsManager for friend request system
                 if (typeof friendsManager !== 'undefined' && friendsManager.sendFriendRequest) {
                     const input = document.getElementById('addFriendInput');
-                    const code = input ? input.value.trim().toUpperCase() : '';
+                    const username = input ? input.value.trim() : '';
                     
-                    if (!code) {
-                        showNotification('Please enter a friend code', 'warning');
+                    if (!username) {
+                        showNotification('Please enter a username', 'warning');
                         return;
                     }
                     
@@ -6627,8 +6633,8 @@
                     }
                     
                     try {
-                        console.log('🔍 Attempting to add friend with code:', code);
-                        await friendsManager.sendFriendRequest(code);
+                        console.log('🔍 Attempting to add friend with username:', username);
+                        await friendsManager.sendFriendRequest(username);
                         input.value = '';
                     } catch (error) {
                         console.error('Error sending friend request:', error);
@@ -9742,50 +9748,58 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 return userDoc.data()?.friendCode || null;
             },
             
-            // Find user by friend code
-            findUserByCode: async function(friendCode) {
+            // Find user by username (primary method)
+            findUserByUsername: async function(usernameInput) {
                 try {
-                    const cleanCode = friendCode.trim().toUpperCase();
-                    console.log('🔍 Looking for friend code:', cleanCode);
+                    const cleanUsername = usernameInput.trim().toLowerCase();
+                    console.log('🔍 Looking for username:', cleanUsername);
                     
-                    // First try publicProfiles collection
-                    const codeDoc = await db.collection('publicProfiles').doc(cleanCode).get();
-                    
-                    if (codeDoc.exists) {
-                        const data = codeDoc.data();
-                        console.log('✅ Found in publicProfiles:', data);
-                        return {
-                            uid: data.uid,
-                            username: data.username,
-                            displayName: data.displayName,
-                            friendCode: cleanCode
-                        };
-                    }
-                    
-                    console.log('📭 Not in publicProfiles, searching users collection...');
-                    
-                    // Fallback: search users collection by friendCode field
-                    const snapshot = await db.collection('users').where('friendCode', '==', cleanCode).get();
-                    console.log('📊 Users search found:', snapshot.size, 'results');
+                    // Search users collection by username field
+                    const snapshot = await db.collection('users').where('username', '==', cleanUsername).get();
+                    console.log('📊 Username search found:', snapshot.size, 'results');
                     
                     if (!snapshot.empty) {
                         let userData = null;
                         snapshot.forEach(doc => {
-                            userData = { uid: doc.id, ...doc.data(), friendCode: cleanCode };
-                            console.log('✅ Found user:', userData.displayName, 'UID:', doc.id);
-                            
-                            // Create publicProfile entry for this user (so future lookups are faster)
-                            db.collection('publicProfiles').doc(cleanCode).set({
-                                uid: doc.id,
-                                displayName: userData.displayName || userData.email?.split('@')[0] || 'User',
-                                username: userData.username || '',
-                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                            }).catch(err => console.log('Note: Could not create publicProfile:', err.message));
+                            userData = { uid: doc.id, ...doc.data() };
+                            console.log('✅ Found user:', userData.displayName, 'Username:', userData.username, 'UID:', doc.id);
                         });
                         return userData;
                     }
                     
-                    console.log('❌ Friend code not found anywhere:', cleanCode);
+                    // Also try displayName as fallback
+                    console.log('📭 Username not found, trying displayName...');
+                    const displayNameSnapshot = await db.collection('users').where('displayName', '==', usernameInput.trim()).get();
+                    
+                    if (!displayNameSnapshot.empty) {
+                        let userData = null;
+                        displayNameSnapshot.forEach(doc => {
+                            userData = { uid: doc.id, ...doc.data() };
+                            console.log('✅ Found user by displayName:', userData.displayName, 'UID:', doc.id);
+                        });
+                        return userData;
+                    }
+                    
+                    console.log('❌ Username not found anywhere:', cleanUsername);
+                    return null;
+                } catch (error) {
+                    console.error('Error finding user by username:', error);
+                    return null;
+                }
+            },
+            
+            // Legacy: Find user by friend code (kept for backwards compatibility)
+            findUserByCode: async function(friendCode) {
+                try {
+                    const cleanCode = friendCode.trim().toUpperCase();
+                    const snapshot = await db.collection('users').where('friendCode', '==', cleanCode).get();
+                    if (!snapshot.empty) {
+                        let userData = null;
+                        snapshot.forEach(doc => {
+                            userData = { uid: doc.id, ...doc.data() };
+                        });
+                        return userData;
+                    }
                     return null;
                 } catch (error) {
                     console.error('Error finding user by code:', error);
@@ -9814,16 +9828,16 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 }
             },
             
-            // Send friend request by friend code
-            sendFriendRequest: async function(friendCode) {
+            // Send friend request by username
+            sendFriendRequest: async function(usernameInput) {
                 if (!currentUser) throw new Error('No user logged in');
                 
-                const cleanCode = friendCode.trim().toUpperCase();
+                const cleanInput = usernameInput.trim();
                 
-                // Find user by friend code
-                const user = await this.findUserByCode(cleanCode);
+                // Find user by username
+                const user = await this.findUserByUsername(cleanInput);
                 if (!user) {
-                    showNotification('Invalid friend code', 'warning');
+                    showNotification('User not found. Check the username and try again.', 'warning');
                     return false;
                 }
                 
