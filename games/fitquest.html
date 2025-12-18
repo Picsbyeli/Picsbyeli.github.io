@@ -872,12 +872,20 @@
         }
 
         .mobile-header-logo {
-            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
             font-weight: 700;
             background: linear-gradient(135deg, var(--primary), #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .mobile-header-logo img {
+            width: 32px;
+            height: 32px;
         }
 
         .mobile-header-actions {
@@ -2445,7 +2453,10 @@
          ======================================== -->
     <header class="mobile-header">
         <div class="mobile-header-inner">
-            <div class="mobile-header-logo">FitQuest</div>
+            <div class="mobile-header-logo">
+                <img src="../assets/fitquest-logo.svg" alt="FitQuest Logo">
+                <span>FitQuest</span>
+            </div>
             <div class="mobile-header-actions">
                 <button class="mobile-header-btn" onclick="openMusicPlayer()" title="Music">🎵</button>
                 <button class="mobile-header-btn" onclick="showSection('settings')" title="Settings">⚙️</button>
@@ -2533,6 +2544,11 @@
     <div class="container">
         <!-- Header with User Stats -->
         <div class="header">
+            <!-- Desktop Logo -->
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                <img src="../assets/fitquest-logo.svg" alt="FitQuest" style="width: 48px; height: 48px;">
+                <h1 style="font-size: 28px; background: linear-gradient(135deg, #E91E8C, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0;">FitQuest</h1>
+            </div>
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div class="user-profile">
                     <div class="avatar" onclick="document.getElementById('avatarUpload').click()">
