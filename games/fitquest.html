@@ -9891,39 +9891,50 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 if (!currentUser) throw new Error('No user logged in');
                 
                 try {
-                    // Delete the request first so it disappears from pending
-                    await db.collection('friendRequests').doc(requestId).delete();
+                    console.log('🤝 Accepting friend request:', requestId, request);
                     
-                    // Get both users' data
+                    // Get both users' data first
                     const myDoc = await db.collection('users').doc(currentUser.uid).get();
                     const theirDoc = await db.collection('users').doc(request.fromUid).get();
                     
                     const myData = myDoc.data() || {};
                     const theirData = theirDoc.data() || {};
                     
-                    // Add to both users' friend subcollections
-                    await db.collection('users').doc(currentUser.uid).collection('friends').doc(request.fromUid).set({
-                        friendUid: request.fromUid,
-                        username: theirData.username || request.fromUsername,
-                        displayName: theirData.displayName || request.fromDisplayName,
-                        addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    // Use a batch write for atomicity
+                    const batch = db.batch();
                     
-                    await db.collection('users').doc(request.fromUid).collection('friends').doc(currentUser.uid).set({
-                        friendUid: currentUser.uid,
-                        username: myData.username || appState.user.username,
-                        displayName: myData.displayName || appState.user.name,
-                        addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    // Delete the friend request
+                    batch.delete(db.collection('friendRequests').doc(requestId));
                     
-                    // Also update friends array in main docs
-                    await db.collection('users').doc(currentUser.uid).update({
-                        friends: firebase.firestore.FieldValue.arrayUnion(request.fromUid)
-                    });
+                    // Add to MY friends subcollection (I can write to my own)
+                    batch.set(
+                        db.collection('users').doc(currentUser.uid).collection('friends').doc(request.fromUid),
+                        {
+                            friendUid: request.fromUid,
+                            username: theirData.username || request.fromUsername || '',
+                            displayName: theirData.displayName || request.fromDisplayName || 'User',
+                            friendCode: theirData.friendCode || '',
+                            addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }
+                    );
                     
-                    await db.collection('users').doc(request.fromUid).update({
-                        friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
-                    });
+                    // Add to THEIR friends subcollection
+                    // This requires permissive rules OR a Cloud Function
+                    // For now, we'll try it and handle the error gracefully
+                    batch.set(
+                        db.collection('users').doc(request.fromUid).collection('friends').doc(currentUser.uid),
+                        {
+                            friendUid: currentUser.uid,
+                            username: myData.username || appState.user.username || '',
+                            displayName: myData.displayName || appState.user.name || 'User',
+                            friendCode: myData.friendCode || '',
+                            addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }
+                    );
+                    
+                    // Commit the batch
+                    await batch.commit();
+                    console.log('✅ Batch write successful');
                     
                     showNotification('Friend request accepted! 🎉', 'success');
                     await loadFriendsFromFirebase(currentUser.uid);
@@ -9932,8 +9943,35 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     return true;
                 } catch (error) {
                     console.error('Error accepting friend request:', error);
-                    showNotification('Failed to accept request', 'warning');
-                    return false;
+                    
+                    // If batch failed, try just adding to our side
+                    try {
+                        console.log('🔄 Trying fallback - adding friend to my list only');
+                        
+                        const theirDoc = await db.collection('users').doc(request.fromUid).get();
+                        const theirData = theirDoc.data() || {};
+                        
+                        // Delete the request
+                        await db.collection('friendRequests').doc(requestId).delete();
+                        
+                        // Add to my friends
+                        await db.collection('users').doc(currentUser.uid).collection('friends').doc(request.fromUid).set({
+                            friendUid: request.fromUid,
+                            username: theirData.username || request.fromUsername || '',
+                            displayName: theirData.displayName || request.fromDisplayName || 'User',
+                            friendCode: theirData.friendCode || '',
+                            addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        showNotification('Friend added! 🎉', 'success');
+                        await loadFriendsFromFirebase(currentUser.uid);
+                        renderFriendsList();
+                        return true;
+                    } catch (fallbackError) {
+                        console.error('Fallback also failed:', fallbackError);
+                        showNotification('Failed to accept: ' + fallbackError.message, 'warning');
+                        return false;
+                    }
                 }
             },
             
