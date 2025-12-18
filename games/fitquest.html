@@ -4237,7 +4237,9 @@
             document.getElementById('xpFill').style.width = xpPercent + '%';
             
             // Update friend code display (both elements)
-            generateFriendCode();
+            if (typeof generateFriendCode === 'function') {
+                generateFriendCode();
+            }
 
             renderExercises();
             renderAchievements();
@@ -6576,23 +6578,6 @@
             }
             
             console.log('🔑 Friend code display updated:', code || 'none');
-        }
-
-        // Copy friend code
-        function copyFriendCode() {
-            const code = appState.user.friendCode;
-            navigator.clipboard.writeText(code).then(() => {
-                showNotification('Friend code copied to clipboard! 📋', 'success');
-            }).catch(() => {
-                // Fallback for older browsers
-                const textarea = document.createElement('textarea');
-                textarea.value = code;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showNotification('Friend code copied! 📋', 'success');
-            });
         }
 
         // Switch between Friends tabs (Discord-style)
