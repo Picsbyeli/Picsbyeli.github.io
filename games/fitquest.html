@@ -9651,13 +9651,13 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             }
         }
 
-        // Add friend by friend code (real users only)
+        // Add friend by username (fallback function)
         async function addFriendByCode() {
             const input = document.getElementById('addFriendInput') || document.getElementById('friendCodeInput');
-            const code = input ? input.value.trim().toUpperCase() : '';
+            const username = input ? input.value.trim().toLowerCase() : '';
             
-            if (!code) {
-                showNotification('Please enter a friend code', 'warning');
+            if (!username) {
+                showNotification('Please enter a username', 'warning');
                 return;
             }
 
@@ -9668,17 +9668,34 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             }
 
             try {
-                console.log('🔍 Searching for friend code:', code);
+                console.log('🔍 Searching for username:', username);
                 
-                // Search for user with this friend code
-                const snapshot = await db.collection('users').where('friendCode', '==', code).get();
+                // Search for user with this username
+                const snapshot = await db.collection('users').where('username', '==', username).get();
                 
                 console.log('📊 Search results:', snapshot.size, 'users found');
                 
                 if (snapshot.empty) {
-                    showNotification('❌ Friend code not found. Please check and try again.', 'warning');
-                    console.error('No user found with friend code:', code);
-                    return;
+                    // Try displayName as fallback
+                    const displayNameSnapshot = await db.collection('users').where('displayName', '==', input.value.trim()).get();
+                    
+                    if (displayNameSnapshot.empty) {
+                        showNotification('❌ User not found. Please check the username and try again.', 'warning');
+                        console.error('No user found with username:', username);
+                        return;
+                    }
+                    
+                    // Use displayName result
+                    displayNameSnapshot.forEach((doc) => {
+                        friendData = doc.data();
+                        friendUid = doc.id;
+                    });
+                } else {
+                    snapshot.forEach((doc) => {
+                        friendData = doc.data();
+                        friendUid = doc.id;
+                        console.log('✅ Found user:', friendData.displayName, 'Username:', friendData.username, 'UID:', friendUid);
+                    });
                 }
                 
                 let friendData = null;
@@ -9705,23 +9722,27 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     return;
                 }
                 
-                console.log('➕ Adding friend...');
+                // Use friend request system instead of direct add
+                if (typeof friendsManager !== 'undefined' && friendsManager.sendFriendRequest) {
+                    await friendsManager.sendFriendRequest(username);
+                } else {
+                    // Fallback: direct add (both ways)
+                    console.log('➕ Adding friend directly...');
+                    
+                    await myUserDocRef.update({
+                        friends: firebase.firestore.FieldValue.arrayUnion(friendUid)
+                    });
+                    
+                    await db.collection('users').doc(friendUid).update({
+                        friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                    });
+                    
+                    appState.friends.push({ uid: friendUid, ...friendData });
+                    console.log('✅ Friend added successfully!');
+                    showNotification(`Added ${friendData.displayName} as a friend! 🎉`, 'success');
+                }
                 
-                // Add friend (bidirectional)
-                await myUserDocRef.update({
-                    friends: firebase.firestore.FieldValue.arrayUnion(friendUid)
-                });
-                
-                await db.collection('users').doc(friendUid).update({
-                    friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
-                });
-                
-                // Add to local state
-                appState.friends.push({ uid: friendUid, ...friendData });
                 input.value = '';
-                
-                console.log('✅ Friend added successfully!');
-                showNotification(`Added ${friendData.displayName} as a friend! 🎉`, 'success');
                 renderFriendsList();
                 renderLeaderboard();
                 
@@ -9995,27 +10016,6 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     return null;
                 } catch (error) {
                     console.error('Error finding user by code:', error);
-                    return null;
-                }
-            },
-            
-            // Find user by username
-            findUserByUsername: async function(username) {
-                try {
-                    const snapshot = await db.collection('publicProfiles')
-                        .where('username', '==', username.toLowerCase())
-                        .get();
-                    
-                    if (!snapshot.empty) {
-                        let userData = null;
-                        snapshot.forEach(doc => {
-                            userData = { friendCode: doc.id, ...doc.data() };
-                        });
-                        return userData;
-                    }
-                    return null;
-                } catch (error) {
-                    console.error('Error finding user by username:', error);
                     return null;
                 }
             },
