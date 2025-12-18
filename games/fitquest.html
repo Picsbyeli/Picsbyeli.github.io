@@ -4236,11 +4236,8 @@
             const xpPercent = (appState.user.xp / appState.user.maxXP) * 100;
             document.getElementById('xpFill').style.width = xpPercent + '%';
             
-            // Update friend code display
-            const friendCodeEl = document.getElementById('friendCode');
-            if (friendCodeEl && appState.user.friendCode) {
-                friendCodeEl.textContent = appState.user.friendCode;
-            }
+            // Update friend code display (both elements)
+            generateFriendCode();
 
             renderExercises();
             renderAchievements();
@@ -6556,9 +6553,11 @@
             const friendCodeEl = document.getElementById('friendCode');
             const friendCodeDisplayEl = document.getElementById('friendCodeDisplay');
             
+            const code = appState.user.friendCode;
+            
             if (friendCodeEl) {
-                if (currentUser && appState.user.friendCode) {
-                    friendCodeEl.textContent = appState.user.friendCode;
+                if (currentUser && code) {
+                    friendCodeEl.textContent = code;
                 } else if (!currentUser) {
                     friendCodeEl.textContent = 'Login to get your code';
                 } else {
@@ -6567,14 +6566,16 @@
             }
             
             if (friendCodeDisplayEl) {
-                if (currentUser && appState.user.friendCode) {
-                    friendCodeDisplayEl.textContent = appState.user.friendCode;
+                if (currentUser && code) {
+                    friendCodeDisplayEl.textContent = code;
                 } else if (!currentUser) {
                     friendCodeDisplayEl.textContent = 'Login';
                 } else {
                     friendCodeDisplayEl.textContent = 'Loading...';
                 }
             }
+            
+            console.log('🔑 Friend code display updated:', code || 'none');
         }
 
         // Copy friend code
@@ -9308,6 +9309,9 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     await loadFriendsFromFirebase(uid);
                     await loadChallengesFromFirebase(uid);
                     
+                    // Update friend code display immediately
+                    generateFriendCode();
+                    
                     updateUI();
                     renderProgressTimeline();
                     renderLeaderboard();
@@ -9859,17 +9863,19 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     const requestId = existingIncoming.docs[0].id;
                     const requestData = existingIncoming.docs[0].data();
                     await this.acceptFriendRequest(requestId, requestData);
-                    showNotification('Friend request auto-accepted! You\'re now friends! 🎉', 'success');
+                    showNotification('Friend request auto-accepted! You\\'re now friends! 🎉', 'success');
                     return true;
                 }
                 
-                // Create friend request
+                // Create friend request with full user info
                 await db.collection('friendRequests').add({
                     fromUid: currentUser.uid,
                     fromUsername: appState.user.username || 'User',
                     fromDisplayName: appState.user.name || currentUser.displayName || 'User',
+                    fromFriendCode: appState.user.friendCode || '',
                     toUid,
                     toUsername: toUsername,
+                    toDisplayName: user.displayName || toUsername || 'User',
                     status: 'pending',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -9882,67 +9888,87 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             acceptFriendRequest: async function(requestId, request) {
                 if (!currentUser) throw new Error('No user logged in');
                 
-                // Update request status
-                await db.collection('friendRequests').doc(requestId).update({
-                    status: 'accepted',
-                    acceptedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Get both users' data
-                const myDoc = await db.collection('users').doc(currentUser.uid).get();
-                const theirDoc = await db.collection('users').doc(request.fromUid).get();
-                
-                const myData = myDoc.data() || {};
-                const theirData = theirDoc.data() || {};
-                
-                // Add to both users' friend subcollections
-                await db.collection('users').doc(currentUser.uid).collection('friends').doc(request.fromUid).set({
-                    friendUid: request.fromUid,
-                    username: theirData.username || request.fromUsername,
-                    displayName: theirData.displayName || request.fromDisplayName,
-                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                await db.collection('users').doc(request.fromUid).collection('friends').doc(currentUser.uid).set({
-                    friendUid: currentUser.uid,
-                    username: myData.username || appState.user.username,
-                    displayName: myData.displayName || appState.user.name,
-                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Also update friends array in main docs
-                await db.collection('users').doc(currentUser.uid).update({
-                    friends: firebase.firestore.FieldValue.arrayUnion(request.fromUid)
-                });
-                
-                await db.collection('users').doc(request.fromUid).update({
-                    friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
-                });
-                
-                showNotification('Friend request accepted! 🎉', 'success');
-                await loadFriendsFromFirebase(currentUser.uid);
-                renderFriendsList();
-                
-                return true;
+                try {
+                    // Update request status
+                    await db.collection('friendRequests').doc(requestId).update({
+                        status: 'accepted',
+                        acceptedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Get both users' data
+                    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+                    const theirDoc = await db.collection('users').doc(request.fromUid).get();
+                    
+                    const myData = myDoc.data() || {};
+                    const theirData = theirDoc.data() || {};
+                    
+                    // Add to both users' friend subcollections
+                    await db.collection('users').doc(currentUser.uid).collection('friends').doc(request.fromUid).set({
+                        friendUid: request.fromUid,
+                        username: theirData.username || request.fromUsername,
+                        displayName: theirData.displayName || request.fromDisplayName,
+                        friendCode: theirData.friendCode || '',
+                        addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    await db.collection('users').doc(request.fromUid).collection('friends').doc(currentUser.uid).set({
+                        friendUid: currentUser.uid,
+                        username: myData.username || appState.user.username,
+                        displayName: myData.displayName || appState.user.name,
+                        friendCode: myData.friendCode || appState.user.friendCode || '',
+                        addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Also update friends array in main docs
+                    await db.collection('users').doc(currentUser.uid).update({
+                        friends: firebase.firestore.FieldValue.arrayUnion(request.fromUid)
+                    });
+                    
+                    await db.collection('users').doc(request.fromUid).update({
+                        friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                    });
+                    
+                    // Delete the request after accepting
+                    await db.collection('friendRequests').doc(requestId).delete();
+                    
+                    showNotification('Friend request accepted! 🎉', 'success');
+                    await loadFriendsFromFirebase(currentUser.uid);
+                    renderFriendsList();
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error accepting friend request:', error);
+                    showNotification('Failed to accept request', 'warning');
+                    return false;
+                }
             },
             
             // Decline friend request
             declineFriendRequest: async function(requestId) {
                 if (!currentUser) throw new Error('No user logged in');
-                await db.collection('friendRequests').doc(requestId).delete();
-                showNotification('Friend request declined', 'info');
-                return true;
+                try {
+                    await db.collection('friendRequests').doc(requestId).delete();
+                    showNotification('Friend request declined', 'info');
+                    return true;
+                } catch (error) {
+                    console.error('Error declining friend request:', error);
+                    showNotification('Failed to decline request', 'warning');
+                    return false;
+                }
             },
             
             // Cancel sent friend request
             cancelFriendRequest: async function(requestId) {
                 if (!currentUser) throw new Error('No user logged in');
-                await db.collection('friendRequests').doc(requestId).update({
-                    status: 'cancelled',
-                    cancelledAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                showNotification('Friend request cancelled', 'info');
-                return true;
+                try {
+                    await db.collection('friendRequests').doc(requestId).delete();
+                    showNotification('Friend request cancelled', 'info');
+                    return true;
+                } catch (error) {
+                    console.error('Error cancelling friend request:', error);
+                    showNotification('Failed to cancel request', 'warning');
+                    return false;
+                }
             },
             
             // Remove friend
@@ -10136,14 +10162,15 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                     html += '<div>';
                     html += '<div style="margin-bottom: 12px; color: var(--text-light); font-size: 12px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Outgoing — ' + outgoing.length + '</div>';
                     outgoing.forEach(req => {
+                        const displayName = req.toDisplayName || req.toUsername || 'User';
                         html += `
                             <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--bg-light); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border);">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--text-light); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px;">
-                                        ${(req.toUsername || 'U').charAt(0).toUpperCase()}
+                                        ${displayName.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 2px;">${req.toUsername || 'User'}</div>
+                                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 2px;">${displayName}</div>
                                         <div style="font-size: 12px; color: var(--text-light);">Outgoing Friend Request</div>
                                     </div>
                                 </div>
