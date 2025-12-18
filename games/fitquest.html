@@ -6606,7 +6606,7 @@
         window.switchFriendsTab = switchFriendsTab;
 
         // Add friend - uses friend request system if logged in
-        function addFriend() {
+        async function addFriend() {
             if (currentUser) {
                 // Use FriendsManager for friend request system
                 if (typeof friendsManager !== 'undefined' && friendsManager.sendFriendRequest) {
@@ -6618,9 +6618,29 @@
                         return;
                     }
                     
-                    friendsManager.sendFriendRequest(code);
-                    input.value = '';
+                    // Show loading state
+                    const btn = event?.target;
+                    const originalText = btn?.textContent;
+                    if (btn) {
+                        btn.textContent = 'Searching...';
+                        btn.disabled = true;
+                    }
+                    
+                    try {
+                        console.log('🔍 Attempting to add friend with code:', code);
+                        await friendsManager.sendFriendRequest(code);
+                        input.value = '';
+                    } catch (error) {
+                        console.error('Error sending friend request:', error);
+                        showNotification('Error: ' + error.message, 'warning');
+                    } finally {
+                        if (btn) {
+                            btn.textContent = originalText || 'Send Request';
+                            btn.disabled = false;
+                        }
+                    }
                 } else {
+                    console.log('FriendsManager not available, using fallback');
                     // Fallback to direct add
                     addFriendByCode();
                 }
@@ -9726,10 +9746,14 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             findUserByCode: async function(friendCode) {
                 try {
                     const cleanCode = friendCode.trim().toUpperCase();
+                    console.log('🔍 Looking for friend code:', cleanCode);
+                    
+                    // First try publicProfiles collection
                     const codeDoc = await db.collection('publicProfiles').doc(cleanCode).get();
                     
                     if (codeDoc.exists) {
                         const data = codeDoc.data();
+                        console.log('✅ Found in publicProfiles:', data);
                         return {
                             uid: data.uid,
                             username: data.username,
@@ -9738,16 +9762,30 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         };
                     }
                     
-                    // Fallback: search users collection
+                    console.log('📭 Not in publicProfiles, searching users collection...');
+                    
+                    // Fallback: search users collection by friendCode field
                     const snapshot = await db.collection('users').where('friendCode', '==', cleanCode).get();
+                    console.log('📊 Users search found:', snapshot.size, 'results');
+                    
                     if (!snapshot.empty) {
                         let userData = null;
                         snapshot.forEach(doc => {
                             userData = { uid: doc.id, ...doc.data(), friendCode: cleanCode };
+                            console.log('✅ Found user:', userData.displayName, 'UID:', doc.id);
+                            
+                            // Create publicProfile entry for this user (so future lookups are faster)
+                            db.collection('publicProfiles').doc(cleanCode).set({
+                                uid: doc.id,
+                                displayName: userData.displayName || userData.email?.split('@')[0] || 'User',
+                                username: userData.username || '',
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }).catch(err => console.log('Note: Could not create publicProfile:', err.message));
                         });
                         return userData;
                     }
                     
+                    console.log('❌ Friend code not found anywhere:', cleanCode);
                     return null;
                 } catch (error) {
                     console.error('Error finding user by code:', error);
