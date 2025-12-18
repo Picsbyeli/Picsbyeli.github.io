@@ -1038,6 +1038,31 @@
             color: var(--primary);
         }
 
+        /* Friends Tab Styles */
+        .friends-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .friends-tab:hover {
+            background: rgba(99, 102, 241, 0.05);
+            color: var(--primary);
+        }
+        
+        .friends-tab.active {
+            background: white;
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+
         .progress-stat-label {
             font-size: 12px;
             color: var(--text-light);
@@ -2570,58 +2595,80 @@
 
         <!-- Friends Section -->
         <div id="friends" class="content-section">
-            <h2 style="margin-bottom: 20px;">👥 Friends</h2>
-            
-            <!-- Friend Code Section -->
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-                <h3 style="margin-bottom: 15px;">🔑 Your Friend Code</h3>
-                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <div style="font-size: 24px; font-weight: bold; letter-spacing: 2px;" id="friendCode">LOADING...</div>
-                        <p style="margin-top: 5px; font-size: 14px; opacity: 0.9;">Share this code with friends to connect</p>
+            <!-- Discord-style Header -->
+            <div style="background: white; padding: 20px 25px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <h2 style="margin: 0;">Friends</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="color: var(--text-light); font-size: 14px;">Your Code:</span>
+                        <strong style="color: var(--primary); letter-spacing: 1px; font-size: 16px;" id="friendCodeHeader">LOADING...</strong>
+                        <button class="btn" onclick="copyFriendCode()" style="padding: 6px 12px; font-size: 13px;">📋 Copy</button>
                     </div>
-                    <button class="btn" onclick="copyFriendCode()" style="background: white; color: var(--primary);">
-                        📋 Copy Code
+                </div>
+            </div>
+
+            <!-- Discord-style Tabs -->
+            <div style="background: white; border-radius: 15px; border: 2px solid var(--border); overflow: hidden;">
+                <!-- Tab Navigation -->
+                <div style="display: flex; border-bottom: 2px solid var(--border); background: #f9fafb;">
+                    <button id="friendsTabAll" onclick="switchFriendsTab('all')" class="friends-tab active">
+                        👥 All Friends
+                    </button>
+                    <button id="friendsTabPending" onclick="switchFriendsTab('pending')" class="friends-tab">
+                        📥 Pending <span id="pendingBadge" style="display: none; background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 5px;">0</span>
+                    </button>
+                    <button id="friendsTabAdd" onclick="switchFriendsTab('add')" class="friends-tab">
+                        ➕ Add Friend
                     </button>
                 </div>
-            </div>
 
-            <!-- Pending Friend Requests -->
-            <div id="friendRequestsSection" style="display: none; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-                <h3 style="margin-bottom: 15px;">📬 Pending Friend Requests</h3>
-                <div id="friendRequestsContainer">
-                    <!-- Friend requests will be populated here -->
-                </div>
-            </div>
+                <!-- Tab Content -->
+                <div style="padding: 25px;">
+                    <!-- All Friends Tab -->
+                    <div id="friendsContentAll">
+                        <div style="margin-bottom: 15px; color: var(--text-light); font-size: 13px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                            All Friends — <span id="friendsCount">0</span>
+                        </div>
+                        <div id="friendsList"></div>
+                        <div id="emptyFriendsState" style="display: none; text-align: center; padding: 50px 20px;">
+                            <div style="font-size: 60px; margin-bottom: 15px;">👥</div>
+                            <h4 style="color: var(--text-dark); margin-bottom: 10px;">No friends yet</h4>
+                            <p style="color: var(--text-light); font-size: 14px; margin-bottom: 20px;">Add friends to see them here!</p>
+                            <button class="btn btn-primary" onclick="switchFriendsTab('add')">Add Friend</button>
+                        </div>
+                    </div>
 
-            <!-- Add Friend Section -->
-            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 15px;">➕ Add a Friend</h3>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input 
-                        type="text" 
-                        id="addFriendInput" 
-                        placeholder="Enter friend code (e.g., FIT-ABC123)"
-                        style="flex: 1; min-width: 200px; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 16px;"
-                    >
-                    <button class="btn btn-primary" onclick="addFriend()">
-                        Add Friend
-                    </button>
-                </div>
-            </div>
+                    <!-- Pending Tab -->
+                    <div id="friendsContentPending" style="display: none;">
+                        <div id="friendRequestsContainer"></div>
+                        <div id="emptyPendingState" style="text-align: center; padding: 50px 20px;">
+                            <div style="font-size: 60px; margin-bottom: 15px;">📭</div>
+                            <h4 style="color: var(--text-dark); margin-bottom: 10px;">No pending requests</h4>
+                            <p style="color: var(--text-light); font-size: 14px;">Friend requests you send or receive will appear here.</p>
+                        </div>
+                    </div>
 
-            <!-- Friends List -->
-            <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">👥 My Friends</h3>
-                <div id="friendsList">
-                    <!-- Friends will be displayed here with their friend codes -->
-                </div>
-                
-                <!-- Empty State -->
-                <div id="emptyFriendsState" style="display: none; text-align: center; padding: 40px 20px;">
-                    <div style="font-size: 64px; margin-bottom: 15px;">👥</div>
-                    <h4 style="color: var(--text-light); margin-bottom: 10px;">No friends yet</h4>
-                    <p style="color: var(--text-light); font-size: 14px;">Add friends using their friend code above!</p>
+                    <!-- Add Friend Tab -->
+                    <div id="friendsContentAdd" style="display: none;">
+                        <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Add Friend</h3>
+                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 20px;">You can add friends with their FitQuest Friend Code.</p>
+                        
+                        <div style="display: flex; gap: 10px; padding: 15px; background: var(--bg-light); border-radius: 10px; border: 2px solid var(--border); margin-bottom: 25px;">
+                            <input type="text" id="addFriendInput" placeholder="Enter a Friend Code (e.g., FIT-ABC123)" 
+                                   style="flex: 1; padding: 12px 15px; border: none; background: white; border-radius: 8px; font-size: 15px; outline: none;"
+                                   onkeypress="if(event.key==='Enter') addFriend()">
+                            <button class="btn btn-primary" onclick="addFriend()" style="padding: 12px 24px; white-space: nowrap;">Send Request</button>
+                        </div>
+
+                        <div style="padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px;">
+                            <h4 style="margin-bottom: 10px; font-size: 14px;">🔑 YOUR FRIEND CODE</h4>
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div style="font-size: 22px; font-weight: bold; letter-spacing: 2px;" id="friendCode">LOADING...</div>
+                                <button onclick="copyFriendCode()" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; font-weight: 600;">Copy</button>
+                            </div>
+                            <p style="margin-top: 10px; font-size: 13px; opacity: 0.9;">Share this code with friends so they can add you!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -2629,14 +2676,9 @@
             <div style="background: white; padding: 25px; border-radius: 15px; margin-top: 25px; border: 2px solid var(--border);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                     <h3>📊 My Progress Summary</h3>
-                    <button class="btn btn-success" onclick="shareProgress()">
-                        📤 Share Progress
-                    </button>
+                    <button class="btn btn-success" onclick="shareProgress()">📤 Share Progress</button>
                 </div>
-                
-                <div id="progressSummary" style="display: grid; gap: 15px;">
-                    <!-- Progress summary cards -->
-                </div>
+                <div id="progressSummary" style="display: grid; gap: 15px;"></div>
             </div>
         </div>
 
@@ -6521,24 +6563,47 @@
                     friendCodeEl.textContent = 'Loading...';
                 }
             }
+            
+            // Also update header friend code display
+            const friendCodeHeader = document.getElementById('friendCodeHeader');
+            if (friendCodeHeader) {
+                if (currentUser && appState.user.friendCode) {
+                    friendCodeHeader.textContent = appState.user.friendCode;
+                } else if (!currentUser) {
+                    friendCodeHeader.textContent = 'Login';
+                } else {
+                    friendCodeHeader.textContent = 'Loading...';
+                }
+            }
         }
 
-        // Copy friend code
-        function copyFriendCode() {
-            const code = appState.user.friendCode;
-            navigator.clipboard.writeText(code).then(() => {
-                showNotification('Friend code copied to clipboard! 📋', 'success');
-            }).catch(() => {
-                // Fallback for older browsers
-                const textarea = document.createElement('textarea');
-                textarea.value = code;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showNotification('Friend code copied! 📋', 'success');
-            });
+        // Switch between Friends tabs (Discord-style)
+        function switchFriendsTab(tab) {
+            // Hide all content
+            const allContent = document.getElementById('friendsContentAll');
+            const pendingContent = document.getElementById('friendsContentPending');
+            const addContent = document.getElementById('friendsContentAdd');
+            
+            if (allContent) allContent.style.display = 'none';
+            if (pendingContent) pendingContent.style.display = 'none';
+            if (addContent) addContent.style.display = 'none';
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.friends-tab').forEach(t => t.classList.remove('active'));
+            
+            // Show selected tab and activate button
+            if (tab === 'all') {
+                if (allContent) allContent.style.display = 'block';
+                document.getElementById('friendsTabAll')?.classList.add('active');
+            } else if (tab === 'pending') {
+                if (pendingContent) pendingContent.style.display = 'block';
+                document.getElementById('friendsTabPending')?.classList.add('active');
+            } else if (tab === 'add') {
+                if (addContent) addContent.style.display = 'block';
+                document.getElementById('friendsTabAdd')?.classList.add('active');
+            }
         }
+        window.switchFriendsTab = switchFriendsTab;
 
         // Add friend - uses friend request system if logged in
         function addFriend() {
@@ -6570,6 +6635,12 @@
         function renderFriendsList() {
             const container = document.getElementById('friendsList');
             const emptyState = document.getElementById('emptyFriendsState');
+            const friendsCount = document.getElementById('friendsCount');
+            
+            // Update friends count
+            if (friendsCount) {
+                friendsCount.textContent = appState.friends.length;
+            }
             
             if (appState.friends.length === 0) {
                 if (container) container.innerHTML = '';
@@ -9781,67 +9852,79 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             acceptFriendRequest: async function(requestId, request) {
                 if (!currentUser) throw new Error('No user logged in');
                 
-                // Update request status
-                await db.collection('friendRequests').doc(requestId).update({
-                    status: 'accepted',
-                    acceptedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Get both users' data
-                const myDoc = await db.collection('users').doc(currentUser.uid).get();
-                const theirDoc = await db.collection('users').doc(request.fromUid).get();
-                
-                const myData = myDoc.data() || {};
-                const theirData = theirDoc.data() || {};
-                
-                // Add to both users' friend subcollections
-                await db.collection('users').doc(currentUser.uid).collection('friends').doc(request.fromUid).set({
-                    friendUid: request.fromUid,
-                    username: theirData.username || request.fromUsername,
-                    displayName: theirData.displayName || request.fromDisplayName,
-                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                await db.collection('users').doc(request.fromUid).collection('friends').doc(currentUser.uid).set({
-                    friendUid: currentUser.uid,
-                    username: myData.username || appState.user.username,
-                    displayName: myData.displayName || appState.user.name,
-                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Also update friends array in main docs
-                await db.collection('users').doc(currentUser.uid).update({
-                    friends: firebase.firestore.FieldValue.arrayUnion(request.fromUid)
-                });
-                
-                await db.collection('users').doc(request.fromUid).update({
-                    friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
-                });
-                
-                showNotification('Friend request accepted! 🎉', 'success');
-                await loadFriendsFromFirebase(currentUser.uid);
-                renderFriendsList();
-                
-                return true;
+                try {
+                    // Delete the request first so it disappears from pending
+                    await db.collection('friendRequests').doc(requestId).delete();
+                    
+                    // Get both users' data
+                    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+                    const theirDoc = await db.collection('users').doc(request.fromUid).get();
+                    
+                    const myData = myDoc.data() || {};
+                    const theirData = theirDoc.data() || {};
+                    
+                    // Add to both users' friend subcollections
+                    await db.collection('users').doc(currentUser.uid).collection('friends').doc(request.fromUid).set({
+                        friendUid: request.fromUid,
+                        username: theirData.username || request.fromUsername,
+                        displayName: theirData.displayName || request.fromDisplayName,
+                        addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    await db.collection('users').doc(request.fromUid).collection('friends').doc(currentUser.uid).set({
+                        friendUid: currentUser.uid,
+                        username: myData.username || appState.user.username,
+                        displayName: myData.displayName || appState.user.name,
+                        addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Also update friends array in main docs
+                    await db.collection('users').doc(currentUser.uid).update({
+                        friends: firebase.firestore.FieldValue.arrayUnion(request.fromUid)
+                    });
+                    
+                    await db.collection('users').doc(request.fromUid).update({
+                        friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                    });
+                    
+                    showNotification('Friend request accepted! 🎉', 'success');
+                    await loadFriendsFromFirebase(currentUser.uid);
+                    renderFriendsList();
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error accepting friend request:', error);
+                    showNotification('Failed to accept request', 'warning');
+                    return false;
+                }
             },
             
             // Decline friend request
             declineFriendRequest: async function(requestId) {
                 if (!currentUser) throw new Error('No user logged in');
-                await db.collection('friendRequests').doc(requestId).delete();
-                showNotification('Friend request declined', 'info');
-                return true;
+                try {
+                    await db.collection('friendRequests').doc(requestId).delete();
+                    showNotification('Friend request declined', 'info');
+                    return true;
+                } catch (error) {
+                    console.error('Error declining friend request:', error);
+                    showNotification('Failed to decline request', 'warning');
+                    return false;
+                }
             },
             
             // Cancel sent friend request
             cancelFriendRequest: async function(requestId) {
                 if (!currentUser) throw new Error('No user logged in');
-                await db.collection('friendRequests').doc(requestId).update({
-                    status: 'cancelled',
-                    cancelledAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                showNotification('Friend request cancelled', 'info');
-                return true;
+                try {
+                    await db.collection('friendRequests').doc(requestId).delete();
+                    showNotification('Friend request cancelled', 'info');
+                    return true;
+                } catch (error) {
+                    console.error('Error cancelling friend request:', error);
+                    showNotification('Failed to cancel request', 'warning');
+                    return false;
+                }
             },
             
             // Remove friend
@@ -9978,54 +10061,79 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             // Render friend requests UI
             renderFriendRequests: function() {
                 const container = document.getElementById('friendRequestsContainer');
-                const section = document.getElementById('friendRequestsSection');
+                const emptyState = document.getElementById('emptyPendingState');
+                const badge = document.getElementById('pendingBadge');
                 if (!container) return;
                 
                 const { incoming, outgoing } = this.friendRequests;
+                const totalPending = incoming.length + outgoing.length;
                 
-                // Show/hide the entire section based on whether there are requests
-                if (incoming.length === 0 && outgoing.length === 0) {
-                    if (section) section.style.display = 'none';
+                // Update badge count
+                if (badge) {
+                    if (totalPending > 0) {
+                        badge.textContent = totalPending;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+                
+                // Show/hide empty state
+                if (totalPending === 0) {
                     container.innerHTML = '';
+                    if (emptyState) emptyState.style.display = 'block';
                     return;
                 }
                 
-                // Show the section if there are requests
-                if (section) section.style.display = 'block';
+                if (emptyState) emptyState.style.display = 'none';
                 
                 let html = '';
                 
                 if (incoming.length > 0) {
-                    html += '<h4 style="margin-bottom: 10px; color: white;">📥 Incoming Requests</h4>';
+                    html += '<div style="margin-bottom: 20px;">';
+                    html += '<div style="margin-bottom: 12px; color: var(--text-light); font-size: 12px; text-transform: uppercase; font-weight: 600;">Incoming — ' + incoming.length + '</div>';
                     incoming.forEach(req => {
                         html += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-bottom: 10px;">
-                                <div>
-                                    <strong style="color: white;">${req.fromDisplayName || req.fromUsername || 'User'}</strong>
-                                    <p style="font-size: 12px; color: rgba(255,255,255,0.8);">@${req.fromUsername || 'user'}</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--bg-light); border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px;">
+                                        ${(req.fromDisplayName || req.fromUsername || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--text-dark);">${req.fromDisplayName || req.fromUsername || 'User'}</div>
+                                        <div style="font-size: 12px; color: var(--text-light);">Incoming Friend Request</div>
+                                    </div>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <button onclick="friendsManager.acceptFriendRequest('${req.id}', ${JSON.stringify(req).replace(/"/g, '&quot;')})" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✓ Accept</button>
-                                    <button onclick="friendsManager.declineFriendRequest('${req.id}')" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✗ Decline</button>
+                                    <button onclick="friendsManager.acceptFriendRequest('${req.id}', ${JSON.stringify(req).replace(/"/g, '&quot;')})" style="width: 36px; height: 36px; background: #10b981; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 16px;" title="Accept">✓</button>
+                                    <button onclick="friendsManager.declineFriendRequest('${req.id}')" style="width: 36px; height: 36px; background: #ef4444; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 16px;" title="Decline">✕</button>
                                 </div>
                             </div>
                         `;
                     });
+                    html += '</div>';
                 }
                 
                 if (outgoing.length > 0) {
-                    html += '<h4 style="margin: 15px 0 10px; color: white;">📤 Sent Requests</h4>';
+                    html += '<div>';
+                    html += '<div style="margin-bottom: 12px; color: var(--text-light); font-size: 12px; text-transform: uppercase; font-weight: 600;">Outgoing — ' + outgoing.length + '</div>';
                     outgoing.forEach(req => {
                         html += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.15); border-radius: 10px; margin-bottom: 10px;">
-                                <div>
-                                    <strong style="color: white;">${req.toUsername || 'User'}</strong>
-                                    <p style="font-size: 12px; color: rgba(255,255,255,0.7);">📬 Requested</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--bg-light); border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--text-light); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px;">
+                                        ${(req.toUsername || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--text-dark);">${req.toUsername || 'User'}</div>
+                                        <div style="font-size: 12px; color: var(--text-light);">Outgoing Friend Request</div>
+                                    </div>
                                 </div>
-                                <button onclick="friendsManager.cancelFriendRequest('${req.id}')" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+                                <button onclick="friendsManager.cancelFriendRequest('${req.id}')" style="padding: 8px 16px; background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; cursor: pointer; font-weight: 600;">Cancel</button>
                             </div>
                         `;
                     });
+                    html += '</div>';
                 }
                 
                 container.innerHTML = html;
