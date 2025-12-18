@@ -1896,6 +1896,70 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
 
+        /* Stay on the Grind Button Styles */
+        .grind-button {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .grind-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+        }
+
+        .grind-button:disabled {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            cursor: default;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .grind-timer {
+            font-size: 14px;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .daily-tracker-card {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tracker-status-active {
+            background: #10b981;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .tracker-status-waiting {
+            background: #f59e0b;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
         .form-input {
             width: 100%;
             padding: 12px;
@@ -1909,9 +1973,259 @@
             outline: none;
             border-color: var(--primary);
         }
+
+        /* Hamburger Menu */
+        .hamburger-menu {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+
+        .hamburger-menu:hover {
+            transform: scale(1.05);
+        }
+
+        .hamburger-line {
+            width: 24px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        .hamburger-menu.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .hamburger-menu.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-menu.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* Slide-out Navigation */
+        .slide-nav {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            box-shadow: 5px 0 30px rgba(0,0,0,0.2);
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            padding: 80px 20px 20px;
+        }
+
+        .slide-nav.active {
+            left: 0;
+        }
+
+        .slide-nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+        }
+
+        .slide-nav-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .nav-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 18px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .nav-menu-item:hover {
+            background: var(--bg-light);
+        }
+
+        .nav-menu-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .nav-menu-item .nav-icon {
+            font-size: 22px;
+            width: 28px;
+            text-align: center;
+        }
+
+        .nav-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 20px 18px 10px;
+            margin-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Modal Close Button */
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--text-dark);
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .modal-close-btn:hover {
+            background: #e5e7eb;
+            transform: scale(1.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+
+        .modal-back-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Settings gear button */
+        .settings-gear {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: white;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            cursor: pointer;
+            font-size: 24px;
+            transition: transform 0.3s;
+        }
+
+        .settings-gear:hover {
+            transform: rotate(90deg);
+        }
+
+        /* Hide old nav tabs by default on mobile */
+        @media (max-width: 768px) {
+            .nav-tabs {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Hamburger Menu Button -->
+    <div class="hamburger-menu" onclick="toggleSlideNav()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <!-- Settings Gear -->
+    <div class="settings-gear" onclick="showSection('settings')">⚙️</div>
+
+    <!-- Slide-out Navigation Overlay -->
+    <div class="slide-nav-overlay" onclick="toggleSlideNav()"></div>
+
+    <!-- Slide-out Navigation -->
+    <div class="slide-nav">
+        <div class="nav-menu-item active" onclick="showSectionAndClose('workout')">
+            <span class="nav-icon">💪</span>
+            <span>Today's Workout</span>
+        </div>
+        <div class="nav-menu-item" onclick="showSectionAndClose('challenges')">
+            <span class="nav-icon">🎯</span>
+            <span>Challenges</span>
+        </div>
+        <div class="nav-menu-item" onclick="showSectionAndClose('ai-coach')">
+            <span class="nav-icon">🤖</span>
+            <span>AI Coach</span>
+        </div>
+        <div class="nav-menu-item" onclick="showSectionAndClose('friends')">
+            <span class="nav-icon">👥</span>
+            <span>Friends</span>
+        </div>
+        <div class="nav-menu-item" onclick="showSectionAndClose('leaderboard')">
+            <span class="nav-icon">🏆</span>
+            <span>Leaderboard</span>
+        </div>
+        <div class="nav-menu-item" onclick="showSectionAndClose('body-scan')">
+            <span class="nav-icon">📊</span>
+            <span>Body Analysis</span>
+        </div>
+        <div class="nav-menu-item" onclick="showSectionAndClose('achievements')">
+            <span class="nav-icon">🏅</span>
+            <span>Achievements</span>
+        </div>
+        <div class="nav-menu-item" onclick="showSectionAndClose('progress')">
+            <span class="nav-icon">📸</span>
+            <span>Progress Photos</span>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Header with User Stats -->
         <div class="header">
@@ -1981,19 +2295,16 @@
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="showSection('workout')">Today's Workout</button>
-            <button class="nav-tab" onclick="showSection('profile')">👤 My Profile</button>
+        <!-- Navigation Tabs (Desktop fallback) -->
+        <div class="nav-tabs" style="display: none;">
+            <button class="nav-tab active" onclick="showSection('workout')">💪 Today's Workout</button>
             <button class="nav-tab" onclick="showSection('challenges')">🎯 Challenges</button>
-            <button class="nav-tab" onclick="showSection('ai-coach')">AI Coach</button>
-            <button class="nav-tab" onclick="showSection('body-scan')">Body Analysis</button>
-            <button class="nav-tab" onclick="showSection('progress')">Progress Photos</button>
+            <button class="nav-tab" onclick="showSection('ai-coach')">🤖 AI Coach</button>
             <button class="nav-tab" onclick="showSection('friends')">👥 Friends</button>
             <button class="nav-tab" onclick="showSection('leaderboard')">🏆 Leaderboard</button>
-            <button class="nav-tab" onclick="showSection('achievements')">Achievements</button>
-            <button class="nav-tab" onclick="showSection('plan')">My Plan</button>
-            <button class="nav-tab" onclick="showSection('settings')">⚙️ Settings</button>
+            <button class="nav-tab" onclick="showSection('body-scan')">📊 Body Analysis</button>
+            <button class="nav-tab" onclick="showSection('achievements')">🏅 Achievements</button>
+            <button class="nav-tab" onclick="showSection('progress')">📸 Progress Photos</button>
         </div>
 
         <!-- Today's Workout Section -->
@@ -3019,567 +3330,147 @@
 
         <!-- Settings Section -->
         <div id="settings" class="content-section">
-            <h2 style="margin-bottom: 20px;">⚙️ Settings & Integrations</h2>
+            <h2 style="margin-bottom: 20px;">⚙️ Settings</h2>
 
-            <!-- Device Connections -->
-            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">📱 Device Integrations</h3>
-                
-                <!-- Apple Watch -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div style="font-size: 32px; margin-bottom: 10px;">⌚</div>
-                        <h4>Apple Watch (Bluetooth)</h4>
-                        <p style="color: var(--text-light); margin-top: 5px;">
-                            Connect your Apple Watch via Bluetooth for heart rate tracking
-                        </p>
-                        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
-                            <strong>⚠️ Browser Limitation:</strong> Web apps cannot directly access Apple Watch data. This requires:
-                            <ul style="margin-top: 5px; padding-left: 20px;">
-                                <li>Bluetooth Web API support (Chrome/Edge only)</li>
-                                <li>Manual pairing with watch as Bluetooth device</li>
-                                <li>Limited to heart rate data only</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <button class="btn btn-primary" onclick="connectAppleWatchBluetooth()" id="appleWatchBtn">
-                            🔗 Connect via Bluetooth
-                        </button>
-                        <div id="appleWatchStatus" style="margin-top: 10px; display: none;"></div>
-                    </div>
+            <!-- Quick Links -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                <div onclick="showSection('profile')" style="background: white; padding: 20px; border-radius: 15px; border: 2px solid var(--border); cursor: pointer; text-align: center; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="font-size: 40px; margin-bottom: 10px;">👤</div>
+                    <h4>My Profile</h4>
+                    <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">Edit your info</p>
                 </div>
-
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
-
-                <!-- Fitness Trackers -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div style="font-size: 32px; margin-bottom: 10px;">📊</div>
-                        <h4>Fitness Trackers</h4>
-                        <p style="color: var(--text-light); margin-top: 5px;">
-                            Connect Fitbit, Garmin, Polar, or other heart rate monitors via Bluetooth
-                        </p>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <button class="btn" onclick="connectBluetoothDevice()" id="bluetoothBtn">
-                            🔵 Connect via Bluetooth
-                        </button>
-                        <div id="bluetoothStatus" style="margin-top: 10px; display: none;"></div>
-                    </div>
+                <div onclick="showSection('plan')" style="background: white; padding: 20px; border-radius: 15px; border: 2px solid var(--border); cursor: pointer; text-align: center; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
+                    <h4>My Plan</h4>
+                    <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">Workout schedule</p>
                 </div>
             </div>
 
-            <!-- Music Integration -->
+            <!-- Quick Playlist Links -->
             <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">🎵 Workout Music Integration</h3>
-                
-                <!-- Free Music Notice -->
-                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; color: white; margin-bottom: 25px; text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 10px;">🎉</div>
-                    <h3 style="color: white; margin-bottom: 10px;">Music Features Are FREE!</h3>
-                    <p style="opacity: 0.95; font-size: 15px;">
-                        YouTube & Spotify music search is <strong>pre-configured and ready to use</strong>!<br>
-                        No API keys needed - just start searching for your workout music! 🎵
-                    </p>
-                </div>
-                
-                <!-- YouTube API Integration -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div style="font-size: 32px; margin-bottom: 10px;">📺</div>
-                        <h4>YouTube Music API</h4>
-                        <p style="color: var(--text-light); margin-top: 5px;">
-                            Search and play YouTube music directly in your workouts
-                        </p>
-                        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px;">
-                            <strong>✅ Already Working!</strong> YouTube music search is enabled with shared API access.
-                            <div style="margin-top: 10px; opacity: 0.8;">
-                                <strong>Optional:</strong> Want your own API key for unlimited personal use?
-                                <ol style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
-                                    <li>Visit <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--primary);">Google Cloud Console</a></li>
-                                    <li>Create new project → Enable "YouTube Data API v3"</li>
-                                    <li>Create API Key and paste below to override shared key</li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">YouTube API Key (Optional - Override Shared)</label>
-                        <input 
-                            type="password" 
-                            id="youtubeApiKeyInput" 
-                            placeholder="Leave empty to use shared API"
-                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
-                        >
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-primary" onclick="saveYouTubeApiKey()">
-                                ✓ Save Custom Key
-                            </button>
-                            <button class="btn" onclick="toggleYouTubeKeyVisibility()">
-                                👁️ Show/Hide
-                            </button>
-                            <button class="btn btn-success" onclick="testYouTubeAPI()" id="testYouTubeBtn">
-                                🧪 Test API
-                            </button>
-                        </div>
-                        <div id="youtubeApiStatus" style="margin-top: 10px;"></div>
-                    </div>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
-
-                <!-- Spotify API Integration -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div style="font-size: 32px; margin-bottom: 10px;">🎵</div>
-                        <h4>Spotify API</h4>
-                        <p style="color: var(--text-light); margin-top: 5px;">
-                            Search Spotify's massive music library (30-second previews)
-                        </p>
-                        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px;">
-                            <strong>✅ Already Working!</strong> Spotify search is enabled with shared API access.
-                            <div style="margin-top: 10px; opacity: 0.8;">
-                                <strong>Optional:</strong> Want your own API keys?
-                                <ol style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
-                                    <li>Visit <a href="https://developer.spotify.com/dashboard" target="_blank" style="color: var(--primary);">Spotify Developer Dashboard</a></li>
-                                    <li>Create app → Copy Client ID & Secret</li>
-                                    <li>Paste below to override shared keys</li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Spotify Client ID (Optional - Override Shared)</label>
-                        <input 
-                            type="password" 
-                            id="spotifyClientIdInput" 
-                            placeholder="Leave empty to use shared API"
-                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
-                        >
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Spotify Client Secret (Optional - Override Shared)</label>
-                        <input 
-                            type="password" 
-                            id="spotifyClientSecretInput" 
-                            placeholder="Leave empty to use shared API"
-                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
-                        >
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-primary" onclick="saveSpotifyApiKeys()">
-                                ✓ Save Custom Keys
-                            </button>
-                            <button class="btn" onclick="toggleSpotifyKeysVisibility()">
-                                👁️ Show/Hide
-                            </button>
-                            <button class="btn btn-success" onclick="testSpotifyAPI()" id="testSpotifyBtn">
-                                🧪 Test API
-                            </button>
-                        </div>
-                        <div id="spotifyApiStatus" style="margin-top: 10px;"></div>
-                    </div>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
-
-                <!-- Quick Playlist Links -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div style="font-size: 32px; margin-bottom: 10px;">🔗</div>
-                        <h4>Quick Playlist Links</h4>
-                        <p style="color: var(--text-light); margin-top: 5px;">
-                            Save direct links to your favorite workout playlists
-                        </p>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <input 
-                            type="text" 
-                            id="spotifyPlaylistInput" 
-                            placeholder="Paste Spotify playlist URL"
-                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px;"
-                        >
-                        <button class="btn btn-success" onclick="saveSpotifyPlaylist()" style="margin-bottom: 15px;">
-                            ✓ Save Spotify Playlist
-                        </button>
-                        
-                        <input 
-                            type="text" 
-                            id="youtubePlaylistInput" 
-                            placeholder="Paste YouTube playlist URL"
-                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px;"
-                        >
-                        <button class="btn btn-success" onclick="saveYoutubePlaylist()">
-                            ✓ Save YouTube Playlist
-                        </button>
-                        
-                        <div id="playlistLinksStatus" style="margin-top: 10px; display: none;"></div>
-                    </div>
-                </div>
-
-                <!-- Music Integration Info -->
-                <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px;">
-                    <strong>🎼 How It Works:</strong>
-                    <ul style="margin-top: 8px; padding-left: 20px; line-height: 1.6;">
-                        <li><strong>FREE Access:</strong> Shared API keys let everyone search YouTube & Spotify without setup!</li>
-                        <li><strong>Search Music:</strong> Find millions of songs for your workouts</li>
-                        <li><strong>Play YouTube:</strong> Full videos play directly in the app</li>
-                        <li><strong>Preview Spotify:</strong> 30-second track previews available</li>
-                        <li><strong>Custom Keys:</strong> Optional - use your own keys for unlimited personal quota</li>
-                        <li><strong>Privacy:</strong> All keys stored locally in your browser only</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Data Sync Options -->
-            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">☁️ Data Backup Options</h3>
-                
-                <!-- Google Account -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div style="font-size: 32px; margin-bottom: 10px;">🔵</div>
-                        <h4>Google Drive Backup</h4>
-                        <p style="color: var(--text-light); margin-top: 5px;">
-                            Automatic cloud backup to Google Drive
-                        </p>
-                        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
-                            <strong>⚠️ Not Currently Available:</strong> Google Drive integration requires OAuth 2.0 authentication with backend server. Use manual export instead.
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <button class="btn" onclick="connectGoogle()" id="googleBtn" style="background: #e5e7eb; color: var(--text-dark);">
-                            ℹ️ Learn More
-                        </button>
-                        <div id="googleStatus" style="margin-top: 10px; display: none;"></div>
-                    </div>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
-
-                <!-- Email Backup -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div style="font-size: 32px; margin-bottom: 10px;">📧</div>
-                        <h4>Email Progress Reports</h4>
-                        <p style="color: var(--text-light); margin-top: 5px;">
-                            Save your email to receive weekly progress summaries
-                        </p>
-                        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
-                            <strong>⚠️ Email Storage Only:</strong> Your email is saved locally for future email report features. No emails are sent currently without backend server.
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <input 
-                            type="email" 
-                            id="emailInput" 
-                            placeholder="your.email@example.com"
-                            style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 16px; margin-bottom: 10px;"
-                        >
-                        <button class="btn btn-success" onclick="setupEmailBackup()">
-                            💾 Save Email for Future Reports
-                        </button>
-                        <div id="emailStatus" style="margin-top: 10px; display: none;"></div>
-                    </div>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
-
-                <!-- Manual Backup Recommendation -->
-                <div style="background: #e8f5e9; padding: 20px; border-radius: 12px;">
-                    <h4 style="color: var(--secondary); margin-bottom: 10px;">✅ Recommended: Manual Backup</h4>
-                    <p style="font-size: 14px; margin-bottom: 15px;">
-                        The most reliable way to backup your data is to export it manually as a JSON file.
-                    </p>
-                    <button class="btn btn-success" onclick="exportData()" style="width: 100%;">
-                        📥 Export All Data Now
+                <h3 style="margin-bottom: 20px;">🎵 Quick Playlist Links</h3>
+                <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">
+                    Save direct links to your favorite workout playlists for quick access
+                </p>
+                <div style="margin-bottom: 15px;">
+                    <input 
+                        type="text" 
+                        id="spotifyPlaylistInput" 
+                        placeholder="Paste Spotify or YouTube playlist URL"
+                        style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px;"
+                    >
+                    <button class="btn btn-success" onclick="saveSpotifyPlaylist()" style="width: 100%;">
+                        ➕ Add Playlist
                     </button>
-                    <p style="font-size: 12px; color: var(--text-light); margin-top: 10px; text-align: center;">
-                        Save the file somewhere safe. You can import it anytime to restore your progress.
-                    </p>
                 </div>
+                <div id="savedPlaylistsList" style="margin-top: 15px;"></div>
             </div>
 
-            <!-- Appearance Settings -->
+            <!-- Background & Appearance -->
             <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">🎨 Appearance & Background</h3>
+                <h3 style="margin-bottom: 20px;">🎨 Background & Appearance</h3>
                 
-                <!-- Font Size Control -->
-                <div style="margin-bottom: 25px;">
-                    <h4 style="margin-bottom: 15px;">Text Size</h4>
-                    <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">
-                        Adjust text size for better readability
-                    </p>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span style="font-size: 12px;">A</span>
-                        <input 
-                            type="range" 
-                            id="fontSizeSlider" 
-                            min="80" 
-                            max="130" 
-                            value="100" 
-                            style="flex: 1;"
-                            oninput="adjustFontSize(this.value)"
-                        >
-                        <span style="font-size: 20px;">A</span>
-                    </div>
-                    <div style="text-align: center; margin-top: 10px; font-weight: bold; color: var(--primary);" id="fontSizeValue">
-                        100% (Normal)
-                    </div>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
-
-                <!-- Button Size Control -->
-                <div style="margin-bottom: 25px;">
-                    <h4 style="margin-bottom: 15px;">Button Size</h4>
-                    <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">
-                        Make buttons larger for easier tapping
-                    </p>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span style="font-size: 12px;">🔘</span>
-                        <input 
-                            type="range" 
-                            id="buttonSizeSlider" 
-                            min="80" 
-                            max="130" 
-                            value="100" 
-                            style="flex: 1;"
-                            oninput="adjustButtonSize(this.value)"
-                        >
-                        <span style="font-size: 20px;">🔘</span>
-                    </div>
-                    <div style="text-align: center; margin-top: 10px; font-weight: bold; color: var(--primary);" id="buttonSizeValue">
-                        100% (Normal)
-                    </div>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
-
                 <!-- Background Themes -->
                 <div style="margin-bottom: 25px;">
                     <h4 style="margin-bottom: 15px;">Choose Background Theme</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-                        <div class="theme-option" onclick="setBackgroundTheme('default')" data-theme="default">
-                            <div style="height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; margin-bottom: 8px;"></div>
-                            <p style="text-align: center; font-weight: bold; font-size: 14px;">Purple Gradient</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;">
+                        <div class="theme-option" onclick="setBackgroundTheme('default')" data-theme="default" style="cursor: pointer; padding: 5px; border-radius: 10px; border: 2px solid transparent;">
+                            <div style="height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px;"></div>
+                            <p style="text-align: center; font-size: 11px; margin-top: 5px;">Purple</p>
                         </div>
-                        <div class="theme-option" onclick="setBackgroundTheme('ocean')" data-theme="ocean">
-                            <div style="height: 80px; background: linear-gradient(135deg, #2196F3 0%, #00BCD4 100%); border-radius: 8px; margin-bottom: 8px;"></div>
-                            <p style="text-align: center; font-weight: bold; font-size: 14px;">Ocean Blue</p>
+                        <div class="theme-option" onclick="setBackgroundTheme('ocean')" data-theme="ocean" style="cursor: pointer; padding: 5px; border-radius: 10px; border: 2px solid transparent;">
+                            <div style="height: 60px; background: linear-gradient(135deg, #2196F3 0%, #00BCD4 100%); border-radius: 8px;"></div>
+                            <p style="text-align: center; font-size: 11px; margin-top: 5px;">Ocean</p>
                         </div>
-                        <div class="theme-option" onclick="setBackgroundTheme('sunset')" data-theme="sunset">
-                            <div style="height: 80px; background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%); border-radius: 8px; margin-bottom: 8px;"></div>
-                            <p style="text-align: center; font-weight: bold; font-size: 14px;">Sunset</p>
+                        <div class="theme-option" onclick="setBackgroundTheme('sunset')" data-theme="sunset" style="cursor: pointer; padding: 5px; border-radius: 10px; border: 2px solid transparent;">
+                            <div style="height: 60px; background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%); border-radius: 8px;"></div>
+                            <p style="text-align: center; font-size: 11px; margin-top: 5px;">Sunset</p>
                         </div>
-                        <div class="theme-option" onclick="setBackgroundTheme('forest')" data-theme="forest">
-                            <div style="height: 80px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 8px; margin-bottom: 8px;"></div>
-                            <p style="text-align: center; font-weight: bold; font-size: 14px;">Forest Green</p>
+                        <div class="theme-option" onclick="setBackgroundTheme('forest')" data-theme="forest" style="cursor: pointer; padding: 5px; border-radius: 10px; border: 2px solid transparent;">
+                            <div style="height: 60px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 8px;"></div>
+                            <p style="text-align: center; font-size: 11px; margin-top: 5px;">Forest</p>
                         </div>
-                        <div class="theme-option" onclick="setBackgroundTheme('dark')" data-theme="dark">
-                            <div style="height: 80px; background: linear-gradient(135deg, #232526 0%, #414345 100%); border-radius: 8px; margin-bottom: 8px;"></div>
-                            <p style="text-align: center; font-weight: bold; font-size: 14px;">Dark Mode</p>
+                        <div class="theme-option" onclick="setBackgroundTheme('dark')" data-theme="dark" style="cursor: pointer; padding: 5px; border-radius: 10px; border: 2px solid transparent;">
+                            <div style="height: 60px; background: linear-gradient(135deg, #232526 0%, #414345 100%); border-radius: 8px;"></div>
+                            <p style="text-align: center; font-size: 11px; margin-top: 5px;">Dark</p>
                         </div>
-                        <div class="theme-option" onclick="setBackgroundTheme('fire')" data-theme="fire">
-                            <div style="height: 80px; background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); border-radius: 8px; margin-bottom: 8px;"></div>
-                            <p style="text-align: center; font-weight: bold; font-size: 14px;">Fire</p>
+                        <div class="theme-option" onclick="setBackgroundTheme('fire')" data-theme="fire" style="cursor: pointer; padding: 5px; border-radius: 10px; border: 2px solid transparent;">
+                            <div style="height: 60px; background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); border-radius: 8px;"></div>
+                            <p style="text-align: center; font-size: 11px; margin-top: 5px;">Fire</p>
                         </div>
                     </div>
                 </div>
 
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
+                <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
 
                 <!-- Custom Background Upload -->
                 <div style="margin-bottom: 20px;">
-                    <h4 style="margin-bottom: 15px;">Upload Custom Background</h4>
-                    <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">
-                        Use your own image as the app background. Best with landscape photos.
-                    </p>
+                    <h4 style="margin-bottom: 15px;">Custom Background Image</h4>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="btn btn-primary" onclick="document.getElementById('backgroundUpload').click()">
                             📷 Choose Image
                         </button>
                         <button class="btn" onclick="removeCustomBackground()" id="removeBackgroundBtn" style="display: none;">
-                            🗑️ Remove Custom Background
+                            🗑️ Remove
                         </button>
                     </div>
                     <input type="file" id="backgroundUpload" accept="image/*" style="display: none;" onchange="uploadCustomBackground(event)">
                     <div id="backgroundPreview" style="margin-top: 15px; display: none;">
-                        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 10px;">Preview:</p>
-                        <img id="backgroundPreviewImage" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px;">
+                        <img id="backgroundPreviewImage" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 12px;">
                     </div>
                 </div>
 
-                <div style="height: 1px; background: var(--border); margin: 25px 0;"></div>
+                <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
 
                 <!-- Background Opacity -->
                 <div>
-                    <h4 style="margin-bottom: 15px;">Background Opacity</h4>
-                    <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">
-                        Adjust background darkness for better text readability
-                    </p>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span style="font-size: 14px;">Light</span>
-                        <input 
-                            type="range" 
-                            id="opacitySlider" 
-                            min="0" 
-                            max="100" 
-                            value="0" 
-                            style="flex: 1;"
-                            oninput="adjustBackgroundOpacity(this.value)"
-                        >
-                        <span style="font-size: 14px;">Dark</span>
-                    </div>
-                    <div style="text-align: center; margin-top: 10px; font-weight: bold; color: var(--primary);" id="opacityValue">
-                        0% overlay
+                    <h4 style="margin-bottom: 10px;">Background Darkness</h4>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 12px;">Light</span>
+                        <input type="range" id="opacitySlider" min="0" max="100" value="0" style="flex: 1;" oninput="adjustBackgroundOpacity(this.value)">
+                        <span style="font-size: 12px;">Dark</span>
                     </div>
                 </div>
             </div>
 
-            <!-- AI Configuration -->
+            <!-- Google Drive Backup -->
             <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">🤖 AI Coach Configuration</h3>
-                
-                <!-- Easy-Peasy AI Widget -->
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; margin-bottom: 25px; color: white;">
-                    <h4 style="margin-bottom: 10px; color: white;">⚡ Easy-Peasy AI Chat Widget (Active)</h4>
-                    <p style="font-size: 14px; margin-bottom: 15px; opacity: 0.95;">
-                        Your AI fitness coach is embedded as a chat widget in the bottom-right corner of your screen. Click the purple button to start chatting!
-                    </p>
-                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <p style="font-size: 13px; margin-bottom: 10px;"><strong>✨ Features:</strong></p>
-                        <ul style="font-size: 13px; padding-left: 20px; line-height: 1.8;">
-                            <li>24/7 AI-powered fitness guidance</li>
-                            <li>Personalized workout and nutrition advice</li>
-                            <li>📸 Image upload for body and meal analysis</li>
-                            <li>Context-aware responses based on your progress</li>
-                            <li>Always accessible from any page</li>
-                        </ul>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.2); padding: 12px; border-radius: 6px; font-size: 13px; text-align: center;">
-                        <strong>💬 Look for the chat button → Bottom-right corner</strong>
-                    </div>
+                <h3 style="margin-bottom: 20px;">☁️ Google Drive Backup</h3>
+                <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">
+                    Backup your progress to Google Drive
+                </p>
+                <div style="background: #e8f5e9; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <p style="font-size: 14px;">✅ Your data is automatically saved with your Google account when you sign in.</p>
                 </div>
-
-                <!-- Gemini AI (Optional Alternative) -->
-                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px; opacity: 0.7;">
-                    <h4 style="color: var(--primary); margin-bottom: 10px;">Google Gemini AI (Legacy Option)</h4>
-                    <p style="font-size: 14px; margin-bottom: 15px; color: var(--text-light);">
-                        <em>Note: With Easy-Peasy AI widget active, Gemini integration is no longer needed. The settings below are kept for advanced users only.</em>
-                    </p>
-                    <p style="font-size: 14px; margin-bottom: 10px;">
-                        <strong>How to get FREE Gemini API key:</strong>
-                    </p>
-                    <ol style="font-size: 14px; padding-left: 20px; margin-bottom: 15px;">
-                        <li>Visit <a href="https://makersuite.google.com/app/apikey" target="_blank" style="color: var(--primary);">Google AI Studio</a></li>
-                        <li>Sign in with your Google account</li>
-                        <li>Click "Create API Key"</li>
-                        <li>Copy the key and paste below</li>
-                    </ol>
-                    <p style="font-size: 13px; color: var(--text-light);">
-                        <strong>Note:</strong> Your API key is stored locally on your device only. It's free with generous limits (60 requests/minute).
-                    </p>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Gemini API Key</label>
-                    <input 
-                        type="password" 
-                        id="geminiApiKeyInput" 
-                        placeholder="Paste your Gemini API key here"
-                        style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; font-family: monospace;"
-                    >
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-primary" onclick="saveGeminiApiKey()">
-                            ✓ Connect Gemini AI
-                        </button>
-                        <button class="btn" onclick="toggleApiKeyVisibility()">
-                            👁️ Show/Hide
-                        </button>
-                    </div>
-                    <div id="geminiStatus" style="margin-top: 10px; display: none;"></div>
-                </div>
-
-                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; font-size: 13px;">
-                    <strong>⚠️ Without API Key:</strong> The chatbot uses smart rule-based responses with your actual fitness data. Still helpful, just not as conversational as real AI!
-                </div>
+                <button class="btn btn-success" onclick="exportData()" style="width: 100%;">
+                    📥 Download Local Backup
+                </button>
             </div>
 
-            <!-- Notification Settings -->
+            <!-- Email Progress Reports -->
             <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">🔔 Notifications & Preferences</h3>
-                
-                <div class="setting-item">
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <div>
-                            <h4>Daily Workout Reminders</h4>
-                            <p style="color: var(--text-light); margin-top: 5px; font-size: 14px;">Get reminded at 9 AM daily</p>
-                        </div>
-                        <input type="checkbox" id="notificationToggle" onchange="toggleNotifications()" style="width: 24px; height: 24px; cursor: pointer;">
-                    </label>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
-
-                <div class="setting-item">
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <div>
-                            <h4>Weekly Progress Reports</h4>
-                            <p style="color: var(--text-light); margin-top: 5px; font-size: 14px;">Receive summary every Sunday</p>
-                        </div>
-                        <input type="checkbox" id="weeklyReportToggle" onchange="toggleWeeklyReports()" style="width: 24px; height: 24px; cursor: pointer;" checked>
-                    </label>
-                </div>
-
-                <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
-
-                <div class="setting-item">
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <div>
-                            <h4>Friend Activity Notifications</h4>
-                            <p style="color: var(--text-light); margin-top: 5px; font-size: 14px;">Get notified when friends complete workouts</p>
-                        </div>
-                        <input type="checkbox" id="friendActivityToggle" onchange="toggleFriendActivity()" style="width: 24px; height: 24px; cursor: pointer;">
-                    </label>
-                </div>
+                <h3 style="margin-bottom: 20px;">📧 Email Progress Reports</h3>
+                <p style="color: var(--text-light); font-size: 14px; margin-bottom: 15px;">
+                    Save your email to receive weekly progress summaries
+                </p>
+                <input 
+                    type="email" 
+                    id="emailInput" 
+                    placeholder="your.email@example.com"
+                    style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 16px; margin-bottom: 10px;"
+                >
+                <button class="btn btn-success" onclick="setupEmailBackup()" style="width: 100%;">
+                    💾 Save Email
+                </button>
             </div>
 
             <!-- Data Management -->
             <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
                 <h3 style="margin-bottom: 20px;">💾 Data Management</h3>
-                
-                <!-- Storage Space Indicator -->
-                <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="margin-bottom: 15px;">📊 Storage Space Used</h4>
-                    <div style="background: #e5e7eb; height: 30px; border-radius: 15px; overflow: hidden; margin-bottom: 10px;">
-                        <div id="storageBar" style="height: 100%; background: linear-gradient(90deg, var(--secondary), var(--warning)); width: 0%; transition: all 0.3s;"></div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 14px;">
-                        <span id="storageUsed">0 MB</span>
-                        <span id="storagePercent">0%</span>
-                        <span id="storageTotal">~10 MB</span>
-                    </div>
-                    <div id="storageWarning" style="display: none; margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 8px; font-size: 14px;">
-                        <strong>⚠️ Storage Warning:</strong> <span id="storageWarningText"></span>
-                    </div>
-                </div>
-                
-                <div style="display: grid; gap: 15px;">
-                    <button class="btn" onclick="exportData()">
-                        📥 Export All Data
-                    </button>
-                    <button class="btn" onclick="importData()">
-                        📤 Import Data
-                    </button>
-                    <button class="btn" onclick="clearCache()" style="background: var(--warning); color: white;">
-                        🗑️ Clear Cache
-                    </button>
-                    <button class="btn" onclick="resetApp()" style="background: var(--danger); color: white;">
-                        ⚠️ Reset All Data
-                    </button>
-                </div>
-
-                <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; font-size: 14px;">
-                    <strong>⚠️ Note:</strong> Resetting will delete all your progress, photos, and achievements. This cannot be undone unless you've backed up your data.
+                <div style="display: grid; gap: 12px;">
+                    <button class="btn" onclick="exportData()">📥 Export Data</button>
+                    <button class="btn" onclick="importData()">📤 Import Data</button>
+                    <button class="btn" onclick="resetApp()" style="background: var(--danger); color: white;">⚠️ Reset All Data</button>
                 </div>
             </div>
         </div>
@@ -3607,12 +3498,12 @@
     </div>
 
     <!-- Modal for customization -->
-    <div class="modal" id="customModal">
-        <div class="modal-content">
-            <h2 style="margin-bottom: 20px;">Customize Your Plan</h2>
+    <div class="modal" id="customModal" onclick="if(event.target === this) closeModal()">
+        <div class="modal-content" style="position: relative;">
+            <button class="modal-close-btn" onclick="closeModal()" title="Close">✕</button>
             <div id="modalContent"></div>
             <button class="btn btn-primary" onclick="closeModal()" style="width: 100%; margin-top: 20px;">
-                Save Changes
+                Close
             </button>
         </div>
     </div>
@@ -4405,6 +4296,15 @@
                 tab.classList.remove('active');
             });
             
+            // Update slide nav active state
+            document.querySelectorAll('.nav-menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const slideNavItem = document.querySelector(`.nav-menu-item[onclick*="${sectionId}"]`);
+            if (slideNavItem) {
+                slideNavItem.classList.add('active');
+            }
+            
             const section = document.getElementById(sectionId);
             if (section) {
                 section.classList.add('active');
@@ -4436,6 +4336,25 @@
         
         // Make globally accessible
         window.showSection = showSection;
+        
+        // Toggle hamburger slide navigation
+        function toggleSlideNav() {
+            const hamburger = document.querySelector('.hamburger-menu');
+            const slideNav = document.querySelector('.slide-nav');
+            const overlay = document.querySelector('.slide-nav-overlay');
+            
+            hamburger.classList.toggle('active');
+            slideNav.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+        window.toggleSlideNav = toggleSlideNav;
+        
+        // Show section and close nav
+        function showSectionAndClose(sectionId) {
+            showSection(sectionId);
+            toggleSlideNav();
+        }
+        window.showSectionAndClose = showSectionAndClose;
 
         // Start workout (placeholder)
         function startWorkout() {
@@ -10804,6 +10723,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             activeChallengeId: null,
             currentView: 'month',
             currentDate: new Date(),
+            dailyGrindTracking: {}, // Stores {challengeId: {lastCheckin: timestamp, streak: number}}
             templates: {
                 '75hard': {
                     name: '75 Hard Challenge',
@@ -11168,13 +11088,19 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             // Render active challenges
             activeGrid.innerHTML = activeChallenges.map(challenge => {
                 const progress = calculateChallengeProgress(challenge);
+                const needsGrindButton = challengeRequiresGrindButton(challenge);
+                const grindButtonHtml = needsGrindButton ? renderGrindButton(challenge.id) : '';
+                
                 return `
                     <div style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--border);">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
                             <h4 style="margin: 0;">${challenge.name}</h4>
-                            <span style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
-                                Day ${progress.currentDay}/${challenge.duration}
-                            </span>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                <span style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
+                                    Day ${progress.currentDay}/${challenge.duration}
+                                </span>
+                                ${isGrindActiveForChallenge(challenge.id) ? '<span class="tracker-status-active">✓ Active</span>' : (needsGrindButton ? '<span class="tracker-status-waiting">Check In</span>' : '')}
+                            </div>
                         </div>
                         
                         <div style="margin-bottom: 15px;">
@@ -11192,7 +11118,9 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                             <span>✅ ${progress.completedTasks}/${progress.totalTasks} tasks</span>
                         </div>
 
-                        <div style="display: flex; gap: 10px;">
+                        ${grindButtonHtml}
+
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
                             <button class="btn btn-primary" onclick="viewChallengeDetails('${challenge.id}')" style="flex: 1; font-size: 14px;">
                                 View Details
                             </button>
@@ -11250,6 +11178,7 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             const modal = document.getElementById('customModal');
             const content = document.getElementById('modalContent');
             const progress = calculateChallengeProgress(challenge);
+            const needsGrindButton = challengeRequiresGrindButton(challenge);
 
             // Group tasks by date
             const tasksByDate = {};
@@ -11263,20 +11192,33 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             content.innerHTML = `
                 <h2>${challenge.name}</h2>
                 <div style="margin: 20px 0;">
-                    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-                        <div style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 80px; background: #f9fafb; padding: 15px; border-radius: 8px; text-align: center;">
                             <div style="font-size: 24px; font-weight: bold; color: var(--primary);">${progress.currentDay}/${challenge.duration}</div>
                             <div style="font-size: 14px; color: var(--text-light); margin-top: 5px;">Days</div>
                         </div>
-                        <div style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="flex: 1; min-width: 80px; background: #f9fafb; padding: 15px; border-radius: 8px; text-align: center;">
                             <div style="font-size: 24px; font-weight: bold; color: var(--success);">${progress.percentage}%</div>
                             <div style="font-size: 14px; color: var(--text-light); margin-top: 5px;">Complete</div>
                         </div>
-                        <div style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="flex: 1; min-width: 80px; background: #f9fafb; padding: 15px; border-radius: 8px; text-align: center;">
                             <div style="font-size: 24px; font-weight: bold; color: var(--warning);">🔥 ${challenge.currentStreak}</div>
                             <div style="font-size: 14px; color: var(--text-light); margin-top: 5px;">Streak</div>
                         </div>
                     </div>
+
+                    ${needsGrindButton ? `
+                    <div class="daily-tracker-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; color: white;">📊 Daily Check-In</h3>
+                            ${isGrindActiveForChallenge(challengeId) ? '<span class="tracker-status-active">✓ Checked In</span>' : '<span class="tracker-status-waiting">⏳ Waiting</span>'}
+                        </div>
+                        <p style="opacity: 0.9; font-size: 14px; margin-bottom: 15px;">
+                            For non-physical tasks like hydration, reading, and nutrition - click below to confirm you're staying on track!
+                        </p>
+                        ${renderGrindButton(challengeId)}
+                    </div>
+                    ` : ''}
 
                     <h3 style="margin-top: 30px; margin-bottom: 15px;">Today's Tasks</h3>
                     <div id="todayTasksDetail">
@@ -11352,6 +11294,163 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 if (challenge.currentStreak > challenge.longestStreak) {
                     challenge.longestStreak = challenge.currentStreak;
                 }
+            }
+        }
+
+        // Physical task types (auto-tracked based on workout completion)
+        const physicalTaskTypes = ['workout', 'exercise', 'cardio', 'strength', 'yoga', 'running', 'walking', 'stretching'];
+        
+        // Non-physical task types requiring manual "Stay on the Grind" check-in
+        const manualCheckinTaskTypes = ['hydration', 'reading', 'nutrition', 'mindfulness', 'journaling', 'meditation', 'custom', 'diet', 'sleep', 'habit'];
+
+        // Check if a challenge has any non-physical tasks requiring daily check-in
+        function challengeRequiresGrindButton(challenge) {
+            if (!challenge.taskInstances) return false;
+            const taskTypes = [...new Set(challenge.taskInstances.map(t => t.taskType))];
+            return taskTypes.some(type => manualCheckinTaskTypes.includes(type));
+        }
+
+        // Check if grind button was clicked within last 24 hours for a challenge
+        function isGrindActiveForChallenge(challengeId) {
+            const tracking = challengePlannerState.dailyGrindTracking[challengeId];
+            if (!tracking || !tracking.lastCheckin) return false;
+            
+            const lastCheckin = new Date(tracking.lastCheckin);
+            const now = new Date();
+            const hoursSinceCheckin = (now - lastCheckin) / (1000 * 60 * 60);
+            
+            return hoursSinceCheckin < 24;
+        }
+
+        // Get remaining time until grind resets
+        function getGrindTimeRemaining(challengeId) {
+            const tracking = challengePlannerState.dailyGrindTracking[challengeId];
+            if (!tracking || !tracking.lastCheckin) return null;
+            
+            const lastCheckin = new Date(tracking.lastCheckin);
+            const resetTime = new Date(lastCheckin.getTime() + 24 * 60 * 60 * 1000);
+            const now = new Date();
+            
+            if (now >= resetTime) return null;
+            
+            const remaining = resetTime - now;
+            const hours = Math.floor(remaining / (1000 * 60 * 60));
+            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            
+            return { hours, minutes, resetTime };
+        }
+
+        // Handle "Stay on the Grind" button click
+        async function stayOnTheGrind(challengeId) {
+            const challenge = challengePlannerState.challenges.find(c => c.id === challengeId);
+            if (!challenge) return;
+
+            // Check if already active
+            if (isGrindActiveForChallenge(challengeId)) {
+                showNotification('Already checked in! Keep grinding! 💪', 'info');
+                return;
+            }
+
+            // Initialize tracking if needed
+            if (!challengePlannerState.dailyGrindTracking[challengeId]) {
+                challengePlannerState.dailyGrindTracking[challengeId] = {
+                    lastCheckin: null,
+                    totalCheckins: 0,
+                    currentStreak: 0,
+                    longestStreak: 0
+                };
+            }
+
+            const tracking = challengePlannerState.dailyGrindTracking[challengeId];
+            const now = new Date();
+
+            // Check if this continues a streak (within 48 hours of last checkin)
+            if (tracking.lastCheckin) {
+                const lastCheckin = new Date(tracking.lastCheckin);
+                const hoursSinceLast = (now - lastCheckin) / (1000 * 60 * 60);
+                if (hoursSinceLast <= 48) {
+                    tracking.currentStreak++;
+                } else {
+                    tracking.currentStreak = 1; // Reset streak
+                }
+            } else {
+                tracking.currentStreak = 1;
+            }
+
+            tracking.lastCheckin = now.toISOString();
+            tracking.totalCheckins++;
+            if (tracking.currentStreak > tracking.longestStreak) {
+                tracking.longestStreak = tracking.currentStreak;
+            }
+
+            // Auto-complete non-physical tasks for today
+            const today = now.toISOString().split('T')[0];
+            let tasksCompleted = 0;
+            challenge.taskInstances.forEach(task => {
+                if (task.date === today && manualCheckinTaskTypes.includes(task.taskType) && !task.completed) {
+                    task.completed = true;
+                    task.completedAt = now.toISOString();
+                    tasksCompleted++;
+                }
+            });
+
+            // Save to Firestore
+            if (currentUser) {
+                try {
+                    await updateDoc(doc(db, 'challenges', challengeId), {
+                        taskInstances: challenge.taskInstances,
+                        currentStreak: challenge.currentStreak,
+                        longestStreak: challenge.longestStreak
+                    });
+                    
+                    // Save tracking data
+                    await setDoc(doc(db, 'users', currentUser.uid, 'grindTracking', challengeId), tracking);
+                } catch (error) {
+                    console.error('Error saving grind check-in:', error);
+                }
+            }
+
+            // Save locally
+            saveToLocalStorage('challengePlannerState', challengePlannerState);
+
+            // Show celebration notification
+            showNotification(`🔥 STAY ON THE GRIND! ${tasksCompleted} tasks auto-completed! Streak: ${tracking.currentStreak} days!`, 'success');
+
+            // Refresh the view
+            if (document.getElementById('customModal').style.display === 'flex') {
+                viewChallengeDetails(challengeId);
+            }
+            renderMyChallenges();
+        }
+
+        // Render grind button for a challenge
+        function renderGrindButton(challengeId) {
+            const isActive = isGrindActiveForChallenge(challengeId);
+            const timeRemaining = getGrindTimeRemaining(challengeId);
+            const tracking = challengePlannerState.dailyGrindTracking[challengeId] || { currentStreak: 0 };
+
+            if (isActive && timeRemaining) {
+                return `
+                    <div style="margin-top: 15px;">
+                        <button class="grind-button" disabled>
+                            ✅ GRINDING! Streak: ${tracking.currentStreak} days 🔥
+                        </button>
+                        <div class="grind-timer">
+                            ⏰ Resets in ${timeRemaining.hours}h ${timeRemaining.minutes}m
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div style="margin-top: 15px;">
+                        <button class="grind-button" onclick="stayOnTheGrind('${challengeId}')">
+                            🔥 STAY ON THE GRIND 💪
+                        </button>
+                        <div class="grind-timer">
+                            Click daily to track non-physical challenges (hydration, reading, etc.)
+                        </div>
+                    </div>
+                `;
             }
         }
 
