@@ -2803,15 +2803,18 @@
                                 type="text" 
                                 id="profileUsernameInput" 
                                 placeholder="username"
+                                maxlength="20"
                                 style="width: 100%; padding: 14px 14px 14px 32px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px;"
-                                onchange="updateProfileField('username', this.value)"
+                                oninput="validateUsernameInput(this)"
+                                onchange="updateProfileField('username', this.value.toLowerCase())"
                             >
+                            <span id="usernameStatus" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 18px;"></span>
                         </div>
-                        <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">This will be shown to friends and on the leaderboard</p>
+                        <p id="usernameHelp" style="font-size: 12px; color: var(--text-light); margin-top: 5px;">3-20 characters. Letters, numbers, underscores, and periods only.</p>
                     </div>
                     
-                    <!-- Friend Code (Read Only) -->
-                    <div>
+                    <!-- Friend Code (Read Only) - Hidden since we use usernames now -->
+                    <div style="display: none;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Your Friend Code</label>
                         <div style="display: flex; gap: 10px;">
                             <input 
@@ -4648,8 +4651,117 @@
         }
         window.copyFriendCode = copyFriendCode;
         
+        // List of inappropriate words to filter (basic list - expand as needed)
+        const inappropriateWords = [
+            'fuck', 'shit', 'ass', 'bitch', 'damn', 'hell', 'crap', 'dick', 'cock', 'pussy',
+            'nigger', 'nigga', 'faggot', 'fag', 'retard', 'slut', 'whore', 'cunt',
+            'penis', 'vagina', 'sex', 'porn', 'xxx', 'nude', 'naked',
+            'kill', 'murder', 'rape', 'terrorist', 'nazi', 'hitler',
+            'admin', 'moderator', 'owner', 'staff', 'official', 'support'
+        ];
+        
+        // Check if username contains inappropriate words
+        function containsInappropriateWords(username) {
+            const lowerUsername = username.toLowerCase();
+            for (const word of inappropriateWords) {
+                if (lowerUsername.includes(word)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Validate username format
+        function validateUsernameFormat(username) {
+            // Must be 3-20 characters
+            if (username.length < 3) {
+                return { valid: false, error: 'Username must be at least 3 characters' };
+            }
+            if (username.length > 20) {
+                return { valid: false, error: 'Username must be 20 characters or less' };
+            }
+            // Only allow letters, numbers, underscores, and periods
+            if (!/^[a-zA-Z0-9_.]+$/.test(username)) {
+                return { valid: false, error: 'Username can only contain letters, numbers, underscores, and periods' };
+            }
+            // Cannot start or end with underscore or period
+            if (/^[_.]|[_.]$/.test(username)) {
+                return { valid: false, error: 'Username cannot start or end with underscore or period' };
+            }
+            // Check for inappropriate content
+            if (containsInappropriateWords(username)) {
+                return { valid: false, error: 'Username contains inappropriate content' };
+            }
+            return { valid: true };
+        }
+        
+        // Check if username is unique in Firebase
+        async function isUsernameUnique(username, currentUid) {
+            try {
+                const lowerUsername = username.toLowerCase();
+                const snapshot = await db.collection('users')
+                    .where('username', '==', lowerUsername)
+                    .get();
+                
+                if (snapshot.empty) {
+                    return true; // No one has this username
+                }
+                
+                // Check if the only user with this username is the current user
+                let isOwnUsername = true;
+                snapshot.forEach(doc => {
+                    if (doc.id !== currentUid) {
+                        isOwnUsername = false;
+                    }
+                });
+                
+                return isOwnUsername;
+            } catch (error) {
+                console.error('Error checking username uniqueness:', error);
+                return false; // Assume not unique if we can't check
+            }
+        }
+        
+        // Validate username (format + uniqueness)
+        async function validateUsername(username) {
+            // First check format
+            const formatCheck = validateUsernameFormat(username);
+            if (!formatCheck.valid) {
+                return formatCheck;
+            }
+            
+            // Then check uniqueness
+            if (!currentUser) {
+                return { valid: false, error: 'You must be logged in to set a username' };
+            }
+            
+            const isUnique = await isUsernameUnique(username, currentUser.uid);
+            if (!isUnique) {
+                return { valid: false, error: 'This username is already taken. Try another one!' };
+            }
+            
+            return { valid: true };
+        }
+        
         // Save profile to Firebase and local storage
         async function saveProfile() {
+            const usernameInput = document.getElementById('profileUsernameInput');
+            const newUsername = usernameInput ? usernameInput.value.trim().toLowerCase() : '';
+            const oldUsername = appState.user.username || '';
+            
+            // Validate username if it changed
+            if (newUsername && newUsername !== oldUsername.toLowerCase()) {
+                const validation = await validateUsername(newUsername);
+                if (!validation.valid) {
+                    showNotification(validation.error, 'warning');
+                    // Reset input to old username
+                    if (usernameInput) usernameInput.value = oldUsername;
+                    return;
+                }
+                // Update appState with validated username
+                appState.user.username = newUsername;
+            }
+            
             // Save locally first
             saveData();
             
@@ -4681,6 +4793,9 @@
                         lastActive: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
                     
+                    // Update the username display
+                    generateFriendCode();
+                    
                     console.log('✅ Profile saved to Firebase successfully!');
                     updateSyncStatus('success', 'Synced to cloud!', 'Last saved: ' + new Date().toLocaleTimeString());
                     showNotification('Profile saved to cloud! ☁️', 'success');
@@ -4702,6 +4817,76 @@
             if (headerName) headerName.textContent = appState.user.name || 'Warrior';
         }
         window.saveProfile = saveProfile;
+        
+        // Real-time username validation as user types
+        let usernameCheckTimeout = null;
+        async function validateUsernameInput(input) {
+            const username = input.value.trim().toLowerCase();
+            const statusEl = document.getElementById('usernameStatus');
+            const helpEl = document.getElementById('usernameHelp');
+            
+            // Clear previous timeout
+            if (usernameCheckTimeout) {
+                clearTimeout(usernameCheckTimeout);
+            }
+            
+            // If empty, reset to default
+            if (!username) {
+                if (statusEl) statusEl.textContent = '';
+                if (helpEl) {
+                    helpEl.textContent = '3-20 characters. Letters, numbers, underscores, and periods only.';
+                    helpEl.style.color = 'var(--text-light)';
+                }
+                input.style.borderColor = 'var(--border)';
+                return;
+            }
+            
+            // Show checking status
+            if (statusEl) statusEl.textContent = '⏳';
+            
+            // First do instant format validation
+            const formatCheck = validateUsernameFormat(username);
+            if (!formatCheck.valid) {
+                if (statusEl) statusEl.textContent = '❌';
+                if (helpEl) {
+                    helpEl.textContent = formatCheck.error;
+                    helpEl.style.color = '#ef4444';
+                }
+                input.style.borderColor = '#ef4444';
+                return;
+            }
+            
+            // Debounce the uniqueness check (only check after user stops typing)
+            usernameCheckTimeout = setTimeout(async () => {
+                if (!currentUser) {
+                    if (statusEl) statusEl.textContent = '⚠️';
+                    if (helpEl) {
+                        helpEl.textContent = 'Login to set a username';
+                        helpEl.style.color = '#f59e0b';
+                    }
+                    return;
+                }
+                
+                const isUnique = await isUsernameUnique(username, currentUser.uid);
+                
+                if (isUnique) {
+                    if (statusEl) statusEl.textContent = '✅';
+                    if (helpEl) {
+                        helpEl.textContent = 'Username is available!';
+                        helpEl.style.color = '#10b981';
+                    }
+                    input.style.borderColor = '#10b981';
+                } else {
+                    if (statusEl) statusEl.textContent = '❌';
+                    if (helpEl) {
+                        helpEl.textContent = 'Username is already taken';
+                        helpEl.style.color = '#ef4444';
+                    }
+                    input.style.borderColor = '#ef4444';
+                }
+            }, 500); // Wait 500ms after user stops typing
+        }
+        window.validateUsernameInput = validateUsernameInput;
         
         // Update sync status display
         function updateSyncStatus(status, title, details) {
