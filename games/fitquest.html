@@ -6721,20 +6721,6 @@
                 `;
             }).join('');
         }
-                                <button class="btn" onclick="viewFriendProgress('${friend.uid}')" style="font-size: 14px; padding: 8px 16px;">
-                                    View Progress
-                                </button>
-                            </div>
-                            ${weightLoss > 0 ? `
-                                <div style="margin-top: 15px; padding: 12px; background: var(--secondary); color: white; border-radius: 8px; text-align: center;">
-                                    <strong>🎉 ${weightLoss} lbs lost!</strong>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
 
         // View friend's detailed progress
         function viewFriendProgress(friendUid) {
