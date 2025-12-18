@@ -766,54 +766,317 @@
             transition: top 0.3s;
         }
 
+        /* ========================================
+           INSTAGRAM-STYLE BOTTOM NAVIGATION
+           ======================================== */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .bottom-nav-inner {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            height: 100%;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #8e8e8e;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bottom-nav-item.active {
+            color: var(--primary);
+        }
+
+        .bottom-nav-item:active {
+            transform: scale(0.9);
+        }
+
+        .bottom-nav-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+            line-height: 1;
+        }
+
+        .bottom-nav-label {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .bottom-nav-item.active .bottom-nav-icon {
+            transform: scale(1.1);
+        }
+
+        /* Center action button (like Instagram's +) */
+        .bottom-nav-action {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            margin-top: -20px;
+        }
+
+        /* Mobile header - simplified like Instagram */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 9998;
+            padding: 0 16px;
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .mobile-header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 56px;
+        }
+
+        .mobile-header-logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mobile-header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .mobile-header-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobile-header-btn:active {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Stories-style row for quick actions */
+        .quick-actions-row {
+            display: none;
+            overflow-x: auto;
+            padding: 12px 16px;
+            gap: 16px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .quick-actions-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .quick-action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-width: 70px;
+            cursor: pointer;
+        }
+
+        .quick-action-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 3px;
+        }
+
+        .quick-action-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .quick-action-label {
+            font-size: 11px;
+            color: var(--text-dark);
+            text-align: center;
+            font-weight: 500;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
+            /* Show mobile UI elements */
+            .bottom-nav {
+                display: block;
+            }
+
+            .mobile-header {
+                display: block;
+            }
+
+            .quick-actions-row {
+                display: flex;
+            }
+
+            /* Hide desktop elements */
+            .header {
+                display: none;
+            }
+
+            .nav-tabs {
+                display: none !important;
+            }
+
+            .hamburger-btn {
+                display: none !important;
+            }
+
+            .hamburger-menu {
+                display: none !important;
+            }
+
+            /* Adjust container for mobile header/nav */
             .container {
                 padding: 10px;
+                padding-top: calc(56px + env(safe-area-inset-top) + 10px);
+                padding-bottom: calc(75px + env(safe-area-inset-bottom));
+                margin-top: 0;
             }
 
-            .header {
-                padding: 20px 15px;
+            .content-section {
+                padding: 16px;
+                border-radius: 16px;
+                margin-bottom: 16px;
             }
 
-            .user-profile {
-                flex-direction: column;
-                text-align: center;
+            /* Larger touch targets */
+            .btn {
+                min-height: 48px;
+                padding: 14px 24px;
+                font-size: 16px;
+                border-radius: 12px;
             }
 
+            .btn-primary {
+                font-weight: 600;
+            }
+
+            /* Card improvements */
+            .workout-card {
+                padding: 20px;
+                border-radius: 16px;
+            }
+
+            .workout-card h2 {
+                font-size: 20px;
+            }
+
+            /* Stats grid */
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
             }
 
             .stat-card {
-                padding: 12px;
+                padding: 16px 12px;
+                border-radius: 12px;
             }
 
             .stat-value {
-                font-size: 24px;
+                font-size: 22px;
             }
 
+            .stat-label {
+                font-size: 11px;
+            }
+
+            /* Form inputs */
+            input, select, textarea {
+                min-height: 48px;
+                font-size: 16px;
+                padding: 12px 16px;
+                border-radius: 12px;
+            }
+
+            /* Modal adjustments */
+            .modal-content {
+                width: 100%;
+                max-width: 100%;
+                height: 100%;
+                max-height: 100%;
+                border-radius: 0;
+                margin: 0;
+            }
+
+            /* Message bubbles */
             .message {
-                max-width: 90%;
-            }
-
-            .nav-tabs {
-                padding: 8px;
-                gap: 5px;
-            }
-
-            .nav-tab {
-                padding: 10px 15px;
-                font-size: 14px;
-            }
-
-            .content-section {
-                padding: 20px 15px;
-            }
-
-            .workout-card {
-                padding: 20px;
+                max-width: 85%;
             }
 
             .workout-card h2 {
@@ -2177,6 +2440,47 @@
     </style>
 </head>
 <body>
+    <!-- ========================================
+         MOBILE HEADER (Instagram-style)
+         ======================================== -->
+    <header class="mobile-header">
+        <div class="mobile-header-inner">
+            <div class="mobile-header-logo">FitQuest</div>
+            <div class="mobile-header-actions">
+                <button class="mobile-header-btn" onclick="openMusicPlayer()" title="Music">🎵</button>
+                <button class="mobile-header-btn" onclick="showSection('settings')" title="Settings">⚙️</button>
+                <div class="mobile-avatar" id="mobileAvatar" onclick="openAuthModal()">U</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================
+         MOBILE BOTTOM NAVIGATION (Instagram-style)
+         ======================================== -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+            <div class="bottom-nav-item active" onclick="showSectionMobile('workout')" data-section="workout">
+                <span class="bottom-nav-icon">🏠</span>
+                <span class="bottom-nav-label">Home</span>
+            </div>
+            <div class="bottom-nav-item" onclick="showSectionMobile('challenges')" data-section="challenges">
+                <span class="bottom-nav-icon">🎯</span>
+                <span class="bottom-nav-label">Challenges</span>
+            </div>
+            <div class="bottom-nav-item" onclick="showSectionMobile('ai-coach')" data-section="ai-coach">
+                <div class="bottom-nav-action">+</div>
+            </div>
+            <div class="bottom-nav-item" onclick="showSectionMobile('friends')" data-section="friends">
+                <span class="bottom-nav-icon">👥</span>
+                <span class="bottom-nav-label">Friends</span>
+            </div>
+            <div class="bottom-nav-item" onclick="showSectionMobile('profile')" data-section="profile">
+                <span class="bottom-nav-icon">👤</span>
+                <span class="bottom-nav-label">Profile</span>
+            </div>
+        </div>
+    </nav>
+
     <!-- Hamburger Menu Button -->
     <div class="hamburger-menu" onclick="toggleSlideNav()">
         <div class="hamburger-line"></div>
@@ -2235,7 +2539,7 @@
                         <span id="avatarInitial">U</span>
                         <div class="avatar-upload">📷</div>
                     </div>
-                    <input type="file" id="avatarUpload" accept="image/*">
+                    <input type="file" id="avatarUpload" accept="image/*" onchange="handleAvatarUpload(event)" style="display: none;">
                     <div class="user-info">
                         <h1 id="userName">Warrior</h1>
                         <span class="level-badge">Level <span id="userLevel">1</span></span>
@@ -2309,6 +2613,40 @@
 
         <!-- Today's Workout Section -->
         <div id="workout" class="content-section active">
+            <!-- Quick Actions Row (Mobile Stories-style) -->
+            <div class="quick-actions-row">
+                <div class="quick-action-item" onclick="showSection('challenges')">
+                    <div class="quick-action-circle">
+                        <div class="quick-action-inner">🎯</div>
+                    </div>
+                    <span class="quick-action-label">Challenges</span>
+                </div>
+                <div class="quick-action-item" onclick="showSection('leaderboard')">
+                    <div class="quick-action-circle">
+                        <div class="quick-action-inner">🏆</div>
+                    </div>
+                    <span class="quick-action-label">Leaderboard</span>
+                </div>
+                <div class="quick-action-item" onclick="showSection('body-scan')">
+                    <div class="quick-action-circle">
+                        <div class="quick-action-inner">📊</div>
+                    </div>
+                    <span class="quick-action-label">Body Scan</span>
+                </div>
+                <div class="quick-action-item" onclick="showSection('achievements')">
+                    <div class="quick-action-circle">
+                        <div class="quick-action-inner">🏅</div>
+                    </div>
+                    <span class="quick-action-label">Achievements</span>
+                </div>
+                <div class="quick-action-item" onclick="showSection('progress')">
+                    <div class="quick-action-circle">
+                        <div class="quick-action-inner">📸</div>
+                    </div>
+                    <span class="quick-action-label">Progress</span>
+                </div>
+            </div>
+
             <div class="workout-card">
                 <h2>💪 Today's Challenge</h2>
                 <p>Complete today's workout to maintain your streak!</p>
@@ -4154,6 +4492,11 @@
             renderLeaderboard();
             renderChallenges();
             renderWeeklyPlans();
+            
+            // Update mobile UI elements
+            if (typeof updateMobileAvatar === 'function') {
+                updateMobileAvatar();
+            }
         }
 
         // Render exercises
@@ -4305,6 +4648,15 @@
                 slideNavItem.classList.add('active');
             }
             
+            // Update bottom nav active state (mobile)
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const bottomNavItem = document.querySelector(`.bottom-nav-item[data-section="${sectionId}"]`);
+            if (bottomNavItem) {
+                bottomNavItem.classList.add('active');
+            }
+            
             const section = document.getElementById(sectionId);
             if (section) {
                 section.classList.add('active');
@@ -4332,10 +4684,37 @@
                     }
                 }
             }
+            
+            // Scroll to top when section changes
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Mobile-specific section switcher
+        function showSectionMobile(sectionId) {
+            // Haptic feedback on mobile (if supported)
+            if (navigator.vibrate) {
+                navigator.vibrate(10);
+            }
+            showSection(sectionId);
+        }
+        
+        // Update mobile avatar when profile changes
+        function updateMobileAvatar() {
+            const mobileAvatar = document.getElementById('mobileAvatar');
+            if (mobileAvatar) {
+                if (appState.user.profilePhoto) {
+                    mobileAvatar.style.backgroundImage = `url('${appState.user.profilePhoto}')`;
+                    mobileAvatar.textContent = '';
+                } else if (appState.user.name) {
+                    mobileAvatar.textContent = appState.user.name.charAt(0).toUpperCase();
+                    mobileAvatar.style.backgroundImage = '';
+                }
+            }
         }
         
         // Make globally accessible
         window.showSection = showSection;
+        window.showSectionMobile = showSectionMobile;
         
         // Toggle hamburger slide navigation
         function toggleSlideNav() {
@@ -4717,6 +5096,11 @@
                         healthConditions: appState.user.healthConditions || [],
                         healthNotes: appState.user.healthNotes || '',
                         fitnessLevel: appState.user.fitnessLevel || 'beginner',
+                        // Appearance settings
+                        customBackground: appState.user.customBackground || null,
+                        backgroundTheme: appState.user.backgroundTheme || null,
+                        backgroundOpacity: appState.user.backgroundOpacity || 0.85,
+                        profilePhoto: appState.user.profilePhoto || null,
                         lastActive: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
                     
@@ -8120,6 +8504,16 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                                 appState.user.backgroundTheme = null;
                                 saveData();
                                 
+                                // Save to Firebase
+                                if (currentUser) {
+                                    db.collection('users').doc(currentUser.uid).set({
+                                        customBackground: compressedDataUrl,
+                                        backgroundTheme: null
+                                    }, { merge: true }).then(() => {
+                                        console.log('✅ Background saved to Firebase');
+                                    }).catch(err => console.error('Firebase background save error:', err));
+                                }
+                                
                                 applyCustomBackground(compressedDataUrl);
                                 showNotification(`Background applied! (${sizeInMB.toFixed(1)}MB) 🖼️`, 'success');
                                 
@@ -8236,6 +8630,80 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                 
                 showNotification('Custom background removed', 'info');
             }
+        }
+
+        // Handle Avatar/Profile Photo Upload
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showNotification('Please select an image file', 'warning');
+                event.target.value = '';
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Image too large. Please use an image under 5MB.', 'warning');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // Compress and resize avatar to 200x200
+                    const canvas = document.createElement('canvas');
+                    const size = 200;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Draw square crop from center
+                    const minDim = Math.min(img.width, img.height);
+                    const sx = (img.width - minDim) / 2;
+                    const sy = (img.height - minDim) / 2;
+                    
+                    ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+                    
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    // Apply to avatar
+                    const avatar = document.querySelector('.avatar');
+                    if (avatar) {
+                        avatar.style.backgroundImage = `url('${compressedDataUrl}')`;
+                        avatar.style.backgroundSize = 'cover';
+                        avatar.style.backgroundPosition = 'center';
+                        const initial = avatar.querySelector('#avatarInitial');
+                        if (initial) initial.style.display = 'none';
+                    }
+                    
+                    // Save to appState and localStorage
+                    appState.user.profilePhoto = compressedDataUrl;
+                    saveData();
+                    
+                    // Save to Firebase
+                    if (currentUser) {
+                        db.collection('users').doc(currentUser.uid).set({
+                            profilePhoto: compressedDataUrl
+                        }, { merge: true }).then(() => {
+                            console.log('✅ Profile photo saved to Firebase');
+                            showNotification('Profile photo updated! 📷', 'success');
+                        }).catch(err => {
+                            console.error('Firebase avatar save error:', err);
+                            showNotification('Photo saved locally. Cloud sync failed.', 'warning');
+                        });
+                    } else {
+                        showNotification('Profile photo saved locally! Login to sync.', 'info');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
         }
 
         // Background Opacity Functions
@@ -9405,10 +9873,46 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         lastWorkoutDate: userData.lastWorkoutDate,
                         healthConditions: userData.healthConditions || [],
                         healthNotes: userData.healthNotes || '',
-                        fitnessLevel: userData.fitnessLevel || 'beginner'
+                        fitnessLevel: userData.fitnessLevel || 'beginner',
+                        // Appearance settings
+                        customBackground: userData.customBackground || null,
+                        backgroundTheme: userData.backgroundTheme || null,
+                        backgroundOpacity: userData.backgroundOpacity || 0.85,
+                        profilePhoto: userData.profilePhoto || null
                     };
                     
                     console.log('✅ Loaded user data. Friend Code:', appState.user.friendCode);
+                    
+                    // Apply saved appearance settings
+                    if (appState.user.customBackground) {
+                        applyCustomBackground(appState.user.customBackground);
+                        const removeBtn = document.getElementById('removeBackgroundBtn');
+                        const preview = document.getElementById('backgroundPreview');
+                        const previewImg = document.getElementById('backgroundPreviewImage');
+                        if (removeBtn) removeBtn.style.display = 'inline-block';
+                        if (preview) preview.style.display = 'block';
+                        if (previewImg) previewImg.src = appState.user.customBackground;
+                    } else if (appState.user.backgroundTheme) {
+                        applyTheme(appState.user.backgroundTheme);
+                    }
+                    
+                    if (appState.user.backgroundOpacity) {
+                        const overlay = document.querySelector('.content-overlay');
+                        if (overlay) overlay.style.background = `rgba(255,255,255,${appState.user.backgroundOpacity})`;
+                        const slider = document.getElementById('overlayOpacity');
+                        if (slider) slider.value = appState.user.backgroundOpacity;
+                    }
+                    
+                    if (appState.user.profilePhoto) {
+                        const avatar = document.querySelector('.avatar');
+                        if (avatar) {
+                            avatar.style.backgroundImage = `url('${appState.user.profilePhoto}')`;
+                            avatar.style.backgroundSize = 'cover';
+                            avatar.style.backgroundPosition = 'center';
+                            const initial = avatar.querySelector('#avatarInitial');
+                            if (initial) initial.style.display = 'none';
+                        }
+                    }
                     
                     // Load additional data
                     await loadProgressPhotosFromFirebase(uid);
@@ -11807,6 +12311,8 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         window.changeBackgroundImage = changeBackgroundImage;
         window.uploadCustomBackground = uploadCustomBackground;
         window.handleBackgroundUpload = handleBackgroundUpload;
+        window.handleAvatarUpload = handleAvatarUpload;
+        window.updateMobileAvatar = updateMobileAvatar;
         window.resetToDefault = resetToDefault;
         window.connectDevice = connectDevice;
         window.connectSpotify = connectSpotify;
