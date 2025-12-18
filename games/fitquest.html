@@ -2600,8 +2600,8 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                     <h2 style="margin: 0;">Friends</h2>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <span style="color: var(--text-light); font-size: 14px;">Your Code:</span>
-                        <strong style="color: var(--primary); letter-spacing: 1px; font-size: 16px;" id="friendCodeHeader">LOADING...</strong>
+                        <span style="color: var(--text-light); font-size: 14px;">Your Username:</span>
+                        <strong style="color: var(--primary); letter-spacing: 1px; font-size: 16px;" id="friendCodeHeader">@loading...</strong>
                         <button class="btn" onclick="copyFriendCode()" style="padding: 6px 12px; font-size: 13px;">📋 Copy</button>
                     </div>
                 </div>
@@ -4154,11 +4154,11 @@
 
         // Simulated global leaderboard data (in production, this would come from a backend)
         const globalLeaderboard = [
-            { name: 'FitGod_Mike', level: 15, xp: 3450, streak: 45, totalWorkouts: 156, friendCode: 'FIT-MIKE99' },
-            { name: 'IronSarah', level: 12, xp: 2890, streak: 32, totalWorkouts: 134, friendCode: 'FIT-SARAH7' },
-            { name: 'BeastMode_Jay', level: 11, xp: 2670, streak: 28, totalWorkouts: 98, friendCode: 'FIT-JAY456' },
-            { name: 'HealthyHabits', level: 10, xp: 2340, streak: 40, totalWorkouts: 112, friendCode: 'FIT-HABIT8' },
-            { name: 'FlexAppeal', level: 9, xp: 2100, streak: 21, totalWorkouts: 87, friendCode: 'FIT-FLEX22' }
+            { name: 'FitGod_Mike', level: 15, xp: 3450, streak: 45, totalWorkouts: 156, username: 'fitgod_mike' },
+            { name: 'IronSarah', level: 12, xp: 2890, streak: 32, totalWorkouts: 134, username: 'ironsarah' },
+            { name: 'BeastMode_Jay', level: 11, xp: 2670, streak: 28, totalWorkouts: 98, username: 'beastmode_jay' },
+            { name: 'HealthyHabits', level: 10, xp: 2340, streak: 40, totalWorkouts: 112, username: 'healthyhabits' },
+            { name: 'FlexAppeal', level: 9, xp: 2100, streak: 21, totalWorkouts: 87, username: 'flexappeal' }
         ];
 
         // Load saved data
@@ -4239,10 +4239,18 @@
             const xpPercent = (appState.user.xp / appState.user.maxXP) * 100;
             document.getElementById('xpFill').style.width = xpPercent + '%';
             
-            // Update friend code display
+            // Update username display (for friend adding)
             const friendCodeEl = document.getElementById('friendCode');
-            if (friendCodeEl && appState.user.friendCode) {
-                friendCodeEl.textContent = appState.user.friendCode;
+            if (friendCodeEl) {
+                const displayUsername = appState.user.username || appState.user.name || 'Set username';
+                friendCodeEl.textContent = displayUsername.startsWith('@') ? displayUsername : '@' + displayUsername;
+            }
+            
+            // Update header username display
+            const friendCodeHeader = document.getElementById('friendCodeHeader');
+            if (friendCodeHeader) {
+                const displayUsername = appState.user.username || appState.user.name || 'Set username';
+                friendCodeHeader.textContent = displayUsername.startsWith('@') ? displayUsername : '@' + displayUsername;
             }
 
             renderExercises();
@@ -6870,7 +6878,7 @@
                 const level = friend.level || 1;
                 const streak = friend.streak || 0;
                 const totalWorkouts = friend.totalWorkouts || 0;
-                const friendCode = friend.friendCode || 'N/A';
+                const username = friend.username || '';
                 
                 return `
                     <div class="friend-card" style="margin-bottom: 15px;">
@@ -6879,9 +6887,7 @@
                                 <div class="user-avatar">${displayName.charAt(0).toUpperCase()}</div>
                                 <div style="flex: 1;">
                                     <div class="user-name">${displayName}</div>
-                                    <div style="color: var(--primary); font-size: 12px; font-weight: 600; margin-top: 3px; letter-spacing: 1px;">
-                                        🔑 ${friendCode}
-                                    </div>
+                                    ${username ? `<div style="color: var(--text-light); font-size: 13px; margin-top: 2px;">@${username}</div>` : ''}
                                     <div class="user-stats" style="margin-top: 8px;">
                                         <span>⭐ Level ${level}</span>
                                         <span>🔥 ${streak} day streak</span>
@@ -6920,6 +6926,7 @@
             const streak = friend.streak || 0;
             const totalWorkouts = friend.totalWorkouts || 0;
             const xp = friend.xp || 0;
+            const username = friend.username || '';
             
             content.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
@@ -6927,7 +6934,7 @@
                         ${displayName.charAt(0).toUpperCase()}
                     </div>
                     <h2>${displayName}</h2>
-                    <p style="color: var(--text-light);">Level ${level} • ${friend.friendCode || 'N/A'}</p>
+                    <p style="color: var(--text-light);">Level ${level}${username ? ' • @' + username : ''}</p>
                 </div>
 
                 <div class="progress-grid">
