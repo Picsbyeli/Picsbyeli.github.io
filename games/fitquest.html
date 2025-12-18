@@ -2570,58 +2570,100 @@
 
         <!-- Friends Section -->
         <div id="friends" class="content-section">
-            <h2 style="margin-bottom: 20px;">👥 Friends</h2>
-            
-            <!-- Friend Code Section -->
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-                <h3 style="margin-bottom: 15px;">🔑 Your Friend Code</h3>
-                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <div style="font-size: 24px; font-weight: bold; letter-spacing: 2px;" id="friendCode">LOADING...</div>
-                        <p style="margin-top: 5px; font-size: 14px; opacity: 0.9;">Share this code with friends to connect</p>
+            <!-- Discord-style Header with Search -->
+            <div style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <h2 style="margin: 0;">Friends</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="color: var(--text-light); font-size: 14px;">Your Code: <strong style="color: var(--primary); letter-spacing: 1px;" id="friendCodeDisplay">LOADING...</strong></span>
+                        <button class="btn" onclick="copyFriendCode()" style="padding: 8px 16px; font-size: 14px;">
+                            📋 Copy
+                        </button>
                     </div>
-                    <button class="btn" onclick="copyFriendCode()" style="background: white; color: var(--primary);">
-                        📋 Copy Code
+                </div>
+            </div>
+
+            <!-- Discord-style Tabs -->
+            <div style="background: white; border-radius: 15px; border: 2px solid var(--border); overflow: hidden;">
+                <!-- Tab Navigation -->
+                <div style="display: flex; border-bottom: 2px solid var(--border); background: #f9fafb;">
+                    <button id="friendsTabAll" onclick="switchFriendsTab('all')" style="flex: 1; padding: 15px 20px; background: white; border: none; border-bottom: 3px solid var(--primary); cursor: pointer; font-weight: 600; color: var(--primary); transition: all 0.2s;">
+                        All
                     </button>
-                </div>
-            </div>
-
-            <!-- Pending Friend Requests -->
-            <div id="friendRequestsSection" style="display: none; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-                <h3 style="margin-bottom: 15px;">📬 Pending Friend Requests</h3>
-                <div id="friendRequestsContainer">
-                    <!-- Friend requests will be populated here -->
-                </div>
-            </div>
-
-            <!-- Add Friend Section -->
-            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 15px;">➕ Add a Friend</h3>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input 
-                        type="text" 
-                        id="addFriendInput" 
-                        placeholder="Enter friend code (e.g., FIT-ABC123)"
-                        style="flex: 1; min-width: 200px; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 16px;"
-                    >
-                    <button class="btn btn-primary" onclick="addFriend()">
+                    <button id="friendsTabPending" onclick="switchFriendsTab('pending')" style="flex: 1; padding: 15px 20px; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-light); transition: all 0.2s;">
+                        Pending <span id="pendingBadge" style="display: none; background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 5px;">0</span>
+                    </button>
+                    <button id="friendsTabAdd" onclick="switchFriendsTab('add')" style="flex: 1; padding: 15px 20px; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-light); transition: all 0.2s;">
                         Add Friend
                     </button>
                 </div>
-            </div>
 
-            <!-- Friends List -->
-            <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
-                <h3 style="margin-bottom: 20px;">👥 My Friends</h3>
-                <div id="friendsList">
-                    <!-- Friends will be displayed here with their friend codes -->
-                </div>
-                
-                <!-- Empty State -->
-                <div id="emptyFriendsState" style="display: none; text-align: center; padding: 40px 20px;">
-                    <div style="font-size: 64px; margin-bottom: 15px;">👥</div>
-                    <h4 style="color: var(--text-light); margin-bottom: 10px;">No friends yet</h4>
-                    <p style="color: var(--text-light); font-size: 14px;">Add friends using their friend code above!</p>
+                <!-- Tab Content Container -->
+                <div style="padding: 25px;">
+                    <!-- All Friends Tab -->
+                    <div id="friendsContentAll" style="display: block;">
+                        <div style="margin-bottom: 15px; color: var(--text-light); font-size: 14px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                            All Friends — <span id="friendsCount">0</span>
+                        </div>
+                        <div id="friendsList">
+                            <!-- Friends will be displayed here -->
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div id="emptyFriendsState" style="display: none; text-align: center; padding: 60px 20px;">
+                            <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: var(--bg-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px;">👥</div>
+                            <h4 style="color: var(--text-dark); margin-bottom: 10px; font-size: 18px;">No one's around to play with</h4>
+                            <p style="color: var(--text-light); font-size: 14px; margin-bottom: 20px;">Wumpus is waiting on friends. You don't have to though!</p>
+                            <button class="btn btn-primary" onclick="switchFriendsTab('add')" style="padding: 10px 20px;">
+                                Add Friend
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pending Tab -->
+                    <div id="friendsContentPending" style="display: none;">
+                        <div id="friendRequestsContainer">
+                            <!-- Friend requests will be populated here -->
+                        </div>
+                        
+                        <!-- Empty Pending State -->
+                        <div id="emptyPendingState" style="display: none; text-align: center; padding: 60px 20px;">
+                            <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: var(--bg-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px;">📭</div>
+                            <h4 style="color: var(--text-dark); margin-bottom: 10px; font-size: 18px;">There are no pending friend requests.</h4>
+                            <p style="color: var(--text-light); font-size: 14px;">Here's Wumpus for now.</p>
+                        </div>
+                    </div>
+
+                    <!-- Add Friend Tab -->
+                    <div id="friendsContentAdd" style="display: none;">
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600; color: var(--text-dark); text-transform: uppercase; letter-spacing: 0.5px;">Add Friend</h3>
+                            <p style="color: var(--text-light); font-size: 14px; margin-bottom: 20px;">You can add friends with their FitQuest Friend Code.</p>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; padding: 15px; background: var(--bg-light); border-radius: 10px; border: 2px solid var(--border);">
+                            <input 
+                                type="text" 
+                                id="addFriendInput" 
+                                placeholder="Enter a Friend Code"
+                                style="flex: 1; padding: 12px 15px; border: none; background: white; border-radius: 8px; font-size: 15px; outline: none;"
+                                onkeypress="if(event.key==='Enter') addFriend()"
+                            >
+                            <button class="btn btn-primary" onclick="addFriend()" style="padding: 12px 24px; white-space: nowrap;">
+                                Send Friend Request
+                            </button>
+                        </div>
+
+                        <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px;">
+                            <h4 style="margin-bottom: 10px; font-size: 14px; font-weight: 600;">🔑 YOUR FRIEND CODE</h4>
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div style="font-size: 20px; font-weight: bold; letter-spacing: 2px;" id="friendCode">LOADING...</div>
+                                <button onclick="copyFriendCode()" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -6512,6 +6554,8 @@
             // Friend codes are now generated in Firestore when user signs up
             // Just display the existing code
             const friendCodeEl = document.getElementById('friendCode');
+            const friendCodeDisplayEl = document.getElementById('friendCodeDisplay');
+            
             if (friendCodeEl) {
                 if (currentUser && appState.user.friendCode) {
                     friendCodeEl.textContent = appState.user.friendCode;
@@ -6519,6 +6563,16 @@
                     friendCodeEl.textContent = 'Login to get your code';
                 } else {
                     friendCodeEl.textContent = 'Loading...';
+                }
+            }
+            
+            if (friendCodeDisplayEl) {
+                if (currentUser && appState.user.friendCode) {
+                    friendCodeDisplayEl.textContent = appState.user.friendCode;
+                } else if (!currentUser) {
+                    friendCodeDisplayEl.textContent = 'Login';
+                } else {
+                    friendCodeDisplayEl.textContent = 'Loading...';
                 }
             }
         }
@@ -6538,6 +6592,52 @@
                 document.body.removeChild(textarea);
                 showNotification('Friend code copied! 📋', 'success');
             });
+        }
+
+        // Switch between Friends tabs (Discord-style)
+        function switchFriendsTab(tab) {
+            // Hide all tabs
+            document.getElementById('friendsContentAll').style.display = 'none';
+            document.getElementById('friendsContentPending').style.display = 'none';
+            document.getElementById('friendsContentAdd').style.display = 'none';
+            
+            // Reset all tab buttons
+            const tabs = ['friendsTabAll', 'friendsTabPending', 'friendsTabAdd'];
+            tabs.forEach(tabId => {
+                const tabEl = document.getElementById(tabId);
+                if (tabEl) {
+                    tabEl.style.background = 'transparent';
+                    tabEl.style.color = 'var(--text-light)';
+                    tabEl.style.borderBottom = '3px solid transparent';
+                }
+            });
+            
+            // Show selected tab
+            if (tab === 'all') {
+                document.getElementById('friendsContentAll').style.display = 'block';
+                const tabEl = document.getElementById('friendsTabAll');
+                if (tabEl) {
+                    tabEl.style.background = 'white';
+                    tabEl.style.color = 'var(--primary)';
+                    tabEl.style.borderBottom = '3px solid var(--primary)';
+                }
+            } else if (tab === 'pending') {
+                document.getElementById('friendsContentPending').style.display = 'block';
+                const tabEl = document.getElementById('friendsTabPending');
+                if (tabEl) {
+                    tabEl.style.background = 'white';
+                    tabEl.style.color = 'var(--primary)';
+                    tabEl.style.borderBottom = '3px solid var(--primary)';
+                }
+            } else if (tab === 'add') {
+                document.getElementById('friendsContentAdd').style.display = 'block';
+                const tabEl = document.getElementById('friendsTabAdd');
+                if (tabEl) {
+                    tabEl.style.background = 'white';
+                    tabEl.style.color = 'var(--primary)';
+                    tabEl.style.borderBottom = '3px solid var(--primary)';
+                }
+            }
         }
 
         // Add friend - uses friend request system if logged in
@@ -6570,6 +6670,11 @@
         function renderFriendsList() {
             const container = document.getElementById('friendsList');
             const emptyState = document.getElementById('emptyFriendsState');
+            const friendsCount = document.getElementById('friendsCount');
+            
+            if (friendsCount) {
+                friendsCount.textContent = appState.friends.length;
+            }
             
             if (appState.friends.length === 0) {
                 if (container) container.innerHTML = '';
@@ -6591,21 +6696,31 @@
                 const friendCode = friend.friendCode || 'N/A';
                 
                 return `
-                    <div class="friend-card" style="margin-bottom: 15px;">
-                        <div style="width: 100%;">
-                            <div class="friend-info">
-                                <div class="user-avatar">${displayName.charAt(0).toUpperCase()}</div>
-                                <div style="flex: 1;">
-                                    <div class="user-name">${displayName}</div>
-                                    <div style="color: var(--primary); font-size: 12px; font-weight: 600; margin-top: 3px; letter-spacing: 1px;">
-                                        🔑 ${friendCode}
-                                    </div>
-                                    <div class="user-stats" style="margin-top: 8px;">
-                                        <span>⭐ Level ${level}</span>
-                                        <span>🔥 ${streak} day streak</span>
-                                        <span>💪 ${totalWorkouts} workouts</span>
-                                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 4px; border: 1px solid transparent; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='var(--bg-light)'; this.style.borderColor='var(--border)'" onmouseout="this.style.background='transparent'; this.style.borderColor='transparent'" onclick="viewFriendProgress('${friend.uid}')">
+                        <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                            <div style="position: relative;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px;">
+                                    ${displayName.charAt(0).toUpperCase()}
                                 </div>
+                                <div style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background: var(--text-light); border: 2px solid white; border-radius: 50%;"></div>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 2px;">${displayName}</div>
+                                <div style="font-size: 12px; color: var(--text-light);">⭐ Level ${level} • 🔥 ${streak} streak • 💪 ${totalWorkouts} workouts</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button onclick="event.stopPropagation(); viewFriendProgress('${friend.uid}')" style="width: 36px; height: 36px; background: var(--bg-light); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--primary)'; this.style.color='white'" onmouseout="this.style.background='var(--bg-light)'; this.style.color='var(--text-dark)'" title="View Profile">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            </button>
+                            <button onclick="event.stopPropagation(); if(confirm('Remove ${displayName} from friends?')) friendsManager.removeFriend('${friend.uid}')" style="width: 36px; height: 36px; background: transparent; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-light); transition: all 0.2s;" onmouseover="this.style.background='var(--danger)'; this.style.color='white'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-light)'" title="Remove Friend">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
                                 <button class="btn" onclick="viewFriendProgress('${friend.uid}')" style="font-size: 14px; padding: 8px 16px;">
                                     View Progress
                                 </button>
@@ -9978,54 +10093,79 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
             // Render friend requests UI
             renderFriendRequests: function() {
                 const container = document.getElementById('friendRequestsContainer');
-                const section = document.getElementById('friendRequestsSection');
+                const emptyState = document.getElementById('emptyPendingState');
+                const badge = document.getElementById('pendingBadge');
                 if (!container) return;
                 
                 const { incoming, outgoing } = this.friendRequests;
+                const totalPending = incoming.length + outgoing.length;
                 
-                // Show/hide the entire section based on whether there are requests
-                if (incoming.length === 0 && outgoing.length === 0) {
-                    if (section) section.style.display = 'none';
+                // Update badge
+                if (badge) {
+                    if (totalPending > 0) {
+                        badge.textContent = totalPending;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+                
+                // Show/hide empty state
+                if (totalPending === 0) {
                     container.innerHTML = '';
+                    if (emptyState) emptyState.style.display = 'block';
                     return;
                 }
                 
-                // Show the section if there are requests
-                if (section) section.style.display = 'block';
+                if (emptyState) emptyState.style.display = 'none';
                 
                 let html = '';
                 
                 if (incoming.length > 0) {
-                    html += '<h4 style="margin-bottom: 10px; color: white;">📥 Incoming Requests</h4>';
+                    html += '<div style="margin-bottom: 20px;">';
+                    html += '<div style="margin-bottom: 12px; color: var(--text-light); font-size: 12px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Incoming — ' + incoming.length + '</div>';
                     incoming.forEach(req => {
                         html += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-bottom: 10px;">
-                                <div>
-                                    <strong style="color: white;">${req.fromDisplayName || req.fromUsername || 'User'}</strong>
-                                    <p style="font-size: 12px; color: rgba(255,255,255,0.8);">@${req.fromUsername || 'user'}</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--bg-light); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px;">
+                                        ${(req.fromDisplayName || req.fromUsername || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 2px;">${req.fromDisplayName || req.fromUsername || 'User'}</div>
+                                        <div style="font-size: 12px; color: var(--text-light);">Incoming Friend Request</div>
+                                    </div>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <button onclick="friendsManager.acceptFriendRequest('${req.id}', ${JSON.stringify(req).replace(/"/g, '&quot;')})" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✓ Accept</button>
-                                    <button onclick="friendsManager.declineFriendRequest('${req.id}')" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✗ Decline</button>
+                                    <button onclick="friendsManager.acceptFriendRequest('${req.id}', ${JSON.stringify(req).replace(/"/g, '&quot;')})" style="width: 36px; height: 36px; background: var(--secondary); color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='var(--secondary)'" title="Accept">✓</button>
+                                    <button onclick="friendsManager.declineFriendRequest('${req.id}')" style="width: 36px; height: 36px; background: var(--danger); color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='var(--danger)'" title="Decline">✕</button>
                                 </div>
                             </div>
                         `;
                     });
+                    html += '</div>';
                 }
                 
                 if (outgoing.length > 0) {
-                    html += '<h4 style="margin: 15px 0 10px; color: white;">📤 Sent Requests</h4>';
+                    html += '<div>';
+                    html += '<div style="margin-bottom: 12px; color: var(--text-light); font-size: 12px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Outgoing — ' + outgoing.length + '</div>';
                     outgoing.forEach(req => {
                         html += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.15); border-radius: 10px; margin-bottom: 10px;">
-                                <div>
-                                    <strong style="color: white;">${req.toUsername || 'User'}</strong>
-                                    <p style="font-size: 12px; color: rgba(255,255,255,0.7);">📬 Requested</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--bg-light); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--text-light); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px;">
+                                        ${(req.toUsername || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 2px;">${req.toUsername || 'User'}</div>
+                                        <div style="font-size: 12px; color: var(--text-light);">Outgoing Friend Request</div>
+                                    </div>
                                 </div>
-                                <button onclick="friendsManager.cancelFriendRequest('${req.id}')" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+                                <button onclick="friendsManager.cancelFriendRequest('${req.id}')" style="padding: 8px 16px; background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='var(--danger)'; this.style.color='white'" onmouseout="this.style.background='transparent'; this.style.color='var(--danger)'">Cancel</button>
                             </div>
                         `;
                     });
+                    html += '</div>';
                 }
                 
                 container.innerHTML = html;
