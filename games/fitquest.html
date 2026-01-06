@@ -2663,9 +2663,64 @@
                 </div>
             </div>
 
+            <!-- Workout Template Selection -->
+            <div style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                        <span>🎯</span> Choose Your Workout
+                    </h3>
+                    <button class="btn" onclick="openScheduleModal()" style="padding: 8px 16px; font-size: 12px;">
+                        📅 Set Weekly Schedule
+                    </button>
+                </div>
+                
+                <!-- Scheduled Workout Alert -->
+                <div id="scheduledWorkoutAlert" style="display: none; background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 2px solid #f59e0b;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px;">📋</span>
+                        <div>
+                            <strong id="scheduledWorkoutName">Today's Scheduled Workout</strong>
+                            <p style="font-size: 12px; color: #92400e; margin: 5px 0 0 0;">Complete this workout to stay on track!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Template Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;" id="workoutTemplateGrid">
+                    <button class="template-btn" onclick="selectWorkoutTemplate('chest')" data-template="chest" style="padding: 15px 10px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 28px; margin-bottom: 5px;">💪</div>
+                        <div style="font-size: 12px; font-weight: 600;">Chest</div>
+                    </button>
+                    <button class="template-btn" onclick="selectWorkoutTemplate('arms')" data-template="arms" style="padding: 15px 10px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 28px; margin-bottom: 5px;">💪</div>
+                        <div style="font-size: 12px; font-weight: 600;">Arms</div>
+                    </button>
+                    <button class="template-btn" onclick="selectWorkoutTemplate('back')" data-template="back" style="padding: 15px 10px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 28px; margin-bottom: 5px;">🔙</div>
+                        <div style="font-size: 12px; font-weight: 600;">Back</div>
+                    </button>
+                    <button class="template-btn" onclick="selectWorkoutTemplate('legs')" data-template="legs" style="padding: 15px 10px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 28px; margin-bottom: 5px;">🦵</div>
+                        <div style="font-size: 12px; font-weight: 600;">Legs</div>
+                    </button>
+                    <button class="template-btn" onclick="selectWorkoutTemplate('fullbody')" data-template="fullbody" style="padding: 15px 10px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 28px; margin-bottom: 5px;">🏋️</div>
+                        <div style="font-size: 12px; font-weight: 600;">Full Body</div>
+                    </button>
+                    <button class="template-btn" onclick="selectWorkoutTemplate('cardio')" data-template="cardio" style="padding: 15px 10px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.3s;">
+                        <div style="font-size: 28px; margin-bottom: 5px;">🏃</div>
+                        <div style="font-size: 12px; font-weight: 600;">Cardio</div>
+                    </button>
+                </div>
+                
+                <p id="selectedTemplateText" style="text-align: center; margin-top: 15px; color: var(--text-light); font-size: 14px;">
+                    Select a workout type or use your scheduled workout
+                </p>
+            </div>
+
             <div class="workout-card">
-                <h2>💪 Today's Challenge</h2>
-                <p>Complete today's workout to maintain your streak!</p>
+                <h2 id="workoutCardTitle">💪 Today's Challenge</h2>
+                <p id="workoutCardDesc">Complete today's workout to maintain your streak!</p>
                 <div class="workout-meta">
                     <div class="meta-item">⏱️ 45 minutes</div>
                     <div class="meta-item">🔥 250 calories</div>
@@ -2682,6 +2737,32 @@
             <button class="btn btn-success" onclick="completeWorkout()" style="width: 100%; margin-top: 20px;">
                 ✅ Complete Workout & Earn XP
             </button>
+            
+            <!-- Back to Home Button -->
+            <a href="../index.html" class="btn" style="width: 100%; margin-top: 15px; display: block; text-align: center; text-decoration: none; background: #4b5563; color: white;">
+                🏠 Back to Game Hub
+            </a>
+        </div>
+
+        <!-- Workout Schedule Modal -->
+        <div id="scheduleModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+            <div style="background: white; border-radius: 20px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">📅 Weekly Workout Schedule</h2>
+                    <button onclick="closeScheduleModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">✕</button>
+                </div>
+                
+                <p style="color: var(--text-light); margin-bottom: 20px;">Set a workout template for each day. When you open FitQuest on that day, the scheduled workout will be required!</p>
+                
+                <div id="scheduleForm" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Days will be populated by JavaScript -->
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button onclick="saveSchedule()" class="btn btn-success" style="flex: 1;">💾 Save Schedule</button>
+                    <button onclick="clearSchedule()" class="btn" style="flex: 1; background: #ef4444; color: white;">🗑️ Clear All</button>
+                </div>
+            </div>
         </div>
 
         <!-- Challenges Section -->
@@ -4376,6 +4457,17 @@
             workouts: [],
             progressPhotos: [],
             weeklyPlans: [],
+            // Workout template schedule (day 0 = Sunday, 6 = Saturday)
+            workoutSchedule: {
+                0: null, // Sunday
+                1: null, // Monday
+                2: null, // Tuesday
+                3: null, // Wednesday
+                4: null, // Thursday
+                5: null, // Friday
+                6: null  // Saturday
+            },
+            selectedTemplate: null,
             todayExercises: [
                 { name: 'Push-ups', sets: '4 sets', reps: '10-20 reps', xp: 10, completed: false, category: 'Push' },
                 { name: 'Pike Push-ups', sets: '3 sets', reps: '8-12 reps', xp: 10, completed: false, category: 'Push' },
@@ -4397,6 +4489,83 @@
             currentLeaderboard: 'friends'
         };
 
+        // Workout Templates
+        const workoutTemplates = {
+            chest: {
+                name: 'Chest Day',
+                icon: '💪',
+                color: '#ef4444',
+                exercises: [
+                    { name: 'Push-ups', sets: '4 sets', reps: '15-20 reps', xp: 10, completed: false, category: 'Chest' },
+                    { name: 'Wide Push-ups', sets: '3 sets', reps: '12-15 reps', xp: 10, completed: false, category: 'Chest' },
+                    { name: 'Diamond Push-ups', sets: '3 sets', reps: '10-12 reps', xp: 10, completed: false, category: 'Chest' },
+                    { name: 'Incline Push-ups', sets: '3 sets', reps: '15 reps', xp: 10, completed: false, category: 'Chest' },
+                    { name: 'Chest Dips', sets: '3 sets', reps: '10-12 reps', xp: 10, completed: false, category: 'Chest' }
+                ]
+            },
+            arms: {
+                name: 'Arms Day',
+                icon: '💪',
+                color: '#f59e0b',
+                exercises: [
+                    { name: 'Bicep Curls (with weight)', sets: '4 sets', reps: '12 reps', xp: 10, completed: false, category: 'Arms' },
+                    { name: 'Tricep Dips', sets: '3 sets', reps: '15 reps', xp: 10, completed: false, category: 'Arms' },
+                    { name: 'Hammer Curls', sets: '3 sets', reps: '12 reps', xp: 10, completed: false, category: 'Arms' },
+                    { name: 'Diamond Push-ups', sets: '3 sets', reps: '12 reps', xp: 10, completed: false, category: 'Arms' },
+                    { name: 'Arm Circles', sets: '3 sets', reps: '30 seconds', xp: 10, completed: false, category: 'Arms' }
+                ]
+            },
+            back: {
+                name: 'Back Day',
+                icon: '🔙',
+                color: '#10b981',
+                exercises: [
+                    { name: 'Superman Hold', sets: '4 sets', reps: '30 seconds', xp: 10, completed: false, category: 'Back' },
+                    { name: 'Reverse Snow Angels', sets: '3 sets', reps: '15 reps', xp: 10, completed: false, category: 'Back' },
+                    { name: 'Prone Y Raises', sets: '3 sets', reps: '12 reps', xp: 10, completed: false, category: 'Back' },
+                    { name: 'Bird Dogs', sets: '3 sets', reps: '10 each side', xp: 10, completed: false, category: 'Back' },
+                    { name: 'Back Extensions', sets: '3 sets', reps: '15 reps', xp: 10, completed: false, category: 'Back' }
+                ]
+            },
+            legs: {
+                name: 'Legs Day',
+                icon: '🦵',
+                color: '#8b5cf6',
+                exercises: [
+                    { name: 'Squats', sets: '4 sets', reps: '20 reps', xp: 10, completed: false, category: 'Legs' },
+                    { name: 'Lunges', sets: '3 sets', reps: '12 each leg', xp: 10, completed: false, category: 'Legs' },
+                    { name: 'Calf Raises', sets: '4 sets', reps: '20 reps', xp: 10, completed: false, category: 'Legs' },
+                    { name: 'Wall Sit', sets: '3 sets', reps: '45 seconds', xp: 10, completed: false, category: 'Legs' },
+                    { name: 'Glute Bridges', sets: '3 sets', reps: '15 reps', xp: 10, completed: false, category: 'Legs' }
+                ]
+            },
+            fullbody: {
+                name: 'Full Body',
+                icon: '🏋️',
+                color: '#6366f1',
+                exercises: [
+                    { name: 'Burpees', sets: '3 sets', reps: '10 reps', xp: 15, completed: false, category: 'Full Body' },
+                    { name: 'Mountain Climbers', sets: '3 sets', reps: '30 seconds', xp: 10, completed: false, category: 'Full Body' },
+                    { name: 'Squats', sets: '3 sets', reps: '15 reps', xp: 10, completed: false, category: 'Full Body' },
+                    { name: 'Push-ups', sets: '3 sets', reps: '12 reps', xp: 10, completed: false, category: 'Full Body' },
+                    { name: 'Plank', sets: '3 sets', reps: '45 seconds', xp: 10, completed: false, category: 'Full Body' },
+                    { name: 'Jumping Jacks', sets: '3 sets', reps: '30 reps', xp: 10, completed: false, category: 'Full Body' }
+                ]
+            },
+            cardio: {
+                name: 'Cardio',
+                icon: '🏃',
+                color: '#ec4899',
+                exercises: [
+                    { name: 'Jumping Jacks', sets: '4 sets', reps: '50 reps', xp: 10, completed: false, category: 'Cardio' },
+                    { name: 'High Knees', sets: '4 sets', reps: '30 seconds', xp: 10, completed: false, category: 'Cardio' },
+                    { name: 'Burpees', sets: '3 sets', reps: '10 reps', xp: 15, completed: false, category: 'Cardio' },
+                    { name: 'Mountain Climbers', sets: '3 sets', reps: '30 seconds', xp: 10, completed: false, category: 'Cardio' },
+                    { name: 'Jump Rope (or simulate)', sets: '4 sets', reps: '1 minute', xp: 10, completed: false, category: 'Cardio' }
+                ]
+            }
+        };
+
         // Simulated global leaderboard data (in production, this would come from a backend)
         const globalLeaderboard = [
             { name: 'FitGod_Mike', level: 15, xp: 3450, streak: 45, totalWorkouts: 156, username: 'fitgod_mike' },
@@ -4416,7 +4585,14 @@
                 
                 request.onsuccess = () => {
                     if (request.result) {
-                        Object.assign(appState, request.result);
+                        // Merge with default appState to preserve new properties
+                        const savedData = request.result;
+                        appState = {
+                            ...appState,
+                            ...savedData,
+                            user: { ...appState.user, ...savedData.user },
+                            workoutSchedule: savedData.workoutSchedule || appState.workoutSchedule
+                        };
                     }
                     updateUI();
                 };
@@ -4434,7 +4610,14 @@
         function loadFromLocalStorage() {
             const saved = localStorage.getItem('fitQuestData');
             if (saved) {
-                appState = JSON.parse(saved);
+                const savedData = JSON.parse(saved);
+                // Merge saved data with default appState to preserve new properties
+                appState = {
+                    ...appState,
+                    ...savedData,
+                    user: { ...appState.user, ...savedData.user },
+                    workoutSchedule: savedData.workoutSchedule || appState.workoutSchedule
+                };
             }
             updateUI();
         }
@@ -4513,6 +4696,153 @@
             if (typeof updateMobileAvatar === 'function') {
                 updateMobileAvatar();
             }
+            
+            // Check for scheduled workout and apply template
+            checkScheduledWorkout();
+            updateTemplateSelection();
+        }
+
+        // ============================================
+        // WORKOUT TEMPLATE FUNCTIONS
+        // ============================================
+        
+        // Check if there's a scheduled workout for today
+        function checkScheduledWorkout() {
+            const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+            const scheduledTemplate = appState.workoutSchedule ? appState.workoutSchedule[today] : null;
+            
+            const alertEl = document.getElementById('scheduledWorkoutAlert');
+            const nameEl = document.getElementById('scheduledWorkoutName');
+            
+            if (scheduledTemplate && workoutTemplates[scheduledTemplate]) {
+                const template = workoutTemplates[scheduledTemplate];
+                
+                // Show alert
+                if (alertEl) {
+                    alertEl.style.display = 'block';
+                    nameEl.textContent = `📋 Today's Required: ${template.name}`;
+                }
+                
+                // If no template selected yet, auto-select the scheduled one
+                if (!appState.selectedTemplate) {
+                    selectWorkoutTemplate(scheduledTemplate, true);
+                }
+            } else {
+                if (alertEl) alertEl.style.display = 'none';
+            }
+        }
+        
+        // Select a workout template
+        function selectWorkoutTemplate(templateKey, isScheduled = false) {
+            if (!workoutTemplates[templateKey]) return;
+            
+            const template = workoutTemplates[templateKey];
+            appState.selectedTemplate = templateKey;
+            
+            // Clone exercises to avoid modifying the template
+            appState.todayExercises = template.exercises.map(ex => ({...ex, completed: false}));
+            
+            // Update UI
+            updateTemplateSelection();
+            renderExercises();
+            
+            // Update workout card
+            const titleEl = document.getElementById('workoutCardTitle');
+            const descEl = document.getElementById('workoutCardDesc');
+            const textEl = document.getElementById('selectedTemplateText');
+            
+            if (titleEl) titleEl.textContent = `${template.icon} ${template.name}`;
+            if (descEl) descEl.textContent = `${template.exercises.length} exercises to complete`;
+            if (textEl) textEl.innerHTML = `<strong style="color: ${template.color};">${template.name}</strong> selected`;
+            
+            saveData();
+            
+            if (!isScheduled) {
+                showNotification(`${template.icon} ${template.name} workout loaded!`, 'success');
+            }
+        }
+        
+        // Update template button selection styling
+        function updateTemplateSelection() {
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                const templateKey = btn.getAttribute('data-template');
+                if (templateKey === appState.selectedTemplate) {
+                    btn.style.borderColor = workoutTemplates[templateKey]?.color || 'var(--primary)';
+                    btn.style.background = `${workoutTemplates[templateKey]?.color}15`;
+                    btn.style.transform = 'scale(1.05)';
+                } else {
+                    btn.style.borderColor = 'var(--border)';
+                    btn.style.background = 'white';
+                    btn.style.transform = 'scale(1)';
+                }
+            });
+        }
+        
+        // Open schedule modal
+        function openScheduleModal() {
+            const modal = document.getElementById('scheduleModal');
+            const form = document.getElementById('scheduleForm');
+            
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayIcons = ['☀️', '🌙', '🔥', '💪', '🏃', '🎯', '🌟'];
+            
+            form.innerHTML = days.map((day, index) => {
+                const selected = appState.workoutSchedule ? appState.workoutSchedule[index] : null;
+                return `
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #f9fafb; border-radius: 10px;">
+                        <span style="font-size: 24px; width: 40px; text-align: center;">${dayIcons[index]}</span>
+                        <span style="font-weight: 600; width: 100px;">${day}</span>
+                        <select id="schedule-day-${index}" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px;">
+                            <option value="">Rest Day</option>
+                            <option value="chest" ${selected === 'chest' ? 'selected' : ''}>💪 Chest</option>
+                            <option value="arms" ${selected === 'arms' ? 'selected' : ''}>💪 Arms</option>
+                            <option value="back" ${selected === 'back' ? 'selected' : ''}>🔙 Back</option>
+                            <option value="legs" ${selected === 'legs' ? 'selected' : ''}>🦵 Legs</option>
+                            <option value="fullbody" ${selected === 'fullbody' ? 'selected' : ''}>🏋️ Full Body</option>
+                            <option value="cardio" ${selected === 'cardio' ? 'selected' : ''}>🏃 Cardio</option>
+                        </select>
+                    </div>
+                `;
+            }).join('');
+            
+            modal.style.display = 'flex';
+        }
+        
+        // Close schedule modal
+        function closeScheduleModal() {
+            document.getElementById('scheduleModal').style.display = 'none';
+        }
+        
+        // Save schedule
+        function saveSchedule() {
+            if (!appState.workoutSchedule) {
+                appState.workoutSchedule = {};
+            }
+            
+            for (let i = 0; i < 7; i++) {
+                const select = document.getElementById(`schedule-day-${i}`);
+                appState.workoutSchedule[i] = select.value || null;
+            }
+            
+            saveData();
+            closeScheduleModal();
+            checkScheduledWorkout();
+            showNotification('📅 Weekly schedule saved!', 'success');
+        }
+        
+        // Clear schedule
+        function clearSchedule() {
+            appState.workoutSchedule = {
+                0: null, 1: null, 2: null, 3: null, 4: null, 5: null, 6: null
+            };
+            
+            for (let i = 0; i < 7; i++) {
+                const select = document.getElementById(`schedule-day-${i}`);
+                if (select) select.value = '';
+            }
+            
+            saveData();
+            showNotification('🗑️ Schedule cleared!', 'info');
         }
 
         // Render exercises
@@ -4756,6 +5086,13 @@
             alert('🏋️ Starting workout mode! Complete each exercise and check them off as you go.');
         }
         window.startWorkout = startWorkout;
+        
+        // Export workout template functions
+        window.selectWorkoutTemplate = selectWorkoutTemplate;
+        window.openScheduleModal = openScheduleModal;
+        window.closeScheduleModal = closeScheduleModal;
+        window.saveSchedule = saveSchedule;
+        window.clearSchedule = clearSchedule;
 
         // ==========================================
         // PROFILE FUNCTIONS
@@ -6759,21 +7096,22 @@
             // Initialize IndexedDB first (50MB storage)
             await initDB();
             
+            // ALWAYS load local data first for immediate display
+            // Firebase will sync and override if user is logged in
             loadData();
+            
+            // Load minimal UI while waiting for auth
             loadMusicAPIKeys(); // Load YouTube/Spotify API keys
-            generateFriendCode();
             renderExercises();
             renderAchievements();
             renderWeeklySchedule();
             renderNutritionPlan();
-            renderProgressTimeline();
             renderProgressSummary();
-            renderFriendsList();
             renderChallenges();
-            renderWeeklyPlans(); // Render weekly plans
+            renderWeeklyPlans();
             loadSettings();
             updateStorageIndicator();
-            checkForAutoSlideshow(); // Check if we should show slideshow
+            checkForAutoSlideshow();
             
             // Set today's date as default for photo date picker
             const today = new Date().toISOString().split('T')[0];
@@ -9092,9 +9430,13 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         </div>
                     </div>
                     
-                    <button class="workout-button" style="background: var(--secondary); color: white;" onclick="saveAndExitWorkout()">
+                    <button class="workout-button" style="background: var(--secondary); color: white; margin-bottom: 15px;" onclick="saveAndExitWorkout()">
                         ✓ Finish & Save Progress
                     </button>
+                    
+                    <a href="../index.html" class="workout-button" style="background: #4b5563; color: white; text-decoration: none; display: block; text-align: center;">
+                        🏠 Back to Game Hub
+                    </a>
                 </div>
             `;
         }
@@ -9862,16 +10204,18 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
         // Load user data from Firestore
         async function loadUserDataFromFirebase(uid) {
             try {
+                console.log('📥 Loading user data from Firebase for:', uid);
                 const userDocRef = db.collection('users').doc(uid);
                 const userDoc = await userDocRef.get();
                 
                 if (userDoc.exists) {
                     const userData = userDoc.data();
+                    console.log('📦 Firebase user data received:', userData);
                     
-                    // Merge Firestore data with app state
+                    // Merge Firestore data with app state - Firebase data takes priority!
                     appState.user = {
                         ...appState.user,
-                        name: userData.displayName || userData.email?.split('@')[0] || appState.user.name,
+                        name: userData.displayName || userData.email?.split('@')[0] || 'Warrior',
                         username: userData.username || '',
                         email: userData.email,
                         displayName: userData.displayName,
@@ -9890,17 +10234,26 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         healthConditions: userData.healthConditions || [],
                         healthNotes: userData.healthNotes || '',
                         fitnessLevel: userData.fitnessLevel || 'beginner',
-                        // Appearance settings
+                        // Appearance settings - CRITICAL: load from Firebase
                         customBackground: userData.customBackground || null,
                         backgroundTheme: userData.backgroundTheme || null,
-                        backgroundOpacity: userData.backgroundOpacity || 0.85,
+                        backgroundOpacity: userData.backgroundOpacity !== undefined ? userData.backgroundOpacity : 0.85,
                         profilePhoto: userData.profilePhoto || null
                     };
                     
-                    console.log('✅ Loaded user data. Friend Code:', appState.user.friendCode);
+                    console.log('✅ Loaded user data from Firebase:', {
+                        name: appState.user.name,
+                        username: appState.user.username,
+                        hasCustomBackground: !!appState.user.customBackground,
+                        backgroundTheme: appState.user.backgroundTheme,
+                        hasProfilePhoto: !!appState.user.profilePhoto
+                    });
                     
-                    // Apply saved appearance settings
+                    // Apply saved appearance settings IMMEDIATELY
+                    console.log('🎨 Applying appearance settings...');
+                    
                     if (appState.user.customBackground) {
+                        console.log('🖼️ Applying custom background from Firebase');
                         applyCustomBackground(appState.user.customBackground);
                         const removeBtn = document.getElementById('removeBackgroundBtn');
                         const preview = document.getElementById('backgroundPreview');
@@ -9909,17 +10262,19 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                         if (preview) preview.style.display = 'block';
                         if (previewImg) previewImg.src = appState.user.customBackground;
                     } else if (appState.user.backgroundTheme) {
+                        console.log('🎨 Applying theme from Firebase:', appState.user.backgroundTheme);
                         applyTheme(appState.user.backgroundTheme);
                     }
                     
-                    if (appState.user.backgroundOpacity) {
+                    if (appState.user.backgroundOpacity !== undefined) {
                         const overlay = document.querySelector('.content-overlay');
                         if (overlay) overlay.style.background = `rgba(255,255,255,${appState.user.backgroundOpacity})`;
                         const slider = document.getElementById('overlayOpacity');
-                        if (slider) slider.value = appState.user.backgroundOpacity;
+                        if (slider) slider.value = appState.user.backgroundOpacity * 100;
                     }
                     
                     if (appState.user.profilePhoto) {
+                        console.log('👤 Applying profile photo from Firebase');
                         const avatar = document.querySelector('.avatar');
                         if (avatar) {
                             avatar.style.backgroundImage = `url('${appState.user.profilePhoto}')`;
@@ -9928,22 +10283,36 @@ Join me on FitQuest! Use my code: ${appState.user.friendCode}
                             const initial = avatar.querySelector('#avatarInitial');
                             if (initial) initial.style.display = 'none';
                         }
+                        // Also update mobile avatar
+                        updateMobileAvatar();
                     }
+                    
+                    // Save to local storage as cache (so it's faster next time)
+                    saveData();
                     
                     // Load additional data
                     await loadProgressPhotosFromFirebase(uid);
                     await loadFriendsFromFirebase(uid);
                     await loadChallengesFromFirebase(uid);
                     
+                    // Update all UI elements
                     updateUI();
                     renderProgressTimeline();
                     renderLeaderboard();
                     renderChallenges();
+                    renderFriendsList();
+                    loadProfileData();
+                    generateFriendCode();
+                    
+                    console.log('✅ All user data loaded and applied from Firebase');
                 } else {
-                    console.error('User document does not exist in Firestore');
+                    console.warn('⚠️ User document does not exist in Firestore, creating...');
+                    // Create the user profile if it doesn't exist
+                    await createOrUpdateUserProfile(auth.currentUser);
+                    loadData(); // Load local data as fallback
                 }
             } catch (error) {
-                console.error('Error loading user data:', error);
+                console.error('❌ Error loading user data from Firebase:', error);
                 // Fallback to local data
                 loadData();
             }

@@ -93,6 +93,7 @@ class GameAuth {
             // Create user profile in Firestore
             await setDoc(doc(this.db, 'users', user.uid), {
                 username: username,
+                displayName: username,
                 email: email,
                 score: 0,
                 gamesPlayed: 0,
@@ -103,7 +104,9 @@ class GameAuth {
                     language: 'en',
                     fontSize: 'medium',
                     fontFamily: 'sans',
-                    profilePicUrl: null
+                    profilePicUrl: null,
+                    customBackground: null,
+                    backgroundTheme: 'default'
                 }
             });
 
@@ -183,6 +186,123 @@ class GameAuth {
             return { success: true, url: downloadURL };
         } catch (error) {
             console.error('Error uploading profile picture:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Save custom background (URL or base64)
+    async saveCustomBackground(backgroundData) {
+        if (!currentUser) return { success: false, error: 'No user logged in' };
+
+        try {
+            await this.updateUserProfile({
+                'settings.customBackground': backgroundData,
+                'settings.backgroundTheme': 'custom'
+            });
+            
+            // Also save to localStorage as fallback
+            localStorage.setItem('gameHub_customBackground', backgroundData || '');
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving custom background:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Save background theme (preset)
+    async saveBackgroundTheme(theme) {
+        if (!currentUser) return { success: false, error: 'No user logged in' };
+
+        try {
+            await this.updateUserProfile({
+                'settings.backgroundTheme': theme,
+                'settings.customBackground': null
+            });
+            
+            // Also save to localStorage as fallback
+            localStorage.setItem('gameHub_backgroundTheme', theme || 'default');
+            localStorage.removeItem('gameHub_customBackground');
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving background theme:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Save display name
+    async saveDisplayName(displayName) {
+        if (!currentUser) return { success: false, error: 'No user logged in' };
+
+        try {
+            // Update Firebase Auth display name
+            await updateProfile(currentUser, {
+                displayName: displayName
+            });
+            
+            // Update Firestore profile
+            await this.updateUserProfile({
+                displayName: displayName
+            });
+            
+            // Also save to localStorage as fallback
+            localStorage.setItem('gameHub_displayName', displayName || '');
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving display name:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Get user settings (includes background and display name)
+    getUserSettings() {
+        if (userProfile && userProfile.settings) {
+            return {
+                ...userProfile.settings,
+                displayName: userProfile.displayName || userProfile.username || ''
+            };
+        }
+        
+        // Fallback to localStorage
+        return {
+            theme: localStorage.getItem('gameHub_theme') || 'light',
+            customBackground: localStorage.getItem('gameHub_customBackground') || null,
+            backgroundTheme: localStorage.getItem('gameHub_backgroundTheme') || 'default',
+            displayName: localStorage.getItem('gameHub_displayName') || ''
+        };
+    }
+
+    // Restore all settings to default
+    async restoreToDefault() {
+        if (!currentUser) {
+            // Clear localStorage only
+            localStorage.removeItem('gameHub_customBackground');
+            localStorage.removeItem('gameHub_backgroundTheme');
+            localStorage.removeItem('gameHub_displayName');
+            localStorage.removeItem('gameHub_theme');
+            return { success: true };
+        }
+
+        try {
+            await this.updateUserProfile({
+                'settings.customBackground': null,
+                'settings.backgroundTheme': 'default',
+                'settings.theme': 'light',
+                'settings.fontSize': 'medium',
+                'settings.fontFamily': 'sans'
+            });
+            
+            // Clear localStorage
+            localStorage.removeItem('gameHub_customBackground');
+            localStorage.removeItem('gameHub_backgroundTheme');
+            localStorage.removeItem('gameHub_displayName');
+            localStorage.removeItem('gameHub_theme');
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error restoring to default:', error);
             return { success: false, error: error.message };
         }
     }

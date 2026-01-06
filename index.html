@@ -15,6 +15,7 @@
     <!-- Sidebar -->
     <aside class="steam-sidebar">
       <div class="steam-logo">
+        <img src="assets/evol-logo.png" alt="E.Vol Games Logo" class="logo-image">
         <h1>E.Vol Games</h1>
       </div>
       
@@ -71,6 +72,76 @@
 
       <!-- Content Area -->
       <section class="steam-content">
+        <!-- Daily Challenge Calendar Section -->
+        <div class="daily-challenge-section" id="daily-challenge-section">
+          <div class="challenge-header">
+            <h2>🎯 Daily Challenges</h2>
+            <div class="streak-display">
+              <span class="streak-flame">🔥</span>
+              <span id="streak-count">0</span> Day Streak
+            </div>
+          </div>
+          
+          <!-- Mini Calendar -->
+          <div class="mini-calendar">
+            <div class="calendar-nav">
+              <button class="calendar-nav-btn" onclick="navigateCalendar(-1)">←</button>
+              <span id="calendar-month-title">December 2025</span>
+              <button class="calendar-nav-btn" onclick="navigateCalendar(1)">→</button>
+            </div>
+            <div class="calendar-grid" id="calendar-grid">
+              <!-- Calendar will be rendered by JavaScript -->
+            </div>
+          </div>
+          
+          <!-- Today's Challenge -->
+          <div class="todays-challenge">
+            <h3>📋 Today's Challenge</h3>
+            <div id="todays-challenge-content">
+              <div class="challenge-card" id="daily-challenge-card">
+                <div class="challenge-game-icon" id="challenge-game-icon">🎮</div>
+                <div class="challenge-details">
+                  <h4 id="challenge-game-name">Loading...</h4>
+                  <p id="challenge-description">Complete today's challenge to earn bonus points!</p>
+                </div>
+                <button class="play-challenge-btn" id="play-challenge-btn" onclick="playDailyChallenge()">
+                  Play Now
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Challenge Progress -->
+          <div class="challenge-progress-section">
+            <div class="progress-stat">
+              <span class="stat-value" id="challenges-completed">0</span>
+              <span class="stat-label">Completed</span>
+            </div>
+            <div class="progress-stat">
+              <span class="stat-value" id="total-points">0</span>
+              <span class="stat-label">Points</span>
+            </div>
+            <div class="progress-stat">
+              <span class="stat-value" id="best-streak">0</span>
+              <span class="stat-label">Best Streak</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Achievements Section -->
+        <div class="achievements-section">
+          <div class="achievements-header">
+            <h3>🏆 Achievements</h3>
+            <span class="achievements-progress" id="achievements-progress">0/20 Unlocked</span>
+          </div>
+          <div class="achievements-grid" id="achievements-grid">
+            <!-- Achievements will be rendered here by JavaScript -->
+          </div>
+          <button class="view-all-achievements-btn" onclick="toggleAllAchievements()">
+            <span id="toggle-achievements-text">View All Achievements</span>
+          </button>
+        </div>
+
         <div class="content-header">
           <h2 class="content-title">Library</h2>
           <div class="view-options">
@@ -337,7 +408,44 @@
       <h3>💪 FitQuest</h3>
       <p>Level up your fitness - gamified workout tracker with AI coach and achievements</p>
     </a>
+    <a href="games/pokemon-veil.html" class="game-card">
+      <h3>🎮 Pokémon Veil</h3>
+      <p>Embark on an epic adventure - catch Pokémon, battle trainers, become a champion!</p>
+    </a>
   </div>
+
+  <!-- Firebase Auth for Settings Persistence -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+    import { GameAuth } from './js/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAQE2mo6RNgwG-WaooCpoZjQ9Z8G2MHvx8",
+      authDomain: "profile-9e9f9.firebaseapp.com",
+      databaseURL: "https://profile-9e9f9-default-rtdb.firebaseio.com",
+      projectId: "profile-9e9f9",
+      storageBucket: "profile-9e9f9.firebasestorage.app",
+      messagingSenderId: "610449223815",
+      appId: "1:610449223815:web:3cdb864b4314d2b901c822",
+      measurementId: "G-7R4Z3ZSZ67"
+    };
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      window.gameAuth = new GameAuth(app);
+      console.log('Firebase auth initialized for settings persistence');
+      
+      // Re-apply settings after Firebase auth is ready
+      if (window.gameHub && typeof window.gameHub.loadAndApplyUserSettings === 'function') {
+        window.gameHub.loadAndApplyUserSettings();
+      }
+    } catch (error) {
+      console.log('Firebase initialization error:', error);
+    }
+  </script>
 
   <!-- JavaScript -->
   <script src="js/steam-hub.js"></script>

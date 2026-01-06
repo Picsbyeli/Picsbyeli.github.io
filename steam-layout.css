@@ -17,16 +17,30 @@
 }
 
 .steam-logo {
-  padding: 0 20px 20px;
+  padding: 15px 20px 25px;
   border-bottom: 1px solid #316282;
   margin-bottom: 20px;
+  text-align: center;
+}
+
+.steam-logo .logo-image {
+  width: 80px;
+  height: auto;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.steam-logo .logo-image:hover {
+  transform: scale(1.1);
 }
 
 .steam-logo h1 {
   color: #66c0f4;
-  font-size: 24px;
+  font-size: 28px;
   margin: 0;
-  font-weight: 300;
+  font-weight: 500;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .steam-nav {
@@ -461,4 +475,537 @@
   color: #8f98a0;
   font-size: 12px;
   padding: 0 20px;
+}
+
+/* Daily Challenge Calendar Styles */
+.daily-challenge-section {
+  background: linear-gradient(135deg, #2a475e 0%, #1e2328 100%);
+  border: 1px solid #66c0f4;
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 30px;
+}
+
+.challenge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.challenge-header h2 {
+  color: #66c0f4;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.streak-display {
+  background: linear-gradient(135deg, #ff6b00, #ff9500);
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.streak-flame {
+  font-size: 18px;
+  animation: flameFlicker 1s infinite alternate;
+}
+
+@keyframes flameFlicker {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.2); }
+}
+
+/* Mini Calendar */
+.mini-calendar {
+  background: #1e2328;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  color: #c7d5e0;
+}
+
+.calendar-nav-btn {
+  background: #2a475e;
+  border: 1px solid #417a9b;
+  color: #c7d5e0;
+  width: 32px;
+  height: 32px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.calendar-nav-btn:hover {
+  background: #66c0f4;
+  color: #fff;
+}
+
+#calendar-month-title {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.calendar-day-header {
+  text-align: center;
+  color: #8f98a0;
+  font-size: 11px;
+  padding: 5px;
+  font-weight: 500;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #2a475e;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+  color: #c7d5e0;
+  position: relative;
+}
+
+.calendar-day:hover {
+  background: #417a9b;
+}
+
+.calendar-day.today {
+  background: #66c0f4;
+  color: #fff;
+  font-weight: bold;
+}
+
+.calendar-day.completed {
+  background: #5c7e10;
+  color: #fff;
+}
+
+.calendar-day.completed::after {
+  content: '✓';
+  position: absolute;
+  bottom: 2px;
+  font-size: 8px;
+}
+
+.calendar-day.empty {
+  background: transparent;
+  cursor: default;
+}
+
+.calendar-day.future {
+  opacity: 0.5;
+}
+
+/* Today's Challenge Card */
+.todays-challenge {
+  margin-bottom: 20px;
+}
+
+.todays-challenge h3 {
+  color: #c7d5e0;
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.challenge-card {
+  background: linear-gradient(135deg, #417a9b 0%, #2a475e 100%);
+  border: 2px solid #66c0f4;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.challenge-game-icon {
+  width: 60px;
+  height: 60px;
+  background: #1e2328;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+}
+
+.challenge-details {
+  flex: 1;
+  min-width: 200px;
+}
+
+.challenge-details h4 {
+  color: #fff;
+  margin: 0 0 5px 0;
+  font-size: 18px;
+}
+
+.challenge-details p {
+  color: #c7d5e0;
+  margin: 0;
+  font-size: 14px;
+}
+
+.play-challenge-btn {
+  background: linear-gradient(135deg, #5c7e10, #4a6a0c);
+  border: none;
+  color: #b8d631;
+  padding: 12px 24px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.play-challenge-btn:hover {
+  background: linear-gradient(135deg, #6f9a1c, #5c7e10);
+  transform: scale(1.05);
+}
+
+.challenge-card.completed {
+  border-color: #5c7e10;
+  opacity: 0.8;
+}
+
+.challenge-card.completed .play-challenge-btn {
+  background: #5c7e10;
+  color: #fff;
+}
+
+/* Challenge Progress Stats */
+.challenge-progress-section {
+  display: flex;
+  justify-content: space-around;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.progress-stat {
+  text-align: center;
+  background: #1e2328;
+  padding: 15px 25px;
+  border-radius: 8px;
+  min-width: 80px;
+}
+
+.progress-stat .stat-value {
+  display: block;
+  color: #66c0f4;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.progress-stat .stat-label {
+  color: #8f98a0;
+  font-size: 12px;
+}
+
+/* ============================================
+   ACHIEVEMENTS SECTION
+   ============================================ */
+.achievements-section {
+  background: linear-gradient(135deg, #1e2328 0%, #171a21 100%);
+  border-radius: 12px;
+  padding: 25px;
+  margin: 30px 0;
+  border: 1px solid #3d4450;
+}
+
+.achievements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.achievements-header h3 {
+  color: #fff;
+  margin: 0;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.achievements-progress {
+  color: #66c0f4;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(102, 192, 244, 0.1);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+  max-height: 400px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.achievements-grid.expanded {
+  max-height: none;
+}
+
+.achievement-card {
+  background: #2a3140;
+  border-radius: 10px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.achievement-card:hover {
+  transform: translateY(-2px);
+  border-color: #3d4450;
+}
+
+.achievement-card.unlocked {
+  border-color: #5c7e10;
+  background: linear-gradient(135deg, #2a3140 0%, #2d4a1a 100%);
+}
+
+.achievement-card.unlocked::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #5c7e10, #b8d631);
+}
+
+.achievement-card.locked {
+  opacity: 0.6;
+}
+
+.achievement-card.locked .achievement-icon {
+  filter: grayscale(1);
+}
+
+.achievement-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #3d4450, #2a3140);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  border: 2px solid #4a5568;
+  transition: all 0.3s ease;
+}
+
+.achievement-card.unlocked .achievement-icon {
+  background: linear-gradient(135deg, #5c7e10, #3d5a0a);
+  border-color: #b8d631;
+  box-shadow: 0 0 15px rgba(184, 214, 49, 0.3);
+}
+
+.achievement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-name {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+}
+
+.achievement-description {
+  color: #8f98a0;
+  font-size: 13px;
+  margin: 0 0 8px 0;
+}
+
+.achievement-progress-bar {
+  height: 6px;
+  background: #1e2328;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.achievement-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #66c0f4, #1a9fff);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.achievement-card.unlocked .achievement-progress-fill {
+  background: linear-gradient(90deg, #5c7e10, #b8d631);
+}
+
+.achievement-reward {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ffc107;
+  color: #1e2328;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.achievement-unlocked-date {
+  color: #5c7e10;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
+.view-all-achievements-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background: linear-gradient(135deg, #3d4450, #2a3140);
+  border: 1px solid #4a5568;
+  color: #c7d5e0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.view-all-achievements-btn:hover {
+  background: linear-gradient(135deg, #4a5568, #3d4450);
+  border-color: #66c0f4;
+  color: #fff;
+}
+
+/* Achievement unlock animation */
+@keyframes achievementUnlock {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(184, 214, 49, 0.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.achievement-card.just-unlocked {
+  animation: achievementUnlock 0.6s ease;
+}
+
+/* Achievement notification toast */
+.achievement-toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(135deg, #2a3140, #1e2328);
+  border: 2px solid #5c7e10;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  transform: translateX(400px);
+  transition: transform 0.4s ease;
+}
+
+.achievement-toast.show {
+  transform: translateX(0);
+}
+
+.achievement-toast .toast-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #5c7e10, #3d5a0a);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.achievement-toast .toast-content h4 {
+  color: #b8d631;
+  margin: 0 0 5px 0;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.achievement-toast .toast-content p {
+  color: #fff;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Rarity badges */
+.achievement-rarity {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.achievement-rarity.common {
+  background: #6c757d;
+  color: #fff;
+}
+
+.achievement-rarity.rare {
+  background: #0d6efd;
+  color: #fff;
+}
+
+.achievement-rarity.epic {
+  background: #9333ea;
+  color: #fff;
+}
+
+.achievement-rarity.legendary {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #fff;
 }
