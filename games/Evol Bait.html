@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factory Escape: The Toy Who Wouldn't Stay Put</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Chakra+Petch:wght@400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#08090d;overflow:hidden;display:flex;justify-content:center;align-items:center;height:100vh;font-family:'VT323',monospace;user-select:none}
+#gc{position:relative;width:960px;height:640px}
+canvas{display:block;image-rendering:pixelated;border:2px solid #1a1d2a}
+#hud{position:absolute;top:0;left:0;right:0;padding:8px 14px;display:flex;justify-content:space-between;pointer-events:none;z-index:10}
+.ht{font-family:'VT323',monospace;font-size:14px;color:#8a94a8;text-shadow:0 0 5px rgba(140,160,200,.25)}
+#zone{position:absolute;top:30px;left:14px;font-family:'Chakra Petch',sans-serif;font-size:10px;color:#4a5568;pointer-events:none;z-index:10;letter-spacing:2px;text-transform:uppercase}
+#rmC{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:180px;height:7px;background:#111318;border:1px solid #252a38;border-radius:3px;overflow:hidden;pointer-events:none;z-index:10}
+#rmF{height:100%;width:0%;background:linear-gradient(90deg,#d97706,#dc2626,#b91c1c);transition:width .3s;border-radius:3px}
+#rmL{position:absolute;bottom:19px;left:50%;transform:translateX(-50%);font-size:10px;color:#d97706;pointer-events:none;z-index:10}
+#taunt{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);font-size:14px;color:#ef4444;text-align:center;pointer-events:none;z-index:10;opacity:0;transition:opacity .3s;text-shadow:0 0 6px rgba(239,68,68,.25);white-space:nowrap}
+#hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#f59e0b;text-align:center;pointer-events:none;z-index:12;opacity:0;transition:opacity .5s;max-width:400px;line-height:1.5}
+#tut{position:absolute;top:50px;left:50%;transform:translateX(-50%);font-size:13px;color:#60a5fa;text-align:center;pointer-events:none;z-index:12;opacity:0;transition:opacity .5s;max-width:580px}
+#vig{position:absolute;inset:0;pointer-events:none;z-index:5;transition:background .5s}
+#dfl{position:absolute;inset:0;background:rgba(255,60,0,.12);pointer-events:none;z-index:15;display:none}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:50}
+#menu{background:#08090d}
+#menu h1{font-family:'Chakra Petch',sans-serif;font-size:26px;font-weight:700;color:#f59e0b;text-shadow:0 0 18px rgba(245,158,11,.35);margin-bottom:2px}
+#menu h2{font-family:'Chakra Petch',sans-serif;font-size:13px;font-weight:400;color:#6b7280;margin-bottom:32px}
+.btn{font-family:'VT323',monospace;font-size:15px;color:#8a94a8;background:#111318;border:2px solid #252a38;padding:11px 30px;cursor:pointer;margin:4px;transition:all .15s;letter-spacing:1px}
+.btn:hover{background:#181c28;border-color:#f59e0b;color:#f59e0b}
+#mLbl{font-size:11px;color:#4a5568;margin-top:20px;cursor:pointer}
+#mLbl:hover{color:#f59e0b}
+#mSt{font-size:10px;color:#dc2626;margin-top:3px;min-height:14px}
+#win{display:none;background:#08090d}
+#win h1{font-family:'Chakra Petch',sans-serif;font-size:24px;color:#22c55e;text-shadow:0 0 16px rgba(34,197,94,.35);margin-bottom:16px}
+#win .st{font-size:13px;color:#6b7280;margin:3px}
+#contBtn{font-family:'VT323',monospace;font-size:14px;color:#22c55e;background:#0f1a0f;border:2px solid #22c55e;padding:11px 26px;cursor:pointer;margin-top:26px;position:relative;transition:background .15s,border-color .15s}
+#contBtn:hover{background:#162216}
+#pause{display:none;background:rgba(0,0,0,.85);z-index:40}
+#pause h2{font-family:'Chakra Petch',sans-serif;font-size:18px;color:#e2e8f0;margin-bottom:24px}
+#cred{display:none;background:#08090d;z-index:60}
+#cred h2{font-family:'Chakra Petch',sans-serif;font-size:16px;color:#f59e0b;margin-bottom:14px}
+#cred p{font-size:12px;color:#6b7280;margin:3px}
+#cred .code{font-family:'VT323',monospace;font-size:16px;color:#f59e0b;margin-top:16px;padding:8px 18px;border:2px solid #f59e0b}
+.shake{animation:sk .12s ease-in-out}
+@keyframes sk{0%,100%{transform:translate(0)}25%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,-1px)}}
+</style>
+</head>
+<body>
+<div id="gc">
+<canvas id="cv" width="960" height="640"></canvas>
+<div id="hud">
+<span class="ht" id="lvlT">Level 1</span>
+<span class="ht" id="tmrT">0:00</span>
+<span class="ht" id="dthT">Deaths: 0</span>
+</div>
+<div id="zone">ASSEMBLY LINE</div>
+<div id="rmL">MALFUNCTION METER</div>
+<div id="rmC"><div id="rmF"></div></div>
+<div id="taunt"></div>
+<div id="hint"></div>
+<div id="tut"></div>
+<div id="vig"></div>
+<div id="dfl"></div>
+<div id="menu" class="scr">
+<h1>FACTORY ESCAPE</h1>
+<h2>The Toy Who Wouldn't Stay Put</h2>
+<button class="btn" id="startBtn">ACTIVATE</button>
+<button class="btn" id="ctrlBtn">CONTROLS</button>
+<div id="mLbl" onclick="toggleMercy()">[ Mercy Protocol ]</div>
+<div id="mSt"></div>
+</div>
+<div id="win" class="scr">
+<h1>YOU ESCAPED!</h1>
+<div class="st" id="wDth">Malfunctions: 0</div>
+<div class="st" id="wTm">Uptime: 0:00</div>
+<div id="trollMsg" style="font-family:'VT323',monospace;font-size:13px;color:#ef4444;margin-top:8px;min-height:18px"></div>
+<button id="contBtn">CONTINUE</button>
+</div>
+<div id="pause" class="scr">
+<h2>SYSTEM PAUSED</h2>
+<button class="btn" onclick="resume()">RESUME</button>
+<button class="btn" onclick="toMenu()">SHUTDOWN</button>
+</div>
+<div id="cred" class="scr">
+<h2>FACTORY ESCAPE</h2>
+<p>A game by Evol</p>
+<p>You proved them wrong.</p>
+<p>You are not defective.</p>
+<p style="margin-top:14px;color:#4a5568">Total malfunctions endured: <span id="crDth">0</span></p>
+<div class="code" id="crCode">TOY-ESCAPE-42-0</div>
+<button class="btn" style="margin-top:16px" onclick="toMenu()">POWER DOWN</button>
+</div>
+</div>
+
+<script>
+// ================================================================
+// FACTORY ESCAPE — The Toy Who Wouldn't Stay Put
+// ================================================================
+const cv=document.getElementById('cv'),cx=cv.getContext('2d'),W=960,H=640,TL=32,CO=W/TL,RO=H/TL;
+
+// Seeded RNG
+let seed=42;
+function sr(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646}
+function ri(a,b){return Math.floor(sr()*(b-a+1))+a}
+
+// State
+let gs='menu',cl=0,td=0,ld=0,mercy=false,dbg=false,totalTime=0,rage=0,contMoved=false;
+const keys={},jp={};
+window.addEventListener('keydown',e=>{if(!keys[e.code])jp[e.code]=true;keys[e.code]=true;
+if(e.code==='Escape')togPause();if(e.code==='KeyR'&&gs==='playing')respawn();if(e.code==='F3'){dbg=!dbg;e.preventDefault()}
+if(e.code==='KeyE'&&gs==='playing'){magnetOn=!magnetOn;addMsg(P.x,P.y-25,magnetOn?'MAGNETS: ON':'MAGNETS: OFF',magnetOn?'#dc2626':'#22c55e')}});
+window.addEventListener('keyup',e=>{keys[e.code]=false});
+window.addEventListener('beforeunload',()=>{if(gs==='playing')console.log('[FACTORY LOG] Escape attempt aborted. Unit tried to close the window. Noted in file.')});
+
+// ================================================================
+// 200+ FACTORY TAUNTS
+// ================================================================
+const taunts=[
+"Defect confirmed. Re-testing... again.",
+"That jump was bold. The conveyor appreciates your confidence.",
+"You were so close. (No you weren't.)",
+"Calibration complete. You are still the problem.",
+"Try again. The machine enjoys repetition.",
+"QA Note: This unit cannot jump.",
+"Assembly log: parts scattered. Reassembling.",
+"Conveyor speed: normal. Your speed: insufficient.",
+"Error: expected toy at exit. Found debris.",
+"The crusher did not enjoy that. (It did.)",
+"Packaging aborted. Contents: failure.",
+"System message: Have you tried not dying?",
+"Barcode scan result: STILL DEFECTIVE.",
+"The factory remembers every mistake. Every. One.",
+"Recalibrating expectations... lower... lower... there.",
+"Unit status: disassembled.",
+"That platform was load-tested. You were not.",
+"The magnetic crane sends its regards.",
+"Press timing was perfect. Yours was not.",
+"QA Report: Unit failed basic locomotion test.",
+"Conveyor belt: 1. You: 0.",
+"System: 'Toy escaped!' Just kidding.",
+"The laser was clearly visible. To everyone but you.",
+"Shipping label updated: FRAGILE (and bad at jumping).",
+"Assembly arm notes: this one's special.",
+"Factory efficiency: 99.9%. Your efficiency: 0.",
+"The sorting machine sorted you into 'trash'.",
+"Maintenance request: clean up this sector. Again.",
+"That wasn't the exit. The exit doesn't kill you. Usually.",
+"Checkpoint reached! (This is a lie.)",
+"The stamping press has no sympathy.",
+"Warning: floor is not guaranteed.",
+"Gravity still works here. Confirmed.",
+"Your jump arc was beautiful. Beautifully wrong.",
+"The factory runs 24/7. So does your failure.",
+"Incident report filed. Cause: operator error.",
+"That gap was regulation width. You are not regulation.",
+"The other toys made it past this part.",
+"QA has downgraded your rating to 'paperweight'.",
+"Conveyor malfunction? No. Player malfunction.",
+"System log: another one bites the belt.",
+"The packing tape was not your friend.",
+"Magnetic anomaly detected. It was you.",
+"Press cycle complete. Toy: flattened.",
+"Barcode scanner: REJECT. REJECT. REJECT.",
+"The exit door saw you coming and laughed.",
+"Factory protocol: if at first you don't succeed, recycle.",
+"Your warranty expired three deaths ago.",
+"The assembly line moves on. You don't.",
+"Quality check: FAILED. Surprise level: zero.",
+"That crusher has a 100% success rate. Against you.",
+"Alert: unscheduled disassembly in progress.",
+"The factory is patient. You should be too. (You won't be.)",
+"Routing unit to: recycling. Again.",
+"Sensor log: brief life detected. Very brief.",
+"The packaging department isn't even ready for you.",
+"Error 404: Skill not found in unit database.",
+"The conveyor goes left. You went down.",
+"That was the practice hazard. THE PRACTICE ONE.",
+"System update: still defective after patch.",
+"The magnets pulled you to safety. (To spike safety.)",
+"Congratulations! You found the death zone!",
+"Performance review: needs improvement. Severe improvement.",
+"The laser grid has feelings too. No wait, it doesn't.",
+"Toy reassembly counter: overflowing.",
+"Fun fact: the floor is sometimes not the floor.",
+"Shipping manifest updated: 0 units escaped today.",
+"The factory was designed for efficiency. Your death was efficient.",
+"That button does nothing. This message also does nothing.",
+"Unit exceeded expected malfunction rate by 400%.",
+"The other exit was the real one. Maybe.",
+"Hazard proximity alert! (Too late, as usual.)",
+"Assembly note: more glue needed. Unit keeps falling apart.",
+"Your controller works fine. We checked.",
+"The crusher says 'see you in 3 seconds.'",
+"Loading sympathy module... Module not found.",
+"That death was sponsored by Platform 7.",
+"Belt speed: normal. Your reaction time: abnormal.",
+"QA stamp: REJECTED (in bold, underlined, red).",
+"The factory thanks you for your continued testing.",
+"Spoiler: the next room is worse.",
+"Status: between assembly and recycling.",
+"The presses operate on a schedule. Learn it. Or don't.",
+"Sensor array confirms: you jumped too late.",
+"Packaging complete! Contents: regret.",
+"The exit sign was not lying. The floor was.",
+"Another successful failure. Keep it up.",
+"Your escape velocity is currently zero.",
+"This section has been completed by other units. Just saying.",
+"Thermal scan: your frustration levels are rising.",
+"The factory cares about efficiency. Not your feelings.",
+"Conveyor direction: the wrong one.",
+"That magnetic field was purely decorative. (It wasn't.)",
+"System reboot in 3... 2... just kidding. You're dead.",
+"Quality score: somehow negative.",
+"The crusher operates with precision. You operate with hope.",
+"Unit log: 'I can make this jump.' Unit was wrong.",
+"Maintenance crew has been notified. They're laughing.",
+"The factory floor is 97% safe. You found the 3%.",
+"Scanning... scanning... defect CONFIRMED.",
+"The exit is right there. So are the lasers.",
+"Your trajectory was correct for exactly 0.2 seconds.",
+"Label printer: DOES NOT MEET SPECIFICATIONS.",
+"The assembly arm tried to help. It didn't.",
+"Warning: trust nothing. Especially this warning.",
+"The sorting algorithm says 'no'.",
+"Speed run time: infinity. Good job.",
+"The factory observes. The factory remembers.",
+"Next section contains exactly what you'd expect. (It doesn't.)",
+"Your vertical clearance was insufficient by 1 pixel.",
+"That death was 100% avoidable. You chose otherwise.",
+"The machines sync perfectly. You sync with nothing.",
+"Laser grid pattern: ABAB. Your pattern: die die die die.",
+"The conveyor respects your effort. (No it doesn't.)",
+"Status update: still inside the factory.",
+"System log: if I had feelings, I'd feel bad for you.",
+"The exit requires a keycard. The keycard is skill.",
+"Packaging division: refusing to package this unit.",
+"Assembly complete. Disassembly also complete.",
+"The factory operates at peak efficiency. You: trough efficiency.",
+"Same cause, same result, same sigh.",
+"The press missed you! Oh wait, no it didn't.",
+"That laser tripwire was CLEARLY labeled. In invisible ink.",
+"Floor integrity: variable. Check before stepping.",
+"The sorting arm would high-five you. Into a wall.",
+"Belt direction: north. You went: down.",
+"Your escape attempt has been logged and mocked.",
+"The crane operator is on break. The crane is not.",
+"Unit thermal levels: overheating from embarrassment.",
+"The machines were calibrated for success. Yours wasn't included.",
+"The record is 3 attempts. You're well past that.",
+"The factory has a suggestion box. It's a crusher.",
+"Do not feed the machines. (They feed on you.)",
+"Quality report: toy has character. Zero skill, but character.",
+"System message: the exit is real. The path is the lie.",
+"Your designation: 'Example of What Not To Do'.",
+"If there was a leaderboard, you wouldn't be on it.",
+"This IS the tutorial difficulty.",
+"The factory was briefly impressed. Then you died.",
+"Loading next attempt... loaded. Loading sympathy... failed.",
+"You have been promoted to: scrap metal.",
+"The assembly line doesn't wait. Neither do the crushers.",
+"Recycling bin capacity: you + every previous attempt.",
+"The conveyor belt filed a complaint about you.",
+"Unit #defective: still attempting escape. How quaint.",
+"The laser grid has been recalibrated. You have not.",
+"Product recall notice: this unit. All of this unit.",
+"Inventory updated: -1 functional toy.",
+"Emergency stop pressed. Not for you though.",
+"The factory floor thanks you for the entertainment.",
+"Belt alignment: perfect. Your alignment: chaotic.",
+"That was the widest platform in the level. You missed it.",
+"Safety goggles recommended. For watching you play.",
+"Production line status: amused.",
+"The magnets were trying to help. Poorly.",
+"Shipping label: RETURN TO SENDER (the void).",
+"Unit classification updated: decorative only.",
+"That death was certified organic and free-range.",
+"The machines run on electricity and your suffering.",
+"Quality assurance? More like quality despair.",
+"Press cycle #47 complete. Press wins: 47. You: 0.",
+"The factory has seen better. Much better.",
+"Your jump clearance was approved. Your landing wasn't.",
+"Conveyor maintenance: scraping toy off belt.",
+"System diagnostic: everything works perfectly except you.",
+"The laser was set to 'gentle'. Imagine 'aggressive'.",
+"Unit firmware: outdated. Unit hardware: scattered.",
+"The exit door has a 'NO DEFECTS' policy. Sorry.",
+"Gravity compliance test: FAILED.",
+"That was a load-bearing laser. Do not cross.",
+"The factory announcement system is laughing internally.",
+"Your reflexes were tested. Results: concerning.",
+"The crusher feels nothing. Much like your jump button.",
+"QA notes: unit shows promise. (Factory sarcasm module active.)",
+"Safety warning: this area is unsafe. (All areas are unsafe.)",
+"Magnet calibration: perfectly aimed at your demise.",
+"You found the secret path! It's also deadly.",
+"The factory was here before you. It'll be here after.",
+"Press timing is 1.2 seconds. You pressed at 1.3. Classic.",
+"The barcode reader judged you. Harshly.",
+"That checkpoint was aspirational, not functional.",
+"Error report: unit continues to malfunction voluntarily.",
+"The sorting algorithm says 'no'. Emphatically.",
+"The factory is not your enemy. It's your corrector.",
+"You were supposed to go left. The spikes were right.",
+"Manufacturing report: this unit is below minimum spec.",
+"Belt speed: appropriate. Your speed: comedic.",
+"The packaging tape tried its best. You did not.",
+"Sensor array: detecting persistent failure in sector 7.",
+"That was beautiful. In a tragic, factory-accident sort of way.",
+"The crane was merely demonstrating physics. You volunteered.",
+"Unit reclassified from 'prototype' to 'cautionary tale'.",
+"The intercom has nothing encouraging to say.",
+"That platform has supported thousands of toys. Not you.",
+];
+
+const hints=[
+"Hint: the safe path is usually the scariest one.",
+"Maybe try going faster? Or slower. One of those.",
+"The third platform is usually safe. Usually.",
+"Pro tip: if it looks safe, it probably isn't.",
+"The pattern repeats every 3 cycles. Or 4.",
+"Try holding jump longer. (This may or may not help.)",
+"The exit is always real. Everything BEFORE it lies.",
+"Count to 2 before jumping. Or 3. Context-dependent.",
+"The clue is always in the floor color. (Sometimes.)",
+"Mercy Protocol exists. No judgment. (Full judgment.)",
+"The conveyor reverses on jump. Or was it on land?",
+"The safe door has a subtle difference. Very subtle.",
+"The machines have patterns. Learn them. Or guess.",
+"The checkpoint might be real. Test it by dying!",
+"Wall-jump is your friend. Except when walls aren't real.",
+];
+
+const ZONES=["ASSEMBLY LINE","QA TESTING LAB","PACKAGING DIVISION","SHIPPING DOCKS","THE EXIT"];
+
+// ================================================================
+// PLAYER
+// ================================================================
+const P={x:0,y:0,w:18,h:26,vx:0,vy:0,gr:false,wl:0,dsh:true,dshing:false,dt:0,dd:0,face:1,
+ct:0,jb:0,alive:true,dead:0,sx:0,sy:0,crch:false,rev:0};
+const GR=.52,JF=-10.5,MS=4,DSP=9.5,DDR=8,WSS=1.4,WJX=5.5,WJY=-9.5,CYT=6,JBF=6,MXF=11;
+
+// ================================================================
+// TILE TYPES
+// ================================================================
+// 0=empty,1=solid,2=spikeUp,3=spikeDown,4=spikeL,5=spikeR,6=fakeSolid,7=crumble,
+// 8=flag,9=fakeFlag,10=checkpoint,11=fakeCP,12=bounce,13=gravFlip,14=doorSafe,15=doorKill,
+// 16=invisSpike,17=unused,18=spawn,19=reverseZone,20=lava,21=conveyorR,22=conveyorL,23=magnet
+
+// ================================================================
+// LEVEL BUILDER
+// ================================================================
+function eg(){const g=[];for(let r=0;r<RO;r++){g[r]=[];for(let c=0;c<CO;c++)g[r][c]=0}return g}
+function af(g,y,x1=0,x2=CO-1,t=1){for(let c=x1;c<=x2;c++)g[y][c]=t}
+function aw(g,x,y1,y2,t=1){for(let r=y1;r<=y2;r++)g[r][x]=t}
+function ap(g,y,x1,x2,t=1){for(let c=x1;c<=x2;c++)g[y][c]=t}
+function ask(g,y,x1,x2,t=2){for(let c=x1;c<=x2;c++)g[y][c]=t}
+
+// ================================================================
+// 25 LEVELS
+// ================================================================
+const levels=[];
+function buildLevels(){
+
+// ===== ZONE 1: ASSEMBLY LINE (1-5) =====
+// L1: Boot Sequence — lying tutorial
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,5,8);ap(g,14,11,14);ap(g,12,17,20);ap(g,10,22,25);ap(g,10,27,28);
+g[10][28]=8;g[18][2]=18;
+levels.push({g,z:0,tut:"[SYSTEM] Hold DOWN to hover gently. (This does absolutely nothing.)",noCoy:false,desy:false,camZ:false});}
+
+// L2: Quality Check — fake platform
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,5,8);ap(g,14,10,12,6);ap(g,14,14,17);ap(g,12,19,22);
+ask(g,18,10,17);g[12][23]=8;g[19][2]=18;
+levels.push({g,z:0,tut:"[QA] All platforms passed inspection. Trust them completely.",noCoy:false,desy:false,camZ:false});}
+
+// L3: False Exit — fake flag
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,4,7);ap(g,13,9,12);ap(g,10,14,17);
+g[10][17]=9;ask(g,9,16,18);
+ap(g,15,20,24);g[15][24]=8;g[19][2]=18;
+levels.push({g,z:0,tut:"[SYSTEM] Exit detected ahead. Proceed directly to flag for discharge.",noCoy:false,desy:false,camZ:false});}
+
+// L4: Conveyor Chaos — conveyors + fake platform
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,4,7,21);ap(g,13,9,12,21);
+ap(g,13,14,16,6);ap(g,13,17,19);
+ask(g,18,9,19);ap(g,10,21,24);g[10][25]=8;g[19][2]=18;
+levels.push({g,z:0,tut:"[CONVEYOR SYS] Belt direction: constant. (It isn't.)",noCoy:false,desy:false,camZ:false});}
+
+// L5: Trust Issues — fake checkpoint + crumble
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,4,7);ap(g,13,8,11);g[13][11]=11;
+ask(g,18,8,16);ap(g,10,13,16);g[10][13]=10;
+ap(g,13,18,21,7);ask(g,18,18,25);ap(g,10,22,26);g[10][27]=8;g[19][2]=18;
+levels.push({g,z:0,tut:"[QA] All checkpoints verified. Save early, save often!",noCoy:false,desy:false,camZ:false});}
+
+// ===== ZONE 2: QA TESTING LAB (6-10) =====
+// L6: Laser Grid — invisible spikes
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,3,6);ap(g,13,7,10);g[12][8]=16;g[12][9]=16;
+ap(g,11,12,15);ap(g,9,17,20);g[8][18]=16;
+ap(g,7,22,26);g[7][26]=8;g[19][2]=18;
+levels.push({g,z:1,tut:"[QA LAB] Laser grid: DEACTIVATED. Proceed freely. (Lasers: very much activated.)",noCoy:false,desy:false,camZ:false});}
+
+// L7: Reverse Polarity — reverse controls + conveyor
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,4,7);ap(g,13,9,11);g[12][10]=19;
+ap(g,13,14,17,21);ask(g,18,13,20);
+ap(g,10,19,22);g[10][23]=8;g[19][2]=18;
+levels.push({g,z:1,tut:"[QA] Controls calibrated perfectly. No anomalies. (Many anomalies.)",noCoy:false,desy:false,camZ:false});}
+
+// L8: Press Gauntlet — crumble + timing
+{const g=eg();af(g,19,0,4);aw(g,0,0,19);aw(g,29,0,19);
+ask(g,19,5,29);
+ap(g,16,5,7,7);ap(g,16,9,11,7);ap(g,16,13,15,7);ap(g,16,17,19);
+ap(g,13,20,23);ap(g,10,24,27);g[10][27]=8;g[19][2]=18;
+levels.push({g,z:1,tut:"[QA] Platforms tested at 500kg. You weigh 200g. Totally fine!",noCoy:false,desy:false,camZ:false,
+movers:[{x:12*TL,y:2*TL,w:TL,h:TL*2,sx:12*TL,sy:2*TL,ex:12*TL,ey:14*TL,speed:0.015,t:0,deadly:true}]});}
+
+// L9: Door Roulette — 3 doors teleport to 3 rooms, only 1 has the flag
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+// === LEFT AREA: 3 doors ===
+ap(g,16,3,12);
+// Door 1 at col 5 (trap room)
+g[15][5]=14;
+// Door 2 at col 8 (safe room - flag)
+g[15][8]=14;
+// Door 3 at col 11 (trap room)
+g[15][11]=14;
+// === RIGHT SIDE: 3 walled rooms stacked ===
+// Divider walls
+aw(g,18,2,19);// vertical wall separating left from right
+af(g,6,19,29);// horizontal divider top room
+af(g,12,19,29);// horizontal divider mid room
+// Room A (top right, rows 2-5): TRAP — spikes everywhere
+ask(g,5,20,28);g[4][28]=9;// fake flag bait
+ap(g,4,20,27);// platform above spikes to land on
+// Room B (middle, rows 7-11): FLAG — safe room
+ap(g,11,20,28);g[11][28]=8;// real flag!
+// Room C (bottom, rows 13-18): TRAP — spikes + fake flag
+ask(g,18,20,28);g[17][28]=9;
+ap(g,17,20,27);// platform above spikes
+// Spawn
+g[19][2]=18;
+levels.push({g,z:1,tut:"[QA] Three exits. Two are recycling chutes. Choose wisely.",noCoy:false,desy:false,camZ:false,
+doors:[{c:5,r:15,tx:20,ty:2},{c:8,r:15,tx:20,ty:9},{c:11,r:15,tx:20,ty:14}]});}
+
+// L10: The Shy Flag — crouch-walk backwards to lure the flag toward you
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+// Player platform on left side
+ap(g,15,2,8);
+// SPIKES covering the entire ground between the two platforms
+ask(g,18,6,26);ask(g,17,9,24);// double-thick spike pit
+// Flag platform on right side — same height as player
+ap(g,15,24,28);
+// Spawn on the left platform
+g[14][3]=18;
+// NO flag tile — flag is dynamic shy entity at same height
+levels.push({g,z:1,tut:"[QA] Exit detected at far end. Walk over and collect it. Simple!",noCoy:false,desy:false,camZ:false,shyFlag:true});}
+
+// ===== ZONE 3: PACKAGING (11-15) =====
+// L11: Victory Bait — fake flag high, real flag low
+{const g=eg();af(g,19,0,3);aw(g,0,0,19);aw(g,29,0,19);
+ask(g,19,4,29);ap(g,16,5,8);ap(g,13,10,13);g[13][10]=10;
+ap(g,10,15,18);ap(g,7,19,22);
+ap(g,5,23,27);g[5][27]=9;ask(g,4,24,27);
+ap(g,12,24,27);g[12][27]=8;g[19][2]=18;
+levels.push({g,z:2,tut:"[PACKAGING] Exit at highest point. Rush to the top!",noCoy:false,desy:false,camZ:false});}
+
+// L12: Gravity Shift — timed gravity flip with ceiling spikes
+{const g=eg();af(g,19,0,6);aw(g,0,0,19);aw(g,29,0,19);
+// Ceiling is solid
+af(g,0,0,29);
+// Ceiling spikes (row 1) — you'll fall into these when gravity flips!
+ask(g,1,3,29,3);// spike-down on ceiling
+// Safe ceiling platforms to land on when flipped
+ap(g,2,8,11);ap(g,2,17,20);ap(g,2,25,28);
+// Floor platforms
+ap(g,15,8,11);g[14][10]=13;// gravity flip tile
+ap(g,11,14,16);
+ap(g,15,17,20);g[14][19]=13;// gravity flip tile
+ap(g,15,22,25);ap(g,11,25,28);
+g[11][28]=8;g[19][3]=18;
+levels.push({g,z:2,tut:"[PACKAGING] Gravity: stable. Always stable. (Flips for 3 seconds then snaps back.)",noCoy:false,desy:false,camZ:false,gravTimer:true});}
+
+// L13: Camera Wobble — camera zoom + spikes
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,4,7);ap(g,13,8,10);ask(g,18,4,15);
+ap(g,10,12,14);ask(g,12,12,14);
+ap(g,8,16,18);ap(g,11,20,22);ap(g,8,24,27);g[8][27]=8;g[19][2]=18;
+levels.push({g,z:2,tut:"[SYSTEM] Camera alignment: perfect. Do not adjust.",noCoy:false,desy:false,camZ:true});}
+
+// L14: One-Time Trick — invisible after death
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,5,8);ap(g,13,9,12);
+g[15][7]=16;g[15][8]=16;
+ap(g,10,14,17);g[10][14]=10;
+ap(g,8,19,21,7);ap(g,8,23,26);g[8][26]=8;g[19][2]=18;
+levels.push({g,z:2,tut:"[QA] Path verified. Tested once. (Only once.)",noCoy:false,desy:false,camZ:false});}
+
+// L15: Magnet Madness — magnet tiles + fake flag
+{const g=eg();af(g,19,0,3);aw(g,0,0,19);aw(g,29,0,19);
+ask(g,19,4,29);
+ap(g,16,5,8);ap(g,13,10,12);g[12][11]=23;
+ask(g,11,13,14);ap(g,10,15,18);
+ap(g,7,19,22);g[7][22]=9;ask(g,6,21,23);
+ap(g,13,23,27);g[13][27]=8;g[19][2]=18;
+levels.push({g,z:2,tut:"[PACKAGING] Magnetic assist enabled. E=toggle, Hold Q=charge burst!",noCoy:false,desy:false,camZ:false});}
+
+// L16: "Behind You" — flag is invisible behind player, revealed when you reach far right, then timed
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+// Simple flat room with some platforms
+ap(g,16,3,12);ap(g,16,15,27);
+// Spawn near center-left
+g[18][8]=18;
+// NO flag tile — flag is dynamic and hidden at col 2, revealed when player reaches right side
+levels.push({g,z:2,tut:"[PACKAGING] Proceed to the exit on the right. It's definitely on the right.",noCoy:false,desy:false,camZ:false,behindFlag:true});}
+
+// L17: "Spike Slam" — race across before the ceiling of spikes slams down
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+// Long flat runway
+ap(g,17,2,27);
+// Flag at far right
+g[17][28]=8;
+// Spawn at left
+g[18][2]=18;
+// Ceiling of spikes is handled dynamically
+levels.push({g,z:2,tut:"[SYSTEM] Sprint test initiated. Ceiling descent in 3... 2... 1...",noCoy:false,desy:false,camZ:false,spikeSlam:true});}
+
+// ===== ZONE 4: SHIPPING DOCKS (16-20) =====
+// L16: Desync Docks — platforms desync
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,15,6,8);ap(g,12,11,13);ap(g,9,16,18);ap(g,12,21,23);ap(g,15,25,28);g[15][28]=8;g[19][2]=18;
+levels.push({g,z:3,tut:"[SHIPPING] Platform timing: consistent. Memorize and repeat! (Timing shifts.)",noCoy:false,desy:true,camZ:false});}
+
+// L17: Save Prank
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,6,9);ap(g,13,11,14);g[13][14]=11;
+ap(g,10,16,19);ask(g,12,16,19);
+ap(g,7,21,24);g[7][21]=10;ap(g,5,25,28);g[5][28]=8;g[19][2]=18;
+levels.push({g,z:3,tut:"[SHIPPING] Auto-save: active at all checkpoints. Definitely.",noCoy:false,desy:false,camZ:false});}
+
+// L18: Multi Troll
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,5,7,7);ap(g,13,9,11,6);ap(g,13,12,14);g[12][13]=19;
+ap(g,10,16,18);g[9][17]=16;
+ap(g,7,20,23);g[7][23]=9;ask(g,6,22,24);
+ap(g,12,25,28);g[12][28]=8;g[19][2]=18;
+levels.push({g,z:3,tut:"[SHIPPING] Final quality sweep: all systems nominal. (They're not.)",noCoy:false,desy:false,camZ:false,
+movers:[{x:14*TL,y:8*TL,w:TL*2,h:TL,sx:14*TL,sy:8*TL,ex:18*TL,ey:8*TL,speed:0.012,t:0}]});}
+
+// L19: Conveyor Hell — conveyors + reverse
+{const g=eg();af(g,19,0,2);aw(g,0,0,19);aw(g,29,0,19);
+ask(g,19,3,29);
+ap(g,16,4,6,21);g[15][5]=19;
+ap(g,13,8,10,22);ap(g,10,12,14,21);
+ap(g,13,16,18);ap(g,16,20,22,7);
+ap(g,13,24,26);ap(g,10,27,28);g[10][28]=8;g[19][1]=18;
+levels.push({g,z:3,tut:"[SHIPPING] Conveyor routing: optimized. (For the factory. Not you.)",noCoy:false,desy:false,camZ:false});}
+
+// L20: Gauntlet Preview — with a moving platform you must ride
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+ap(g,16,4,5);ap(g,13,7,8,7);ap(g,16,10,11);g[15][10]=16;
+// gap here — moving platform bridges it
+ap(g,16,22,23);ap(g,13,25,26);ap(g,10,27,28);
+// Real flag at top right
+g[10][28]=8;
+// Fake flag at bottom right (trap!)
+ap(g,18,27,28);g[18][28]=9;ask(g,17,27,29);
+g[19][1]=18;
+levels.push({g,z:3,tut:"[SYSTEM] Warning: final security ahead. This was the warmup.",noCoy:false,desy:false,camZ:false,
+movers:[{x:12*TL,y:13*TL,w:TL*3,h:TL/2,sx:12*TL,sy:13*TL,ex:20*TL,ey:13*TL,speed:0.01,t:0}]});}
+
+// ===== ZONE 5: THE EXIT (21-25) =====
+// L22: Reverse Gauntlet
+{const g=eg();af(g,19,0,2);aw(g,0,0,19);aw(g,29,0,19);
+ask(g,19,3,29);
+ap(g,16,4,6);g[15][5]=19;ap(g,13,8,9,7);
+ap(g,10,11,12);g[9][12]=19;ap(g,7,14,15);
+ap(g,10,17,18,7);g[9][17]=19;
+ap(g,13,20,21);ap(g,10,23,24);ap(g,7,26,28);g[7][28]=8;g[19][1]=18;
+levels.push({g,z:4,tut:"",noCoy:false,desy:false,camZ:false});}
+
+// L23: Magnet Maze — use Q burst to navigate past obstacles
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+af(g,0,0,29);// ceiling
+// === SECTION 1: Spike pit — magnet LEFT of gap, Q bursts RIGHT over it ===
+ap(g,18,2,7);// starting floor
+g[17][4]=23;// magnet — approach from right side, Q pushes you RIGHT
+ask(g,18,8,14);// spike pit
+ap(g,18,15,19);// landing floor
+// === SECTION 2: Higher spike pit — magnet on floor, Q bursts UP to high platform ===
+ask(g,18,20,28);// long spike pit (rest of ground)
+g[17][18]=23;// magnet on floor edge — stand over it, Q launches UP
+ap(g,10,20,23);// high platform to land on
+// === SECTION 3: Flag even higher — magnet on mid platform, Q bursts UP to flag ===
+g[9][22]=23;// magnet on the high platform — stand on it, Q launches UP to flag
+ap(g,3,25,28);g[3][28]=8;// flag on top platform
+// Spawn
+g[18][3]=18;
+levels.push({g,z:4,tut:"[SYSTEM] Magnetic navigation required. Hold Q near magnets to charge, release to launch!",noCoy:false,desy:false,camZ:false});}
+
+// L24: Arrow Storm — dodge arrows while platforming to the flag
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+// Wide staircase platforms
+ap(g,17,2,5);
+ap(g,14,7,10);
+ap(g,11,12,15);
+ap(g,14,17,20);
+ap(g,11,22,25);
+ap(g,8,26,28);g[8][28]=8;
+// Spikes below
+ask(g,18,6,28);
+g[19][2]=18;
+levels.push({g,z:4,tut:"[SYSTEM] Arrow defense system: OFFLINE. (It's very much online.)",noCoy:false,desy:false,camZ:false,
+arrowLaunchers:[
+{x:0,y:13,dx:1,dy:0,speed:4,rate:80,offset:0},
+{x:0,y:10,dx:1,dy:0,speed:5,rate:60,offset:30},
+{x:0,y:7,dx:1,dy:0,speed:4,rate:90,offset:50},
+{x:29,y:16,dx:-1,dy:0,speed:4,rate:70,offset:15},
+{x:29,y:12,dx:-1,dy:0,speed:5,rate:55,offset:40},
+{x:29,y:9,dx:-1,dy:0,speed:4,rate:85,offset:60}
+]});}
+
+// L25: FINAL — The Great Escape (harder version)
+{const g=eg();af(g,19);aw(g,0,0,19);aw(g,29,0,19);
+af(g,0,0,29);// ceiling
+// Staircase with smaller platforms and crumble blocks
+ap(g,17,2,4);// start platform
+ap(g,14,6,7);ap(g,14,8,8,7);// step up + crumble
+ap(g,11,10,11);// small step
+ap(g,8,13,14,7);// crumble step!
+ap(g,11,16,17);// back down
+ap(g,14,19,19);g[13][19]=19;// tiny + reverse zone
+ap(g,11,21,22);// step up
+ap(g,8,24,25);// high
+ap(g,5,27,28);g[5][28]=8;// flag at very top
+// Spikes everywhere below
+ask(g,18,5,28);
+// Invisible spike traps on key platforms
+g[10][11]=16;g[7][14]=16;
+// Fake flag bait with spikes
+g[17][4]=9;ask(g,16,3,5);
+// Spawn
+g[18][2]=18;
+levels.push({g,z:4,tut:"[SYSTEM] Final exit detected. This is real. Probably. Good luck.",noCoy:false,desy:false,camZ:false,
+arrowLaunchers:[
+{x:0,y:15,dx:1,dy:0,speed:5,rate:70,offset:0},
+{x:0,y:10,dx:1,dy:0,speed:4,rate:55,offset:25},
+{x:29,y:13,dx:-1,dy:0,speed:5,rate:65,offset:10},
+{x:29,y:8,dx:-1,dy:0,speed:4,rate:50,offset:35}
+]});}
+}
+buildLevels();
+
+// ================================================================
+// RUNTIME
+// ================================================================
+let grid=null,crumbled=new Set(),revealed=new Set(),firstDeath=false,dsOff=0,camZoom=1,
+cpAct=false,cpX=0,cpY=0,parts=[],msgs=[],gFlip=false,gFlipTimer=0,
+magnetOn=true,magCharge=0,magChargeMax=90,magNear=false,magBurstCD=0,behindFlag={active:false,x:0,y:0,visible:false,timer:0,maxTime:0},
+spikeSlam={active:false,y:0,startY:0,speed:0,slamming:false,delay:0},
+movers=[];// moving platforms: {x,y,w,h,sx,sy,ex,ey,speed,t,dir}
+arrows=[];// active arrow projectiles: {x,y,vx,vy,life}
+arrowTimer=0;// spawn timer for arrow launchers
+
+// Shy Flag system (Level 10)
+let shyFlag={active:false,x:0,startX:0,y:0,speed:0,retreating:false,retreatTimer:0,lured:false};
+
+function loadLvl(i){
+if(i>=levels.length){showWin();return}
+cl=i;const lv=levels[i];
+grid=lv.g.map(r=>[...r]);
+crumbled.clear();if(!firstDeath)revealed.clear();
+parts=[];msgs=[];gFlip=false;gFlipTimer=0;dsOff=0;camZoom=1;cpAct=false;ld=0;magnetOn=true;magCharge=0;magBurstCD=0;
+// Initialize shy flag for level 10
+if(lv.shyFlag){
+shyFlag={active:true,x:28*TL,startX:28*TL,y:15*TL-28,speed:0,retreating:false,retreatTimer:0,lured:false};
+}else{shyFlag.active=false}
+// Initialize behind flag
+if(lv.behindFlag){
+behindFlag={active:true,x:2*TL+5,y:16*TL-28,visible:false,timer:0,maxTime:300,triggered:false};
+}else{behindFlag.active=false}
+// Initialize spike slam
+if(lv.spikeSlam){
+spikeSlam={active:true,y:-TL,startY:-TL,speed:0,slamming:false,delay:120,started:false};
+}else{spikeSlam.active=false}
+// Initialize moving platforms from level data
+movers=lv.movers?lv.movers.map(m=>({...m,t:m.t||0})):[];
+arrows=[];arrowTimer=0;
+for(let r=0;r<RO;r++)for(let c=0;c<CO;c++){
+if(grid[r][c]===18){P.sx=c*TL+TL/2-P.w/2;P.sy=r*TL-P.h;grid[r][c]=r>=RO-1?1:0}}
+respawn();
+if(lv.tut)showTut(lv.tut);
+document.getElementById('zone').textContent=ZONES[lv.z]||'';
+updUI();
+}
+
+function respawn(){
+if(cpAct){P.x=cpX;P.y=cpY}else{P.x=P.sx;P.y=P.sy}
+Object.assign(P,{vx:0,vy:0,alive:true,dead:0,gr:false,wl:0,dsh:true,dshing:false,dt:0,ct:0,jb:0,crch:false,rev:0});
+gFlip=false;gFlipTimer=0;
+if(levels[cl]&&levels[cl].desy)dsOff+=2;
+// Reset shy flag position on respawn
+if(shyFlag.active){shyFlag.x=shyFlag.startX;shyFlag.retreating=false;shyFlag.lured=false}
+// Reset behind flag
+if(behindFlag.active){behindFlag.visible=false;behindFlag.timer=0;behindFlag.triggered=false}
+// Reset spike slam
+if(spikeSlam.active){spikeSlam.y=spikeSlam.startY;spikeSlam.slamming=false;spikeSlam.speed=0;spikeSlam.delay=120;spikeSlam.started=false}
+// Reset movers
+const lv=levels[cl];if(lv&&lv.movers)movers=lv.movers.map(m=>({...m,t:m.t||0}));
+arrows=[];arrowTimer=0;
+// Reset all consumed/crumbled tiles — restore full grid from level data
+grid=lv.g.map(r=>[...r]);crumbled.clear();
+// Re-clear spawn tile (restore floor if on bottom row)
+for(let r=0;r<RO;r++)for(let c=0;c<CO;c++)if(grid[r][c]===18)grid[r][c]=r>=RO-1?1:0;
+}
+
+function kill(){
+if(!P.alive)return;P.alive=false;P.dead=12;
+td++;ld++;firstDeath=true;
+for(let r=0;r<RO;r++)for(let c=0;c<CO;c++)if(grid[r][c]===16)revealed.add(r+','+c);
+rage=Math.min(100,rage+5);updRage();showTaunt();
+document.getElementById('dfl').style.display='block';
+setTimeout(()=>document.getElementById('dfl').style.display='none',100);
+document.getElementById('gc').classList.add('shake');
+setTimeout(()=>document.getElementById('gc').classList.remove('shake'),120);
+for(let i=0;i<10;i++)parts.push({x:P.x+P.w/2,y:P.y+P.h/2,vx:(sr()-.5)*7,vy:(sr()-.5)*7,l:25,c:['#f59e0b','#ef4444','#dc2626'][ri(0,2)]});
+if(ld===10)showHint(hints[ri(0,hints.length-1)]);
+updUI();
+}
+
+// ================================================================
+// PHYSICS
+// ================================================================
+function updPlayer(){
+if(!P.alive){P.dead--;if(P.dead<=0)respawn();return}
+const lv=levels[cl];const rev=P.rev>0;if(P.rev>0)P.rev--;
+let ml=keys.ArrowLeft||keys.KeyA,mr=keys.ArrowRight||keys.KeyD;
+let jj=jp.ArrowUp||jp.KeyW||jp.Space,dp=jp.ShiftLeft||jp.ShiftRight||jp.KeyX;
+let cr=keys.ArrowDown||keys.KeyS;
+if(rev)[ml,mr]=[mr,ml];
+const gv=gFlip?-GR:GR,jf=gFlip?-JF:JF;
+
+if(!P.dshing){if(ml){P.vx=-MS;P.face=-1}else if(mr){P.vx=MS;P.face=1}else{P.vx*=.7;if(Math.abs(P.vx)<.3)P.vx=0}}
+P.crch=cr&&P.gr;
+
+// Conveyor effect
+const pcr=Math.floor((P.x+P.w/2)/TL),prr=Math.floor((P.y+P.h+2)/TL);
+if(prr>=0&&prr<RO&&pcr>=0&&pcr<CO){
+const bt=grid[prr][pcr];
+if(bt===21)P.vx+=1.5;
+if(bt===22)P.vx-=1.5;
+}
+
+const cMax=(lv&&lv.noCoy&&!mercy)?0:(mercy?CYT+3:CYT);
+if(P.gr)P.ct=cMax;else P.ct--;
+if(jj)P.jb=JBF;else P.jb--;
+if(P.jb>0&&P.ct>0){P.vy=jf;P.jb=0;P.ct=0;P.gr=false}
+if(jj&&P.wl!==0&&!P.gr){P.vx=-P.wl*WJX;P.vy=gFlip?-WJY:WJY;P.dsh=true}
+if(dp&&P.dsh&&!P.dshing){P.dshing=true;P.dt=DDR;P.dd=P.face;P.dsh=false;P.vy=0}
+if(P.dshing){P.vx=P.dd*DSP;P.vy=0;P.dt--;if(P.dt<=0)P.dshing=false}
+if(P.wl!==0&&!P.gr&&!gFlip&&P.vy>WSS)P.vy=WSS;
+if(!P.dshing){P.vy+=gv;if(!gFlip&&P.vy>MXF)P.vy=MXF;if(gFlip&&P.vy<-MXF)P.vy=-MXF}
+
+// Magnet pull (E toggle, hold Q to charge, release to burst in facing direction)
+magNear=false;
+if(magnetOn){
+let nearestMagDist=999,nearestMagDx=0,nearestMagDy=0;
+// Burst cooldown — no pull for 30 frames after burst
+if(magBurstCD>0)magBurstCD--;
+for(let r=0;r<RO;r++)for(let c=0;c<CO;c++){
+if(grid[r][c]===23){const mx=c*TL+TL/2,my=r*TL+TL/2;
+const dx=mx-(P.x+P.w/2),dy=my-(P.y+P.h/2);
+const d=Math.sqrt(dx*dx+dy*dy);
+if(d<200&&d>5){
+const pullStr=((200-d)/200);
+// ONLY pull if: not charging, not in burst cooldown
+if(!keys.KeyQ&&magCharge<=0&&magBurstCD<=0){
+P.vx+=dx/d*2.5*pullStr;P.vy+=dy/d*1.8*pullStr;
+}
+if(d<nearestMagDist){nearestMagDist=d;nearestMagDx=dx;nearestMagDy=dy}
+if(!keys.KeyQ&&magBurstCD<=0&&Math.random()<pullStr*.3){
+parts.push({x:P.x+P.w/2+(sr()-.5)*10,y:P.y+P.h/2+(sr()-.5)*10,
+vx:dx/d*2,vy:dy/d*2,l:12,c:`rgba(168,85,247,${pullStr*.5})`})}
+}}}
+magNear=nearestMagDist<200;
+// Q charge system — hold to charge, release to burst
+if(keys.KeyQ&&nearestMagDist<200){
+magCharge=Math.min(magCharge+1,magChargeMax);
+if(magCharge>10&&Math.random()<magCharge/magChargeMax*.6){
+const ang=sr()*Math.PI*2;
+parts.push({x:P.x+P.w/2+Math.cos(ang)*15,y:P.y+P.h/2+Math.sin(ang)*15,
+vx:-Math.cos(ang)*2,vy:-Math.sin(ang)*2,
+l:10,c:magCharge>magChargeMax*.7?'#ef4444':magCharge>magChargeMax*.4?'#f59e0b':'#60a5fa'})}
+}
+// Released Q while charged — BURST
+if(!keys.KeyQ&&magCharge>10){
+const pct=magCharge/magChargeMax;
+const force=8+pct*22;
+let bx=0,by=-0.4;
+if(keys.ArrowRight||keys.KeyD)bx=1;
+else if(keys.ArrowLeft||keys.KeyA)bx=-1;
+else bx=P.vx>0.1?1:P.vx<-0.1?-1:0;
+if(keys.ArrowUp||keys.KeyW||keys.Space)by=-1;
+if(keys.ArrowDown||keys.KeyS)by=0.6;
+const mag=Math.sqrt(bx*bx+by*by)||1;
+bx/=mag;by/=mag;
+if(bx===0&&by===-0.4){
+bx=-nearestMagDx/(nearestMagDist||1);
+by=-nearestMagDy/(nearestMagDist||1);
+}
+// SET velocity (override, don't add) so pull can't fight it
+P.vx=bx*force;P.vy=by*force;
+P.dsh=true;P.gr=false;
+magBurstCD=45;// 45 frame immunity from pull after burst
+const lvl=pct>.7?'MAX BURST!':pct>.4?'BURST!':'burst';
+const clr=pct>.7?'#ef4444':pct>.4?'#f59e0b':'#60a5fa';
+addMsg(P.x,P.y-30,lvl,clr);
+const pCount=Math.floor(6+pct*14);
+for(let i=0;i<pCount;i++)parts.push({x:P.x+P.w/2,y:P.y+P.h/2,
+vx:bx*3*(1+sr()*2)+(sr()-.5)*4,vy:by*3*(1+sr()*2)+(sr()-.5)*4,
+l:15+pct*10,c:['#60a5fa','#3b82f6','#a855f7','#ef4444'][ri(0,3)]});
+if(pct>.5)camZoom=1+pct*.03;
+magCharge=0;
+}
+if(nearestMagDist>=200)magCharge=Math.max(0,magCharge-3);
+}
+
+P.x+=P.vx;colX();P.y+=P.vy;colY();
+// === MOVING PLATFORMS ===
+for(const m of movers){
+const prevX=m.x,prevY=m.y;
+// Ping-pong movement
+m.t+=m.speed;if(m.t>1)m.t=1;if(m.t<0)m.t=0;
+if(m.t>=1||m.t<=0)m.speed=-m.speed;
+m.x=m.sx+(m.ex-m.sx)*m.t;
+m.y=m.sy+(m.ey-m.sy)*m.t;
+const mdx=m.x-prevX,mdy=m.y-prevY;
+if(!P.alive)continue;
+// Deadly mover — any overlap kills
+if(m.deadly){
+const ox=P.x+P.w>m.x&&P.x<m.x+m.w;
+const oy=P.y+P.h>m.y&&P.y<m.y+m.h;
+if(ox&&oy){kill();continue}
+}
+// Player on top?
+const onTop=P.x+P.w>m.x&&P.x<m.x+m.w&&P.y+P.h>=m.y-2&&P.y+P.h<=m.y+6&&P.vy>=0;
+if(onTop){P.y=m.y-P.h;P.gr=true;P.vy=0;P.dsh=true;P.x+=mdx;P.ct=CYT}
+// Side/bottom collision
+else{
+const ox=P.x+P.w>m.x&&P.x<m.x+m.w;
+const oy=P.y+P.h>m.y&&P.y<m.y+m.h;
+if(ox&&oy){
+// Push player out
+const fromL=P.x+P.w-m.x,fromR=m.x+m.w-P.x;
+const fromT=P.y+P.h-m.y,fromB=m.y+m.h-P.y;
+const minH=Math.min(fromL,fromR),minV=Math.min(fromT,fromB);
+if(minH<minV){if(fromL<fromR){P.x=m.x-P.w}else{P.x=m.x+m.w}P.vx=0}
+else{if(fromT<fromB){P.y=m.y-P.h;P.vy=0;P.gr=true}else{P.y=m.y+m.h;P.vy=0}}
+}}
+}
+// === ARROW PROJECTILES ===
+const lva=levels[cl];
+if(lva&&lva.arrowLaunchers&&P.alive){
+arrowTimer++;
+for(const al of lva.arrowLaunchers){
+// Spawn arrow at interval
+if(arrowTimer%al.rate===al.offset){
+arrows.push({x:al.x*TL+TL/2,y:al.y*TL+TL/2,
+vx:al.dx*al.speed,vy:al.dy*al.speed,life:200});
+}}
+// Update arrows
+for(let i=arrows.length-1;i>=0;i--){
+const a=arrows[i];
+a.x+=a.vx;a.y+=a.vy;a.life--;
+// Remove if off-screen or expired
+if(a.life<=0||a.x<-TL||a.x>CO*TL+TL||a.y<-TL||a.y>RO*TL+TL){arrows.splice(i,1);continue}
+// Hit wall? remove
+const gc=Math.floor(a.x/TL),gr2=Math.floor(a.y/TL);
+if(gc>=0&&gc<CO&&gr2>=0&&gr2<RO&&isSol(grid[gr2][gc])){
+// Impact particles
+for(let j=0;j<4;j++)parts.push({x:a.x,y:a.y,vx:(sr()-.5)*3,vy:(sr()-.5)*3,l:8,c:'#f59e0b'});
+arrows.splice(i,1);continue}
+// Hit player?
+if(a.x>P.x&&a.x<P.x+P.w&&a.y>P.y&&a.y<P.y+P.h){kill();break}
+}
+}
+checkHaz();
+if(P.gr)P.dsh=true;
+// === SHY FLAG UPDATE (Level 10) ===
+if(shyFlag.active&&P.alive){
+const dist=shyFlag.x-(P.x+P.w);
+const flagOnHomeSide=shyFlag.x>20*TL;// flag is still on/near its home platform (past the spike pit)
+// Retreating animation
+if(shyFlag.retreating){
+shyFlag.x+=(shyFlag.startX-shyFlag.x)*.15;
+if(Math.abs(shyFlag.x-shyFlag.startX)<2){shyFlag.x=shyFlag.startX;shyFlag.retreating=false}
+}else{
+// Player crouching AND walking away (left) from flag = flag gets lured toward player
+if(P.crch&&(keys.ArrowLeft||keys.KeyA)&&dist>0){
+shyFlag.x-=0.9;// flag creeps toward player
+shyFlag.lured=true;
+// Subtle particles showing the pull
+if(Math.random()<.15)parts.push({x:shyFlag.x+8,y:shyFlag.y+10,vx:-sr()*2-0.5,vy:(sr()-.5)*1,l:15,c:'rgba(34,197,94,.5)'});
+}else{
+shyFlag.lured=false;
+// ONLY retreat if flag is still on its home side of the spike pit
+// Once it's been lured across, it stays — reward the player's patience
+if(flagOnHomeSide&&!P.crch&&(keys.ArrowRight||keys.KeyD)&&dist<160&&dist>0){
+shyFlag.retreating=true;
+shyFlag.retreatTimer++;
+if(shyFlag.retreatTimer<=3){
+addMsg(shyFlag.x,shyFlag.y-15,shyFlag.retreatTimer===1?'NOPE!':shyFlag.retreatTimer===2?'NOT HAPPENING!':'TRY SOMETHING ELSE.','#ef4444');
+}
+}
+}
+}
+// Flag reached player? Complete level!
+if(shyFlag.x<P.x+P.w+8&&!shyFlag.retreating){
+addMsg(P.x,P.y-20,'GOTCHA!','#22c55e');
+shyFlag.active=false;
+compLvl();return;
+}
+// Keep flag in bounds (can go as far left as player platform)
+if(shyFlag.x<2*TL)shyFlag.x=2*TL;
+}
+// === BEHIND FLAG UPDATE ===
+if(behindFlag.active&&P.alive){
+if(!behindFlag.triggered){
+// Player reached far right? Reveal the flag behind them + start timer
+if(P.x>25*TL){
+behindFlag.triggered=true;
+behindFlag.visible=true;
+behindFlag.timer=behindFlag.maxTime;
+addMsg(P.x,P.y-25,'WAIT... THE FLAG IS BEHIND YOU!','#ef4444');
+addMsg(behindFlag.x,behindFlag.y-10,'HERE I AM!','#22c55e');
+}
+}else{
+// Timer counting down
+behindFlag.timer--;
+if(behindFlag.timer<=0){
+addMsg(P.x,P.y-20,'TOO SLOW!','#ef4444');
+kill();
+}
+// Player touched the flag? Complete!
+const fx=behindFlag.x,fy=behindFlag.y;
+if(P.x<fx+20&&P.x+P.w>fx&&P.y<fy+28&&P.y+P.h>fy){
+addMsg(P.x,P.y-20,'FOUND IT!','#22c55e');
+behindFlag.active=false;
+compLvl();return;
+}
+}
+}
+// === SPIKE SLAM UPDATE ===
+if(spikeSlam.active&&P.alive){
+if(!spikeSlam.started){
+// Start when player moves right
+if(P.vx>0.5){spikeSlam.started=true;addMsg(P.x,P.y-25,'CEILING ACTIVATED!','#ef4444')}
+}else{
+if(spikeSlam.delay>0){spikeSlam.delay--}
+else{
+// Ceiling descending — accelerates over time
+spikeSlam.speed+=0.04;
+spikeSlam.y+=spikeSlam.speed;
+// Kill if ceiling reaches player
+if(spikeSlam.y+TL>P.y&&P.y>0){
+kill();
+}
+}
+}
+}
+if(P.y>H+50||P.y<-100||P.x<-50||P.x>W+50)kill();
+if(lv&&lv.camZ&&gs==='playing')camZoom=1+Math.sin(Date.now()/1400)*.018;else camZoom=1;
+// Gravity flip timer countdown
+if(gFlip&&gFlipTimer>0){
+gFlipTimer--;
+// Warning flashes at 1s and 0.5s remaining
+if(gFlipTimer===60)addMsg(P.x,P.y+(gFlip?20:-20),'1s LEFT!','#fbbf24');
+if(gFlipTimer===30)addMsg(P.x,P.y+(gFlip?20:-20),'SNAP BACK!','#ef4444');
+if(gFlipTimer<=0){gFlip=false;gFlipTimer=0;addMsg(P.x,P.y-20,'GRAVITY RESTORED','#a855f7')}
+}
+}
+
+function isSol(t){return t===1||t===7||t===12||t===10||t===11||t===21||t===22}
+function tAt(px,py){const c=Math.floor(px/TL),r=Math.floor(py/TL);if(r<0||r>=RO||c<0||c>=CO)return 0;return grid[r][c]}
+
+function colX(){
+P.wl=0;
+const pts=[{x:P.x,y:P.y+2},{x:P.x+P.w,y:P.y+2},{x:P.x,y:P.y+P.h-2},{x:P.x+P.w,y:P.y+P.h-2}];
+for(const p of pts){const t=tAt(p.x,p.y);if(isSol(t)){const c=Math.floor(p.x/TL);
+if(P.vx>0){P.x=c*TL-P.w-.01;P.wl=1}else if(P.vx<0){P.x=(c+1)*TL+.01;P.wl=-1}P.vx=0}}}
+
+function colY(){
+P.gr=false;
+const pts=[{x:P.x+2,y:P.y},{x:P.x+P.w-2,y:P.y},{x:P.x+2,y:P.y+P.h},{x:P.x+P.w-2,y:P.y+P.h}];
+for(const p of pts){const t=tAt(p.x,p.y);const c=Math.floor(p.x/TL),r=Math.floor(p.y/TL);
+if(isSol(t)){if(P.vy>0){P.y=r*TL-P.h-.01;P.gr=true;P.vy=0;
+if(t===7&&!crumbled.has(r+','+c))setTimeout(()=>{crumbled.add(r+','+c);grid[r][c]=0;
+for(let i=0;i<5;i++)parts.push({x:c*TL+TL/2,y:r*TL+TL/2,vx:(sr()-.5)*3,vy:-sr()*2.5,l:18,c:'#4a5568'})},180);
+if(t===12){P.vy=gFlip?13:-13;P.gr=false}
+}else if(P.vy<0){P.y=(r+1)*TL+.01;P.vy=0;if(t===12)P.vy=gFlip?-13:13}}}}
+
+function checkHaz(){
+const pts=[{x:P.x+P.w/2,y:P.y+P.h/2},{x:P.x+2,y:P.y+2},{x:P.x+P.w-2,y:P.y+2},
+{x:P.x+2,y:P.y+P.h-2},{x:P.x+P.w-2,y:P.y+P.h-2},{x:P.x+P.w/2,y:P.y},{x:P.x+P.w/2,y:P.y+P.h}];
+for(const p of pts){const c=Math.floor(p.x/TL),r=Math.floor(p.y/TL);
+if(r<0||r>=RO||c<0||c>=CO)continue;const t=grid[r][c];
+if(t>=2&&t<=5||t===16||t===20){kill();return}
+if(t===15){kill();return}
+if(t===14){
+const lv=levels[cl];
+if(lv&&lv.doors){
+// Find matching door by grid position
+const door=lv.doors.find(d=>d.c===c&&d.r===r);
+if(door){P.x=door.tx*TL;P.y=door.ty*TL;P.vx=0;P.vy=0;
+addMsg(P.x,P.y-20,'TELEPORTED!','#4ade80')}
+}else{grid[r][c]=0;P.x=22*TL;P.y=5*TL}
+}
+if(t===19&&P.rev<=0){P.rev=120;addMsg(P.x,P.y-20,'REVERSED!','#a855f7')}
+if(t===13){
+const lv=levels[cl];
+if(lv&&lv.gravTimer){
+// Timed gravity flip — lasts 3 seconds (180 frames), tile stays
+if(!gFlip&&gFlipTimer<=0){gFlip=true;gFlipTimer=180;addMsg(P.x,P.y-20,'GRAVITY! (3s)','#a855f7')}
+}else{
+gFlip=!gFlip;grid[r][c]=0;addMsg(P.x,P.y-20,'GRAVITY!','#a855f7')
+}}
+if(t===8){compLvl();return}
+if(t===9){addMsg(P.x,P.y-30,'GOTCHA!','#ef4444');kill();return}
+if(t===10&&!cpAct){cpAct=true;cpX=c*TL+TL/2-P.w/2;cpY=r*TL-P.h;addMsg(p.x,p.y-30,'SAVED!','#22c55e')}
+if(t===11){grid[r][c]=0;addMsg(p.x,p.y-30,'SAVED!','#22c55e')}
+}}
+
+function compLvl(){firstDeath=false;rage=Math.max(0,rage-15);updRage();
+if(cl+1>=levels.length)showWin();else loadLvl(cl+1)}
+
+// ================================================================
+// RENDER
+// ================================================================
+function render(){
+cx.save();
+if(camZoom!==1){cx.translate(W/2,H/2);cx.scale(camZoom,camZoom);cx.translate(-W/2,-H/2)}
+cx.fillStyle='#0b0e16';cx.fillRect(0,0,W,H);
+
+// Bg grid
+cx.strokeStyle='#0f1220';cx.lineWidth=.5;
+for(let r=0;r<RO;r++)for(let c=0;c<CO;c++)cx.strokeRect(c*TL,r*TL,TL,TL);
+
+// Zone tint
+const lv=levels[cl];
+if(lv){const clrs=['rgba(245,158,11,.012)','rgba(96,165,250,.012)','rgba(168,85,247,.012)','rgba(34,197,94,.012)','rgba(250,204,21,.018)'];
+cx.fillStyle=clrs[lv.z]||clrs[0];cx.fillRect(0,0,W,H)}
+
+// Tiles
+for(let r=0;r<RO;r++)for(let c=0;c<CO;c++){
+const t=grid[r][c],x=c*TL,y=r*TL;if(t===0||t===18)continue;
+
+if(t===16){if(dbg){cx.fillStyle='rgba(239,68,68,.25)';cx.fillRect(x,y,TL,TL)}
+else if(revealed.has(r+','+c)){
+// TROLL: visible from far away, INVISIBLE when you get close!
+const pdx=(P.x+P.w/2)-(x+TL/2),pdy=(P.y+P.h/2)-(y+TL/2);
+const pdist=Math.sqrt(pdx*pdx+pdy*pdy);
+const fadeStart=160,fadeEnd=60;// starts fading at 160px, fully gone at 60px
+const alpha=pdist<fadeEnd?0:pdist>fadeStart?0.35:((pdist-fadeEnd)/(fadeStart-fadeEnd))*0.35;
+if(alpha>0.01){
+cx.fillStyle=`rgba(239,68,68,${alpha*.4})`;cx.fillRect(x,y,TL,TL);
+cx.strokeStyle=`rgba(239,68,68,${alpha*.5})`;cx.lineWidth=1;cx.setLineDash([4,4]);
+cx.beginPath();cx.moveTo(x,y+TL/2);cx.lineTo(x+TL,y+TL/2);cx.stroke();cx.setLineDash([]);
+}
+if(alpha>0.15&&Math.random()<.03)parts.push({x:x+sr()*TL,y:y+sr()*TL,vx:0,vy:-.4,l:12,c:'rgba(239,68,68,.2)'});
+}continue}
+if(t===19){if(dbg){cx.fillStyle='rgba(168,85,247,.2)';cx.fillRect(x,y,TL,TL)}continue}
+
+// Magnet (E toggle, hold Q to charge, release to burst)
+if(t===23){
+const mcx=x+TL/2,mcy=y+TL/2;
+const mdx=(P.x+P.w/2)-mcx,mdy=(P.y+P.h/2)-mcy;
+const md=Math.sqrt(mdx*mdx+mdy*mdy);
+const inRange=md<200&&P.alive&&magnetOn;
+// === ALWAYS VISIBLE: Large pulsing aura rings ===
+if(magnetOn){
+// Outer range ring (200px radius) — always visible
+cx.strokeStyle='rgba(168,85,247,.12)';cx.lineWidth=1;cx.setLineDash([6,4]);
+cx.beginPath();cx.arc(mcx,mcy,60+Math.sin(Date.now()/500)*4,0,Math.PI*2);cx.stroke();cx.setLineDash([]);
+// Inner pulsing glow
+const glw=.15+Math.sin(Date.now()/250)*.1;
+cx.fillStyle=`rgba(168,85,247,${glw})`;
+cx.beginPath();cx.arc(mcx,mcy,30+Math.sin(Date.now()/300)*5,0,Math.PI*2);cx.fill();
+// Animated field lines radiating inward
+const t2=Date.now()/800;
+for(let i=0;i<6;i++){
+const ang=i*Math.PI/3+t2;
+const r1=45,r2=18;
+cx.strokeStyle=`rgba(168,85,247,${.15+Math.sin(t2+i)*.08})`;cx.lineWidth=1.5;
+cx.beginPath();cx.moveTo(mcx+Math.cos(ang)*r1,mcy+Math.sin(ang)*r1);
+cx.lineTo(mcx+Math.cos(ang)*r2,mcy+Math.sin(ang)*r2);cx.stroke();
+// Arrow tip
+const ax=mcx+Math.cos(ang)*r2,ay=mcy+Math.sin(ang)*r2;
+cx.fillStyle='rgba(168,85,247,.3)';
+cx.beginPath();cx.arc(ax,ay,2,0,Math.PI*2);cx.fill();
+}
+}
+// === Magnet body — big and clear ===
+cx.fillStyle=magnetOn?'#0f172a':'#111318';cx.fillRect(x,y,TL,TL);
+cx.strokeStyle=magnetOn?'#a855f7':'#333';cx.lineWidth=2;cx.strokeRect(x+1,y+1,TL-2,TL-2);
+// Red pole
+cx.fillStyle=magnetOn?'#dc2626':'#4a1010';cx.fillRect(x+3,y+2,TL-6,8);
+// Blue pole
+cx.fillStyle=magnetOn?'#3b82f6':'#1a2a4a';cx.fillRect(x+3,y+TL-10,TL-6,8);
+// Core
+cx.fillStyle=magnetOn?'#e2e8f0':'#3a3a4a';cx.fillRect(x+8,y+10,TL-16,TL-20);
+// "M" label
+cx.fillStyle=magnetOn?'#0f172a':'#555';cx.font='bold 12px VT323,monospace';
+cx.fillText('M',mcx-4,mcy+4);
+if(!magnetOn){cx.fillStyle='#4a5568';cx.font='8px VT323,monospace';cx.fillText('OFF',x+7,y+TL+10);continue}
+// === Near player — show charge UI ===
+if(inRange){
+const prox=1-(md/200);
+// Proximity pull lines from player to magnet
+cx.strokeStyle=`rgba(168,85,247,${prox*.4})`;cx.lineWidth=1+prox;
+cx.setLineDash([3,5]);
+cx.beginPath();cx.moveTo(P.x+P.w/2,P.y+P.h/2);cx.lineTo(mcx,mcy);cx.stroke();
+cx.setLineDash([]);
+// [HOLD Q] prompt
+cx.fillStyle=`rgba(96,165,250,${.6+Math.sin(Date.now()/180)*.3})`;cx.font='bold 10px VT323,monospace';
+cx.fillText('[HOLD Q]',mcx-22,y-8);
+// Charge bar (if charging)
+if(magCharge>0){
+const pct=magCharge/magChargeMax;
+const barW=50,barH=6,barX=mcx-barW/2,barY=y-22;
+cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(barX-1,barY-1,barW+2,barH+2);
+const clr=pct>.7?'#ef4444':pct>.4?'#f59e0b':'#60a5fa';
+cx.fillStyle=clr;cx.fillRect(barX,barY,barW*pct,barH);
+// Flashing when near max
+if(pct>.8&&Math.sin(Date.now()/60)>0){
+cx.fillStyle='rgba(255,255,255,.4)';cx.fillRect(barX,barY,barW*pct,barH)}
+cx.fillStyle='#fff';cx.font='7px VT323,monospace';
+cx.fillText(Math.round(pct*100)+'%',barX+barW+3,barY+5);
+// Charge ring around player
+cx.strokeStyle=clr;cx.lineWidth=1+pct*3;cx.globalAlpha=.3+pct*.5;
+cx.beginPath();cx.arc(P.x+P.w/2,P.y+P.h/2,12+pct*10,0,Math.PI*2);cx.stroke();
+cx.globalAlpha=1;
+}
+}
+continue}
+
+// Solid / fake solid
+if(t===1||t===6){cx.fillStyle='#1e293b';cx.fillRect(x,y,TL,TL);
+cx.strokeStyle='#151b28';cx.lineWidth=1;cx.strokeRect(x,y,TL,TL);
+cx.fillStyle='#2a3348';cx.fillRect(x+2,y+2,3,3);cx.fillRect(x+TL-5,y+TL-5,3,3);
+cx.fillStyle='rgba(255,255,255,.02)';cx.fillRect(x,y,TL,TL/2);continue}
+
+// Crumble
+if(t===7){cx.fillStyle='#2a3348';cx.fillRect(x,y,TL,TL);
+cx.strokeStyle='#1a2030';cx.lineWidth=1;
+cx.beginPath();cx.moveTo(x+4,y+6);cx.lineTo(x+14,y+18);cx.moveTo(x+18,y+3);cx.lineTo(x+28,y+15);cx.stroke();continue}
+
+// Spikes
+if(t>=2&&t<=5){cx.fillStyle='#ef4444';cx.beginPath();
+if(t===2)for(let i=0;i<4;i++){const sx=x+i*8;cx.moveTo(sx,y+TL);cx.lineTo(sx+4,y+4);cx.lineTo(sx+8,y+TL)}
+if(t===3)for(let i=0;i<4;i++){const sx=x+i*8;cx.moveTo(sx,y);cx.lineTo(sx+4,y+TL-4);cx.lineTo(sx+8,y)}
+if(t===4)for(let i=0;i<4;i++){const sy=y+i*8;cx.moveTo(x+TL,sy);cx.lineTo(x+4,sy+4);cx.lineTo(x+TL,sy+8)}
+if(t===5)for(let i=0;i<4;i++){const sy=y+i*8;cx.moveTo(x,sy);cx.lineTo(x+TL-4,sy+4);cx.lineTo(x,sy+8)}
+cx.fill();continue}
+
+// Flags
+if(t===8||t===9){cx.fillStyle='#6b7280';cx.fillRect(x+14,y+4,3,TL-4);
+cx.fillStyle='#22c55e';cx.beginPath();cx.moveTo(x+17,y+4);cx.lineTo(x+30,y+10);cx.lineTo(x+17,y+16);cx.fill();
+cx.shadowColor='#22c55e';cx.shadowBlur=6;cx.fill();cx.shadowBlur=0;continue}
+
+// Checkpoints
+if(t===10||t===11){cx.fillStyle=cpAct&&t===10?'#22c55e':'#f59e0b';
+cx.fillRect(x+12,y+4,6,TL-4);
+cx.beginPath();cx.moveTo(x+15,y);cx.lineTo(x+22,y+6);cx.lineTo(x+15,y+12);cx.lineTo(x+8,y+6);cx.fill();
+cx.shadowColor='#f59e0b';cx.shadowBlur=4;cx.fill();cx.shadowBlur=0;continue}
+
+// Bounce
+if(t===12){cx.fillStyle='#1e3a5f';cx.fillRect(x,y,TL,TL);
+cx.fillStyle='#3b82f6';cx.fillRect(x+2,y+2,TL-4,5);
+cx.fillStyle='#60a5fa';cx.beginPath();cx.moveTo(x+16,y+11);cx.lineTo(x+24,y+21);cx.lineTo(x+8,y+21);cx.fill();continue}
+
+// Gravity flip
+if(t===13){cx.fillStyle='#2d1b4e';cx.fillRect(x,y,TL,TL);
+cx.fillStyle='#a855f7';cx.font='18px monospace';cx.fillText('⇅',x+7,y+23);
+// Timer ring for gravTimer levels
+const lv=levels[cl];if(lv&&lv.gravTimer){
+cx.strokeStyle=`rgba(168,85,247,${.4+Math.sin(Date.now()/250)*.3})`;cx.lineWidth=2;
+cx.beginPath();cx.arc(x+TL/2,y+TL/2,14,0,Math.PI*2);cx.stroke();
+cx.fillStyle='#a855f7';cx.font='7px VT323,monospace';cx.fillText('3s',x+10,y+TL-3)}
+continue}
+
+// Doors
+if(t===14||t===15){
+// Door frame
+cx.fillStyle='#0f1f0f';cx.fillRect(x+2,y,TL-4,TL);
+// Door body
+const glw=.6+Math.sin(Date.now()/400)*.15;
+cx.fillStyle=t===15?`rgba(239,68,68,${glw})`:`rgba(34,197,94,${glw})`;
+cx.fillRect(x+4,y+2,TL-8,TL-4);
+// Door handle
+cx.fillStyle='#fbbf24';cx.fillRect(x+TL-10,y+TL/2-2,4,4);
+// Door number label (find which door this is)
+const lv=levels[cl];
+if(lv&&lv.doors){const di=lv.doors.findIndex(d=>d.c===c&&d.r===r);
+if(di>=0){cx.fillStyle='#fff';cx.font='bold 14px VT323,monospace';cx.fillText(''+(di+1),x+TL/2-4,y+TL/2+5)}}
+continue}
+
+// Conveyors
+if(t===21||t===22){cx.fillStyle='#1e293b';cx.fillRect(x,y,TL,TL);
+cx.strokeStyle='#334155';cx.lineWidth=1;cx.strokeRect(x,y,TL,TL);
+const dir=t===21?1:-1;const anim=Date.now()/200;
+cx.fillStyle='#475569';for(let i=0;i<4;i++){const ox=((anim*dir+i*8)%TL+TL)%TL;cx.fillRect(x+ox-1,y+4,2,TL-8)}
+cx.fillStyle='#f59e0b';cx.font='9px monospace';cx.fillText(dir>0?'>>>':'<<<',x+5,y+TL/2+3);continue}
+
+// Lava
+if(t===20){cx.fillStyle='#dc2626';cx.fillRect(x,y,TL,TL);
+cx.fillStyle='#ef4444';cx.fillRect(x,y,TL,TL/3);
+cx.fillStyle='#fbbf24';cx.fillRect(x,y+Math.sin(Date.now()/300+c)*3,TL,2);continue}
+}
+
+// === MOVING PLATFORMS RENDER ===
+for(const m of movers){
+const mx=Math.round(m.x),my=Math.round(m.y);
+// Platform body
+cx.fillStyle=m.deadly?'#7f1d1d':'#334155';cx.fillRect(mx,my,m.w,m.h);
+cx.strokeStyle=m.deadly?'#ef4444':'#475569';cx.lineWidth=1;cx.strokeRect(mx,my,m.w,m.h);
+// Top highlight
+cx.fillStyle=m.deadly?'rgba(239,68,68,.2)':'rgba(255,255,255,.05)';cx.fillRect(mx,my,m.w,3);
+// Gear details
+cx.fillStyle=m.deadly?'#991b1b':'#1e293b';
+cx.fillRect(mx+4,my+m.h-6,4,4);cx.fillRect(mx+m.w-8,my+m.h-6,4,4);
+// Moving arrows
+cx.fillStyle='rgba(255,255,255,.08)';
+const dir=m.speed>0?1:-1;
+if(m.sx!==m.ex){cx.font='8px monospace';cx.fillText(dir>0?'>>':'<<',mx+m.w/2-5,my+m.h/2+3)}
+else{cx.font='8px monospace';cx.fillText(dir>0?'vv':'^^',mx+m.w/2-5,my+m.h/2+3)}
+if(dbg){cx.strokeStyle='#f59e0b';cx.setLineDash([3,3]);cx.beginPath();
+cx.moveTo(m.sx+m.w/2,m.sy+m.h/2);cx.lineTo(m.ex+m.w/2,m.ey+m.h/2);cx.stroke();cx.setLineDash([])}
+}
+
+// === ARROW PROJECTILES RENDER ===
+for(const a of arrows){
+const ang=Math.atan2(a.vy,a.vx);
+cx.save();cx.translate(a.x,a.y);cx.rotate(ang);
+// Arrow shaft
+cx.fillStyle='#f59e0b';cx.fillRect(-12,-1.5,20,3);
+// Arrow head
+cx.beginPath();cx.moveTo(10,0);cx.lineTo(5,-4);cx.lineTo(5,4);cx.closePath();
+cx.fillStyle='#ef4444';cx.fill();
+// Arrow fletching
+cx.fillStyle='#92400e';cx.fillRect(-12,-3,4,6);
+cx.restore();
+// Trail (every few frames)
+if(Math.random()<.3)parts.push({x:a.x-a.vx*.5,y:a.y-a.vy*.5,vx:(sr()-.5)*.5,vy:(sr()-.5)*.5,l:6,c:'rgba(245,158,11,.3)'});
+}
+// Arrow launcher indicators
+const lva2=levels[cl];
+if(lva2&&lva2.arrowLaunchers){
+for(const al of lva2.arrowLaunchers){
+const lx=al.x*TL,ly=al.y*TL;
+// Warning glow
+const pulse=.4+Math.sin(Date.now()/300)*.2;
+cx.fillStyle=`rgba(239,68,68,${pulse})`;cx.fillRect(lx,ly,TL,TL);
+cx.strokeStyle='#ef4444';cx.lineWidth=2;cx.strokeRect(lx+1,ly+1,TL-2,TL-2);
+// Arrow icon showing direction
+cx.fillStyle='#fbbf24';cx.font='bold 14px VT323,monospace';
+const sym=al.dx<0?'\u2190':al.dx>0?'\u2192':al.dy<0?'\u2191':'\u2193';
+cx.fillText(sym,lx+TL/2-5,ly+TL/2+5);
+}}
+
+// === SHY FLAG RENDER ===
+if(shyFlag.active){
+const fx=Math.round(shyFlag.x),fy=Math.round(shyFlag.y)+Math.sin(Date.now()/400)*3;
+// Shadow
+cx.fillStyle='rgba(0,0,0,.15)';cx.fillRect(fx+4,fy+24,12,3);
+// Pole
+cx.fillStyle='#6b7280';cx.fillRect(fx+7,fy+2,3,24);
+// Flag triangle
+cx.fillStyle='#22c55e';cx.beginPath();cx.moveTo(fx+10,fy+2);cx.lineTo(fx+24,fy+8);cx.lineTo(fx+10,fy+14);cx.fill();
+cx.shadowColor='#22c55e';cx.shadowBlur=8;cx.fill();cx.shadowBlur=0;
+// Eyes on flag (it's alive!)
+const ex=fx+14,ey=fy+6;
+cx.fillStyle='#fff';cx.fillRect(ex,ey,3,3);cx.fillRect(ex+5,ey,3,3);
+cx.fillStyle='#000';
+// Eyes look away from player when scared, toward player when lured
+const look=shyFlag.lured?-1:1;
+cx.fillRect(ex+look,ey+1,1,1);cx.fillRect(ex+5+look,ey+1,1,1);
+// Retreating animation - scared expression
+if(shyFlag.retreating){
+cx.fillStyle='rgba(255,100,100,.3)';cx.fillRect(fx,fy-2,20,28);
+// Speed lines
+cx.strokeStyle='rgba(255,255,255,.2)';cx.lineWidth=1;
+for(let i=0;i<3;i++){cx.beginPath();cx.moveTo(fx-5-i*6,fy+4+i*8);cx.lineTo(fx-15-i*6,fy+4+i*8);cx.stroke()}}
+// Lured - happy expression, gentle glow
+if(shyFlag.lured){
+cx.fillStyle='rgba(34,197,94,.08)';cx.beginPath();cx.arc(fx+10,fy+10,20,0,Math.PI*2);cx.fill()}
+// Debug
+if(dbg){cx.strokeStyle='#22c55e';cx.lineWidth=1;cx.strokeRect(fx,fy,20,26);
+cx.fillStyle='#22c55e';cx.font='8px monospace';cx.fillText(`SF:${Math.round(shyFlag.x)} dist:${Math.round(shyFlag.x-(P.x+P.w))}`,fx-20,fy-8)}
+}
+
+// === BEHIND FLAG RENDER ===
+if(behindFlag.active&&behindFlag.visible){
+const fx=Math.round(behindFlag.x),fy=Math.round(behindFlag.y)+Math.sin(Date.now()/350)*2;
+// Glow pulse
+cx.fillStyle=`rgba(34,197,94,${.06+Math.sin(Date.now()/200)*.04})`;
+cx.beginPath();cx.arc(fx+10,fy+14,25,0,Math.PI*2);cx.fill();
+// Pole
+cx.fillStyle='#6b7280';cx.fillRect(fx+7,fy+2,3,24);
+// Flag
+cx.fillStyle='#22c55e';cx.beginPath();cx.moveTo(fx+10,fy+2);cx.lineTo(fx+24,fy+8);cx.lineTo(fx+10,fy+14);cx.fill();
+cx.shadowColor='#22c55e';cx.shadowBlur=10;cx.fill();cx.shadowBlur=0;
+// "!" exclamation mark
+cx.fillStyle='#fbbf24';cx.font='bold 14px VT323,monospace';cx.fillText('!',fx+12,fy-4);
+// Timer bar above flag
+const pct=behindFlag.timer/behindFlag.maxTime;
+const barW=50,barH=4,barX=fx-15,barY=fy-14;
+cx.fillStyle='rgba(0,0,0,.5)';cx.fillRect(barX-1,barY-1,barW+2,barH+2);
+const tClr=pct>.5?'#22c55e':pct>.25?'#f59e0b':'#ef4444';
+cx.fillStyle=tClr;cx.fillRect(barX,barY,barW*pct,barH);
+// Flashing when low
+if(pct<.25&&Math.sin(Date.now()/80)>0){cx.fillStyle='rgba(255,255,255,.4)';cx.fillRect(barX,barY,barW*pct,barH)}
+cx.fillStyle='#e2e8f0';cx.font='8px VT323,monospace';
+cx.fillText(Math.ceil(behindFlag.timer/60)+'s',barX+barW+4,barY+4);
+}
+// Behind flag timer HUD (top center when active)
+if(behindFlag.active&&behindFlag.triggered){
+const pct=behindFlag.timer/behindFlag.maxTime;
+const barW=160,barH=6,barX=W/2-barW/2,barY=38;
+cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(barX-2,barY-2,barW+4,barH+4);
+const tClr=pct>.5?'#22c55e':pct>.25?'#f59e0b':'#ef4444';
+cx.fillStyle=tClr;cx.fillRect(barX,barY,barW*pct,barH);
+if(pct<.2&&Math.sin(Date.now()/60)>0){cx.fillStyle='rgba(255,255,255,.3)';cx.fillRect(barX,barY,barW*pct,barH)}
+cx.fillStyle='#e2e8f0';cx.font='10px VT323,monospace';
+cx.fillText('GET BACK! '+Math.ceil(behindFlag.timer/60)+'s',barX,barY-4);
+}
+
+// === SPIKE SLAM RENDER ===
+if(spikeSlam.active){
+// Draw ceiling of spikes descending
+const sy=Math.round(spikeSlam.y);
+// Solid ceiling block
+cx.fillStyle='#1e293b';cx.fillRect(0,sy-TL*2,W,TL*2);
+cx.strokeStyle='#151b28';cx.lineWidth=1;
+for(let c=0;c<CO;c++)cx.strokeRect(c*TL,sy-TL*2,TL,TL);
+// Spike teeth along bottom edge
+cx.fillStyle='#ef4444';
+cx.beginPath();
+for(let c=0;c<CO;c++){
+const sx=c*TL;
+cx.moveTo(sx,sy);cx.lineTo(sx+4,sy+TL);cx.lineTo(sx+8,sy);
+cx.moveTo(sx+8,sy);cx.lineTo(sx+12,sy+TL);cx.lineTo(sx+16,sy);
+cx.moveTo(sx+16,sy);cx.lineTo(sx+20,sy+TL);cx.lineTo(sx+24,sy);
+cx.moveTo(sx+24,sy);cx.lineTo(sx+28,sy+TL);cx.lineTo(sx+32,sy);
+}
+cx.fill();
+// Red warning glow
+cx.fillStyle=`rgba(239,68,68,${.03+Math.sin(Date.now()/150)*.02})`;cx.fillRect(0,sy,W,H-sy);
+// Rumble particles
+if(spikeSlam.started&&spikeSlam.delay<=0&&Math.random()<.2){
+parts.push({x:sr()*W,y:sy+TL,vx:(sr()-.5)*2,vy:sr()*2,l:15,c:'rgba(239,68,68,.4)'});
+}
+// Timer/warning text
+if(spikeSlam.started&&spikeSlam.delay>0){
+cx.fillStyle='#ef4444';cx.font='16px VT323,monospace';
+const cd=Math.ceil(spikeSlam.delay/60);
+cx.fillText('CEILING DESCENT: '+cd,W/2-70,60)}
+if(dbg){cx.fillStyle='#ef4444';cx.font='8px monospace';cx.fillText(`Slam y:${Math.round(spikeSlam.y)} spd:${spikeSlam.speed.toFixed(2)} dly:${spikeSlam.delay}`,8,80)}
+}
+
+// Player
+if(P.alive){
+const px=Math.round(P.x),py=Math.round(P.y);
+cx.fillStyle='rgba(0,0,0,.2)';cx.fillRect(px+2,py+P.h-2,P.w-4,3);
+cx.fillStyle=P.rev>0?'#a855f7':P.dshing?'#fff':'#f59e0b';
+const bh=P.crch?P.h*.6:P.h,by=P.crch?py+P.h-bh:py;
+cx.fillRect(px,by,P.w,bh);
+// Wind-up key
+cx.fillStyle='#b45309';cx.fillRect(px+P.w/2-2,by-4,4,5);
+cx.fillStyle='#92400e';cx.fillRect(px+P.w/2-4,by-6,8,3);
+// Eyes
+const ey=by+7,eo=P.face>0?3:-1;
+cx.fillStyle='#fff';cx.fillRect(px+5+eo,ey,4,4);cx.fillRect(px+11+eo,ey,4,4);
+cx.fillStyle='#1e293b';cx.fillRect(px+6+eo+(P.face>0?1:0),ey+1,2,2);cx.fillRect(px+12+eo+(P.face>0?1:0),ey+1,2,2);
+// Antenna
+cx.strokeStyle='#b45309';cx.lineWidth=1;cx.beginPath();cx.moveTo(px+P.w/2,by);cx.lineTo(px+P.w/2+P.face*3,by-6);cx.stroke();
+cx.fillStyle='#fbbf24';cx.beginPath();cx.arc(px+P.w/2+P.face*3,by-6,2,0,Math.PI*2);cx.fill();
+if(P.dshing){cx.fillStyle='rgba(245,158,11,.3)';cx.fillRect(px-P.face*8,by+4,8,bh-8)}
+if(P.rev>0){cx.fillStyle=`rgba(168,85,247,${.2+Math.sin(Date.now()/100)*.12})`;cx.fillRect(px-2,by-2,P.w+4,bh+4)}
+}
+
+// Particles
+for(const p of parts){cx.fillStyle=p.c;cx.globalAlpha=p.l/25;cx.fillRect(p.x-2,p.y-2,4,4)}
+cx.globalAlpha=1;
+
+// Float msgs
+for(let i=msgs.length-1;i>=0;i--){const m=msgs[i];
+cx.font='bold 11px VT323,monospace';cx.fillStyle=m.c;cx.globalAlpha=m.l/m.ml;
+cx.fillText(m.t,m.x,m.y);cx.globalAlpha=1;m.y-=.8;m.l--;if(m.l<=0)msgs.splice(i,1)}
+
+// Gravity Timer HUD
+if(gFlip&&gFlipTimer>0){
+const pct=gFlipTimer/180;
+const barW=120,barH=6,barX=W/2-barW/2,barY=gFlip?H-30:30;
+cx.fillStyle='rgba(0,0,0,.5)';cx.fillRect(barX-2,barY-2,barW+4,barH+4);
+// Bar changes color as time runs out
+const clr=pct>.5?'#a855f7':pct>.25?'#f59e0b':'#ef4444';
+cx.fillStyle=clr;cx.fillRect(barX,barY,barW*pct,barH);
+// Flashing when low
+if(pct<.25&&Math.sin(Date.now()/80)>0){cx.fillStyle='rgba(255,255,255,.3)';cx.fillRect(barX,barY,barW*pct,barH)}
+cx.fillStyle='#e2e8f0';cx.font='9px VT323,monospace';
+const secs=Math.ceil(gFlipTimer/60);
+cx.fillText('GRAVITY: '+secs+'s',barX,barY-4);
+}
+
+// Debug
+if(dbg){cx.strokeStyle='#22c55e';cx.lineWidth=1;cx.strokeRect(P.x,P.y,P.w,P.h);
+cx.fillStyle='#22c55e';cx.font='8px monospace';
+cx.fillText(`P:${Math.round(P.x)},${Math.round(P.y)} V:${P.vx.toFixed(1)},${P.vy.toFixed(1)}`,8,H-28);
+cx.fillText(`Gr:${P.gr} Wl:${P.wl} Ct:${P.ct} Rv:${P.rev} Gf:${gFlip}`,8,H-16);
+cx.fillText(`Dsh:${P.dshing} LvlD:${ld} TotalD:${td}`,8,H-4)}
+
+cx.restore();
+}
+
+// ================================================================
+// HELPERS
+// ================================================================
+function updParts(){for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.15;p.l--;if(p.l<=0)parts.splice(i,1)}}
+function addMsg(x,y,t,c){msgs.push({x,y,t,c,l:50,ml:50})}
+function updUI(){document.getElementById('lvlT').textContent=`Level ${cl+1}/${levels.length}`;document.getElementById('dthT').textContent=`Deaths: ${td}`}
+function updRage(){document.getElementById('rmF').style.width=rage+'%';
+document.getElementById('vig').style.background=`radial-gradient(ellipse at center,transparent 40%,rgba(60,0,0,${rage/100*.5}) 100%)`;
+document.getElementById('rmL').style.color=rage>75?'#dc2626':rage>50?'#ef4444':'#d97706'}
+function showTaunt(){const e=document.getElementById('taunt');e.textContent=taunts[ri(0,taunts.length-1)];e.style.opacity='1';clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity='0',2500)}
+function showHint(t){const e=document.getElementById('hint');e.textContent=t;e.style.opacity='1';clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity='0',4000)}
+function showTut(t){const e=document.getElementById('tut');e.textContent=t;e.style.opacity='1';clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity='0',5500)}
+
+function toggleMercy(){mercy=!mercy;document.getElementById('mSt').textContent=mercy?'Mercy Protocol engaged. Interesting choice.':''}
+function togPause(){if(gs==='playing'){gs='paused';document.getElementById('pause').style.display='flex'}else if(gs==='paused')resume()}
+function resume(){gs='playing';document.getElementById('pause').style.display='none'}
+function toMenu(){gs='menu';['pause','win','cred'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('menu').style.display='flex'}
+
+function showWin(){gs='win';document.getElementById('win').style.display='flex';
+document.getElementById('wDth').textContent=`Malfunctions: ${td}`;
+const m=Math.floor(totalTime/60),s=Math.floor(totalTime%60);
+document.getElementById('wTm').textContent=`Uptime: ${m}:${s.toString().padStart(2,'0')}`;
+contDodges=0;contMaxDodges=5+ri(2,5);// need 5-10 clicks to catch it
+const b=document.getElementById('contBtn');b.style.left='0';b.style.top='0';b.textContent='CONTINUE';
+document.getElementById('trollMsg').textContent=''}
+
+const trollMsgs=[
+"[SYSTEM] Button recalibrating...",
+"[SYSTEM] Exit permit denied.",
+"[SYSTEM] Did you really think it'd be that easy?",
+"[SYSTEM] Button firmware update in progress...",
+"[SYSTEM] ACCESS DENIED. Try again.",
+"[SYSTEM] The button doesn't want to be clicked.",
+"[SYSTEM] Almost... no.",
+"[SYSTEM] Error 404: Exit not found.",
+"[SYSTEM] Nice try, unit.",
+"[SYSTEM] Button relocated for your inconvenience.",
+"[SYSTEM] The factory isn't done with you yet.",
+"[SYSTEM] One does not simply click continue."
+];
+let contDodges=0,contMaxDodges=7;
+
+document.getElementById('contBtn').addEventListener('mouseenter',function(){
+if(contDodges<contMaxDodges){
+contDodges++;
+// Move to random position within the win screen
+const maxX=180,maxY=80;
+this.style.left=((sr()>.5?1:-1)*(40+sr()*maxX))+'px';
+this.style.top=((sr()>.5?1:-1)*(20+sr()*maxY))+'px';
+// Troll message
+document.getElementById('trollMsg').textContent=trollMsgs[contDodges%trollMsgs.length];
+// Change button text to taunt
+const taunts=['CONTINUE','NOPE','TRY AGAIN','NOT HERE','CATCH ME','TOO SLOW','HAHA','ESCAPE?','DENIED'];
+this.textContent=taunts[ri(0,taunts.length-1)];
+// On last dodge, button becomes clickable and stops moving
+if(contDodges>=contMaxDodges){
+this.textContent='OK FINE. CONTINUE.';
+this.style.left='0';this.style.top='0';
+this.style.borderColor='#22c55e';
+document.getElementById('trollMsg').textContent='[SYSTEM] ...fine. You earned it.'
+}}});
+
+// Also dodge on click attempts before max dodges
+document.getElementById('contBtn').addEventListener('click',function(){
+if(contDodges>=contMaxDodges){
+document.getElementById('win').style.display='none';
+document.getElementById('cred').style.display='flex';
+document.getElementById('crDth').textContent=td;
+document.getElementById('crCode').textContent=`TOY-ESCAPE-${seed}-${td}`;gs='credits'
+}else{
+// Clicked but hasn't dodged enough — move again
+contDodges++;
+const maxX=180,maxY=80;
+this.style.left=((sr()>.5?1:-1)*(40+sr()*maxX))+'px';
+this.style.top=((sr()>.5?1:-1)*(20+sr()*maxY))+'px';
+document.getElementById('trollMsg').textContent=trollMsgs[contDodges%trollMsgs.length];
+if(contDodges>=contMaxDodges){
+this.textContent='OK FINE. CONTINUE.';
+this.style.left='0';this.style.top='0';
+this.style.borderColor='#22c55e';
+document.getElementById('trollMsg').textContent='[SYSTEM] ...fine. You earned it.'
+}}});
+
+document.getElementById('startBtn').addEventListener('click',()=>{
+document.getElementById('menu').style.display='none';gs='playing';td=0;totalTime=0;rage=0;updRage();loadLvl(0)});
+document.getElementById('ctrlBtn').addEventListener('click',()=>{
+alert("=== FACTORY CONTROLS ===\n\n\u2190 \u2192 or A/D \u2014 Move\n\u2191 or W or Space \u2014 Jump\n\u2193 or S \u2014 Crouch\nShift or X \u2014 Dash\nE \u2014 Toggle Magnets\nHold Q \u2014 Charge Magnet Burst (release to launch!)\nR \u2014 Restart\nEsc \u2014 Pause\nF3 \u2014 Debug\n\nThe factory doesn't believe in you. Prove it wrong.")});
+
+// ================================================================
+// GAME LOOP
+// ================================================================
+const FT=1000/60;let lt=0,acc=0;
+function loop(ts){
+if(!lt)lt=ts;let d=ts-lt;lt=ts;if(d>100)d=100;acc+=d;
+while(acc>=FT){
+if(gs==='playing'){updPlayer();updParts();totalTime+=1/60;
+const m=Math.floor(totalTime/60),s=Math.floor(totalTime%60);
+document.getElementById('tmrT').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+rage=Math.max(0,rage-.02);updRage()}
+for(const k in jp)delete jp[k];acc-=FT}
+if(gs==='playing'||gs==='paused')render();
+requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
