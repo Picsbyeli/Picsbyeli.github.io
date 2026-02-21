@@ -1,0 +1,157 @@
+Dex,Pokemon,Types,Location,Biome,Method,Encounter%,LevelMin,LevelMax,Condition
+141,Razorroe,Water / Fighting,Azure Sea,Other,Fishing,86,20,26,
+100,Tidemurk,Water,Azure Sea,Other,Fishing,14,20,26,
+44,Brineel,Water,Azure Sea,Other,Surf,43,12,16,
+45,Skerrfin,Water,Azure Sea,Other,Surf,28,18,24,
+101,Brineshade,Water / Ghost,Azure Sea,Other,Surf,11,28,34,
+47,Reefwisp,Water / Fairy,Azure Sea,Other,Surf,11,26,34,
+113,Deepseer,Water / Psychic,Azure Sea,Other,Surf,7,34,42,
+50,Runeling,Psychic,Castle Celeste,Other,Land,42,12,16,
+78,Rotbloom,Grass / Ghost,Castle Celeste,Other,Land,21,24,30,Land (Night)
+94,Sigilisk,Psychic / Dark,Castle Celeste,Other,Land,16,28,34,Land (Night)
+95,Hexscribe,Psychic / Ghost,Castle Celeste,Other,Land,11,34,42,Cave/Ruins
+131,Obeliskar,Rock / Steel,Castle Celeste,Other,Land,10,38,46,Cave/Ruins
+127,Capacorn,Electric / Grass,E Kespire Town (Outskirts),Settlement,Land,62,22,28,
+60,Polarm,Steel / Electric,E Kespire Town (Outskirts),Settlement,Land,38,26,34,
+92,Mindlet,Psychic,Eternal Myrillfount (Ancient Ruins),Ruins,Land,29,14,18,
+48,Oracub,Psychic,Eternal Myrillfount (Ancient Ruins),Ruins,Land,29,12,16,
+77,Witherlit,Grass / Ghost,Eternal Myrillfount (Ancient Ruins),Ruins,Land,23,16,20,Land (Night)
+49,Augurusk,Psychic / Rock,Eternal Myrillfount (Ancient Ruins),Ruins,Land,11,20,26,Cave/Ruins
+108,Reliclume,Ghost / Rock,Eternal Myrillfount (Ancient Ruins),Ruins,Land,8,26,34,Cave/Ruins
+123,Magmote,Fire,Forlort Keep (Volcano Slopes),Other,Land,44,24,30,
+124,Basalisk,Fire / Rock,Forlort Keep (Volcano Slopes),Other,Land,26,28,34,
+41,Cindermaw,Fire / Rock,Forlort Keep (Volcano Slopes),Other,Land,17,28,34,
+97,Pyrecrown,Fire / Psychic,Forlort Keep (Volcano Slopes),Other,Land,13,32,40,
+56,Reliclaw,Rock / Steel,Gabite Cavern,Cave,Land,34,24,30,Cave/Ruins
+149,Cryptusk,Ground / Ghost,Gabite Cavern,Cave,Land,22,38,46,Cave/Ruins
+158,Gabite (Thalorian Form),Ice / Rock,Gabite Cavern,Cave,Land,22,34,42,Cave/Ruins
+119,Titanapace,Bug / Rock,Gabite Cavern,Cave,Land,22,34,42,Cave/Ruins
+59,Ferrbit,Steel,Gabite’s Forge,Other,Land,42,16,22,
+27,Ferrser,Steel,Gabite’s Forge,Other,Land,21,24,30,
+24,Armaroust,Grass / Steel,Gabite’s Forge,Other,Land,16,26,34,
+61,Magnetusk,Steel,Gabite’s Forge,Other,Land,11,34,42,Cave/Ruins
+144,Ironmantle,Steel / Fighting,Gabite’s Forge,Other,Land,10,34,42,
+26,Meowth (Thalorian Form),Steel,Graxen City (Outskirts),Settlement,Land,50,16,22,
+85,Kenscour,Fighting / Steel,Graxen City (Outskirts),Settlement,Land,25,28,34,
+115,Metrowl,Steel / Flying,Graxen City (Outskirts),Settlement,Land,25,28,34,
+93,Cerebrant,Psychic,Lakespire Town (Lake),Lake,Land,86,20,26,
+104,Pathling,Normal,Lakespire Town (Lake),Lake,Land,14,20,26,
+42,Ripplet,Water,Lakespire Town (Lake),Lake,Surf,47,10,14,
+111,Lenticor,Water,Lakespire Town (Lake),Lake,Surf,23,16,20,
+90,Shellflow,Water / Rock,Lakespire Town (Lake),Lake,Surf,18,18,24,
+112,Stillmare,Water / Psychic,Lakespire Town (Lake),Lake,Surf,12,24,30,
+46,Gutterray,Water / Poison,Pillage Post,Other,Fishing,86,18,24,
+100,Tidemurk,Water,Pillage Post,Other,Fishing,14,18,24,
+37,Spikimp,Dark / Electric,Pillage Post,Other,Land,57,10,14,Land (Night)
+79,Murkrow (Thalorian Form),Poison / Dark,Pillage Post,Other,Land,43,18,24,Land (Night)
+51,Pixsprout,Fairy / Grass,Pophyr Grove,Forest,Land,25,10,14,
+98,Bloomlet,Grass / Fairy,Pophyr Grove,Forest,Land,21,14,18,
+52,Gladerin,Fairy,Pophyr Grove,Forest,Land,16,14,18,
+68,Hivern,Bug / Fairy,Pophyr Grove,Forest,Land,12,14,18,
+142,Cliffgarde,Rock / Fairy,Pophyr Grove,Forest,Land,8,24,30,
+15,Mothrave,Bug / Psychic,Pophyr Grove,Forest,Land,8,18,24,Land (Night)
+107,Dreadawn,Dark / Fairy,Pophyr Grove,Forest,Land,6,28,34,Land (Night)
+69,Apiarch,Bug / Fairy,Pophyr Grove,Forest,Land,4,26,34,
+100,Tidemurk,Water,Riverbend Crossing,Route,Fishing,91,14,18,
+46,Gutterray,Water / Poison,Riverbend Crossing,Route,Fishing,9,14,18,
+103,Verdantide,Grass,Riverbend Crossing,Route,Land,60,12,16,
+38,Spiklash,Dark / Electric,Riverbend Crossing,Route,Land,40,18,24,Land (Night)
+31,Glimlot,Water,Riverbend Crossing,Route,Surf,38,8,12,
+43,Currentide,Water,Riverbend Crossing,Route,Surf,27,14,18,
+89,Tortide,Water,Riverbend Crossing,Route,Surf,27,14,18,
+91,Rivarmor,Water / Rock,Riverbend Crossing,Route,Surf,8,26,34,
+132,Ponderpup,Psychic,Route 1 (Castle Celeste Approach),Route,Land,95,12,16,
+104,Pathling,Normal,Route 1 (Castle Celeste Approach),Route,Land,5,12,16,
+14,Silkreep,Bug,Route 2,Route,Land,18,5,8,
+65,Ramlet,Normal,Route 2,Route,Land,15,4,7,
+28,Shinx,Electric,Route 2,Route,Land,15,4,7,
+57,Boltnib,Electric,Route 2,Route,Land,13,4,7,
+117,Carapup,Bug,Route 2,Route,Land,13,6,10,
+54,Pebblit,Rock,Route 2,Route,Land,13,5,8,
+102,Salvleaf,Grass,Route 2,Route,Land,13,6,10,
+104,Pathling,Normal,Route 3,Route,Land,24,8,12,
+70,Bramblet,Grass,Route 3,Route,Land,21,8,12,
+22,Sprigadet,Grass,Route 3,Route,Land,21,8,12,
+20,Roostrik,Normal / Flying,Route 3,Route,Land,17,10,14,
+34,Snarlil,Fighting,Route 3,Route,Land,17,10,14,
+114,Cobbolt,Rock,Route 4,Route,Land,25,12,16,
+66,Craggoat,Rock,Route 4,Route,Land,20,12,16,
+10,Gravowl,Rock / Flying,Route 4,Route,Land,20,10,13,
+55,Cairnox,Rock / Fighting,Route 4,Route,Land,13,16,22,
+118,Shellisk,Bug / Rock,Route 4,Route,Land,12,16,22,
+88,Stampedeer,Normal / Fighting,Route 4,Route,Land,10,20,26,
+40,Scorillet,Fire,Route 5,Route,Land,27,12,16,
+129,Shardlet,Rock,Route 5,Route,Land,23,14,18,
+84,Strikid,Fighting,Route 5,Route,Land,23,14,18,
+35,Tasmor,Fighting,Route 5,Route,Land,14,16,20,
+71,Thornhorn,Grass / Fighting,Route 5,Route,Land,13,16,20,
+96,Embril,Fire,Route 6,Route,Land,18,14,18,
+81,Trapinch,Ground,Route 6,Route,Land,18,14,18,
+126,Voltseed,Electric / Grass,Route 6,Route,Land,18,14,18,
+133,Thinkhound,Psychic,Route 6,Route,Land,11,24,30,
+29,Luxio,Electric,Route 6,Route,Land,9,18,24,
+58,Gridjaw,Electric / Steel,Route 6,Route,Land,7,20,26,
+122,Seerlynx,Psychic,Route 6,Route,Land,7,24,30,
+23,Cerelodge,Grass / Rock,Route 6,Route,Land,6,26,34,
+148,Vineward,Grass / Steel,Route 6,Route,Land,6,32,40,
+120,Charmote,Fairy,Route 7,Route,Land,29,14,18,
+53,Lullivy,Fairy,Route 7,Route,Land,29,16,20,
+99,Floramere,Grass / Fairy,Route 7,Route,Land,12,26,34,
+143,Aetherwing,Flying / Fairy,Route 7,Route,Land,9,28,34,
+109,Citranth,Grass / Dragon,Route 7,Route,Land,9,28,34,
+21,Aeroracle,Flying / Psychic,Route 7,Route,Land,6,28,34,
+72,Briarwarl,Grass / Fighting,Route 7,Route,Land,6,28,34,
+130,Splintrum,Rock,Route 8,Route,Land,21,28,34,
+82,Vibrava,Ground / Dragon,Route 8,Route,Land,17,28,34,
+36,Devastan,Fighting / Rock,Route 8,Route,Land,9,34,42,
+30,Luxray,Electric / Dark,Route 8,Route,Land,9,38,46,Land (Night)
+128,Dynahorn,Electric / Grass,Route 8,Route,Land,8,34,42,
+83,Flygon (Thalorian Form),Dragon / Bug,Route 8,Route,Land,8,38,46,
+151,Moonquill,Psychic / Flying,Route 8,Route,Land,8,38,46,Land (Night)
+110,Pulsrake,Electric / Dragon,Route 8,Route,Land,8,38,46,
+145,Timino,Normal / Rock,Route 8,Route,Land,8,40,55,
+39,Voltigar,Dark / Electric,Route 8,Route,Land,4,45,55,Land (Night)
+138,Sapsludge,Poison,Runeward Crossing,Route,Land,91,10,14,
+104,Pathling,Normal,Runeward Crossing,Route,Land,9,10,14,
+73,Slipvine,Grass / Poison,Swoven Swamp,Swamp,Land,21,10,14,
+135,Glimmergnat,Bug / Fairy,Swoven Swamp,Swamp,Land,18,10,14,
+17,Mosslush,Grass,Swoven Swamp,Swamp,Land,18,8,12,
+74,Viperoot,Grass / Poison,Swoven Swamp,Swamp,Land,11,16,22,
+136,Faegnat,Bug / Fairy,Swoven Swamp,Swamp,Land,10,16,22,
+139,Fumoss,Poison / Grass,Swoven Swamp,Swamp,Land,10,16,22,
+18,Miregloop,Grass / Rock,Swoven Swamp,Swamp,Land,7,14,18,
+152,Fungalorn,Grass / Poison,Swoven Swamp,Swamp,Land,5,32,40,
+32,Fentotl,Water / Dark,Swoven Swamp,Swamp,Surf,86,14,18,
+42,Ripplet,Water,Swoven Swamp,Swamp,Surf,14,14,18,
+13,Threadle,Bug,Tidepath Road,Route,Land,29,2,5,
+19,Chickind,Normal,Tidepath Road,Route,Land,23,2,5,
+16,Mossling,Grass,Tidepath Road,Route,Land,21,2,5,
+87,Rovlet,Normal,Tidepath Road,Route,Land,16,2,5,
+67,Buzzit,Bug,Tidepath Road,Route,Land,11,3,5,
+116,Geargoyle,Steel / Rock,Victory Road,Victory Road,Land,19,38,46,Cave/Ruins
+125,Lavabrawn,Fire / Fighting,Victory Road,Victory Road,Land,18,38,46,
+134,Mindmaul,Psychic / Fighting,Victory Road,Victory Road,Land,18,40,55,
+146,Brutusk,Dark / Rock,Victory Road,Victory Road,Land,9,45,55,Land (Night)
+153,Crownmaw,Dragon / Dark,Victory Road,Victory Road,Land,9,45,55,Cave/Ruins
+159,Garchomp (Thalorian Form),Ice / Dragon,Victory Road,Victory Road,Land,9,45,55,Snow (Land)
+12,Gargryph,Rock / Flying,Victory Road,Victory Road,Land,9,45,55,
+147,Justyrn,Rock / Steel,Victory Road,Victory Road,Land,9,50,55,Cave/Ruins
+75,Sporeshade,Grass,Whisperwoods,Forest,Land,24,14,18,
+106,Noxling,Dark,Whisperwoods,Forest,Land,19,16,20,Land (Night)
+76,Mycelurk,Grass / Poison,Whisperwoods,Forest,Land,15,20,26,
+121,Wispette,Fairy / Ghost,Whisperwoods,Forest,Land,15,18,24,Land (Night)
+25,Herbend,Grass / Poison,Whisperwoods,Forest,Land,10,24,30,
+137,Lumenmidge,Bug / Fairy,Whisperwoods,Forest,Land,7,24,30,
+140,Cankerloom,Poison / Grass,Whisperwoods,Forest,Land,5,28,34,
+80,Honchkrow (Thalorian Form),Poison / Dark,Whisperwoods,Forest,Land,5,34,42,Land (Night)
+33,Morbaxol,Water / Dark,Whisperwoods,Forest,Surf,67,28,34,
+42,Ripplet,Water,Whisperwoods,Forest,Surf,33,28,34,
+63,Glaciurn,Ice,Whitehorn Mountains,Mountain,Land,27,20,26,Snow (Land)
+157,Gible (Thalorian Form),Ice / Rock,Whitehorn Mountains,Mountain,Land,20,28,34,Snow (Land)
+64,Snowlark,Ice / Flying,Whitehorn Mountains,Mountain,Land,20,24,30,Snow (Land)
+86,Dojoroar,Fighting,Whitehorn Mountains,Mountain,Land,10,32,40,
+11,Gravern,Rock / Flying,Whitehorn Mountains,Mountain,Land,10,24,28,
+105,Wayvern,Dragon / Flying,Whitehorn Mountains,Mountain,Land,7,34,42,
+150,Stormsable,Electric / Rock,Whitehorn Mountains,Mountain,Land,6,38,46,
+62,Frosplet,Ice / Water,Whitehorn Mountains,Mountain,Surf,91,16,22,
+42,Ripplet,Water,Whitehorn Mountains,Mountain,Surf,9,16,22,

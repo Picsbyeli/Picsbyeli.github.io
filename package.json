@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:unit": "node test/drawFromPool.test.js",
     "test:playwright": "npx playwright test tests/playwright --reporter=list",
-    "test:playwright:with-server": "node scripts/run-playwright-with-backend.js"
+    "test:playwright:with-server": "node scripts/run-playwright-with-backend.js",
+    "serve": "http-server . -p 8000"
   },
   "repository": {
     "type": "git",
@@ -21,9 +22,16 @@
   },
   "homepage": "https://github.com/Picsbyeli/Picsbyeli.github.io#readme",
   "devDependencies": {
-    "@playwright/test": "^1.55.0"
+    "@playwright/test": "^1.55.0",
+    "http-server": "^14.1.1"
   },
   "dependencies": {
-    "jsdom": "^22.1.0"
+    "bad-words": "^4.0.0",
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "jsdom": "^22.1.0",
+    "multer": "^2.0.2",
+    "nanoid": "^5.1.6"
   }
 }

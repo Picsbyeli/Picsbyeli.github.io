@@ -1,0 +1,223 @@
+{
+  "version": "3.1",
+  "mapName": "InsidePokeMart",
+  "mapWidth": 1024,
+  "mapHeight": 1024,
+  "gridSize": 16,
+  "cameraZoom": 0.5,
+  "playerConfig": {
+    "baseWidth": 48,
+    "baseHeight": 64,
+    "scale": 2.4,
+    "speed": 4,
+    "hitbox": {
+      "x": 8,
+      "y": 32,
+      "width": 32,
+      "height": 32
+    }
+  },
+  "player": {
+    "spriteWidth": 115,
+    "spriteHeight": 154,
+    "speed": 4,
+    "hitbox": {
+      "offsetX": 19,
+      "offsetY": 77,
+      "width": 77,
+      "height": 77
+    }
+  },
+  "spriteSheet": {
+    "columns": 4,
+    "rows": 4,
+    "fps": 8
+  },
+  "collisions": [
+    {
+      "id": 548,
+      "x": 0,
+      "y": 0,
+      "width": 1040,
+      "height": 192,
+      "name": "coll_1"
+    },
+    {
+      "id": 549,
+      "x": 16,
+      "y": 240,
+      "width": 48,
+      "height": 32,
+      "name": "coll_2"
+    },
+    {
+      "id": 550,
+      "x": 32,
+      "y": 112,
+      "width": 128,
+      "height": 112,
+      "name": "coll_3"
+    },
+    {
+      "id": 551,
+      "x": 256,
+      "y": 176,
+      "width": 80,
+      "height": 96,
+      "name": "coll_4"
+    },
+    {
+      "id": 553,
+      "x": 272,
+      "y": 256,
+      "width": 208,
+      "height": 48,
+      "name": "coll_5"
+    },
+    {
+      "id": 554,
+      "x": 336,
+      "y": 240,
+      "width": 432,
+      "height": 48,
+      "name": "coll_6"
+    },
+    {
+      "id": 555,
+      "x": 688,
+      "y": 192,
+      "width": 80,
+      "height": 64,
+      "name": "coll_7"
+    },
+    {
+      "id": 556,
+      "x": 576,
+      "y": 272,
+      "width": 176,
+      "height": 48,
+      "name": "coll_8"
+    },
+    {
+      "id": 557,
+      "x": 864,
+      "y": 160,
+      "width": 144,
+      "height": 64,
+      "name": "coll_9"
+    },
+    {
+      "id": 558,
+      "x": 944,
+      "y": 224,
+      "width": 48,
+      "height": 48,
+      "name": "coll_10"
+    },
+    {
+      "id": 559,
+      "x": 16,
+      "y": 336,
+      "width": 224,
+      "height": 176,
+      "name": "coll_11"
+    },
+    {
+      "id": 560,
+      "x": 16,
+      "y": 528,
+      "width": 224,
+      "height": 176,
+      "name": "coll_12"
+    },
+    {
+      "id": 561,
+      "x": 784,
+      "y": 320,
+      "width": 224,
+      "height": 384,
+      "name": "coll_13"
+    },
+    {
+      "id": 562,
+      "x": -32,
+      "y": 0,
+      "width": 48,
+      "height": 912,
+      "name": "coll_14"
+    },
+    {
+      "id": 563,
+      "x": -16,
+      "y": 928,
+      "width": 464,
+      "height": 16,
+      "name": "coll_15"
+    },
+    {
+      "id": 564,
+      "x": 416,
+      "y": 944,
+      "width": 272,
+      "height": 32,
+      "name": "coll_16"
+    },
+    {
+      "id": 565,
+      "x": 592,
+      "y": 928,
+      "width": 432,
+      "height": 32,
+      "name": "coll_17"
+    },
+    {
+      "id": 566,
+      "x": 1024,
+      "y": 0,
+      "width": 16,
+      "height": 960,
+      "name": "coll_18"
+    },
+    {
+      "id": 589,
+      "x": 464,
+      "y": 256,
+      "width": 128,
+      "height": 32,
+      "name": "coll_19"
+    }
+  ],
+  "floors": [],
+  "warps": [
+    {
+      "id": 567,
+      "x": 480,
+      "y": 928,
+      "width": 80,
+      "height": 16,
+      "name": "warp_1",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "VerdantVillageupdate",
+      "exitDir": "up",
+      "syncId": 347,
+      "syncMapId": "map_10"
+    }
+  ],
+  "spawns": [],
+  "encounters": [],
+  "triggers": [
+    {
+      "id": 590,
+      "x": 512,
+      "y": 224,
+      "width": 32,
+      "height": 80,
+      "name": "trig_1",
+      "type": "interact",
+      "target": "",
+      "once": false,
+      "requireInteract": true
+    }
+  ]
+}

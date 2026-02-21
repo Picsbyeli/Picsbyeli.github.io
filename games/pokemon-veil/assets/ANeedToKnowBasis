@@ -1,0 +1,4193 @@
+Below is a systems-level, implementation-ready explanation of Pokémon experience (EXP) designed so an AI, game engine, or ruleset can model it precisely. This is written in neutral technical language rather than player-facing explanation.
+
+1. Definition of Experience (EXP)
+Experience Points (EXP) are a numeric progression currency assigned to individual Pokémon-like entities.
+ EXP increases only through defined reward events, primarily combat participation. When accumulated EXP crosses a species-specific threshold, the entity levels up, which triggers stat recalculation and optional evolution checks.
+
+2. When EXP Is Awarded
+EXP is awarded only when an opposing Pokémon faints.
+Trigger Event
+ON_FAINT(opponent):
+    award_experience()
+
+No EXP is granted for:
+Damage dealt without fainting
+
+
+Status moves
+
+
+Capturing Pokémon (unless explicitly designed otherwise)
+
+
+Running from battle
+
+
+
+3. Which Pokémon Receive EXP
+3.1 Primary Rule
+A Pokémon receives EXP if and only if:
+It participated in battle, meaning:
+
+
+Was sent out AND
+
+
+Took an action OR was present while an opponent fainted
+
+
+3.2 EXP Share Variants
+You may implement one of the following systems:
+A. Classic EXP Share (Gen 1–5)
+Participants receive EXP
+
+
+EXP Share holders receive a split portion
+
+
+Non-participants without EXP Share receive 0 EXP
+
+
+B. Modern EXP Share (Gen 6+)
+All party Pokémon receive EXP
+
+
+Participants receive full EXP
+
+
+Non-participants receive reduced EXP
+
+
+You must explicitly define which model your game uses.
+
+4. Base EXP Calculation
+Every Pokémon species has a Base EXP Yield (integer).
+Example:
+Inklet: BaseEXP = 62
+
+Core Formula (Simplified)
+EXP_Gained =
+(BaseEXP × OpponentLevel) ÷ Divider
+
+Where:
+Divider is typically 7 (classic balance constant)
+
+
+Example:
+OpponentLevel = 10
+BaseEXP = 62
+
+EXP = (62 × 10) / 7 ≈ 88
+
+Round down unless otherwise specified.
+
+5. EXP Modifiers (Multipliers)
+EXP may be modified multiplicatively.
+Common Modifiers
+Condition
+Multiplier
+Trainer battle
+×1.5
+Lucky Egg held
+×1.5
+Traded Pokémon
+×1.5
+Affection bonus (modern)
+×1.2
+Exp Share (non-participant)
+×0.5
+
+Combined Formula
+FinalEXP =
+floor(BaseEXP × Level / Divider × Trainer × Item × Status)
+
+Multipliers stack multiplicatively.
+
+6. EXP Distribution Logic (Party)
+Case: Single Participant
+Participant gets 100% of EXP
+
+Case: Multiple Participants
+Each participant gets:
+TotalEXP / NumberOfParticipants
+
+Apply modifiers after splitting, not before.
+
+7. EXP Storage and Accumulation
+Each Pokémon has:
+current_exp: integer
+level: integer
+growth_rate: enum
+
+EXP is cumulative and never decreases.
+current_exp += EXP_Gained
+
+
+8. Level-Up Check
+After EXP is added:
+while current_exp ≥ EXP_REQUIRED_FOR_NEXT_LEVEL:
+    level += 1
+    recalculate_stats()
+    check_moves()
+    check_evolution()
+
+Multiple level-ups from a single battle are allowed.
+
+9. Growth Rate Curves (CRITICAL)
+EXP required per level depends on Growth Rate, not species.
+Standard Growth Curves
+Growth Type
+Description
+Fast
+Early leveling, high late cost
+Medium Fast
+Linear
+Medium Slow
+Slower early, smoother late
+Slow
+Very high late game cost
+Erratic / Fluctuating
+Nonlinear curves
+
+Example (Medium Fast):
+EXP_to_Level_N = N³
+
+Example:
+Level 10 → 1000 EXP
+Level 20 → 8000 EXP
+
+
+10. EXP vs Stats (Separation of Concerns)
+Important distinction for AI:
+EXP does NOT directly increase stats
+
+
+EXP only increases level
+
+
+Level increase triggers stat recalculation:
+
+
+Stat =
+floor(((BaseStat × 2 + IV + EV/4) × Level) / 100) + Modifier
+
+EXP → Level → Stats
+Never skip this chain.
+
+11. Evolution Interaction
+Evolution checks occur after level-up, not mid-battle.
+IF evolution_condition_met:
+    prompt_evolution()
+
+EXP itself does not trigger evolution; level change does.
+
+12. Edge Cases & Rules
+Fainted Pokémon
+If fainted before opponent faints → receives 0 EXP
+
+
+Switch-In Exploit
+Switching in for 1 turn counts as participation
+
+
+Over-Level Cap (Optional)
+if level ≥ obedience_cap:
+    EXP_Gained *= 0.5
+
+
+13. AI-Readable Pseudocode (Full)
+onOpponentFaint(opponent):
+    participants = getParticipants()
+    base_exp = opponent.base_exp * opponent.level / 7
+
+    for pokemon in party:
+        if pokemon in participants:
+            exp = base_exp / len(participants)
+        else if pokemon.hasExpShare:
+            exp = base_exp * 0.5
+        else:
+            exp = 0
+
+        exp *= getModifiers(pokemon)
+        pokemon.current_exp += floor(exp)
+
+        while pokemon.current_exp >= expToNextLevel(pokemon):
+            pokemon.level += 1
+            recalcStats(pokemon)
+            checkMoves(pokemon)
+            checkEvolution(pokemon)
+
+
+14. Design Takeaways (Why This Matters)
+EXP is event-driven, not continuous
+
+
+Participation is the primary gate
+
+
+Growth curves control pacing
+
+
+Multipliers allow tuning difficulty
+
+
+EXP must remain deterministic for AI planning
+
+
+Below is a system-level, implementation-ready explanation of how Pokémon catching works, written so an AI or game system can reason about every step deterministically.
+This is modeled after the Generation III–V core mechanics (the most commonly emulated baseline), but the logic generalizes cleanly to later games.
+
+1. High-Level Concept
+Catching a Pokémon is a probabilistic state check evaluated at the moment a Poké Ball is thrown.
+The result depends on:
+The Pokémon’s current condition (HP, status effects)
+
+
+The Pokémon’s intrinsic catch difficulty
+
+
+The type of Poké Ball
+
+
+A multi-stage random validation process
+
+
+The animation (0–3 shakes → capture or escape) reflects internal checks—not just visuals.
+
+2. Core Variables (State Inputs)
+Pokémon State
+MaxHP
+
+
+CurrentHP
+
+
+StatusCondition
+
+
+None
+
+
+Sleep / Freeze
+
+
+Paralysis / Burn / Poison
+
+
+CatchRate (species constant, e.g. 3–255)
+
+
+Player Action
+BallModifier (depends on ball type)
+
+
+Optional situational modifiers (time, location, etc.)
+
+
+
+3. Step 1 — Calculate Modified Catch Value
+The game first computes a capture value a:
+a = (((3 × MaxHP − 2 × CurrentHP) × CatchRate × BallModifier) 
+     ÷ (3 × MaxHP)) × StatusModifier
+
+Status Modifiers
+Status
+Multiplier
+Sleep
+×2.5
+Freeze
+×2.5
+Paralysis
+×1.5
+Burn
+×1.5
+Poison
+×1.5
+None
+×1.0
+
+If a ≥ 255, the capture succeeds immediately (no shake checks).
+
+4. Step 2 — Convert to Shake Threshold
+If a < 255, the game calculates a shake threshold b:
+b = 1048560 ÷ sqrt( sqrt( 16711680 ÷ a ) )
+
+This number determines how likely each shake is to pass.
+
+5. Step 3 — Perform Shake Checks (Critical Section)
+The game performs up to four independent shake checks.
+For each check:
+Generate random integer r ∈ [0, 65535]
+
+
+If r ≥ b → Poké Ball fails immediately
+
+
+If r < b → one shake succeeds
+
+
+Outcomes
+Shakes Passed
+Result
+0
+Pokémon breaks out instantly
+1
+Breaks out after 1 shake
+2
+Breaks out after 2 shakes
+3
+Breaks out after 3 shakes
+4
+Pokémon is caught
+
+Important:
+ Each shake is an independent probability gate. The Pokémon does not “get closer” to being caught—each throw is a fresh evaluation.
+
+6. What a Failed Capture Means (Internally)
+When a Poké Ball fails:
+No Pokémon state changes occur (HP, status unchanged)
+
+
+The encounter continues
+
+
+The Pokémon may:
+
+
+Use a move
+
+
+Flee (some species)
+
+
+Trigger scripted behavior
+
+
+The number of shakes shown does not influence future throws.
+
+7. What a Successful Capture Does
+On success:
+Pokémon is removed from battle
+
+
+Capture metadata is stored:
+
+
+Ball type
+
+
+Location
+
+
+Level
+
+
+Nature
+
+
+IVs (already generated earlier)
+
+
+Pokémon is placed in party or storage
+
+
+Encounter ends
+
+
+
+8. Ball Modifiers (Examples)
+Ball
+Modifier
+Poké Ball
+1.0
+Great Ball
+1.5
+Ultra Ball
+2.0
+Net Ball
+3.0–3.5 (conditional)
+Dusk Ball
+3.0–3.5 (night/cave)
+Timer Ball
++0.3 per turn (caps ~4.0)
+Master Ball
+Auto-capture (bypasses checks)
+
+
+9. AI-Readable Decision Flow (Pseudocode)
+function attemptCapture(pokemon, ball):
+    a = computeCaptureValue(pokemon, ball)
+
+    if a >= 255:
+        return CAPTURE_SUCCESS
+
+    b = computeShakeThreshold(a)
+
+    for i in range(1, 5):
+        r = random(0, 65535)
+        if r >= b:
+            return CAPTURE_FAIL(shakes = i - 1)
+
+    return CAPTURE_SUCCESS
+
+
+10. Key Design Principles (Why It Works This Way)
+HP matters more than level
+ Catch difficulty is proportional to remaining HP, not level.
+
+
+Status is extremely powerful
+ Sleep/Freeze roughly doubles capture probability.
+
+
+Multiple shakes ≠ momentum
+ Shakes are feedback, not progress.
+
+
+Randomness is gated, not flat
+ Probability is distributed across multiple validation layers.
+
+
+
+11. Common Misconceptions (Clarified)
+Myth
+Reality
+“Almost caught it”
+Each throw is independent
+“3 shakes means next throw will work”
+False
+“Level affects catch rate”
+Only indirectly via HP
+“Mash buttons to catch”
+No input is read
+
+
+12. For Your Pokémon-Inspired Game
+If you are building a Pokémon-style system (as in Veil / Thaloria), you can safely:
+Simplify to one probability roll (casual games)
+
+
+Or keep multi-shake logic for authenticity
+
+
+Preserve status > HP > ball type priority
+
+
+Below is a systems-level, AI-oriented explanation of all major Pokémon gameplay features, with explicit timing, state transitions, and animation/dialogue sequencing. This is written so an AI (or a game engine you design) can reason deterministically about what happens, when it happens, and why.
+
+1. Core Game Loop (Macro Level)
+At the highest level, Pokémon operates as a state-driven RPG loop:
+Exploration State
+
+
+Player moves on a grid (typically 16×16 or 32×32 tiles).
+
+
+Random encounter checks or scripted triggers.
+
+
+NPC interaction, items, cutscenes.
+
+
+Transition State
+
+
+Fade/flash animation.
+
+
+Audio cue.
+
+
+Camera lock.
+
+
+Input disabled.
+
+
+Battle State
+
+
+Turn-based combat loop.
+
+
+Substates: command selection → resolution → aftermath.
+
+
+Reward State
+
+
+EXP distribution.
+
+
+Level-ups.
+
+
+Evolutions.
+
+
+Move learning.
+
+
+Return State
+
+
+Fade out.
+
+
+Restore player control.
+
+
+Every system below plugs into this loop.
+
+2. Overworld Systems
+2.1 Movement & Input Timing
+Input polling: ~60 FPS (or frame-locked equivalent).
+
+
+Movement:
+
+
+Tile-based interpolation (not teleporting).
+
+
+Movement duration: ~8–12 frames per tile.
+
+
+Collision checks:
+
+
+Before movement commits.
+
+
+Animation:
+
+
+Walk cycle synced to tile interpolation.
+
+
+Input lock:
+
+
+During transitions, dialogue, cutscenes.
+
+
+
+2.2 Random Encounters
+Encounter Check Timing
+Triggered after tile entry, not during movement.
+
+
+Conditions:
+
+
+Terrain flag (grass, cave, water).
+
+
+Encounter rate (0–100%).
+
+
+RNG roll per eligible tile.
+
+
+If encounter succeeds
+Freeze player.
+
+
+Screen effect (flash/shake).
+
+
+Battle transition animation.
+
+
+Load battle state.
+
+
+This delay is intentional to avoid instant interruption mid-step.
+
+2.3 NPC Interaction & Dialogue
+Dialogue Timing Model
+Player presses interact.
+
+
+Input locked immediately.
+
+
+NPC faces player (1–3 frames).
+
+
+Dialogue box opens (animated over ~6–10 frames).
+
+
+Text scrolls at a fixed rate (e.g., 1 character per frame).
+
+
+Player advances text manually or via auto-advance.
+
+
+Dialogue box closes (reverse animation).
+
+
+Input restored.
+
+
+Important Rule
+ Dialogue always blocks gameplay. No concurrent movement.
+
+3. Battle System (Core Logic)
+3.1 Battle Initialization
+Sequence
+Battle background loads.
+
+
+Player Pokémon slides in.
+
+
+Opponent Pokémon slides in.
+
+
+Cry plays.
+
+
+“Wild X appeared!” message.
+
+
+Command menu appears.
+
+
+Each step is serialized; nothing overlaps unless explicitly designed.
+
+4. Turn Structure (Critical for AI)
+Each turn is atomic and deterministic.
+4.1 Turn Phases
+Command Selection
+
+
+Player chooses move/item/switch/run.
+
+
+AI chooses action via logic table.
+
+
+Order Resolution
+
+
+Compare priorities:
+
+
+Move priority.
+
+
+Speed stat.
+
+
+RNG tie-breaker.
+
+
+Action Execution
+
+
+Actions execute one at a time.
+
+
+Each action fully resolves before the next begins.
+
+
+End-of-Turn Effects
+
+
+Weather.
+
+
+Status damage.
+
+
+Abilities.
+
+
+Item triggers.
+
+
+Turn Cleanup
+
+
+Check fainting.
+
+
+EXP if battle ends.
+
+
+
+4.2 Move Execution (Micro Timing)
+Each move follows this exact pipeline:
+Display “X used MOVE!”
+
+
+Accuracy check
+
+
+If miss → show miss message → end
+
+
+Damage calculation
+
+
+Type effectiveness check
+
+
+Apply HP change
+
+
+Play hit animation
+
+
+Play effectiveness text
+
+
+Apply secondary effects
+
+
+Check fainting
+
+
+No step can be skipped unless conditions explicitly say so.
+
+5. Damage Formula (Conceptual)
+Damage depends on:
+Attacking stat (Atk or SpA)
+
+
+Defending stat (Def or SpD)
+
+
+Move base power
+
+
+Level
+
+
+STAB
+
+
+Type effectiveness
+
+
+Critical hits
+
+
+Random variance (~85–100%)
+
+
+This ensures predictable randomness, not chaos.
+
+6. Status Conditions
+6.1 Major Status (One at a Time)
+Burn
+
+
+Poison
+
+
+Badly Poisoned
+
+
+Paralysis
+
+
+Sleep
+
+
+Freeze
+
+
+Status Timing Rules
+Applied immediately after damage (if move causes it).
+
+
+Effects trigger:
+
+
+Before action (paralysis, sleep).
+
+
+End of turn (burn, poison).
+
+
+
+6.2 Volatile Status (Multiple Allowed)
+Confusion
+
+
+Flinch
+
+
+Trapped
+
+
+Leech Seed
+
+
+Curse
+
+
+Taunt
+
+
+These are checked every relevant phase, then cleared when expired.
+
+7. Abilities System
+Abilities are passive listeners.
+They activate when:
+Pokémon enters battle.
+
+
+A move is used.
+
+
+A stat changes.
+
+
+Damage is taken.
+
+
+Weather changes.
+
+
+Abilities do not interrupt animations; they queue messages after the triggering event.
+
+8. Items (Held & Bag)
+8.1 Held Items
+Checked continuously.
+
+
+Trigger when condition is met.
+
+
+Trigger order:
+
+
+Damage resolved
+
+
+Ability triggers
+
+
+Item triggers
+
+
+8.2 Bag Items
+Used instead of a move.
+
+
+Consume turn.
+
+
+Animation → effect → confirmation text.
+
+
+
+9. Capture System
+9.1 Capture Attempt Flow
+Player selects Poké Ball.
+
+
+Throw animation (~20–30 frames).
+
+
+Capture formula evaluated.
+
+
+Shake animations (0–3).
+
+
+Outcome:
+
+
+Success → capture fanfare.
+
+
+Failure → Pokémon breaks out.
+
+
+Each shake corresponds to a successful internal check.
+
+10. Experience & Leveling
+10.1 EXP Timing
+Awarded after battle ends, not per KO (visually).
+
+
+Distributed to:
+
+
+Battling Pokémon.
+
+
+Party (depending on generation/rules).
+
+
+10.2 Level-Up Sequence
+EXP bar animates filling.
+
+
+Level increases.
+
+
+Stat increases displayed.
+
+
+Learn new moves?
+
+
+Evolution check.
+
+
+
+11. Evolution System
+11.1 Evolution Timing
+Evolution never interrupts battle.
+Occurs:
+After level-up
+
+
+After item use
+
+
+After trade
+
+
+After specific conditions
+
+
+Sequence
+Dialogue: “What? X is evolving!”
+
+
+Evolution animation (fixed duration).
+
+
+New Pokémon revealed.
+
+
+Learn moves if applicable.
+
+
+
+12. Cutscenes & Scripted Events
+Cutscenes are state machines:
+Camera locks.
+
+
+Player input disabled.
+
+
+NPC paths pre-scripted.
+
+
+Dialogue and movement serialized.
+
+
+No randomness unless scripted.
+
+13. Audio Synchronization
+Music fades during transitions.
+
+
+Sound effects queued, not overlapping excessively.
+
+
+Cries play before text appears.
+
+
+
+14. Save System
+Saving captures:
+Player position.
+
+
+Party data.
+
+
+Flags (events completed).
+
+
+RNG seed (optional).
+
+
+Saving cannot occur mid-turn or mid-animation.
+
+15. Key Design Philosophy (Why This Works)
+Pokémon works because:
+Everything is predictable but variable
+
+
+No simultaneous logic conflicts
+
+
+Player always understands cause → effect
+
+
+Animations reinforce state changes
+
+
+For an AI, this means:
+Every action is a finite state transition
+
+
+No hidden real-time dependencies
+
+
+Easy to serialize and replay
+
+
+Below is a systems-level, AI-oriented explanation of Pokémon abilities written so an AI, rules engine, or simulation can reason about them, predict outcomes, and make decisions. This is not player-facing; it is an implementation and modeling guide.
+
+1. What an Ability Is (Formal Definition)
+An Ability is a persistent, rule-modifying state attached to a Pokémon that:
+Is usually always active
+
+
+Automatically alters battle logic
+
+
+Does not consume resources
+
+
+Triggers based on conditions or events
+
+
+From an AI perspective, an ability is not a move and not a stat.
+ It is a passive constraint or modifier applied to the battle system.
+
+2. Why Abilities Exist (Design Purpose)
+Abilities exist to:
+Differentiate Pokémon with similar stats
+
+
+Create conditional complexity
+
+
+Reward prediction and planning
+
+
+Break linear damage calculation
+
+
+Introduce hidden information
+
+
+For AI, abilities are critical because they change the rules, not just the numbers.
+
+3. Ability Lifecycle (When They Apply)
+Abilities interact with battle flow at specific points.
+Ability Activation Timing Categories
+Timing Type
+Description
+Always-On
+Constant passive effect
+On Switch-In
+Triggers when Pokémon enters battle
+On Hit
+Triggers when taking damage
+On Attack
+Triggers when dealing damage
+On Status
+Triggers with status conditions
+On Environment
+Depends on weather, terrain, etc.
+On Faint
+Triggers when Pokémon faints
+
+An AI must understand when abilities are checked, not just what they do.
+
+4. Core Ability Categories (AI-Relevant)
+4.1 Stat-Modifying Abilities
+These abilities alter stats without changing stat stages.
+Examples:
+Boost Attack by 50%
+
+
+Reduce Speed under conditions
+
+
+Double a stat when statused
+
+
+AI Impact
+Raw damage prediction is invalid without ability checks
+
+
+Stat evaluation must be contextual, not static
+
+
+
+4.2 Damage-Rule Abilities
+These modify damage formulas directly.
+Examples:
+Negate critical hits
+
+
+Reduce super-effective damage
+
+
+Increase damage of certain move categories
+
+
+AI Impact
+Type effectiveness tables alone are insufficient
+
+
+Damage simulations must branch on ability presence
+
+
+
+4.3 Immunity Abilities
+These override type rules or mechanics.
+Examples:
+Complete immunity to a type
+
+
+Convert damage into healing
+
+
+Block status effects
+
+
+AI Impact
+AI must invalidate otherwise “optimal” moves
+
+
+Target selection logic must include immunity inference
+
+
+
+4.4 Triggered Punishment Abilities
+Abilities that punish specific actions.
+Examples:
+Lower attacker stats on contact
+
+
+Inflict status when hit
+
+
+Damage attackers after contact
+
+
+AI Impact
+Move selection must account for retaliatory cost
+
+
+Long-term survivability modeling becomes essential
+
+
+
+4.5 Environment-Dependent Abilities
+Abilities tied to weather, terrain, or field state.
+Examples:
+Boost stats in rain/sun
+
+
+Change speed order under terrain
+
+
+Nullify weather damage
+
+
+AI Impact
+AI must reason about battlefield state
+
+
+Weather becomes a strategic resource, not flavor
+
+
+
+4.6 Information-Control Abilities
+Abilities that affect what information is available.
+Examples:
+Reveal opponent abilities
+
+
+Suppress opposing abilities
+
+
+Mask stats or effects
+
+
+AI Impact
+Directly affects opponent modeling
+
+
+Reduces or increases uncertainty in decision trees
+
+
+
+5. Ability Priority vs Move Priority
+Abilities are evaluated at specific engine layers.
+Simplified order:
+Field effects (weather, terrain)
+
+
+Ability effects
+
+
+Move priority
+
+
+Speed order
+
+
+Damage resolution
+
+
+Post-damage ability triggers
+
+
+AI Implication
+An AI must not assume:
+“My move goes first because my Speed is higher”
+Abilities can invalidate that assumption.
+
+6. Ability Interactions (Combinatorial Complexity)
+Abilities do not operate in isolation.
+Examples:
+Ability A negates Ability B
+
+
+Ability C only works if Ability D is absent
+
+
+Ability effects may stack or overwrite
+
+
+AI Requirement
+Abilities must be modeled as:
+Rule overrides
+
+
+Conditional constraints
+
+
+Priority-based evaluators
+
+
+This dramatically increases state space.
+
+7. Hidden vs Known Abilities
+Some abilities are hidden information until revealed.
+Revelation Conditions
+Switch-in activation
+
+
+Triggered response
+
+
+Explicit reveal effects
+
+
+AI Impact
+Requires belief modeling
+
+
+AI must assign probabilities to unseen abilities
+
+
+Similar to poker-style incomplete information
+
+
+
+8. Abilities vs Items vs Moves (Separation)
+Feature
+Ability
+Item
+Move
+Passive
+Yes
+Conditional
+No
+Consumed
+No
+Often
+Yes (PP)
+Always Active
+Usually
+No
+No
+AI Predictability
+Medium
+Medium
+High
+
+Abilities sit in a middle predictability layer, which is the hardest for AI.
+
+9. Why Abilities Matter MORE Than Stats for AI
+Example Comparison
+Pokémon A: Higher stats, bad ability
+
+
+Pokémon B: Lower stats, strong ability
+
+
+Human intuition often picks A.
+ Correct AI choice often picks B.
+Abilities:
+Change effective stats
+
+
+Alter risk profiles
+
+
+Control tempo
+
+
+Define roles (tank, pivot, sweeper)
+
+
+
+10. Ability Modeling for AI (Data Structure)
+A clean AI-readable abstraction:
+Ability {
+  id
+  trigger_event
+  condition(state)
+  effect(state)
+  priority
+  suppressible
+}
+
+Abilities should be treated as event listeners, not modifiers baked into stats.
+
+11. Ability Evaluation in Decision Making
+For AI move selection:
+ExpectedValue(move) =
+  Outcome(move | opponent_ability)
+  × Probability(opponent_ability)
+
+Abilities force:
+Branching simulations
+
+
+Risk-aware decisions
+
+
+Conservative vs aggressive strategies
+
+
+
+12. Common AI Failure Without Ability Awareness
+If abilities are ignored:
+AI spams ineffective moves
+
+
+AI misjudges survivability
+
+
+AI fails to predict reversals
+
+
+AI cannot learn patterns
+
+
+Abilities are often the difference between a bad AI and a convincing one.
+
+13. Design Rule for Your Game (Strong Recommendation)
+If you are building a Pokémon-inspired game:
+Limit early-game ability complexity
+
+
+Introduce reactive abilities gradually
+
+
+Avoid stacking too many passive modifiers early
+
+
+Ensure abilities are internally consistent
+
+
+For AI, fewer but clearer abilities > many opaque ones.
+
+14. Key Takeaway (AI Perspective)
+Abilities are not bonuses.
+ They are rule exceptions.
+An AI that understands stats but not abilities is fundamentally blind to the real game.
+Below is a systems-level, narrative-design explanation of how rivals function in Pokémon-style games—covering purpose, behavior models, battle logic, narrative pacing, and player psychology—written so an AI or game system can reason about rivals as agents rather than scripted mascots.
+
+1. What a Rival Is (Design Definition)
+A rival is a persistent opposing agent whose role is to:
+Mirror the player’s growth
+
+
+Create emotional contrast (pressure, motivation, validation)
+
+
+Enforce pacing between major milestones
+
+
+Teach mechanics through opposition
+
+
+Anchor narrative stakes without replacing the villain
+
+
+In system terms, a rival is not just an NPC—it is a progress comparator.
+
+2. Core Purposes of a Rival
+2.1 Progress Validation
+Rivals answer a silent question the player always has:
+“Am I actually getting stronger?”
+By battling someone who:
+Started at the same time
+
+
+Has similar access to resources
+
+
+Makes different choices
+
+
+…the player’s growth becomes measurable.
+
+2.2 Emotional Motivation
+Rivals generate intrinsic motivation, unlike gyms (extrinsic).
+They can:
+Frustrate (arrogant rivals)
+
+
+Inspire (friendly rivals)
+
+
+Challenge morality (ideological rivals)
+
+
+Reflect consequences of choices
+
+
+This motivation persists even when the plot pauses.
+
+2.3 Mechanical Teaching Tool
+Rivals are dynamic tutorials.
+They:
+Use type advantages
+
+
+Punish poor team balance
+
+
+Introduce new mechanics before gyms do
+
+
+Scale difficulty faster than wild encounters
+
+
+
+3. Rival Archetypes (Behavior Models)
+Below are the primary rival types used across the franchise, abstracted into AI-usable patterns.
+
+3.1 Antagonistic Rival (Classic)
+Example: Blue
+Behavior Traits
+Taunts player
+
+
+Frames battles as superiority contests
+
+
+Acknowledges wins but minimizes them
+
+
+Rarely shows vulnerability
+
+
+System Role
+Increases player determination
+
+
+Makes victories feel earned
+
+
+Often reaches the goal before the player
+
+
+Battle Logic
+Chooses starter strong against player
+
+
+Optimized teams
+
+
+Aggressive move selection
+
+
+
+3.2 Hostile / Trauma-Driven Rival
+Example: Silver
+Behavior Traits
+Sees Pokémon as tools
+
+
+Displays anger and instability
+
+
+Gradual behavioral change over time
+
+
+System Role
+Demonstrates incorrect play philosophy
+
+
+Evolves morally as the game progresses
+
+
+Often triggers narrative beats via failure
+
+
+Battle Logic
+High offense, low synergy
+
+
+Later gains friendship-based evolutions
+
+
+Difficulty spikes tied to story growth
+
+
+
+3.3 Friendly / Companion Rival
+Example: Barry
+Behavior Traits
+Encouraging, energetic
+
+
+Battles are framed as “practice”
+
+
+Rarely hostile
+
+
+System Role
+Low emotional pressure
+
+
+Reinforces mechanics gently
+
+
+Acts as safety net for new players
+
+
+Battle Logic
+Balanced but forgiving teams
+
+
+Less optimal move coverage
+
+
+Battles often optional or forgiving
+
+
+
+3.4 Ideological Rival
+Example: N
+Behavior Traits
+Questions core assumptions of the world
+
+
+Battles represent philosophy, not ego
+
+
+Engages through dialogue as much as combat
+
+
+System Role
+Forces player to reflect
+
+
+Ties directly into villain plot
+
+
+Often not a final obstacle but a catalyst
+
+
+Battle Logic
+Rotating or thematic teams
+
+
+Pokémon released after battles
+
+
+Less focus on raw difficulty, more on symbolism
+
+
+
+4. Rival Appearance Timing (Pacing Logic)
+Rivals appear at designed stress points, not randomly.
+Common Trigger Points
+After starter selection
+
+
+Before / after first gym
+
+
+Mid-route ambush
+
+
+After major story reveal
+
+
+Before endgame
+
+
+Final comparison battle
+
+
+Rule:
+Rivals appear when the player thinks they’re safe.
+This maintains narrative tension.
+
+5. Team Construction Rules
+Rival teams follow mirrored asymmetry.
+Core Rules
+Always counter the player’s starter
+
+
+Match or slightly exceed player’s level
+
+
+Use Pokémon from areas player already accessed
+
+
+Introduce evolutions shortly before the player gets them
+
+
+This prevents the rival from feeling unfair while still feeling ahead.
+
+6. How Rivals Differ from Villains
+Aspect
+Rival
+Villain
+Relationship
+Personal
+Ideological
+Growth
+Evolves
+Static or collapses
+Battles
+Repeated
+Limited
+Motivation
+Comparison
+Control / belief
+Emotional Tie
+Direct
+Indirect
+
+A rival competes with you.
+ A villain opposes the world.
+
+7. Win/Loss Handling (Critical Design Detail)
+Important Rule:
+Rivals must acknowledge losses, not ignore them.
+Good rivals:
+React differently if they lose
+
+
+Adjust dialogue after repeated defeats
+
+
+Change attitude over time
+
+
+Bad rivals:
+Pretend outcomes don’t matter
+
+
+Feel scripted instead of reactive
+
+
+
+8. Why Rivals Are Essential (Psychology)
+Rivals create:
+Contrast (player identity vs other path)
+
+
+Agency (your choices visibly matter)
+
+
+Memory anchors (players remember rivals more than towns)
+
+
+Most players forget Gym Leaders.
+ They remember rivals.
+
+9. Applying This to Your Game (Veil / Thaloria)
+Given your project:
+Narrative-driven
+
+
+Pokémon-inspired
+
+
+Player-rival relationship is central
+
+
+Your rival should:
+Start equal
+
+
+Make different moral or strategic choices
+
+
+Be ahead sometimes, behind others
+
+
+Change dialogue based on outcomes
+
+
+Never feel purely evil or purely friendly
+
+
+They should feel like:
+“This could have been me.”
+
+10. AI-Readable Rival Model (Abstract)
+Rival {
+  personality
+  ideology
+  team_strategy
+  growth_state
+  reaction_to_player_outcomes
+  appearance_triggers
+}
+
+A rival is stateful, not static.
+
+11. Final Principle
+A Pokémon rival is not there to beat the player.
+They are there to define the player by contrast.
+Below is an implementation-focused, AI-readable guide to Pokémon-style weather: how to model it, when it applies, how to animate it, and how to generate battle dialogue that feels authentic.
+
+1. What Weather Is in a Battle Engine
+Weather is a global battlefield state that:
+Persists across turns until it expires or is replaced
+
+
+Applies continuous modifiers (damage boosts, chip damage, immunities, accuracy changes, etc.)
+
+
+Triggers recurring end-of-turn effects
+
+
+Interacts heavily with abilities, items, move effects, and forms
+
+
+From an AI/game-dev perspective, weather is a field rule layer that must be evaluated at defined times in the turn loop.
+
+2. Recommended Weather Set
+If you want a faithful Pokémon-like feel without exploding complexity, implement these four first:
+Rain
+
+
+Harsh Sunlight
+
+
+Sandstorm
+
+
+Hail / Snow (modern Pokémon distinguishes “Snow” from older “Hail”; you can choose one system)
+
+
+Optional later:
+Fog (older games), Strong Winds, Heavy Rain, Extremely Harsh Sunlight (legendary-tier weathers)
+
+
+Custom weathers for your region (fine if consistent)
+
+
+
+3. Weather State Data Model
+Use a single authoritative battle state object:
+BattleState.weather = {
+  type: "RAIN" | "SUN" | "SAND" | "HAIL" | "NONE",
+  source: { side: "P1" | "P2", pokemonId: "..." , cause: "MOVE"|"ABILITY"|"ITEM"|"SCRIPT" },
+  turnsRemaining: 0 | 1..n | Infinity,
+  isStrong: boolean,          // for “primal/legend” style weather if you add it
+  suppressible: boolean       // false if you add “permanent” weather in special fights
+}
+
+Keep “turnsRemaining” explicit; do not hide it in logic.
+
+4. When Weather Is Set and Replaced
+Weather can be set by:
+Moves (e.g., Rain Dance, Sunny Day, Sandstorm, Hail)
+
+
+Abilities (e.g., Drizzle, Drought, Sand Stream, Snow Warning)
+
+
+Items (rare in official games; you can add)
+
+
+Scripted events (gym gimmicks, boss fights, story battles)
+
+
+Replacement rule:
+Only one weather may be active at a time.
+
+
+Setting a new weather overwrites the old weather immediately (after the action resolves).
+
+
+
+5. Weather Duration Rules
+A clean, game-feel-friendly system:
+Move-set weather: 5 turns base
+
+
+Ability-set weather on switch-in: 5 turns base
+
+
+Weather extending items: +3 turns (or +5 if you want stronger items)
+
+
+Scripted/permanent: Infinity (only for special fights; use sparingly)
+
+
+Implementation detail:
+Decrement duration at a consistent time (commonly end of full turn).
+
+
+
+6. Where Weather Applies in the Turn Flow
+You need a deterministic order. A solid battle loop:
+Start-of-turn checks
+
+
+“Weather continues” (optional text)
+
+
+Some abilities/items that trigger at start of turn
+
+
+Action order calculation
+
+
+Priority, speed, modifiers
+
+
+Move execution
+
+
+Accuracy checks (may be modified by weather)
+
+
+Damage calculation (weather multipliers apply here)
+
+
+Secondary effects
+
+
+End-of-turn phase
+
+
+Weather chip damage / healing
+
+
+End-of-turn abilities/items
+
+
+Duration decrement
+
+
+Expire weather if turnsRemaining hits 0
+
+
+This ordering is critical for AI consistency and player expectation.
+
+7. Core Mechanical Effects
+7.1 Rain (RAIN)
+Primary effects (recommended baseline):
+Water-type move damage: ×1.5
+
+
+Fire-type move damage: ×0.5
+
+
+Optional: Thunder accuracy boosted (or cannot miss); same for Hurricane
+
+
+Optional: Certain moves change behavior (Weather Ball, Solar Beam weak)
+
+
+End-of-turn:
+Usually no chip damage by default.
+
+
+AI implications:
+Rain improves Water attackers and reduces Fire threats.
+
+
+Rain is often a tempo tool: it shifts matchups immediately.
+
+
+
+7.2 Harsh Sunlight (SUN)
+Primary effects:
+Fire-type move damage: ×1.5
+
+
+Water-type move damage: ×0.5
+
+
+Optional: Solar Beam charges instantly
+
+
+Optional: Thunder/Hurricane accuracy reduced
+
+
+Optional: Some recovery moves improved (design choice)
+
+
+End-of-turn:
+Usually no chip damage.
+
+
+AI implications:
+Sun flips the Water/Fire offensive calculus.
+
+
+Strong synergy with Fire sweepers, Chlorophyll-style speed boosts (if you implement).
+
+
+
+7.3 Sandstorm (SAND)
+Primary effects:
+End-of-turn chip damage to Pokémon unless they are immune.
+
+
+Optional: Rock-type SpD boost (classic Pokémon mechanic; implement if you want more depth)
+
+
+End-of-turn chip:
+Standard: 1/16 max HP per turn
+
+
+Immunities (recommended):
+Rock / Ground / Steel types immune to sand chip
+
+
+Abilities can add immunity (e.g., Sand Veil-style, Sand Rush-style)
+
+
+AI implications:
+Sand is “attrition weather”: it rewards bulky teams, hazards, and stalling lines.
+
+
+AI needs to model the chip as guaranteed future value.
+
+
+
+7.4 Hail / Snow (HAIL or SNOW)
+You choose one design:
+Option A: Classic Hail
+End-of-turn chip damage to non-immune
+
+
+Ice types immune
+
+
+Optional: Blizzard accuracy boosted
+
+
+Option B: Modern Snow
+No universal chip damage
+
+
+Ice types gain defensive boost (like a physical defense boost)
+
+
+Blizzard accuracy boosted
+
+
+AI implications:
+Hail is attrition; Snow is more “Ice team support.”
+
+
+Recommendation for Pokémon-inspired indie games:
+Use Classic Hail if you want simple parity with Sandstorm.
+
+
+Use Snow if you want Ice to be more viable without constant chip.
+
+
+
+8. Weather Immunity Rules
+Implement immunity as a function, not hard-coded in weather:
+function isWeatherChipImmune(pokemon, weatherType) {
+  if (weatherType === "SAND") return pokemon.hasType("ROCK","GROUND","STEEL") || pokemon.hasAbility("SAND_VEIL_IMMUNITY");
+  if (weatherType === "HAIL") return pokemon.hasType("ICE") || pokemon.hasAbility("ICE_BODY_IMMUNITY");
+  return true; // Rain/Sun usually no chip
+}
+
+This makes it easy to add abilities/items later.
+
+9. Weather in Damage Calculation
+Weather multipliers should be applied in the “global modifiers” stage:
+Typical damage pipeline:
+Base power adjustments
+
+
+Attack/Defense stats
+
+
+STAB
+
+
+Type effectiveness
+
+
+Weather modifier
+
+
+Critical / random roll
+
+
+Final clamps
+
+
+Do not apply weather before type effectiveness unless you want unusual edge cases. Keep it simple and consistent.
+
+10. Weather Moves and Interactions You Should Support
+Even if your move list is custom, support the concepts:
+“Set weather” moves
+
+
+“Benefit from weather” moves (increased power/accuracy)
+
+
+“Change based on weather” moves (Weather Ball-like)
+
+
+“Remove weather” effects (Clear Skies / Defog-like)
+
+
+Also support a basic “weather wars” concept: switching in a weather ability overwrites current weather.
+
+11. Weather Animations and UI
+11.1 Visual Layer Requirements
+Weather should be an overlay drawn above the battlefield:
+A looping particle/texture layer
+
+
+A subtle screen tint (optional)
+
+
+A small icon near the battle UI showing current weather and remaining turns (optional but very helpful)
+
+
+11.2 Animation Guidelines (Per Weather)
+Rain
+Diagonal semi-transparent streak particles
+
+
+Occasional splash ripple on ground plane
+
+
+Soft ambient rain audio loop (optional)
+
+
+Sun
+Slight warm tint
+
+
+Heat shimmer distortion (very subtle)
+
+
+Occasional lens-glint particles (sparingly)
+
+
+Sandstorm
+Horizontal dust particles with variable opacity
+
+
+Screen vignette with beige tint
+
+
+Short gust burst at turn end (helps reinforce chip damage)
+
+
+Hail
+Falling small white pellets, slightly randomized
+
+
+Occasional “ice ping” sound (optional)
+
+
+Minor cool tint
+
+
+11.3 Timing: When to Play Animations
+On set: a 0.8–1.5s “weather starts” animation
+
+
+On every turn end: subtle continuation loop; if chip damage occurs, add a brief intensification
+
+
+On expire: a 0.6–1.0s fade-out
+
+
+Avoid long animations; battles must stay snappy.
+
+12. Battle Dialogue Templates (Authentic Pokémon Feel)
+You want consistent messaging so players learn the system.
+12.1 Weather Starts
+Rain: “It started to rain!”
+
+
+Sun: “The sunlight turned harsh!”
+
+
+Sand: “A sandstorm kicked up!”
+
+
+Hail: “It started to hail!”
+
+
+12.2 Weather Continues (Optional each turn)
+Rain: “Rain continues to fall.”
+
+
+Sun: “The sunlight is strong.”
+
+
+Sand: “The sandstorm rages.”
+
+
+Hail: “Hail continues to fall.”
+
+
+12.3 Weather Hurts (End-of-turn chip)
+Sand: “{name} is buffeted by the sandstorm!”
+
+
+Hail: “{name} is pelted by the hail!”
+
+
+12.4 Weather Ends
+Rain: “The rain stopped.”
+
+
+Sun: “The harsh sunlight faded.”
+
+
+Sand: “The sandstorm subsided.”
+
+
+Hail: “The hail stopped.”
+
+
+12.5 Ability-Caused Weather (Switch-in)
+Use slightly different lines to signal source:
+Drizzle-like: “{name}’s ability made it start to rain!”
+
+
+Drought-like: “{name}’s ability intensified the sunlight!”
+
+
+Sand Stream-like: “{name} whipped up a sandstorm!”
+
+
+Snow Warning-like: “{name} summoned a hailstorm!”
+
+
+This helps the AI and players attribute causality.
+
+13. AI Decision-Making: Why Weather Matters
+Weather creates predictable, persistent value—which AI can exploit if modeled correctly.
+AI must evaluate weather as:
+Immediate swing (damage multipliers)
+
+
+Future guaranteed value (chip damage, accuracy boosts)
+
+
+Synergy multiplier (abilities/items/moves that become stronger)
+
+
+Opponent disruption (weakening their STAB or breaking their plan)
+
+
+Weather-aware scoring (high-level)
+For each possible action:
+Simulate 1–3 turns ahead (or approximate)
+
+
+Include:
+
+
+Expected damage changes due to weather
+
+
+Expected chip damage value
+
+
+Probability shifts (accuracy)
+
+
+Value of enabling allied abilities (e.g., speed boost in rain)
+
+
+Risk of opponent overwriting weather next turn
+
+
+Even a simple heuristic works well:
+If setting weather increases team expected damage output by X% for Y turns, it’s often worth a turn.
+
+
+
+14. Implementation Pseudocode (Battle Engine)
+function setWeather(state, type, source, duration) {
+  if (state.weather.type === type) return; // optionally refresh duration instead
+  state.weather = { type, source, turnsRemaining: duration, isStrong:false, suppressible:true };
+  queueText(weatherStartText(type, source));
+  queueAnimation(weatherStartAnim(type));
+}
+
+function endOfTurnWeatherPhase(state) {
+  const w = state.weather.type;
+  if (w === "NONE") return;
+
+  // Apply chip damage
+  for (const mon of [state.p1.active, state.p2.active]) {
+    if (weatherDoesChip(w) && !isWeatherChipImmune(mon, w)) {
+      const dmg = Math.floor(mon.maxHP / 16);
+      applyDamage(mon, dmg);
+      queueText(weatherChipText(w, mon.name));
+      queueAnimation(weatherChipAnim(w));
+    }
+  }
+
+  // decrement duration
+  if (state.weather.turnsRemaining !== Infinity) {
+    state.weather.turnsRemaining -= 1;
+    if (state.weather.turnsRemaining <= 0) {
+      queueText(weatherEndText(w));
+      queueAnimation(weatherEndAnim(w));
+      state.weather.type = "NONE";
+    }
+  }
+}
+
+
+15. Practical Recommendations for Your Game
+To keep this manageable and “Pokémon-feeling”:
+Implement Rain/Sun/Sand/Hail first.
+
+
+Keep weather durations consistent (5 turns) and use a single extension item rule.
+
+
+Avoid “legendary permanent weathers” until your core loop is stable.
+
+
+Ensure every weather has:
+
+
+Start text
+
+
+End text
+
+
+Optional continue text
+
+
+Distinct overlay animation
+Below is an implementation-oriented explanation of blacking out (a.k.a. whiting out) in Pokémon-style games: what triggers it, what the game does to the player state, how Pokémon Centers and “Mom” typically factor into it, and a clean way to code it so an AI/game system can reason about it deterministically.
+
+1. Definition and Trigger Condition
+Black out is a fail-state transition that occurs when the player can no longer continue battling because they have zero usable party members.
+Core trigger rule
+A blackout happens when:
+for all partyPokemon: partyPokemon.currentHP == 0
+ (i.e., all are fainted)
+
+
+This check is evaluated after:
+A battle turn resolves (your last conscious Pokémon faints)
+
+
+A forced battle loss condition occurs
+
+
+Some overworld hazards in certain games (rare; usually battle-based)
+
+
+Important nuance
+Blackout is not “you lost a battle” in the abstract. It is specifically “you have no usable Pokémon remaining.” This distinction matters for scripted losses (see Section 9).
+
+2. What Happens Immediately When You Black Out (Game Flow)
+Think of blackout as a state machine transition:
+Battle ends (loss)
+
+
+Penalty applied (usually money loss)
+
+
+Respawn location chosen
+
+
+Player teleported
+
+
+Party restored to a minimal safe state (and/or healed at center)
+
+
+Control returned
+
+
+In classic Pokémon, the message is like “You blacked out!” then “You were rushed to a Pokémon Center!”
+
+3. Money Loss (Penalty Model)
+Typical rule (classic mainline)
+On blackout, player loses money equal to:
+loss = min(currentMoney, payoutRate × trainerLevelBasis)
+
+
+Where “trainerLevelBasis” is usually tied to the levels of your party (often highest level or sum of levels), and payoutRate is a tuned constant.
+Different generations implement this differently, but the design intent is consistent:
+Penalize failure
+
+
+Never soft-lock the player (you cannot go below 0 money)
+
+
+Create tension without losing items/creatures
+
+
+Implementation recommendation (good for fan games)
+Use a stable, explainable formula such as:
+loss = min(money, highestLevel * 20) (simple)
+ or
+
+
+loss = min(money, sumLevels * 5) (slightly harsher)
+
+
+If you want to emulate “Trainer class payout tables,” you can, but it is optional.
+
+4. Respawn Location (Pokémon Centers, “Last Heal Point”)
+The key concept: respawnPoint
+Pokémon games maintain a persistent checkpoint commonly referred to as:
+“last Pokémon Center used” / “last healing location” / “last safe point”
+
+
+Every time the player uses a Center’s healing machine (or an equivalent healer NPC), you update:
+player.respawnPoint = thisPokemonCenterId (or coordinates + map ID)
+
+
+On blackout, you warp the player to respawnPoint.
+If no Center has been used yet
+Early-game logic often defaults to:
+the player’s home (Mom’s house), or
+
+
+the starting town
+
+
+So:
+respawnPoint should be initialized to “Home” at game start.
+
+
+
+5. What Exactly Gets Restored After Respawn
+In mainline Pokémon, once you arrive at a Center, your party is effectively healed to full by the nurse (either implicitly or by immediate nurse animation in older games).
+Practical implementation options
+Option A: Heal party fully on blackout
+Simplest and matches player expectation
+
+
+After teleporting, set each party member:
+
+
+currentHP = maxHP
+
+
+clear status (or not, depending on your design)
+
+
+restore PP (usually yes in Centers)
+
+
+Option B: Heal minimally
+Set only one Pokémon to 1 HP to avoid soft-lock, then force the player to visit nurse
+
+
+More punishing and less “Pokémon-like” unless your game’s tone is harsher
+
+
+Most Pokémon-like games do Option A.
+Money/Items
+Money decreases
+
+
+Items typically remain unchanged
+
+
+Key items remain
+
+
+No XP/EV rollback
+
+
+
+6. The Role of Mom (How Mom “Plays a Part”)
+“Mom” is not usually part of the blackout procedure mechanically, but there are two canonical ways she interacts with the system:
+6.1 Respawn initialization (early game)
+Before the player has used a Center:
+Your initial respawnPoint can be “Home,” which is tied to Mom.
+
+
+So Mom’s “part” is:
+She anchors the initial safe location
+
+
+She provides narrative framing for recovery (optional)
+
+
+6.2 Money saving system (Gen 2-style concept)
+Some Pokémon games allow Mom to save part of your money, typically through a toggleable “Mom saves money” feature.
+If you implement this, it changes blackout economics:
+Player has walletMoney
+
+
+Player has savedMoney (Mom’s savings)
+
+
+On blackout, only walletMoney is reduced
+ (savings are protected unless you choose otherwise)
+
+
+This is a strong, player-friendly mechanic:
+Makes repeated blackouts less punishing
+
+
+Encourages the player to keep progressing
+
+
+
+7. Pokémon Centers as System Objects
+A Pokémon Center is essentially a checkpoint + heal service with optional services (PC storage, shop, etc.).
+Minimal data model
+centerId
+
+
+mapId
+
+
+warpX, warpY (where you appear after teleporting)
+
+
+nurseInteractionPoint (optional)
+
+
+setsRespawnPointOnHeal = true
+
+
+Events
+When player heals:
+Play animation/dialogue
+
+
+Heal party fully
+
+
+Save game state (optional)
+
+
+Set respawn point to this center
+
+
+
+8. AI-Friendly Rules Summary
+Blackout condition
+Blackout occurs when usablePartyCount == 0
+
+
+Blackout consequences
+money -= lossAmount (clamped to 0)
+
+
+warp(player, respawnPoint)
+
+
+healPartyFull()
+
+
+showBlackoutMessages()
+
+
+Checkpoint management
+On healing at a Center: respawnPoint = centerId
+
+
+Mom integration (optional)
+Initialize respawnPoint = home
+
+
+Savings system protects money from blackout penalties
+
+
+
+9. Scripted Losses vs True Blackout
+Many Pokémon-like games include battles you are meant to lose (story beat).
+In those cases:
+You should not treat it as a normal blackout unless you want the penalty.
+
+
+Recommended design
+Define battle outcomes as:
+NORMAL_WIN
+
+
+NORMAL_LOSS_BLACKOUT
+
+
+SCRIPTED_LOSS_NO_PENALTY
+
+
+SCRIPTED_LOSS_WITH_WARP
+
+
+This prevents story battles from stealing money unexpectedly.
+
+10. Reference Implementation (JavaScript-Style Pseudocode)
+function checkBlackout(party) {
+  return party.every(p => p.currentHP <= 0);
+}
+
+function calculateBlackoutLoss(player) {
+  // Simple, Pokémon-like tuning
+  const highestLevel = Math.max(...player.party.map(p => p.level));
+  const rawLoss = highestLevel * 20;
+  return Math.min(player.money, rawLoss);
+}
+
+function healPartyFull(player) {
+  for (const p of player.party) {
+    p.currentHP = p.maxHP;
+    p.status = "NONE";
+    // Optional:
+    // p.restoreAllPP();
+  }
+}
+
+function warpToRespawn(player, world) {
+  const point = world.getRespawnPoint(player.respawnPointId);
+  player.mapId = point.mapId;
+  player.x = point.x;
+  player.y = point.y;
+  player.facing = point.facing ?? "DOWN";
+}
+
+function handleBlackout(player, world, ui) {
+  // 1) Apply penalty
+  const loss = calculateBlackoutLoss(player);
+  player.money -= loss;
+
+  // 2) Messages / cutscene
+  ui.showMessage("You blacked out!");
+  ui.showMessage(`You dropped $${loss}...`);
+
+  // 3) Teleport to checkpoint
+  warpToRespawn(player, world);
+
+  // 4) Heal (typical Pokémon behavior)
+  healPartyFull(player);
+
+  // 5) Return control
+  ui.fadeIn();
+}
+
+function onBattleEnd(result, player, world, ui) {
+  if (result.type === "SCRIPTED_LOSS_NO_PENALTY") {
+    warpToRespawn(player, world);
+    healPartyFull(player);
+    return;
+  }
+
+  if (result.type === "LOSS" && checkBlackout(player.party)) {
+    handleBlackout(player, world, ui);
+  }
+}
+
+
+11. Data You Should Persist in Save Files
+To make blackout consistent across sessions, persist:
+money
+
+
+respawnPointId (or map+coords)
+
+
+party (HP/status stored normally)
+
+
+If using Mom savings:
+
+
+walletMoney
+
+
+savedMoney
+
+
+momSavingsEnabled
+
+
+Below is an implementation-focused, AI-readable guide to Pokémon-style weather: how to model it, when it applies, how to animate it, and how to generate battle dialogue that feels authentic.
+
+1. What Weather Is in a Battle Engine
+Weather is a global battlefield state that:
+Persists across turns until it expires or is replaced
+
+
+Applies continuous modifiers (damage boosts, chip damage, immunities, accuracy changes, etc.)
+
+
+Triggers recurring end-of-turn effects
+
+
+Interacts heavily with abilities, items, move effects, and forms
+
+
+From an AI/game-dev perspective, weather is a field rule layer that must be evaluated at defined times in the turn loop.
+
+2. Recommended Weather Set
+If you want a faithful Pokémon-like feel without exploding complexity, implement these four first:
+Rain
+
+
+Harsh Sunlight
+
+
+Sandstorm
+
+
+Hail / Snow (modern Pokémon distinguishes “Snow” from older “Hail”; you can choose one system)
+
+
+Optional later:
+Fog (older games), Strong Winds, Heavy Rain, Extremely Harsh Sunlight (legendary-tier weathers)
+
+
+Custom weathers for your region (fine if consistent)
+
+
+
+3. Weather State Data Model
+Use a single authoritative battle state object:
+BattleState.weather = {
+  type: "RAIN" | "SUN" | "SAND" | "HAIL" | "NONE",
+  source: { side: "P1" | "P2", pokemonId: "..." , cause: "MOVE"|"ABILITY"|"ITEM"|"SCRIPT" },
+  turnsRemaining: 0 | 1..n | Infinity,
+  isStrong: boolean,          // for “primal/legend” style weather if you add it
+  suppressible: boolean       // false if you add “permanent” weather in special fights
+}
+
+Keep “turnsRemaining” explicit; do not hide it in logic.
+
+4. When Weather Is Set and Replaced
+Weather can be set by:
+Moves (e.g., Rain Dance, Sunny Day, Sandstorm, Hail)
+
+
+Abilities (e.g., Drizzle, Drought, Sand Stream, Snow Warning)
+
+
+Items (rare in official games; you can add)
+
+
+Scripted events (gym gimmicks, boss fights, story battles)
+
+
+Replacement rule:
+Only one weather may be active at a time.
+
+
+Setting a new weather overwrites the old weather immediately (after the action resolves).
+
+
+
+5. Weather Duration Rules
+A clean, game-feel-friendly system:
+Move-set weather: 5 turns base
+
+
+Ability-set weather on switch-in: 5 turns base
+
+
+Weather extending items: +3 turns (or +5 if you want stronger items)
+
+
+Scripted/permanent: Infinity (only for special fights; use sparingly)
+
+
+Implementation detail:
+Decrement duration at a consistent time (commonly end of full turn).
+
+
+
+6. Where Weather Applies in the Turn Flow
+You need a deterministic order. A solid battle loop:
+Start-of-turn checks
+
+
+“Weather continues” (optional text)
+
+
+Some abilities/items that trigger at start of turn
+
+
+Action order calculation
+
+
+Priority, speed, modifiers
+
+
+Move execution
+
+
+Accuracy checks (may be modified by weather)
+
+
+Damage calculation (weather multipliers apply here)
+
+
+Secondary effects
+
+
+End-of-turn phase
+
+
+Weather chip damage / healing
+
+
+End-of-turn abilities/items
+
+
+Duration decrement
+
+
+Expire weather if turnsRemaining hits 0
+
+
+This ordering is critical for AI consistency and player expectation.
+
+7. Core Mechanical Effects
+7.1 Rain (RAIN)
+Primary effects (recommended baseline):
+Water-type move damage: ×1.5
+
+
+Fire-type move damage: ×0.5
+
+
+Optional: Thunder accuracy boosted (or cannot miss); same for Hurricane
+
+
+Optional: Certain moves change behavior (Weather Ball, Solar Beam weak)
+
+
+End-of-turn:
+Usually no chip damage by default.
+
+
+AI implications:
+Rain improves Water attackers and reduces Fire threats.
+
+
+Rain is often a tempo tool: it shifts matchups immediately.
+
+
+
+7.2 Harsh Sunlight (SUN)
+Primary effects:
+Fire-type move damage: ×1.5
+
+
+Water-type move damage: ×0.5
+
+
+Optional: Solar Beam charges instantly
+
+
+Optional: Thunder/Hurricane accuracy reduced
+
+
+Optional: Some recovery moves improved (design choice)
+
+
+End-of-turn:
+Usually no chip damage.
+
+
+AI implications:
+Sun flips the Water/Fire offensive calculus.
+
+
+Strong synergy with Fire sweepers, Chlorophyll-style speed boosts (if you implement).
+
+
+
+7.3 Sandstorm (SAND)
+Primary effects:
+End-of-turn chip damage to Pokémon unless they are immune.
+
+
+Optional: Rock-type SpD boost (classic Pokémon mechanic; implement if you want more depth)
+
+
+End-of-turn chip:
+Standard: 1/16 max HP per turn
+
+
+Immunities (recommended):
+Rock / Ground / Steel types immune to sand chip
+
+
+Abilities can add immunity (e.g., Sand Veil-style, Sand Rush-style)
+
+
+AI implications:
+Sand is “attrition weather”: it rewards bulky teams, hazards, and stalling lines.
+
+
+AI needs to model the chip as guaranteed future value.
+
+
+
+7.4 Hail / Snow (HAIL or SNOW)
+You choose one design:
+Option A: Classic Hail
+End-of-turn chip damage to non-immune
+
+
+Ice types immune
+
+
+Optional: Blizzard accuracy boosted
+
+
+Option B: Modern Snow
+No universal chip damage
+
+
+Ice types gain defensive boost (like a physical defense boost)
+
+
+Blizzard accuracy boosted
+
+
+AI implications:
+Hail is attrition; Snow is more “Ice team support.”
+
+
+Recommendation for Pokémon-inspired indie games:
+Use Classic Hail if you want simple parity with Sandstorm.
+
+
+Use Snow if you want Ice to be more viable without constant chip.
+
+
+
+8. Weather Immunity Rules
+Implement immunity as a function, not hard-coded in weather:
+function isWeatherChipImmune(pokemon, weatherType) {
+  if (weatherType === "SAND") return pokemon.hasType("ROCK","GROUND","STEEL") || pokemon.hasAbility("SAND_VEIL_IMMUNITY");
+  if (weatherType === "HAIL") return pokemon.hasType("ICE") || pokemon.hasAbility("ICE_BODY_IMMUNITY");
+  return true; // Rain/Sun usually no chip
+}
+
+This makes it easy to add abilities/items later.
+
+9. Weather in Damage Calculation
+Weather multipliers should be applied in the “global modifiers” stage:
+Typical damage pipeline:
+Base power adjustments
+
+
+Attack/Defense stats
+
+
+STAB
+
+
+Type effectiveness
+
+
+Weather modifier
+
+
+Critical / random roll
+
+
+Final clamps
+
+
+Do not apply weather before type effectiveness unless you want unusual edge cases. Keep it simple and consistent.
+
+10. Weather Moves and Interactions You Should Support
+Even if your move list is custom, support the concepts:
+“Set weather” moves
+
+
+“Benefit from weather” moves (increased power/accuracy)
+
+
+“Change based on weather” moves (Weather Ball-like)
+
+
+“Remove weather” effects (Clear Skies / Defog-like)
+
+
+Also support a basic “weather wars” concept: switching in a weather ability overwrites current weather.
+
+11. Weather Animations and UI
+11.1 Visual Layer Requirements
+Weather should be an overlay drawn above the battlefield:
+A looping particle/texture layer
+
+
+A subtle screen tint (optional)
+
+
+A small icon near the battle UI showing current weather and remaining turns (optional but very helpful)
+
+
+11.2 Animation Guidelines (Per Weather)
+Rain
+Diagonal semi-transparent streak particles
+
+
+Occasional splash ripple on ground plane
+
+
+Soft ambient rain audio loop (optional)
+
+
+Sun
+Slight warm tint
+
+
+Heat shimmer distortion (very subtle)
+
+
+Occasional lens-glint particles (sparingly)
+
+
+Sandstorm
+Horizontal dust particles with variable opacity
+
+
+Screen vignette with beige tint
+
+
+Short gust burst at turn end (helps reinforce chip damage)
+
+
+Hail
+Falling small white pellets, slightly randomized
+
+
+Occasional “ice ping” sound (optional)
+
+
+Minor cool tint
+
+
+11.3 Timing: When to Play Animations
+On set: a 0.8–1.5s “weather starts” animation
+
+
+On every turn end: subtle continuation loop; if chip damage occurs, add a brief intensification
+
+
+On expire: a 0.6–1.0s fade-out
+
+
+Avoid long animations; battles must stay snappy.
+
+12. Battle Dialogue Templates (Authentic Pokémon Feel)
+You want consistent messaging so players learn the system.
+12.1 Weather Starts
+Rain: “It started to rain!”
+
+
+Sun: “The sunlight turned harsh!”
+
+
+Sand: “A sandstorm kicked up!”
+
+
+Hail: “It started to hail!”
+
+
+12.2 Weather Continues (Optional each turn)
+Rain: “Rain continues to fall.”
+
+
+Sun: “The sunlight is strong.”
+
+
+Sand: “The sandstorm rages.”
+
+
+Hail: “Hail continues to fall.”
+
+
+12.3 Weather Hurts (End-of-turn chip)
+Sand: “{name} is buffeted by the sandstorm!”
+
+
+Hail: “{name} is pelted by the hail!”
+
+
+12.4 Weather Ends
+Rain: “The rain stopped.”
+
+
+Sun: “The harsh sunlight faded.”
+
+
+Sand: “The sandstorm subsided.”
+
+
+Hail: “The hail stopped.”
+
+
+12.5 Ability-Caused Weather (Switch-in)
+Use slightly different lines to signal source:
+Drizzle-like: “{name}’s ability made it start to rain!”
+
+
+Drought-like: “{name}’s ability intensified the sunlight!”
+
+
+Sand Stream-like: “{name} whipped up a sandstorm!”
+
+
+Snow Warning-like: “{name} summoned a hailstorm!”
+
+
+This helps the AI and players attribute causality.
+
+13. AI Decision-Making: Why Weather Matters
+Weather creates predictable, persistent value—which AI can exploit if modeled correctly.
+AI must evaluate weather as:
+Immediate swing (damage multipliers)
+
+
+Future guaranteed value (chip damage, accuracy boosts)
+
+
+Synergy multiplier (abilities/items/moves that become stronger)
+
+
+Opponent disruption (weakening their STAB or breaking their plan)
+
+
+Weather-aware scoring (high-level)
+For each possible action:
+Simulate 1–3 turns ahead (or approximate)
+
+
+Include:
+
+
+Expected damage changes due to weather
+
+
+Expected chip damage value
+
+
+Probability shifts (accuracy)
+
+
+Value of enabling allied abilities (e.g., speed boost in rain)
+
+
+Risk of opponent overwriting weather next turn
+
+
+Even a simple heuristic works well:
+If setting weather increases team expected damage output by X% for Y turns, it’s often worth a turn.
+
+
+
+14. Implementation Pseudocode (Battle Engine)
+function setWeather(state, type, source, duration) {
+  if (state.weather.type === type) return; // optionally refresh duration instead
+  state.weather = { type, source, turnsRemaining: duration, isStrong:false, suppressible:true };
+  queueText(weatherStartText(type, source));
+  queueAnimation(weatherStartAnim(type));
+}
+
+function endOfTurnWeatherPhase(state) {
+  const w = state.weather.type;
+  if (w === "NONE") return;
+
+  // Apply chip damage
+  for (const mon of [state.p1.active, state.p2.active]) {
+    if (weatherDoesChip(w) && !isWeatherChipImmune(mon, w)) {
+      const dmg = Math.floor(mon.maxHP / 16);
+      applyDamage(mon, dmg);
+      queueText(weatherChipText(w, mon.name));
+      queueAnimation(weatherChipAnim(w));
+    }
+  }
+
+  // decrement duration
+  if (state.weather.turnsRemaining !== Infinity) {
+    state.weather.turnsRemaining -= 1;
+    if (state.weather.turnsRemaining <= 0) {
+      queueText(weatherEndText(w));
+      queueAnimation(weatherEndAnim(w));
+      state.weather.type = "NONE";
+    }
+  }
+}
+
+
+15. Practical Recommendations for Your Game
+To keep this manageable and “Pokémon-feeling”:
+Implement Rain/Sun/Sand/Hail first.
+
+
+Keep weather durations consistent (5 turns) and use a single extension item rule.
+
+
+Avoid “legendary permanent weathers” until your core loop is stable.
+
+
+Ensure every weather has:
+
+
+Start text
+
+
+End text
+
+
+Optional continue text
+
+
+Distinct overlay animation
+
+
+
+If you tell me which engine you’re using (HTML/Canvas, Phaser, Unity 2D, Godot, etc.), I can provide:
+A drop-in weather overlay system (render loop + particles)
+
+
+A battle message queue architecture (so dialogue and animations never desync)
+
+
+A weather-aware AI heuristic tailored to your move/ability list
+
+
+html so drop it now
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pokémon-Style Weather System (HTML/Canvas Drop-in)</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0; background:#0b0f14; color:#e7eef7; font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      display:flex; min-height:100vh; align-items:center; justify-content:center;
+    }
+    .wrap { width:min(980px, 96vw); display:grid; grid-template-columns: 1fr 360px; gap:14px; }
+    .card { background:#111824; border:1px solid #223047; border-radius:14px; box-shadow: 0 12px 30px rgba(0,0,0,.35); overflow:hidden; }
+    .battle {
+      position:relative; height:540px;
+      display:flex; align-items:stretch; justify-content:center;
+    }
+    canvas { width:100%; height:100%; display:block; background: radial-gradient(1200px 600px at 50% 70%, #1d2b3f 0%, #0b0f14 55%, #070a0e 100%); }
+    .hud {
+      position:absolute; inset:0; pointer-events:none;
+      display:flex; flex-direction:column; justify-content:space-between;
+      padding:14px;
+    }
+    .topbar { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .badge {
+      pointer-events:none;
+      background: rgba(10,14,20,.72);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding:10px 12px;
+      min-width: 220px;
+    }
+    .badge h3 { margin:0 0 6px 0; font-size:13px; font-weight:700; opacity:.95; }
+    .row { display:flex; justify-content:space-between; gap:10px; }
+    .hpbar { height:8px; background:#1b2433; border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,.08); }
+    .hpbar > div { height:100%; width:100%; background:#5ad16b; }
+    .small { font-size:12px; opacity:.8; }
+    .weatherPill {
+      pointer-events:none;
+      display:flex; gap:8px; align-items:center;
+      background: rgba(10,14,20,.72);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 999px;
+      padding:8px 12px;
+      white-space:nowrap;
+    }
+    .icon {
+      width:10px; height:10px; border-radius:999px; background:#9aa8bd; display:inline-block;
+      box-shadow: 0 0 0 2px rgba(255,255,255,.08);
+    }
+    .log {
+      pointer-events:none;
+      background: rgba(10,14,20,.80);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding:10px 12px;
+      min-height:78px;
+    }
+    .log .line { margin:0; font-size:14px; }
+    .panel { padding:14px; }
+    .panel h2 { margin:0 0 10px 0; font-size:14px; letter-spacing:.2px; }
+    .controls { display:grid; gap:10px; }
+    .btnRow { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    button {
+      cursor:pointer;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:#162032;
+      color:#e7eef7;
+      font-weight:650;
+    }
+    button:hover { background:#1a263b; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .hint { opacity:.75; font-size:12px; margin-top:10px; }
+    .divider { height:1px; background:rgba(255,255,255,.08); margin:12px 0; }
+    .kv { display:grid; grid-template-columns: 120px 1fr; gap:6px 10px; font-size:12px; opacity:.9; }
+    .kv div:nth-child(odd){ opacity:.8; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card battle">
+      <canvas id="c" width="900" height="540"></canvas>
+
+      <div class="hud">
+        <div class="topbar">
+          <div class="badge" id="badgeEnemy">
+            <h3>Enemy</h3>
+            <div class="row"><div id="eName">Rivalmon</div><div class="small mono" id="eLv">Lv 12</div></div>
+            <div class="hpbar"><div id="eHP"></div></div>
+            <div class="row small"><div class="mono" id="eHPText">--/--</div><div id="eType">Type: Fire</div></div>
+          </div>
+
+          <div class="weatherPill" id="weatherPill">
+            <span class="icon" id="wIcon"></span>
+            <span id="wText">Weather: None</span>
+            <span class="small mono" id="wTurns"></span>
+          </div>
+        </div>
+
+        <div class="log">
+          <p class="line" id="logLine">Click a move to start.</p>
+          <p class="line small" id="logLine2"></p>
+        </div>
+
+        <div class="topbar" style="justify-content:flex-end">
+          <div class="badge" id="badgePlayer">
+            <h3>You</h3>
+            <div class="row"><div id="pName">Heromon</div><div class="small mono" id="pLv">Lv 12</div></div>
+            <div class="hpbar"><div id="pHP"></div></div>
+            <div class="row small"><div class="mono" id="pHPText">--/--</div><div id="pType">Type: Water</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card panel">
+      <h2>Controls (Player)</h2>
+      <div class="controls">
+        <div class="btnRow">
+          <button id="btnAttack">Attack</button>
+          <button id="btnGuard">Guard</button>
+        </div>
+        <div class="btnRow">
+          <button id="btnRain">Rain Dance</button>
+          <button id="btnSun">Sunny Day</button>
+        </div>
+        <div class="btnRow">
+          <button id="btnSand">Sandstorm</button>
+          <button id="btnHail">Hail</button>
+        </div>
+        <button id="btnPass">Pass (AI acts)</button>
+
+        <div class="divider"></div>
+
+        <h2>What this drop-in gives you</h2>
+        <div class="kv">
+          <div>Weather state</div><div>type, source, turnsRemaining</div>
+          <div>Battle loop</div><div>action → damage → end-of-turn weather → duration</div>
+          <div>Overlays</div><div>rain/sun/sand/hail particles + tint</div>
+          <div>Dialogue queue</div><div>text + animation pacing without desync</div>
+          <div>AI hook</div><div>weather-aware move scoring example</div>
+        </div>
+
+        <p class="hint">
+          Notes: This is a minimal demo. Replace the sample damage formula/moves with your own move list,
+          types, abilities, items, accuracy, etc. Weather architecture remains the same.
+        </p>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================================================
+   0) Utility + Message/Animation Queue (prevents desync)
+   ========================================================= */
+const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+const rand = (a,b)=>a+Math.random()*(b-a);
+const floor = Math.floor;
+
+class Queue {
+  constructor(){ this.q=[]; this.busy=false; }
+  push(step){ this.q.push(step); this.run(); }
+  async run(){
+    if (this.busy) return;
+    this.busy = true;
+    while(this.q.length){
+      const step = this.q.shift();
+      await step();
+    }
+    this.busy = false;
+  }
+}
+const Q = new Queue();
+
+const wait = (ms)=>new Promise(r=>setTimeout(r,ms));
+
+/* =========================================================
+   1) Battle State (Weather as a Field Rule Layer)
+   ========================================================= */
+const Weather = Object.freeze({
+  NONE:"NONE",
+  RAIN:"RAIN",
+  SUN:"SUN",
+  SAND:"SAND",
+  HAIL:"HAIL"
+});
+
+const WEATHER_BASE_TURNS = 5; // standard
+const CHIP_FRACTION = 16;     // 1/16 max HP for sand/hail
+
+const state = {
+  turn: 1,
+  weather: { type: Weather.NONE, source: null, turnsRemaining: 0, suppressible: true },
+  player: {
+    name: "Heromon",
+    level: 12,
+    types: ["WATER"],
+    maxHP: 120,
+    hp: 120
+  },
+  enemy: {
+    name: "Rivalmon",
+    level: 12,
+    types: ["FIRE"],
+    maxHP: 120,
+    hp: 120
+  }
+};
+
+/* =========================================================
+   2) Weather Mechanics (set/replace, multipliers, chip)
+   ========================================================= */
+function setWeather(type, source, durationTurns = WEATHER_BASE_TURNS){
+  const prev = state.weather.type;
+  if (prev === type) {
+    // Refresh duration (Pokémon usually refreshes if re-set)
+    state.weather.turnsRemaining = durationTurns;
+    Q.push(async()=>{
+      log(`${weatherContinueText(type)} (refreshed)`);
+      syncHUD();
+      pulseWeather();
+      await wait(450);
+    });
+    return;
+  }
+  state.weather = { type, source, turnsRemaining: durationTurns, suppressible: true };
+
+  Q.push(async()=>{
+    log(weatherStartText(type, source));
+    syncHUD();
+    pulseWeather(true);
+    await wait(750);
+  });
+}
+
+function clearWeather(){
+  const prev = state.weather.type;
+  if (prev === Weather.NONE) return;
+  state.weather = { type: Weather.NONE, source: null, turnsRemaining: 0, suppressible: true };
+  Q.push(async()=>{
+    log(weatherEndText(prev));
+    syncHUD();
+    await wait(550);
+  });
+}
+
+function weatherStartText(type, source){
+  // Source can be {side, name, cause:"MOVE"/"ABILITY"/"SCRIPT"}
+  if (source?.cause === "ABILITY") {
+    if (type === Weather.RAIN) return `${source.name}'s ability made it start to rain!`;
+    if (type === Weather.SUN)  return `${source.name}'s ability intensified the sunlight!`;
+    if (type === Weather.SAND) return `${source.name} whipped up a sandstorm!`;
+    if (type === Weather.HAIL) return `${source.name} summoned a hailstorm!`;
+  }
+  // Move/script generic
+  if (type === Weather.RAIN) return `It started to rain!`;
+  if (type === Weather.SUN)  return `The sunlight turned harsh!`;
+  if (type === Weather.SAND) return `A sandstorm kicked up!`;
+  if (type === Weather.HAIL) return `It started to hail!`;
+  return ``;
+}
+function weatherContinueText(type){
+  if (type === Weather.RAIN) return `Rain continues to fall.`;
+  if (type === Weather.SUN)  return `The sunlight is strong.`;
+  if (type === Weather.SAND) return `The sandstorm rages.`;
+  if (type === Weather.HAIL) return `Hail continues to fall.`;
+  return ``;
+}
+function weatherEndText(type){
+  if (type === Weather.RAIN) return `The rain stopped.`;
+  if (type === Weather.SUN)  return `The harsh sunlight faded.`;
+  if (type === Weather.SAND) return `The sandstorm subsided.`;
+  if (type === Weather.HAIL) return `The hail stopped.`;
+  return ``;
+}
+
+function weatherDamageMultiplier(moveType){
+  const w = state.weather.type;
+  // Minimal faithful core:
+  // Rain: Water x1.5, Fire x0.5
+  // Sun:  Fire x1.5, Water x0.5
+  if (w === Weather.RAIN) {
+    if (moveType === "WATER") return 1.5;
+    if (moveType === "FIRE")  return 0.5;
+  }
+  if (w === Weather.SUN) {
+    if (moveType === "FIRE")  return 1.5;
+    if (moveType === "WATER") return 0.5;
+  }
+  return 1.0;
+}
+
+function weatherDoesChip(type){
+  return type === Weather.SAND || type === Weather.HAIL;
+}
+
+function isWeatherChipImmune(mon, weatherType){
+  // Simple default immunities:
+  // Sand: Rock/Ground/Steel immune
+  // Hail: Ice immune
+  if (weatherType === Weather.SAND) {
+    return mon.types.includes("ROCK") || mon.types.includes("GROUND") || mon.types.includes("STEEL");
+  }
+  if (weatherType === Weather.HAIL) {
+    return mon.types.includes("ICE");
+  }
+  return true;
+}
+
+function applyEndOfTurnWeather(){
+  const w = state.weather.type;
+  if (w === Weather.NONE) return;
+
+  // Optional "continues" text (keep short in real battles; here we show sometimes)
+  Q.push(async()=>{
+    // 35% chance to show continuation line to avoid spam
+    if (Math.random() < 0.35) {
+      log(weatherContinueText(w), true);
+      await wait(350);
+    }
+  });
+
+  // Chip damage
+  if (weatherDoesChip(w)) {
+    for (const mon of [state.player, state.enemy]) {
+      if (!isWeatherChipImmune(mon, w) && mon.hp > 0) {
+        const dmg = Math.max(1, floor(mon.maxHP / CHIP_FRACTION));
+        Q.push(async()=>{
+          log(weatherChipText(w, mon.name), true);
+          await wait(250);
+          dealDamage(mon, dmg);
+          pulseWeather();
+          await wait(450);
+        });
+      }
+    }
+  }
+
+  // Duration decrement + end
+  Q.push(async()=>{
+    if (state.weather.type === Weather.NONE) return;
+    if (state.weather.turnsRemaining !== Infinity) {
+      state.weather.turnsRemaining -= 1;
+      syncHUD();
+      if (state.weather.turnsRemaining <= 0) {
+        const ended = w;
+        state.weather.type = Weather.NONE;
+        state.weather.source = null;
+        state.weather.turnsRemaining = 0;
+        log(weatherEndText(ended));
+        syncHUD();
+        await wait(550);
+      }
+    }
+  });
+}
+
+function weatherChipText(type, name){
+  if (type === Weather.SAND) return `${name} is buffeted by the sandstorm!`;
+  if (type === Weather.HAIL) return `${name} is pelted by the hail!`;
+  return ``;
+}
+
+/* =========================================================
+   3) Minimal Move System (replace with your real moves)
+   ========================================================= */
+function typeEffectivenessMultiplier(moveType, targetTypes){
+  // Minimal demo table (extend for full game):
+  // Water > Fire, Fire > Grass, Grass > Water
+  let mult = 1.0;
+  for (const t of targetTypes) {
+    if (moveType === "WATER" && t === "FIRE") mult *= 2.0;
+    if (moveType === "FIRE"  && t === "GRASS") mult *= 2.0;
+    if (moveType === "GRASS" && t === "WATER") mult *= 2.0;
+
+    if (moveType === "FIRE"  && t === "WATER") mult *= 0.5;
+    if (moveType === "WATER" && t === "GRASS") mult *= 0.5;
+    if (moveType === "GRASS" && t === "FIRE")  mult *= 0.5;
+  }
+  return mult;
+}
+
+function estimateDamage(attacker, target, move){
+  // Simple deterministic-ish formula:
+  // base = (Power * (Level/10)) + small variance
+  // apply type effectiveness + weather multiplier
+  const power = move.power ?? 40;
+  const base = power * (attacker.level / 10);
+  const stab = attacker.types.includes(move.type) ? 1.5 : 1.0;
+  const typeMult = typeEffectivenessMultiplier(move.type, target.types);
+  const weatherMult = weatherDamageMultiplier(move.type);
+  const variance = 0.92 + Math.random() * 0.16; // 0.92..1.08
+  const dmg = floor(base * stab * typeMult * weatherMult * variance);
+  return Math.max(1, dmg);
+}
+
+function dealDamage(mon, amount){
+  mon.hp = clamp(mon.hp - amount, 0, mon.maxHP);
+  syncHUD();
+  // faint handling (demo)
+  if (mon.hp === 0) {
+    Q.push(async()=>{
+      log(`${mon.name} fainted!`);
+      await wait(750);
+    });
+  }
+}
+
+/* =========================================================
+   4) Player Actions
+   ========================================================= */
+const MOVES = {
+  ATTACK: { name:"Attack", type:"WATER", power:50 }, // player's "default" attack
+  GUARD:  { name:"Guard", type:"NORMAL", power:0 },  // reduces next damage in demo
+  RAIN:   { name:"Rain Dance", type:"WATER", setsWeather:Weather.RAIN },
+  SUN:    { name:"Sunny Day", type:"FIRE", setsWeather:Weather.SUN },
+  SAND:   { name:"Sandstorm", type:"ROCK", setsWeather:Weather.SAND },
+  HAIL:   { name:"Hail", type:"ICE", setsWeather:Weather.HAIL }
+};
+
+let guardNext = { player:false, enemy:false };
+
+function disableButtons(disabled){
+  for (const id of ["btnAttack","btnGuard","btnRain","btnSun","btnSand","btnHail","btnPass"]) {
+    document.getElementById(id).disabled = disabled;
+  }
+}
+
+function takeTurn(playerMoveKey){
+  if (state.player.hp <= 0 || state.enemy.hp <= 0) return;
+
+  disableButtons(true);
+
+  // Decide enemy action using the weather-aware AI example below
+  const enemyMoveKey = chooseEnemyMove();
+
+  // In real Pokémon: priority then speed. Here: both same speed → player first if not passing.
+  const playerActsFirst = playerMoveKey !== "PASS";
+
+  Q.push(async()=>{ log(`Turn ${state.turn}`); await wait(300); });
+
+  const sequence = playerActsFirst
+    ? [{side:"P1", key:playerMoveKey},{side:"P2", key:enemyMoveKey}]
+    : [{side:"P2", key:enemyMoveKey}];
+
+  for (const step of sequence) {
+    Q.push(async()=>{
+      if (state.player.hp <= 0 || state.enemy.hp <= 0) return;
+
+      const actor = step.side === "P1" ? state.player : state.enemy;
+      const target = step.side === "P1" ? state.enemy : state.player;
+
+      const move = step.key === "PASS" ? null : MOVES[step.key];
+      if (!move) {
+        log(`${actor.name} waits.`);
+        await wait(450);
+        return;
+      }
+
+      log(`${actor.name} used ${move.name}!`);
+      await wait(450);
+
+      // Guard in demo: set flag to reduce next incoming damage
+      if (step.key === "GUARD") {
+        guardNext[step.side === "P1" ? "player" : "enemy"] = true;
+        log(`${actor.name} braced for impact.`, true);
+        await wait(450);
+        return;
+      }
+
+      // Weather move
+      if (move.setsWeather) {
+        setWeather(move.setsWeather, { side: step.side, name: actor.name, cause:"MOVE" }, WEATHER_BASE_TURNS);
+        await wait(200);
+        return;
+      }
+
+      // Attack move
+      const raw = estimateDamage(actor, target, move);
+      let dmg = raw;
+
+      // Apply guard mitigation if target guarded last
+      const targetGuarded = (target === state.player && guardNext.player) || (target === state.enemy && guardNext.enemy);
+      if (targetGuarded) {
+        dmg = floor(dmg * 0.6);
+        if (target === state.player) guardNext.player = false;
+        if (target === state.enemy)  guardNext.enemy = false;
+        log(`The damage was reduced!`, true);
+        await wait(250);
+      }
+
+      // Apply damage
+      dealDamage(target, dmg);
+
+      // Show type/weather hints (optional)
+      const typeMult = typeEffectivenessMultiplier(move.type, target.types);
+      const wMult = weatherDamageMultiplier(move.type);
+
+      if (typeMult >= 2) { Q.push(async()=>{ log(`It's super effective!`, true); await wait(400); }); }
+      else if (typeMult <= 0.5) { Q.push(async()=>{ log(`It's not very effective...`, true); await wait(400); }); }
+
+      if (wMult !== 1) {
+        const label = (state.weather.type === Weather.RAIN) ? "the rain" : (state.weather.type === Weather.SUN) ? "the sunlight" : "the weather";
+        Q.push(async()=>{ log(`Affected by ${label}.`, true); await wait(350); });
+      }
+
+      await wait(300);
+    });
+  }
+
+  // End of turn weather phase
+  Q.push(async()=>{
+    await wait(150);
+    applyEndOfTurnWeather();
+  });
+
+  // Wrap up turn
+  Q.push(async()=>{
+    await wait(300);
+    state.turn += 1;
+    disableButtons(false);
+  });
+}
+
+/* =========================================================
+   5) Weather-Aware Enemy AI (simple but correct pattern)
+   =========================================================
+   Goal: show how weather changes decision-making.
+   The AI scores candidate moves based on:
+     - immediate expected damage (including weather multiplier)
+     - benefit of setting weather for future turns (heuristic)
+     - avoid setting weather that helps the opponent more than itself
+*/
+function chooseEnemyMove(){
+  const enemy = state.enemy;
+  const player = state.player;
+
+  // Enemy has a Fire attack by default; plus weather moves and guard
+  const enemyMoves = [
+    { key:"ATTACK_ENEMY", name:"Attack", type:"FIRE", power:50 },
+    { key:"GUARD", ...MOVES.GUARD },
+    { key:"RAIN", ...MOVES.RAIN },
+    { key:"SUN",  ...MOVES.SUN  },
+    { key:"SAND", ...MOVES.SAND },
+    { key:"HAIL", ...MOVES.HAIL }
+  ];
+
+  // Build scoring
+  let best = { key:"ATTACK_ENEMY", score:-Infinity };
+
+  for (const m of enemyMoves) {
+    const score = scoreEnemyMove(enemy, player, m);
+    if (score > best.score) best = { key: m.key, score };
+  }
+
+  // Map special key to execution: we handle enemy attack separately
+  return best.key === "ATTACK_ENEMY" ? "ATTACK_ENEMY" : best.key;
+}
+
+function scoreEnemyMove(enemy, player, move){
+  // If battle is basically over, prefer damage
+  if (player.hp <= 25) {
+    if (move.key === "ATTACK_ENEMY") return 999;
+  }
+
+  const currentWeather = state.weather.type;
+
+  // 1) Attack score: expected immediate HP swing
+  if (move.key === "ATTACK_ENEMY") {
+    const dmg = estimateDamage(enemy, player, move);
+    // prefer KOs strongly
+    const koBonus = (dmg >= player.hp) ? 250 : 0;
+    return dmg + koBonus;
+  }
+
+  // 2) Guard: chosen when low HP and expecting lethal
+  if (move.key === "GUARD") {
+    const expectedIncoming = estimateDamage(player, enemy, MOVES.ATTACK);
+    const mightDie = expectedIncoming >= enemy.hp;
+    return mightDie ? 160 : 20;
+  }
+
+  // 3) Weather setting heuristic
+  if (move.setsWeather) {
+    const newW = move.setsWeather;
+
+    // If already that weather, small value (refresh)
+    if (newW === currentWeather) return 35;
+
+    // Estimate who benefits:
+    // Compute both sides' "best attack multiplier" under that weather (simple proxy).
+    const enemyAttackType = "FIRE";
+    const playerAttackType = "WATER";
+
+    const enemyMult = (newW === Weather.RAIN && enemyAttackType === "FIRE") ? 0.5 :
+                      (newW === Weather.SUN  && enemyAttackType === "FIRE") ? 1.5 :
+                      (newW === Weather.RAIN && enemyAttackType === "WATER") ? 1.5 :
+                      (newW === Weather.SUN  && enemyAttackType === "WATER") ? 0.5 : 1.0;
+
+    const playerMult = (newW === Weather.RAIN && playerAttackType === "WATER") ? 1.5 :
+                       (newW === Weather.SUN  && playerAttackType === "WATER") ? 0.5 :
+                       (newW === Weather.RAIN && playerAttackType === "FIRE")  ? 0.5 :
+                       (newW === Weather.SUN  && playerAttackType === "FIRE")  ? 1.5 : 1.0;
+
+    // Chip value if sand/hail and not immune
+    const chipPerTurnOnPlayer = (weatherDoesChip(newW) && !isWeatherChipImmune(player, newW)) ? Math.max(1, floor(player.maxHP / CHIP_FRACTION)) : 0;
+    const chipPerTurnOnEnemy  = (weatherDoesChip(newW) && !isWeatherChipImmune(enemy,  newW)) ? Math.max(1, floor(enemy.maxHP  / CHIP_FRACTION)) : 0;
+
+    // Net future value over remaining turns (assume full duration for heuristic)
+    const duration = WEATHER_BASE_TURNS;
+    const chipNet = (chipPerTurnOnPlayer - chipPerTurnOnEnemy) * duration;
+
+    // Damage swing proxy: prefer weather that boosts self and/or nerfs opponent
+    // Convert multiplier advantage into a numeric score
+    const multAdvantage = (enemyMult - 1.0) * 60 + (1.0 - playerMult) * 60;
+
+    // Avoid setting weather that greatly benefits player
+    const penaltyIfHelpsPlayer = (playerMult > enemyMult) ? 70 : 0;
+
+    // If enemy is behind, weather can be comeback if it creates chip advantage
+    const behindBonus = (enemy.hp < player.hp) ? 15 : 0;
+
+    // Total weather score
+    return multAdvantage + chipNet + behindBonus - penaltyIfHelpsPlayer;
+  }
+
+  return 0;
+}
+
+/* =========================================================
+   6) Enemy Move Execution Mapping
+   ========================================================= */
+function enemyAttackMove(){
+  return { name:"Attack", type:"FIRE", power:50 };
+}
+
+/* Patch turn executor: handle "ATTACK_ENEMY" */
+const _origTakeTurn = takeTurn;
+function takeTurnPatched(playerMoveKey){
+  // temporarily patch MOVES.ATTACK for enemy? We'll handle in sequence step.
+  // We'll implement by swapping in a handler inside Q step via key.
+  // Easiest: override execution by intercepting in queue step (below).
+  _origTakeTurn(playerMoveKey);
+}
+
+// Override the queue logic inside takeTurn by monkey-patching execution for enemy attack key.
+// We do it by replacing MOVES entry dynamically during enemy action step.
+(function hookEnemyAttackKey(){
+  const originalEstimate = estimateDamage;
+  // no-op: keep as is; we handle in action step by providing move object when key == ATTACK_ENEMY
+  // Implementation already checks: const move = MOVES[step.key]; That would be undefined.
+  // So: we add it to MOVES at runtime.
+  MOVES.ATTACK_ENEMY = enemyAttackMove();
+})();
+
+/* =========================================================
+   7) Canvas Weather Overlays (Particles + Tint)
+   ========================================================= */
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+const particles = [];
+let weatherPulse = 0; // for brief intensity spikes
+
+function pulseWeather(strong=false){
+  weatherPulse = strong ? 1.0 : Math.max(weatherPulse, 0.55);
+}
+
+function spawnParticles(dt){
+  const w = state.weather.type;
+  if (w === Weather.NONE) return;
+
+  // Density tuned by weather type
+  let rate = 0;
+  if (w === Weather.RAIN) rate = 220;
+  if (w === Weather.SAND) rate = 160;
+  if (w === Weather.HAIL) rate = 120;
+  if (w === Weather.SUN)  rate = 22; // subtle "glints"
+
+  // pulse increases rate briefly
+  const pulseMult = 1 + weatherPulse * 0.9;
+  rate *= pulseMult;
+
+  const count = Math.floor(rate * dt);
+  for (let i=0;i<count;i++){
+    particles.push(makeParticle(w));
+  }
+}
+
+function makeParticle(weatherType){
+  const W = canvas.width, H = canvas.height;
+  if (weatherType === Weather.RAIN) {
+    return {
+      t:"RAIN",
+      x: rand(-80, W+80),
+      y: rand(-H, 0),
+      vx: rand(320, 420),
+      vy: rand(720, 980),
+      len: rand(10, 18),
+      a: rand(0.20, 0.45)
+    };
+  }
+  if (weatherType === Weather.SAND) {
+    return {
+      t:"SAND",
+      x: rand(-50, W+50),
+      y: rand(40, H-40),
+      vx: rand(220, 360),
+      vy: rand(-30, 30),
+      r: rand(1.0, 2.4),
+      a: rand(0.10, 0.22)
+    };
+  }
+  if (weatherType === Weather.HAIL) {
+    return {
+      t:"HAIL",
+      x: rand(-30, W+30),
+      y: rand(-H, 0),
+      vx: rand(-40, 40),
+      vy: rand(520, 740),
+      r: rand(1.4, 2.8),
+      a: rand(0.22, 0.38)
+    };
+  }
+  // SUN
+  return {
+    t:"SUN",
+    x: rand(0, W),
+    y: rand(0, H*0.55),
+    vx: rand(-18, 18),
+    vy: rand(-10, 10),
+    r: rand(0.9, 1.6),
+    a: rand(0.10, 0.20),
+    life: rand(0.5, 1.2)
+  };
+}
+
+function updateParticles(dt){
+  const W = canvas.width, H = canvas.height;
+  for (let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+
+    if (p.t === "SUN") {
+      p.life -= dt;
+      p.a *= 0.985;
+      if (p.life <= 0) { particles.splice(i,1); continue; }
+    }
+
+    // remove offscreen
+    if (p.y > H+120 || p.x > W+140 || p.x < -160 || p.y < -160) {
+      particles.splice(i,1);
+    }
+  }
+
+  // decay pulse
+  weatherPulse = Math.max(0, weatherPulse - dt * 1.2);
+}
+
+function drawBattleScene(){
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // simple ground
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.beginPath();
+  ctx.ellipse(W*0.65, H*0.70, 210, 60, 0, 0, Math.PI*2);
+  ctx.fillStyle = "#6aa6ff";
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(W*0.32, H*0.78, 260, 75, 0, 0, Math.PI*2);
+  ctx.fillStyle = "#9fd3a2";
+  ctx.fill();
+  ctx.restore();
+
+  // enemy "sprite"
+  drawMon(W*0.65, H*0.58, "ENEMY");
+
+  // player "sprite"
+  drawMon(W*0.30, H*0.73, "PLAYER");
+
+  // weather tint
+  drawWeatherTint();
+  // particles
+  drawParticles();
+}
+
+function drawMon(x,y,side){
+  ctx.save();
+  // shadow
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath();
+  ctx.ellipse(x, y+54, side==="ENEMY" ? 70 : 86, side==="ENEMY" ? 18 : 22, 0, 0, Math.PI*2);
+  ctx.fillStyle = "#000";
+  ctx.fill();
+
+  // body placeholder
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.roundRect(x-(side==="ENEMY"?42:52), y-(side==="ENEMY"?52:60), (side==="ENEMY"?84:104), (side==="ENEMY"?84:104), 18);
+  ctx.fillStyle = side==="ENEMY" ? "#d9755a" : "#5a8bd9";
+  ctx.fill();
+
+  // face
+  ctx.fillStyle = "rgba(0,0,0,.25)";
+  ctx.fillRect(x-18, y-10, 36, 8);
+
+  ctx.restore();
+}
+
+function drawWeatherTint(){
+  const w = state.weather.type;
+  if (w === Weather.NONE) return;
+
+  ctx.save();
+  const pulse = weatherPulse;
+
+  if (w === Weather.RAIN) {
+    ctx.globalAlpha = 0.10 + pulse*0.08;
+    ctx.fillStyle = "#2c6bd6";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  } else if (w === Weather.SUN) {
+    ctx.globalAlpha = 0.08 + pulse*0.06;
+    ctx.fillStyle = "#d6a22c";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  } else if (w === Weather.SAND) {
+    ctx.globalAlpha = 0.12 + pulse*0.10;
+    ctx.fillStyle = "#caa266";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  } else if (w === Weather.HAIL) {
+    ctx.globalAlpha = 0.10 + pulse*0.08;
+    ctx.fillStyle = "#93c9ff";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+  ctx.restore();
+}
+
+function drawParticles(){
+  ctx.save();
+  for (const p of particles) {
+    if (p.t === "RAIN") {
+      ctx.globalAlpha = p.a;
+      ctx.strokeStyle = "#cfe6ff";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - (p.vx/40), p.y + p.len);
+      ctx.stroke();
+    } else if (p.t === "SAND") {
+      ctx.globalAlpha = p.a;
+      ctx.fillStyle = "#e2c7a0";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    } else if (p.t === "HAIL") {
+      ctx.globalAlpha = p.a;
+      ctx.fillStyle = "#eaf6ff";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    } else if (p.t === "SUN") {
+      ctx.globalAlpha = p.a;
+      ctx.fillStyle = "#fff2c9";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+/* =========================================================
+   8) HUD + Log
+   ========================================================= */
+const logLine = document.getElementById("logLine");
+const logLine2 = document.getElementById("logLine2");
+
+function log(text, secondary=false){
+  if (!secondary) {
+    logLine.textContent = text;
+    logLine2.textContent = "";
+  } else {
+    logLine2.textContent = text;
+  }
+}
+
+function syncHUD(){
+  // player
+  document.getElementById("pName").textContent = state.player.name;
+  document.getElementById("pLv").textContent = `Lv ${state.player.level}`;
+  document.getElementById("pType").textContent = `Type: ${state.player.types.join("/")}`;
+  document.getElementById("pHP").style.width = `${(state.player.hp/state.player.maxHP)*100}%`;
+  document.getElementById("pHPText").textContent = `${state.player.hp}/${state.player.maxHP}`;
+
+  // enemy
+  document.getElementById("eName").textContent = state.enemy.name;
+  document.getElementById("eLv").textContent = `Lv ${state.enemy.level}`;
+  document.getElementById("eType").textContent = `Type: ${state.enemy.types.join("/")}`;
+  document.getElementById("eHP").style.width = `${(state.enemy.hp/state.enemy.maxHP)*100}%`;
+  document.getElementById("eHPText").textContent = `${state.enemy.hp}/${state.enemy.maxHP}`;
+
+  // weather pill
+  const w = state.weather.type;
+  const wText = document.getElementById("wText");
+  const wTurns = document.getElementById("wTurns");
+  const wIcon = document.getElementById("wIcon");
+
+  if (w === Weather.NONE) {
+    wText.textContent = "Weather: None";
+    wTurns.textContent = "";
+    wIcon.style.background = "#9aa8bd";
+  } else {
+    wText.textContent = `Weather: ${w}`;
+    wTurns.textContent = `(${state.weather.turnsRemaining}T)`;
+    if (w === Weather.RAIN) wIcon.style.background = "#57a3ff";
+    if (w === Weather.SUN)  wIcon.style.background = "#ffcc57";
+    if (w === Weather.SAND) wIcon.style.background = "#d9b07a";
+    if (w === Weather.HAIL) wIcon.style.background = "#b7e1ff";
+  }
+}
+
+/* =========================================================
+   9) Wire Controls
+   ========================================================= */
+document.getElementById("btnAttack").addEventListener("click", ()=> takeTurn("ATTACK"));
+document.getElementById("btnGuard").addEventListener("click",  ()=> takeTurn("GUARD"));
+document.getElementById("btnRain").addEventListener("click",   ()=> takeTurn("RAIN"));
+document.getElementById("btnSun").addEventListener("click",    ()=> takeTurn("SUN"));
+document.getElementById("btnSand").addEventListener("click",   ()=> takeTurn("SAND"));
+document.getElementById("btnHail").addEventListener("click",   ()=> takeTurn("HAIL"));
+document.getElementById("btnPass").addEventListener("click",   ()=> takeTurn("PASS"));
+
+/* =========================================================
+   10) Animation Loop
+   ========================================================= */
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+
+  spawnParticles(dt);
+  updateParticles(dt);
+  drawBattleScene();
+
+  requestAnimationFrame(loop);
+}
+
+syncHUD();
+requestAnimationFrame(loop);
+
+/* =========================================================
+   11) Small Correctness Notes (for integrating into your game)
+   =========================================================
+   - Weather should be applied in damage calculation after STAB/type chart.
+   - Weather chip should happen in end-of-turn phase (after both actions resolve).
+   - Weather duration should decrement once per full turn.
+   - Weather is a single global field state; setting one overwrites the other immediately.
+   - Dialogue should be queued with animations; do not instantly print all messages.
+*/
+</script>
+</body>
+</html>
+
+How to use this in your project (minimal steps)
+Create weather-demo.html and paste the code above.
+
+
+Open it in your browser (or run via a simple local server).
+
+
+Replace:
+
+
+estimateDamage() with your real damage formula
+
+
+typeEffectivenessMultiplier() with your full type chart
+
+
+MOVES with your move list
+
+
+Keep the weather architecture as-is:
+
+
+state.weather object
+
+
+setWeather() / applyEndOfTurnWeather()
+
+
+particle overlay in the render loop
+

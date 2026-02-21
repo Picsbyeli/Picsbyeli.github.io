@@ -1,0 +1,260 @@
+{
+  "version": "3.1",
+  "mapName": "PokemonProfessorLab",
+  "mapWidth": 1024,
+  "mapHeight": 1536,
+  "gridSize": 16,
+  "cameraZoom": 0.5,
+  "playerConfig": {
+    "baseWidth": 77,
+    "baseHeight": 102,
+    "scale": 1.6,
+    "speed": 4,
+    "hitbox": {
+      "x": 26,
+      "y": 77,
+      "width": 27,
+      "height": 16
+    }
+  },
+  "player": {
+    "spriteWidth": 123,
+    "spriteHeight": 163,
+    "speed": 4,
+    "hitbox": {
+      "offsetX": 42,
+      "offsetY": 123,
+      "width": 43,
+      "height": 26
+    }
+  },
+  "spriteSheet": {
+    "columns": 4,
+    "rows": 4,
+    "fps": 8
+  },
+  "collisions": [
+    {
+      "id": 97,
+      "x": 0,
+      "y": 160,
+      "width": 32,
+      "height": 1200,
+      "name": "coll_1"
+    },
+    {
+      "id": 98,
+      "x": 992,
+      "y": 160,
+      "width": 32,
+      "height": 1216,
+      "name": "coll_2"
+    },
+    {
+      "id": 99,
+      "x": 960,
+      "y": 176,
+      "width": 32,
+      "height": 304,
+      "name": "coll_3"
+    },
+    {
+      "id": 100,
+      "x": 32,
+      "y": 160,
+      "width": 912,
+      "height": 288,
+      "name": "coll_4"
+    },
+    {
+      "id": 101,
+      "x": 80,
+      "y": 400,
+      "width": 160,
+      "height": 112,
+      "name": "coll_5"
+    },
+    {
+      "id": 102,
+      "x": 32,
+      "y": 432,
+      "width": 32,
+      "height": 64,
+      "name": "coll_6"
+    },
+    {
+      "id": 103,
+      "x": 32,
+      "y": 656,
+      "width": 192,
+      "height": 112,
+      "name": "coll_7"
+    },
+    {
+      "id": 104,
+      "x": 48,
+      "y": 720,
+      "width": 64,
+      "height": 112,
+      "name": "coll_8"
+    },
+    {
+      "id": 105,
+      "x": 32,
+      "y": 1024,
+      "width": 304,
+      "height": 96,
+      "name": "coll_9"
+    },
+    {
+      "id": 106,
+      "x": 688,
+      "y": 1024,
+      "width": 304,
+      "height": 96,
+      "name": "coll_10"
+    },
+    {
+      "id": 107,
+      "x": 928,
+      "y": 928,
+      "width": 32,
+      "height": 48,
+      "name": "coll_11"
+    },
+    {
+      "id": 108,
+      "x": 592,
+      "y": 688,
+      "width": 304,
+      "height": 64,
+      "name": "coll_12"
+    },
+    {
+      "id": 109,
+      "x": 352,
+      "y": 480,
+      "width": 320,
+      "height": 64,
+      "name": "coll_13"
+    },
+    {
+      "id": 110,
+      "x": 48,
+      "y": 1296,
+      "width": 64,
+      "height": 32,
+      "name": "coll_14"
+    },
+    {
+      "id": 112,
+      "x": 16,
+      "y": 1360,
+      "width": 1008,
+      "height": 80,
+      "name": "coll_15"
+    },
+    {
+      "id": 119,
+      "x": 48,
+      "y": 560,
+      "width": 48,
+      "height": 64,
+      "name": "coll_16"
+    },
+    {
+      "id": 124,
+      "x": 592,
+      "y": 688,
+      "width": 304,
+      "height": 128,
+      "name": "coll_17"
+    },
+    {
+      "id": 166,
+      "x": 96,
+      "y": 752,
+      "width": 128,
+      "height": 48,
+      "name": "coll_18"
+    },
+    {
+      "id": 167,
+      "x": 336,
+      "y": 480,
+      "width": 336,
+      "height": 128,
+      "name": "coll_19"
+    }
+  ],
+  "floors": [],
+  "warps": [
+    {
+      "id": 111,
+      "syncId": 77,
+      "syncMapId": "map_4",
+      "exitDir": "up",
+      "x": 432,
+      "y": 1328,
+      "width": 160,
+      "height": 32,
+      "name": "warp_1",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "StarterTownupdate"
+    }
+  ],
+  "spawns": [],
+  "encounters": [],
+  "triggers": [
+    {
+      "id": 123,
+      "requireInteract": false,
+      "x": 432,
+      "y": 720,
+      "width": 64,
+      "height": 64,
+      "name": "trig_6",
+      "type": "dialog",
+      "target": "professor",
+      "once": true,
+      "_triggered": true
+    },
+    {
+      "id": 125,
+      "requireInteract": true,
+      "x": 624,
+      "y": 800,
+      "width": 16,
+      "height": 32,
+      "name": "trig_4",
+      "type": "interact",
+      "target": "",
+      "once": false
+    },
+    {
+      "id": 126,
+      "requireInteract": true,
+      "x": 736,
+      "y": 800,
+      "width": 16,
+      "height": 32,
+      "name": "trig_5",
+      "type": "interact",
+      "target": "",
+      "once": false
+    },
+    {
+      "id": 127,
+      "requireInteract": true,
+      "x": 816,
+      "y": 800,
+      "width": 32,
+      "height": 32,
+      "name": "trig_6",
+      "type": "interact",
+      "target": "",
+      "once": false
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "version": "3.1",
+  "mapName": "NpcHome",
+  "mapWidth": 1024,
+  "mapHeight": 1024,
+  "gridSize": 16,
+  "cameraZoom": 0.5,
+  "playerConfig": {
+    "baseWidth": 48,
+    "baseHeight": 64,
+    "scale": 2.1,
+    "speed": 4,
+    "hitbox": {
+      "x": 8,
+      "y": 32,
+      "width": 32,
+      "height": 32
+    }
+  },
+  "player": {
+    "spriteWidth": 101,
+    "spriteHeight": 134,
+    "speed": 4,
+    "hitbox": {
+      "offsetX": 17,
+      "offsetY": 67,
+      "width": 67,
+      "height": 67
+    }
+  },
+  "spriteSheet": {
+    "columns": 4,
+    "rows": 4,
+    "fps": 8
+  },
+  "collisions": [
+    {
+      "id": 496,
+      "x": 0,
+      "y": 928,
+      "width": 416,
+      "height": 48,
+      "name": "coll_1"
+    },
+    {
+      "id": 497,
+      "x": 416,
+      "y": 960,
+      "width": 192,
+      "height": 32,
+      "name": "coll_2"
+    },
+    {
+      "id": 498,
+      "x": 608,
+      "y": 912,
+      "width": 416,
+      "height": 80,
+      "name": "coll_3"
+    },
+    {
+      "id": 499,
+      "x": 1008,
+      "y": 48,
+      "width": 32,
+      "height": 896,
+      "name": "coll_4"
+    },
+    {
+      "id": 500,
+      "x": 0,
+      "y": 32,
+      "width": 992,
+      "height": 32,
+      "name": "coll_5"
+    },
+    {
+      "id": 501,
+      "x": -32,
+      "y": 32,
+      "width": 48,
+      "height": 912,
+      "name": "coll_6"
+    },
+    {
+      "id": 502,
+      "x": 16,
+      "y": 32,
+      "width": 1024,
+      "height": 240,
+      "name": "coll_7"
+    },
+    {
+      "id": 503,
+      "x": 272,
+      "y": 256,
+      "width": 48,
+      "height": 80,
+      "name": "coll_8"
+    },
+    {
+      "id": 504,
+      "x": 48,
+      "y": 240,
+      "width": 160,
+      "height": 80,
+      "name": "coll_9"
+    },
+    {
+      "id": 505,
+      "x": 624,
+      "y": 256,
+      "width": 160,
+      "height": 96,
+      "name": "coll_10"
+    },
+    {
+      "id": 506,
+      "x": 800,
+      "y": 144,
+      "width": 192,
+      "height": 208,
+      "name": "coll_11"
+    },
+    {
+      "id": 507,
+      "x": 704,
+      "y": 336,
+      "width": 80,
+      "height": 64,
+      "name": "coll_12"
+    }
+  ],
+  "floors": [],
+  "warps": [
+    {
+      "id": 495,
+      "x": 448,
+      "y": 928,
+      "width": 128,
+      "height": 16,
+      "name": "warp_1",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "StarterTownupdate",
+      "exitDir": "up",
+      "syncId": 75,
+      "syncMapId": "map_4"
+    }
+  ],
+  "spawns": [],
+  "encounters": [],
+  "triggers": []
+}

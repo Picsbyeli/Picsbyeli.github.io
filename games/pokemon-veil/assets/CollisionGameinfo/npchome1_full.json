@@ -1,0 +1,178 @@
+{
+  "version": "3.1",
+  "mapName": "npchome1",
+  "mapWidth": 1536,
+  "mapHeight": 1024,
+  "gridSize": 16,
+  "cameraZoom": 0.5,
+  "playerConfig": {
+    "baseWidth": 48,
+    "baseHeight": 64,
+    "scale": 2.3,
+    "speed": 4,
+    "hitbox": {
+      "x": 8,
+      "y": 32,
+      "width": 32,
+      "height": 32
+    }
+  },
+  "player": {
+    "spriteWidth": 110,
+    "spriteHeight": 147,
+    "speed": 4,
+    "hitbox": {
+      "offsetX": 18,
+      "offsetY": 74,
+      "width": 74,
+      "height": 74
+    }
+  },
+  "spriteSheet": {
+    "columns": 4,
+    "rows": 4,
+    "fps": 8
+  },
+  "collisions": [
+    {
+      "id": 591,
+      "x": 224,
+      "y": 16,
+      "width": 96,
+      "height": 832,
+      "name": "coll_1"
+    },
+    {
+      "id": 592,
+      "x": 256,
+      "y": 816,
+      "width": 384,
+      "height": 96,
+      "name": "coll_2"
+    },
+    {
+      "id": 593,
+      "x": 576,
+      "y": 912,
+      "width": 384,
+      "height": 64,
+      "name": "coll_3"
+    },
+    {
+      "id": 594,
+      "x": 896,
+      "y": 816,
+      "width": 368,
+      "height": 144,
+      "name": "coll_4"
+    },
+    {
+      "id": 595,
+      "x": 1232,
+      "y": 32,
+      "width": 112,
+      "height": 896,
+      "name": "coll_5"
+    },
+    {
+      "id": 596,
+      "x": 288,
+      "y": 32,
+      "width": 976,
+      "height": 224,
+      "name": "coll_6"
+    },
+    {
+      "id": 597,
+      "x": 1024,
+      "y": 176,
+      "width": 176,
+      "height": 144,
+      "name": "coll_7"
+    },
+    {
+      "id": 598,
+      "x": 976,
+      "y": 256,
+      "width": 48,
+      "height": 64,
+      "name": "coll_8"
+    },
+    {
+      "id": 599,
+      "x": 1056,
+      "y": 656,
+      "width": 160,
+      "height": 112,
+      "name": "coll_9"
+    },
+    {
+      "id": 600,
+      "x": 992,
+      "y": 720,
+      "width": 64,
+      "height": 64,
+      "name": "coll_10"
+    },
+    {
+      "id": 601,
+      "x": 352,
+      "y": 736,
+      "width": 64,
+      "height": 32,
+      "name": "coll_11"
+    },
+    {
+      "id": 602,
+      "x": 352,
+      "y": 736,
+      "width": 80,
+      "height": 48,
+      "name": "coll_12"
+    },
+    {
+      "id": 603,
+      "x": 672,
+      "y": 384,
+      "width": 256,
+      "height": 96,
+      "name": "coll_13"
+    },
+    {
+      "id": 604,
+      "x": 768,
+      "y": 512,
+      "width": 64,
+      "height": 32,
+      "name": "coll_14"
+    },
+    {
+      "id": 605,
+      "x": 544,
+      "y": 240,
+      "width": 80,
+      "height": 80,
+      "name": "coll_15"
+    }
+  ],
+  "floors": [],
+  "warps": [
+    {
+      "id": 606,
+      "x": 704,
+      "y": 880,
+      "width": 128,
+      "height": 32,
+      "name": "warp_1",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "VerdantVillageupdate",
+      "exitDir": "up",
+      "syncId": 348,
+      "syncMapId": "map_10"
+    }
+  ],
+  "spawns": [],
+  "encounters": [],
+  "triggers": []
+}

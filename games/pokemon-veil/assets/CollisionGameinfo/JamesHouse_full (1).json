@@ -1,0 +1,284 @@
+{
+  "version": "3.1",
+  "mapName": "JamesHouse",
+  "mapWidth": 1536,
+  "mapHeight": 1024,
+  "gridSize": 16,
+  "cameraZoom": 0.5,
+  "playerConfig": {
+    "baseWidth": 48,
+    "baseHeight": 64,
+    "scale": 2.1,
+    "speed": 4,
+    "hitbox": {
+      "x": 16,
+      "y": 46,
+      "width": 17,
+      "height": 10
+    }
+  },
+  "player": {
+    "spriteWidth": 101,
+    "spriteHeight": 134,
+    "speed": 4,
+    "hitbox": {
+      "offsetX": 34,
+      "offsetY": 97,
+      "width": 36,
+      "height": 21
+    }
+  },
+  "spriteSheet": {
+    "columns": 4,
+    "rows": 4,
+    "fps": 8
+  },
+  "collisions": [
+    {
+      "id": 203,
+      "x": 112,
+      "y": 16,
+      "width": 32,
+      "height": 800,
+      "name": "coll_1"
+    },
+    {
+      "id": 204,
+      "x": 128,
+      "y": 16,
+      "width": 576,
+      "height": 144,
+      "name": "coll_2"
+    },
+    {
+      "id": 205,
+      "x": 400,
+      "y": 160,
+      "width": 304,
+      "height": 80,
+      "name": "coll_3"
+    },
+    {
+      "id": 206,
+      "x": 304,
+      "y": 320,
+      "width": 400,
+      "height": 128,
+      "name": "coll_4"
+    },
+    {
+      "id": 207,
+      "x": 432,
+      "y": 528,
+      "width": 192,
+      "height": 48,
+      "name": "coll_5"
+    },
+    {
+      "id": 208,
+      "x": 144,
+      "y": 640,
+      "width": 160,
+      "height": 112,
+      "name": "coll_6"
+    },
+    {
+      "id": 209,
+      "x": 288,
+      "y": 704,
+      "width": 64,
+      "height": 64,
+      "name": "coll_7"
+    },
+    {
+      "id": 210,
+      "x": 112,
+      "y": 800,
+      "width": 336,
+      "height": 144,
+      "name": "coll_8"
+    },
+    {
+      "id": 211,
+      "x": 704,
+      "y": 128,
+      "width": 64,
+      "height": 560,
+      "name": "coll_9"
+    },
+    {
+      "id": 212,
+      "x": 768,
+      "y": 128,
+      "width": 624,
+      "height": 224,
+      "name": "coll_10"
+    },
+    {
+      "id": 213,
+      "x": 1392,
+      "y": 128,
+      "width": 48,
+      "height": 384,
+      "name": "coll_11"
+    },
+    {
+      "id": 214,
+      "x": 976,
+      "y": 400,
+      "width": 208,
+      "height": 80,
+      "name": "coll_12"
+    },
+    {
+      "id": 215,
+      "x": 912,
+      "y": 432,
+      "width": 48,
+      "height": 32,
+      "name": "coll_13"
+    },
+    {
+      "id": 216,
+      "x": 1200,
+      "y": 432,
+      "width": 48,
+      "height": 32,
+      "name": "coll_14"
+    },
+    {
+      "id": 217,
+      "x": 1392,
+      "y": 512,
+      "width": 48,
+      "height": 448,
+      "name": "coll_15"
+    },
+    {
+      "id": 218,
+      "x": 1328,
+      "y": 640,
+      "width": 64,
+      "height": 320,
+      "name": "coll_16"
+    },
+    {
+      "id": 219,
+      "x": 912,
+      "y": 528,
+      "width": 480,
+      "height": 96,
+      "name": "coll_17"
+    },
+    {
+      "id": 220,
+      "x": 912,
+      "y": 624,
+      "width": 128,
+      "height": 176,
+      "name": "coll_18"
+    },
+    {
+      "id": 221,
+      "x": 1040,
+      "y": 624,
+      "width": 128,
+      "height": 80,
+      "name": "coll_19"
+    },
+    {
+      "id": 222,
+      "x": 1168,
+      "y": 640,
+      "width": 160,
+      "height": 64,
+      "name": "coll_20"
+    },
+    {
+      "id": 224,
+      "x": 624,
+      "y": 944,
+      "width": 592,
+      "height": 80,
+      "name": "coll_21"
+    },
+    {
+      "id": 225,
+      "x": 416,
+      "y": 944,
+      "width": 208,
+      "height": 80,
+      "name": "coll_22"
+    },
+    {
+      "id": 226,
+      "x": 1216,
+      "y": 944,
+      "width": 112,
+      "height": 64,
+      "name": "coll_23"
+    },
+    {
+      "id": 227,
+      "x": 624,
+      "y": 896,
+      "width": 16,
+      "height": 48,
+      "name": "coll_24"
+    },
+    {
+      "id": 228,
+      "x": 1168,
+      "y": 704,
+      "width": 160,
+      "height": 80,
+      "name": "coll_25"
+    }
+  ],
+  "floors": [],
+  "warps": [
+    {
+      "id": 223,
+      "x": 464,
+      "y": 908,
+      "width": 144,
+      "height": 48,
+      "name": "warp_1",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "StarterTownupdate",
+      "exitDir": "up",
+      "syncId": 76,
+      "syncMapId": "map_4"
+    }
+  ],
+  "spawns": [],
+  "encounters": [],
+  "triggers": [
+    {
+      "id": 229,
+      "x": 240,
+      "y": 160,
+      "width": 128,
+      "height": 128,
+      "name": "trig_1",
+      "type": "interact",
+      "target": "james",
+      "once": false,
+      "requireInteract": true
+    },
+    {
+      "id": 230,
+      "x": 688,
+      "y": 736,
+      "width": 64,
+      "height": 48,
+      "name": "trig_2",
+      "type": "dialog",
+      "target": "james mom",
+      "once": true,
+      "requireInteract": false,
+      "_triggered": true
+    }
+  ]
+}

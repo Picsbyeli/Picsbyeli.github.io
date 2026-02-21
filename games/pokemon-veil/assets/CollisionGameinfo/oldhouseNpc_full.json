@@ -1,0 +1,146 @@
+{
+  "version": "3.1",
+  "mapName": "oldhouseNpc",
+  "mapWidth": 1024,
+  "mapHeight": 1024,
+  "gridSize": 16,
+  "cameraZoom": 0.5,
+  "playerConfig": {
+    "baseWidth": 48,
+    "baseHeight": 64,
+    "scale": 2.3,
+    "speed": 4,
+    "hitbox": {
+      "x": 8,
+      "y": 32,
+      "width": 32,
+      "height": 32
+    }
+  },
+  "player": {
+    "spriteWidth": 110,
+    "spriteHeight": 147,
+    "speed": 4,
+    "hitbox": {
+      "offsetX": 18,
+      "offsetY": 74,
+      "width": 74,
+      "height": 74
+    }
+  },
+  "spriteSheet": {
+    "columns": 4,
+    "rows": 4,
+    "fps": 8
+  },
+  "collisions": [
+    {
+      "id": 607,
+      "x": 0,
+      "y": 48,
+      "width": 1040,
+      "height": 256,
+      "name": "coll_1"
+    },
+    {
+      "id": 608,
+      "x": -32,
+      "y": 48,
+      "width": 48,
+      "height": 880,
+      "name": "coll_2"
+    },
+    {
+      "id": 609,
+      "x": -16,
+      "y": 928,
+      "width": 448,
+      "height": 64,
+      "name": "coll_3"
+    },
+    {
+      "id": 610,
+      "x": 416,
+      "y": 960,
+      "width": 192,
+      "height": 32,
+      "name": "coll_4"
+    },
+    {
+      "id": 611,
+      "x": 608,
+      "y": 928,
+      "width": 432,
+      "height": 80,
+      "name": "coll_5"
+    },
+    {
+      "id": 612,
+      "x": 1024,
+      "y": 48,
+      "width": 16,
+      "height": 960,
+      "name": "coll_6"
+    },
+    {
+      "id": 613,
+      "x": 576,
+      "y": 272,
+      "width": 112,
+      "height": 160,
+      "name": "coll_7"
+    },
+    {
+      "id": 614,
+      "x": 672,
+      "y": 240,
+      "width": 304,
+      "height": 128,
+      "name": "coll_8"
+    },
+    {
+      "id": 615,
+      "x": 64,
+      "y": 288,
+      "width": 176,
+      "height": 96,
+      "name": "coll_9"
+    },
+    {
+      "id": 616,
+      "x": 144,
+      "y": 416,
+      "width": 128,
+      "height": 80,
+      "name": "coll_10"
+    },
+    {
+      "id": 617,
+      "x": 272,
+      "y": 304,
+      "width": 48,
+      "height": 32,
+      "name": "coll_11"
+    }
+  ],
+  "floors": [],
+  "warps": [
+    {
+      "id": 618,
+      "x": 464,
+      "y": 944,
+      "width": 96,
+      "height": 16,
+      "name": "warp_1",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "VerdantVillageupdate",
+      "exitDir": "up",
+      "syncId": 485,
+      "syncMapId": "map_10"
+    }
+  ],
+  "spawns": [],
+  "encounters": [],
+  "triggers": []
+}

@@ -1,0 +1,602 @@
+{
+  "version": "3.1",
+  "mapName": "BugGym",
+  "mapWidth": 1316,
+  "mapHeight": 1312,
+  "gridSize": 16,
+  "cameraZoom": 0.5,
+  "playerConfig": {
+    "baseWidth": 48,
+    "baseHeight": 64,
+    "scale": 2.3,
+    "speed": 4,
+    "hitbox": {
+      "x": 16,
+      "y": 46,
+      "width": 16,
+      "height": 10
+    }
+  },
+  "player": {
+    "spriteWidth": 110,
+    "spriteHeight": 147,
+    "speed": 4,
+    "hitbox": {
+      "offsetX": 37,
+      "offsetY": 106,
+      "width": 37,
+      "height": 23
+    }
+  },
+  "spriteSheet": {
+    "columns": 4,
+    "rows": 4,
+    "fps": 8
+  },
+  "collisions": [
+    {
+      "id": 619,
+      "x": 16,
+      "y": 0,
+      "width": 1280,
+      "height": 128,
+      "name": "coll_1"
+    },
+    {
+      "id": 620,
+      "x": 1168,
+      "y": 128,
+      "width": 128,
+      "height": 128,
+      "name": "coll_2"
+    },
+    {
+      "id": 621,
+      "x": 0,
+      "y": 128,
+      "width": 64,
+      "height": 128,
+      "name": "coll_3"
+    },
+    {
+      "id": 622,
+      "x": 432,
+      "y": 144,
+      "width": 32,
+      "height": 192,
+      "name": "coll_4"
+    },
+    {
+      "id": 623,
+      "x": 80,
+      "y": 80,
+      "width": 336,
+      "height": 96,
+      "name": "coll_5"
+    },
+    {
+      "id": 624,
+      "x": 64,
+      "y": 144,
+      "width": 160,
+      "height": 160,
+      "name": "coll_6"
+    },
+    {
+      "id": 625,
+      "x": 64,
+      "y": 304,
+      "width": 384,
+      "height": 32,
+      "name": "coll_7"
+    },
+    {
+      "id": 626,
+      "x": 64,
+      "y": 336,
+      "width": 96,
+      "height": 192,
+      "name": "coll_8"
+    },
+    {
+      "id": 627,
+      "x": 400,
+      "y": 768,
+      "width": 896,
+      "height": 96,
+      "name": "coll_9"
+    },
+    {
+      "id": 628,
+      "x": 32,
+      "y": 752,
+      "width": 384,
+      "height": 96,
+      "name": "coll_10"
+    },
+    {
+      "id": 629,
+      "x": 16,
+      "y": 864,
+      "width": 208,
+      "height": 272,
+      "name": "coll_11"
+    },
+    {
+      "id": 630,
+      "x": 208,
+      "y": 1056,
+      "width": 272,
+      "height": 240,
+      "name": "coll_12"
+    },
+    {
+      "id": 632,
+      "x": 832,
+      "y": 1088,
+      "width": 240,
+      "height": 208,
+      "name": "coll_14"
+    },
+    {
+      "id": 633,
+      "x": 992,
+      "y": 1040,
+      "width": 192,
+      "height": 192,
+      "name": "coll_15"
+    },
+    {
+      "id": 634,
+      "x": 1104,
+      "y": 896,
+      "width": 144,
+      "height": 208,
+      "name": "coll_16"
+    },
+    {
+      "id": 635,
+      "x": 1152,
+      "y": 832,
+      "width": 176,
+      "height": 272,
+      "name": "coll_17"
+    },
+    {
+      "id": 636,
+      "x": 1184,
+      "y": 240,
+      "width": 144,
+      "height": 656,
+      "name": "coll_18"
+    },
+    {
+      "id": 637,
+      "x": 896,
+      "y": 528,
+      "width": 320,
+      "height": 48,
+      "name": "coll_19"
+    },
+    {
+      "id": 638,
+      "x": 480,
+      "y": 576,
+      "width": 400,
+      "height": 80,
+      "name": "coll_20"
+    },
+    {
+      "id": 650,
+      "x": 464,
+      "y": 1200,
+      "width": 384,
+      "height": 144,
+      "name": "coll_20"
+    },
+    {
+      "id": 652,
+      "x": 512,
+      "y": 1120,
+      "width": 64,
+      "height": 80,
+      "name": "coll_21"
+    },
+    {
+      "id": 653,
+      "x": 736,
+      "y": 1120,
+      "width": 64,
+      "height": 96,
+      "name": "coll_22"
+    },
+    {
+      "id": 654,
+      "x": 736,
+      "y": 240,
+      "width": 48,
+      "height": 64,
+      "name": "coll_23"
+    },
+    {
+      "id": 655,
+      "x": 784,
+      "y": 224,
+      "width": 48,
+      "height": 64,
+      "name": "coll_24"
+    },
+    {
+      "id": 656,
+      "x": 816,
+      "y": 160,
+      "width": 64,
+      "height": 64,
+      "name": "coll_25"
+    },
+    {
+      "id": 657,
+      "x": 480,
+      "y": 208,
+      "width": 80,
+      "height": 80,
+      "name": "coll_26"
+    },
+    {
+      "id": 658,
+      "x": 448,
+      "y": 112,
+      "width": 48,
+      "height": 32,
+      "name": "coll_27"
+    },
+    {
+      "id": 659,
+      "x": 448,
+      "y": 384,
+      "width": 416,
+      "height": 48,
+      "name": "coll_28"
+    },
+    {
+      "id": 660,
+      "x": 832,
+      "y": 336,
+      "width": 32,
+      "height": 64,
+      "name": "coll_29"
+    },
+    {
+      "id": 661,
+      "x": 864,
+      "y": 320,
+      "width": 384,
+      "height": 48,
+      "name": "coll_30"
+    },
+    {
+      "id": 662,
+      "x": 432,
+      "y": 320,
+      "width": 32,
+      "height": 64,
+      "name": "coll_31"
+    },
+    {
+      "id": 663,
+      "x": 48,
+      "y": 560,
+      "width": 64,
+      "height": 192,
+      "name": "coll_32"
+    },
+    {
+      "id": 664,
+      "x": 144,
+      "y": 592,
+      "width": 80,
+      "height": 128,
+      "name": "coll_33"
+    },
+    {
+      "id": 665,
+      "x": 1088,
+      "y": 608,
+      "width": 80,
+      "height": 144,
+      "name": "coll_34"
+    },
+    {
+      "id": 666,
+      "x": 1040,
+      "y": 384,
+      "width": 64,
+      "height": 112,
+      "name": "coll_35"
+    },
+    {
+      "id": 667,
+      "x": 1072,
+      "y": 160,
+      "width": 80,
+      "height": 144,
+      "name": "coll_36"
+    },
+    {
+      "id": 668,
+      "x": 1056,
+      "y": 160,
+      "width": 96,
+      "height": 48,
+      "name": "coll_37"
+    },
+    {
+      "id": 669,
+      "x": 208,
+      "y": 160,
+      "width": 64,
+      "height": 32,
+      "name": "coll_38"
+    },
+    {
+      "id": 670,
+      "x": 256,
+      "y": 848,
+      "width": 112,
+      "height": 160,
+      "name": "coll_39"
+    },
+    {
+      "id": 671,
+      "x": 960,
+      "y": 864,
+      "width": 112,
+      "height": 128,
+      "name": "coll_40"
+    },
+    {
+      "id": 672,
+      "x": 928,
+      "y": 864,
+      "width": 32,
+      "height": 112,
+      "name": "coll_41"
+    },
+    {
+      "id": 673,
+      "x": 144,
+      "y": 704,
+      "width": 64,
+      "height": 48,
+      "name": "coll_42"
+    },
+    {
+      "id": 674,
+      "x": 224,
+      "y": 608,
+      "width": 32,
+      "height": 48,
+      "name": "coll_43"
+    },
+    {
+      "id": 675,
+      "x": 144,
+      "y": 512,
+      "width": 288,
+      "height": 48,
+      "name": "coll_44"
+    },
+    {
+      "id": 676,
+      "x": 192,
+      "y": 352,
+      "width": 96,
+      "height": 160,
+      "name": "coll_45"
+    },
+    {
+      "id": 677,
+      "x": 288,
+      "y": 368,
+      "width": 16,
+      "height": 48,
+      "name": "coll_46"
+    },
+    {
+      "id": 678,
+      "x": 1008,
+      "y": 368,
+      "width": 48,
+      "height": 80,
+      "name": "coll_47"
+    },
+    {
+      "id": 679,
+      "x": 1024,
+      "y": 192,
+      "width": 64,
+      "height": 48,
+      "name": "coll_48"
+    },
+    {
+      "id": 680,
+      "x": 224,
+      "y": 208,
+      "width": 48,
+      "height": 48,
+      "name": "coll_49"
+    },
+    {
+      "id": 681,
+      "x": 880,
+      "y": 576,
+      "width": 32,
+      "height": 32,
+      "name": "coll_50"
+    },
+    {
+      "id": 682,
+      "x": 928,
+      "y": 64,
+      "width": 64,
+      "height": 112,
+      "name": "coll_51"
+    },
+    {
+      "id": 683,
+      "x": 464,
+      "y": 128,
+      "width": 32,
+      "height": 64,
+      "name": "coll_52"
+    },
+    {
+      "id": 684,
+      "x": 480,
+      "y": 112,
+      "width": 48,
+      "height": 32,
+      "name": "coll_53"
+    },
+    {
+      "id": 685,
+      "x": 1008,
+      "y": 128,
+      "width": 144,
+      "height": 32,
+      "name": "coll_54"
+    }
+  ],
+  "floors": [],
+  "warps": [
+    {
+      "id": 640,
+      "x": 348,
+      "y": 961,
+      "width": 48,
+      "height": 32,
+      "name": "warp_2",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BugGym",
+      "exitDir": "right",
+      "syncId": 642,
+      "syncMapId": "map_18"
+    },
+    {
+      "id": 641,
+      "x": 976,
+      "y": 995,
+      "width": 48,
+      "height": 32,
+      "name": "warp_3",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BugGym",
+      "exitDir": "left",
+      "syncId": 649,
+      "syncMapId": "map_18"
+    },
+    {
+      "id": 642,
+      "x": 217,
+      "y": 699,
+      "width": 48,
+      "height": 32,
+      "name": "warp_4",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BugGym",
+      "exitDir": "right",
+      "syncId": 640,
+      "syncMapId": "map_18"
+    },
+    {
+      "id": 643,
+      "x": 1024,
+      "y": 688,
+      "width": 32,
+      "height": 32,
+      "name": "warp_5",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BugGym",
+      "exitDir": "left",
+      "syncId": 645,
+      "syncMapId": "map_18"
+    },
+    {
+      "id": 645,
+      "x": 988,
+      "y": 464,
+      "width": 32,
+      "height": 16,
+      "name": "warp_7",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BugGym",
+      "exitDir": "left",
+      "syncId": 643,
+      "syncMapId": "map_18"
+    },
+    {
+      "id": 646,
+      "x": 268,
+      "y": 459,
+      "width": 48,
+      "height": 32,
+      "name": "warp_8",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BugGym",
+      "exitDir": "right",
+      "syncId": 647,
+      "syncMapId": "map_18"
+    },
+    {
+      "id": 647,
+      "x": 1021,
+      "y": 256,
+      "width": 32,
+      "height": 16,
+      "name": "warp_9",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BugGym",
+      "exitDir": "left",
+      "syncId": 646,
+      "syncMapId": "map_18"
+    },
+    {
+      "id": 649,
+      "x": 256,
+      "y": 272,
+      "width": 32,
+      "height": 16,
+      "name": "warp_10",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BugGym",
+      "exitDir": "right",
+      "syncId": 641,
+      "syncMapId": "map_18"
+    },
+    {
+      "id": 651,
+      "x": 608,
+      "y": 1168,
+      "width": 96,
+      "height": 32,
+      "name": "warp_9",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "VerdantVillageupdate",
+      "exitDir": "up",
+      "syncId": 483,
+      "syncMapId": "map_10"
+    }
+  ],
+  "spawns": [],
+  "encounters": [],
+  "triggers": []
+}

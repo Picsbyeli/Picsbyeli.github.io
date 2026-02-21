@@ -1,0 +1,389 @@
+{
+  "version": "3.1",
+  "mapName": "BedroomPlayer",
+  "mapWidth": 1536,
+  "mapHeight": 1024,
+  "gridSize": 16,
+  "cameraZoom": 0.75,
+  "playerConfig": {
+    "baseWidth": 48,
+    "baseHeight": 64,
+    "scale": 2.2,
+    "speed": 4,
+    "hitbox": {
+      "x": 16,
+      "y": 46,
+      "width": 17,
+      "height": 10
+    }
+  },
+  "player": {
+    "spriteWidth": 106,
+    "spriteHeight": 141,
+    "speed": 4,
+    "hitbox": {
+      "offsetX": 35,
+      "offsetY": 101,
+      "width": 37,
+      "height": 22
+    }
+  },
+  "spriteSheet": {
+    "columns": 4,
+    "rows": 4,
+    "fps": 8
+  },
+  "collisions": [
+    {
+      "id": 1,
+      "x": 96,
+      "y": 28,
+      "width": 529,
+      "height": 177
+    },
+    {
+      "id": 2,
+      "x": 596,
+      "y": 34,
+      "width": 28,
+      "height": 499
+    },
+    {
+      "id": 3,
+      "x": 629,
+      "y": 28,
+      "width": 307,
+      "height": 442
+    },
+    {
+      "id": 4,
+      "x": 907,
+      "y": 370,
+      "width": 545,
+      "height": 28
+    },
+    {
+      "id": 5,
+      "x": 917,
+      "y": 30,
+      "width": 516,
+      "height": 174
+    },
+    {
+      "id": 6,
+      "x": 1423,
+      "y": 30,
+      "width": 32,
+      "height": 772
+    },
+    {
+      "id": 7,
+      "x": 86,
+      "y": 30,
+      "width": 38,
+      "height": 835
+    },
+    {
+      "id": 8,
+      "x": 88,
+      "y": 769,
+      "width": 598,
+      "height": 96
+    },
+    {
+      "id": 9,
+      "x": 844,
+      "y": 786,
+      "width": 604,
+      "height": 86
+    },
+    {
+      "id": 12,
+      "x": 139,
+      "y": 527,
+      "width": 35,
+      "height": 36
+    },
+    {
+      "id": 15,
+      "x": 184,
+      "y": 501,
+      "width": 151,
+      "height": 32
+    },
+    {
+      "id": 16,
+      "x": 1041,
+      "y": 597,
+      "width": 28,
+      "height": 69
+    },
+    {
+      "id": 17,
+      "x": 1086,
+      "y": 588,
+      "width": 156,
+      "height": 88
+    },
+    {
+      "id": 18,
+      "x": 1249,
+      "y": 623,
+      "width": 33,
+      "height": 58
+    },
+    {
+      "id": 20,
+      "x": 686,
+      "y": 874,
+      "width": 171,
+      "height": 65
+    },
+    {
+      "id": 21,
+      "x": 1356,
+      "y": 722,
+      "width": 48,
+      "height": 26
+    },
+    {
+      "id": 32,
+      "x": 128,
+      "y": 384,
+      "width": 208,
+      "height": 64,
+      "name": "coll_21"
+    },
+    {
+      "id": 37,
+      "x": 1072,
+      "y": 416,
+      "width": 288,
+      "height": 128,
+      "name": "coll_21"
+    },
+    {
+      "id": 38,
+      "x": 944,
+      "y": 400,
+      "width": 128,
+      "height": 128,
+      "name": "coll_22"
+    },
+    {
+      "id": 39,
+      "x": 896,
+      "y": 464,
+      "width": 32,
+      "height": 48,
+      "name": "coll_23"
+    },
+    {
+      "id": 40,
+      "x": 1360,
+      "y": 416,
+      "width": 64,
+      "height": 128,
+      "name": "coll_24"
+    },
+    {
+      "id": 98,
+      "x": 336,
+      "y": 384,
+      "width": 256,
+      "height": 16,
+      "name": "coll_24"
+    },
+    {
+      "id": 99,
+      "x": 336,
+      "y": 496,
+      "width": 256,
+      "height": 16,
+      "name": "coll_25"
+    },
+    {
+      "id": 100,
+      "x": 144,
+      "y": 720,
+      "width": 240,
+      "height": 32,
+      "name": "coll_24"
+    },
+    {
+      "id": 101,
+      "x": 144,
+      "y": 672,
+      "width": 16,
+      "height": 48,
+      "name": "coll_25"
+    },
+    {
+      "id": 105,
+      "x": 240,
+      "y": 608,
+      "width": 160,
+      "height": 48,
+      "name": "coll_26"
+    },
+    {
+      "id": 489,
+      "x": 336,
+      "y": 368,
+      "width": 288,
+      "height": 32,
+      "name": "coll_27"
+    },
+    {
+      "id": 490,
+      "x": 128,
+      "y": 368,
+      "width": 112,
+      "height": 16,
+      "name": "coll_28"
+    },
+    {
+      "id": 491,
+      "x": 176,
+      "y": 688,
+      "width": 192,
+      "height": 48,
+      "name": "coll_29"
+    },
+    {
+      "id": 492,
+      "x": 384,
+      "y": 688,
+      "width": 16,
+      "height": 48,
+      "name": "coll_30"
+    },
+    {
+      "id": 493,
+      "x": 368,
+      "y": 688,
+      "width": 16,
+      "height": 32,
+      "name": "coll_31"
+    },
+    {
+      "id": 494,
+      "x": 144,
+      "y": 656,
+      "width": 32,
+      "height": 64,
+      "name": "coll_32"
+    }
+  ],
+  "floors": [],
+  "warps": [
+    {
+      "id": 33,
+      "syncId": 34,
+      "syncMapId": "map_1",
+      "exitDir": "up",
+      "x": 240,
+      "y": 374,
+      "width": 96,
+      "height": 16,
+      "name": "warp_4",
+      "destX": 240,
+      "destY": 585,
+      "destMap": "BedroomPlayer"
+    },
+    {
+      "id": 34,
+      "syncId": 33,
+      "syncMapId": "map_1",
+      "exitDir": "down",
+      "x": 240,
+      "y": 528,
+      "width": 96,
+      "height": 16,
+      "name": "warp_5",
+      "destX": 256,
+      "destY": 352,
+      "destMap": "BedroomPlayer"
+    },
+    {
+      "id": 36,
+      "syncId": 41,
+      "syncMapId": "map_1",
+      "exitDir": "up",
+      "x": 960,
+      "y": 352,
+      "width": 112,
+      "height": 16,
+      "name": "warp_6",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BedroomPlayer"
+    },
+    {
+      "id": 41,
+      "syncId": 36,
+      "syncMapId": "map_1",
+      "exitDir": "down",
+      "x": 960,
+      "y": 528,
+      "width": 96,
+      "height": 16,
+      "name": "warp_7",
+      "destX": 0,
+      "destY": 0,
+      "destMap": "BedroomPlayer"
+    },
+    {
+      "id": 43,
+      "syncId": 46,
+      "syncMapId": "map_4",
+      "exitDir": "up",
+      "x": 704,
+      "y": 816,
+      "width": 128,
+      "height": 48,
+      "name": "warp_5",
+      "destX": 352,
+      "destY": 816,
+      "destMap": "StarterTownupdate"
+    }
+  ],
+  "spawns": [
+    {
+      "id": 31,
+      "direction": "down",
+      "name": "spawn_1",
+      "x": 312,
+      "y": 256,
+      "width": 48,
+      "height": 64,
+      "isDefault": true
+    }
+  ],
+  "encounters": [],
+  "triggers": [
+    {
+      "id": 29,
+      "requireInteract": true,
+      "x": 338,
+      "y": 186,
+      "width": 33,
+      "height": 24,
+      "type": "clock",
+      "eventId": "",
+      "data": ""
+    },
+    {
+      "id": 231,
+      "x": 1024,
+      "y": 688,
+      "width": 64,
+      "height": 32,
+      "name": "trig_2",
+      "type": "dialog",
+      "target": "mom",
+      "once": false,
+      "requireInteract": true
+    }
+  ]
+}

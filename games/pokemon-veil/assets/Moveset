@@ -1,0 +1,960 @@
+Global Notes (Current)
+Starter pacing tuned: early STAB at Lv 3–4, no early “late-game sustain” like Aqua Ring.
+
+
+“No-teeth / slime / plant / insect / beaked” lines should avoid Bite/Crunch/Fang-style moves (as you noted).
+
+
+
+Thaloria Dex Set
+Part 1 — Dex #001–#025
+#001 — Inklet
+Type: Water
+ Evolution: → #002 Runink (Lv. 16)
+ Stats: HP 44 / Atk 48 / Def 45 / SpA 65 / SpD 50 / Spe 58 (BST 310)
+ Level-Up Moves:
+ Lv 1 Scratch; Lv 1 Tail Whip; Lv 6 Water Gun; Lv 12 Bubble; Lv 12 Water Pulse; Lv 15 Protect; Lv 18 Brine; Lv 21 Bubble Beam; Lv 24 Icy Wind; Lv 27 Rain Dance; Lv 30 Aqua Tail; Lv 33 Whirlpool; Lv 36 Surf
+#002 — Runink
+Type: Water
+ Evolution: → #003 Arcanquid (Lv. 36)
+ Stats: HP 60 / Atk 55 / Def 60 / SpA 85 / SpD 70 / Spe 75 (BST 405)
+ Level-Up Moves:
+ Lv 1 Scratch; Lv 1 Tail Whip; Lv 1 Water Gun; Lv 4 Withdraw; Lv 8 Water Pulse; Lv 12 Protect; Lv 16 Bubble Beam; Lv 20 Icy Wind; Lv 24 Brine; Lv 28 Rain Dance; Lv 32 Whirlpool; Lv 36 Surf; Lv 40 Aqua Tail; Lv 44 Hydro Pump
+#003 — Arcanquid
+Type: Water / Psychic
+ Evolution: —
+ Stats: HP 80 / Atk 65 / Def 75 / SpA 120 / SpD 95 / Spe 100 (BST 535)
+ Level-Up Moves:
+ Lv 1 Water Gun; Lv 1 Confusion; Lv 1 Tail Whip; Lv 1 Withdraw; Lv 4 Water Pulse; Lv 8 Psybeam; Lv 12 Protect; Lv 16 Bubble Beam; Lv 20 Reflect; Lv 24 Psychic; Lv 28 Surf; Lv 32 Calm Mind; Lv 36 Psyshock; Lv 40 Rain Dance; Lv 44 Future Sight; Lv 48 Recover; Lv 52 Hydro Pump
+
+#004 — Tadlance
+Type: Grass
+ Evolution: → #005 Branquire (Lv. 16)
+ Stats: HP 52 / Atk 60 / Def 55 / SpA 45 / SpD 55 / Spe 48 (BST 315)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Growl; Lv 6 Vine Whip; Lv 9 Absorb; Lv 12 Growth; Lv 15 Razor Leaf; Lv 18 Leech Seed; Lv 21 Mega Drain; Lv 24 Protect; Lv 27 Seed Bomb; Lv 30 Magical Leaf; Lv 33 Synthesis; Lv 36 Leaf Blade
+#005 — Branquire
+Type: Grass / Fighting
+ Evolution: → #006 Thronoak (Lv. 36)
+ Stats: HP 70 / Atk 85 / Def 80 / SpA 50 / SpD 70 / Spe 55 (BST 410)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Growl; Lv 1 Vine Whip; Lv 4 Leer; Lv 8 Low Kick; Lv 12 Razor Leaf; Lv 16 Brick Break; Lv 20 Bulk Up; Lv 24 Seed Bomb; Lv 28 Drain Punch; Lv 32 Leech Seed; Lv 36 Close Combat; Lv 40 Power Whip; Lv 44 Detect
+#006 — Thronoak
+Type: Grass / Fighting
+ Evolution: —
+ Stats: HP 95 / Atk 120 / Def 115 / SpA 60 / SpD 90 / Spe 55 (BST 535)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Growl; Lv 1 Vine Whip; Lv 1 Rock Smash; Lv 4 Low Kick; Lv 8 Razor Leaf; Lv 12 Bulk Up; Lv 16 Brick Break; Lv 20 Seed Bomb; Lv 24 Drain Punch; Lv 28 Leech Seed; Lv 32 Mach Punch; Lv 36 Close Combat; Lv 40 Power Whip; Lv 44 Synthesis; Lv 48 Protect
+
+#007 — Cinderoon
+Type: Fire
+ Evolution: → #008 Blazit (Lv. 16)
+ Stats: HP 45 / Atk 62 / Def 45 / SpA 50 / SpD 45 / Spe 68 (BST 315)
+ Level-Up Moves:
+ Lv 1 Scratch; Lv 1 Tail Whip; Lv 6 Ember; Lv 9 Quick Attack; Lv 11 Smokescreen; Lv 13 Flame Charge; Lv 16 Fire Spin; Lv 19 Bite; Lv 22 Flame Burst; Lv 25 Agility; Lv 28 Fire Fang; Lv 31 Protect; Lv 34 Flamethrower; Lv 37 Slash; Lv 40 Will-O-Wisp; Lv 43 Flare Blitz
+#008 — Blazit
+Type: Fire
+ Evolution: → #009 Inferyx (Lv. 36)
+ Stats: HP 60 / Atk 85 / Def 60 / SpA 60 / SpD 55 / Spe 90 (BST 410)
+ Level-Up Moves:
+ Lv 1 Scratch; Lv 1 Tail Whip; Lv 1 Ember; Lv 4 Quick Attack; Lv 8 Smokescreen; Lv 12 Flame Charge; Lv 16 Fire Spin; Lv 20 Bite; Lv 24 Flame Burst; Lv 28 Agility; Lv 32 Fire Fang; Lv 36 Flamethrower; Lv 40 Slash; Lv 44 Will-O-Wisp; Lv 48 Flare Blitz
+#009 — Inferyx
+Type: Fire / Dark
+ Evolution: —
+ Stats: HP 75 / Atk 125 / Def 70 / SpA 65 / SpD 70 / Spe 130 (BST 535)
+ Level-Up Moves:
+ Lv 1 Scratch; Lv 1 Ember; Lv 1 Bite; Lv 1 Tail Whip; Lv 4 Quick Attack; Lv 8 Smokescreen; Lv 12 Flame Charge; Lv 16 Thief; Lv 20 Fire Fang; Lv 24 Night Slash; Lv 28 Flame Burst; Lv 32 Agility; Lv 36 Crunch; Lv 40 Flamethrower; Lv 44 Sucker Punch; Lv 48 Flare Blitz; Lv 52 Taunt; Lv 56 Overheat
+
+#010 — Gravowl
+Type: Rock / Flying
+ Evolution: → #011 Gravern (Lv. 24)
+ Stats: HP 56 / Atk 51 / Def 65 / SpA 45 / SpD 49 / Spe 44 (BST 310)
+ Level-Up Moves:
+ Lv 1 Peck; Lv 1 Leer; Lv 7 Rock Throw; Lv 6 Endure; Lv 9 Stealth Rock; Lv 12 Smack Down; Lv 25 Ancient Power; Lv 20 Sandstorm; Lv 25 Tailwind; Lv 30 Roost; Lv 35 Rock Slide
+#011 — Gravern
+Type: Rock / Flying
+ Evolution: → #012 Gargryph (Lv. 42)
+ Stats: HP 64 / Atk 68 / Def 80 / SpA 52 / SpD 68 / Spe 65 (BST 397)
+ Level-Up Moves:
+ Lv 1 Peck; Lv 1 Leer; Lv 1 Rock Throw; Lv 4 Endure; Lv 8 Smack Down; Lv 12 Stealth Rock; Lv 16 Ancient Power; Lv 20 Tailwind; Lv 24 Rock Slide; Lv 28 Roost; Lv 32 Sandstorm; Lv 36 Aerial Ace; Lv 40 Stone Edge; Lv 44 Air Slash
+#012 — Gargryph
+Type: Rock / Flying
+ Evolution: —
+ Stats: HP 85 / Atk 113 / Def 118 / SpA 61 / SpD 78 / Spe 80 (BST 535)
+ Level-Up Moves:
+ Lv 1 Peck; Lv 1 Leer; Lv 1 Rock Throw; Lv 1 Endure; Lv 4 Smack Down; Lv 8 Stealth Rock; Lv 12 Ancient Power; Lv 16 Tailwind; Lv 20 Rock Slide; Lv 24 Roost; Lv 28 Sandstorm; Lv 32 Aerial Ace; Lv 36 Stone Edge; Lv 40 Air Slash; Lv 44 Brave Bird; Lv 48 Protect; Lv 52 Head Smash; Lv 56 Hurricane; Lv 60 Rock Tomb
+
+#013 — Threadle
+Type: Bug
+ Evolution: → #014 Silkreep (Lv. 7)
+ Stats: HP 47 / Atk 41 / Def 42 / SpA 58 / SpD 42 / Spe 40 (BST 270)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Harden; Lv 3 Struggle Bug; Lv 6 Endure; Lv 9 String Shot; Lv 12 Bug Bite; Lv 15 Protect; Lv 20 Fury Cutter; Lv 25 Silver Wind; Lv 30 Bug Buzz; Lv 35 Leech Life
+#014 — Silkreep
+Type: Bug
+ Evolution: → #015 Mothrave (Lv. 10)
+ Stats: HP 55 / Atk 49 / Def 60 / SpA 63 / SpD 55 / Spe 48 (BST 330)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Harden; Lv 1 Struggle Bug; Lv 4 Endure; Lv 8 Bug Bite; Lv 12 Protect; Lv 16 Fury Cutter; Lv 20 Silver Wind; Lv 24 Harden; Lv 28 X-Scissor; Lv 32 Bug Buzz; Lv 36 Leech Life; Lv 40 Quiver Dance; Lv 44 String Shot
+#015 — Mothrave
+Type: Bug / Psychic
+ Evolution: —
+ Stats: HP 75 / Atk 65 / Def 70 / SpA 120 / SpD 85 / Spe 95 (BST 510)
+ Level-Up Moves:
+ Lv 1 Gust; Lv 1 Confusion; Lv 1 Struggle Bug; Lv 1 Harden; Lv 4 Psybeam; Lv 8 Bug Bite; Lv 12 Reflect; Lv 16 Silver Wind; Lv 20 Bug Buzz; Lv 24 Light Screen; Lv 28 Air Slash; Lv 32 Calm Mind; Lv 36 Psychic; Lv 40 Quiver Dance; Lv 44 Future Sight; Lv 48 Roost; Lv 52 Protect; Lv 56 Hurricane; Lv 60 Dazzling Gleam
+
+#016 — Mossling
+Type: Grass
+ Evolution: → #017 Mosslush (Lv. 14)
+ Stats: HP 49 / Atk 37 / Def 57 / SpA 52 / SpD 58 / Spe 42 (BST 295)
+ Level-Up Moves:
+ Lv 1 Pound; Lv 1 Harden; Lv 3 Vine Whip; Lv 6 Endure; Lv 9 Growth; Lv 12 Razor Leaf; Lv 15 Absorb; Lv 20 Magical Leaf; Lv 25 Leech Seed; Lv 30 Giga Drain; Lv 35 Synthesis
+#017 — Mosslush
+Type: Grass
+ Evolution: → #018 Miregloop (Lv. 30)
+ Stats: HP 67 / Atk 50 / Def 72 / SpA 70 / SpD 80 / Spe 51 (BST 390)
+ Level-Up Moves:
+ Lv 1 Pound; Lv 1 Harden; Lv 1 Vine Whip; Lv 4 Endure; Lv 8 Growth; Lv 12 Leech Seed; Lv 16 Razor Leaf; Lv 20 Mega Drain; Lv 24 Magical Leaf; Lv 28 Protect; Lv 32 Giga Drain; Lv 36 Synthesis; Lv 40 Seed Bomb; Lv 44 Leaf Blade
+#018 — Miregloop
+Type: Grass / Rock
+ Evolution: —
+ Stats: HP 88 / Atk 92 / Def 118 / SpA 72 / SpD 95 / Spe 70 (BST 535)
+ Level-Up Moves:
+ Lv 1 Pound; Lv 1 Harden; Lv 1 Vine Whip; Lv 4 Endure; Lv 8 Rock Tomb; Lv 12 Leech Seed; Lv 16 Razor Leaf; Lv 20 Stealth Rock; Lv 24 Rock Slide; Lv 28 Mega Drain; Lv 32 Sandstorm; Lv 36 Seed Bomb; Lv 40 Giga Drain; Lv 44 Stone Edge; Lv 48 Synthesis; Lv 52 Power Whip; Lv 56 Protect; Lv 60 Head Smash
+
+#019 — Chickind
+Type: Normal
+ Evolution: → #020 Roostrik (Lv. 16)
+ Stats: HP 50 / Atk 55 / Def 44 / SpA 40 / SpD 41 / Spe 60 (BST 290)
+ Level-Up Moves:
+ Lv 1 Peck; Lv 1 Growl; Lv 3 Quick Attack; Lv 6 Tail Whip; Lv 9 Headbutt; Lv 12 Protect; Lv 15 Take Down; Lv 20 Work Up; Lv 25 Aerial Ace; Lv 30 Double-Edge; Lv 35 Roost
+#020 — Roostrik
+Type: Normal / Flying
+ Evolution: → #021 Aeroracle (Lv. 34)
+ Stats: HP 66 / Atk 78 / Def 60 / SpA 55 / SpD 55 / Spe 80 (BST 394)
+ Level-Up Moves:
+ Lv 1 Peck; Lv 1 Growl; Lv 1 Quick Attack; Lv 4 Tail Whip; Lv 8 Wing Attack; Lv 12 Headbutt; Lv 16 Aerial Ace; Lv 20 Tailwind; Lv 24 Work Up; Lv 28 Roost; Lv 32 Air Slash; Lv 36 Double-Edge; Lv 40 Brave Bird; Lv 44 Protect
+#021 — Aeroracle
+Type: Flying / Psychic
+ Evolution: —
+ Stats: HP 78 / Atk 70 / Def 72 / SpA 120 / SpD 95 / Spe 100 (BST 535)
+ Level-Up Moves:
+ Lv 1 Gust; Lv 1 Confusion; Lv 1 Peck; Lv 1 Growl; Lv 4 Psybeam; Lv 8 Wing Attack; Lv 12 Reflect; Lv 16 Aerial Ace; Lv 20 Tailwind; Lv 24 Air Slash; Lv 28 Calm Mind; Lv 32 Psychic; Lv 36 Roost; Lv 40 Future Sight; Lv 44 Light Screen; Lv 48 Hurricane; Lv 52 Protect; Lv 56 Brave Bird; Lv 60 Recover
+
+#022 — Sprigadet
+Type: Grass
+ Evolution: Lv. 20 holding Miracle Seed → Cerelodge; holding Metal Coat → Armaroust; holding Herb Pouch → Herbend
+ Stats: HP 52 / Atk 48 / Def 52 / SpA 55 / SpD 53 / Spe 55 (BST 315)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Growth; Lv 3 Vine Whip; Lv 6 Endure; Lv 9 Absorb; Lv 12 Razor Leaf; Lv 15 Leech Seed; Lv 20 Seed Bomb; Lv 25 Magical Leaf; Lv 30 Synthesis; Lv 35 Leaf Blade
+#023 — Cerelodge
+Type: Grass / Rock
+ Evolution: —
+ Stats: HP 88 / Atk 115 / Def 105 / SpA 70 / SpD 85 / Spe 70 (BST 533)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Growth; Lv 1 Vine Whip; Lv 1 Rock Throw; Lv 4 Endure; Lv 8 Razor Leaf; Lv 12 Rock Tomb; Lv 16 Leech Seed; Lv 20 Seed Bomb; Lv 24 Stealth Rock; Lv 28 Rock Slide; Lv 32 Synthesis; Lv 36 Power Whip; Lv 40 Stone Edge; Lv 44 Sandstorm; Lv 48 Protect; Lv 52 Head Smash; Lv 56 Solar Beam; Lv 60 Ancient Power
+#024 — Armaroust
+Type: Grass / Steel
+ Evolution: —
+ Stats: HP 80 / Atk 95 / Def 125 / SpA 65 / SpD 95 / Spe 70 (BST 530)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Growth; Lv 1 Vine Whip; Lv 1 Metal Claw; Lv 4 Endure; Lv 8 Razor Leaf; Lv 12 Iron Defense; Lv 16 Leech Seed; Lv 20 Seed Bomb; Lv 24 Gyro Ball; Lv 28 Iron Head; Lv 32 Synthesis; Lv 36 Power Whip; Lv 40 Flash Cannon; Lv 44 Protect; Lv 48 Heavy Slam; Lv 52 Solar Beam; Lv 56 Metal Sound; Lv 60 Leaf Blade
+#025 — Herbend
+Type: Grass / Poison
+ Evolution: —
+ Stats: HP 78 / Atk 75 / Def 80 / SpA 95 / SpD 95 / Spe 82 (BST 505)
+ Level-Up Moves:
+ Lv 1 Pound; Lv 1 Harden; Lv 3 Acid; Lv 6 Absorb; Lv 9 Smog; Lv 12 Growth; Lv 16 Mega Drain; Lv 20 Venoshock; Lv 24 Leech Seed; Lv 28 Magical Leaf; Lv 32 Synthesis; Lv 36 Sludge Bomb; Lv 40 Power Whip; Lv 44 Toxic; Lv 48 Leaf Blade; Lv 52 Sludge; Lv 56 Protect; Lv 60 Solar Beam
+
+Part 2 — Dex #026–#050
+#026 — Meowth (Thalorian Form)
+Type: Steel
+ Evolution: → #027 Ferrser (Lv. 28)
+ Stats: HP 55 / Atk 48 / Def 63 / SpA 46 / SpD 61 / Spe 47 (BST 320)
+ Level-Up Moves:
+ Lv 1 Scratch; Lv 1 Growl; Lv 3 Metal Claw; Lv 6 Tail Whip; Lv 9 Fury Swipes; Lv 12 Iron Defense; Lv 15 Metal Sound; Lv 20 Slash; Lv 25 Protect; Lv 30 Iron Head; Lv 35 Heavy Slam
+#027 — Ferrser
+Type: Steel
+ Evolution: —
+ Stats: HP 96 / Atk 81 / Def 100 / SpA 82 / SpD 100 / Spe 61 (BST 520)
+ Level-Up Moves:
+ Lv 1 Metal Claw; Lv 1 Scratch; Lv 1 Growl; Lv 1 Iron Defense; Lv 4 Fury Swipes; Lv 8 Metal Sound; Lv 12 Slash; Lv 16 Gyro Ball; Lv 20 Protect; Lv 24 Iron Head; Lv 28 Flash Cannon; Lv 32 Swords Dance; Lv 36 Heavy Slam; Lv 40 Rest
+
+#028 — Shinx
+Type: Electric
+ Evolution: → #029 Luxio (Lv. 15)
+ Stats: HP 42 / Atk 46 / Def 50 / SpA 55 / SpD 57 / Spe 70 (BST 320)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Leer; Lv 3 Thunder Shock; Lv 6 Charge; Lv 9 Bite; Lv 12 Spark; Lv 15 Thunder Wave; Lv 20 Electro Ball; Lv 25 Roar; Lv 30 Volt Switch; Lv 35 Discharge
+#029 — Luxio
+Type: Electric
+ Evolution: → #030 Luxray (Lv. 30)
+ Stats: HP 58 / Atk 77 / Def 61 / SpA 66 / SpD 61 / Spe 97 (BST 420)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Leer; Lv 1 Thunder Shock; Lv 4 Charge; Lv 8 Bite; Lv 12 Spark; Lv 16 Thunder Wave; Lv 20 Electro Ball; Lv 24 Roar; Lv 28 Volt Switch; Lv 32 Discharge; Lv 36 Crunch; Lv 40 Agility; Lv 44 Thunderbolt
+#030 — Luxray
+Type: Electric / Dark
+ Evolution: —
+ Stats: HP 81 / Atk 97 / Def 73 / SpA 91 / SpD 70 / Spe 108 (BST 520)
+ Level-Up Moves:
+ Lv 1 Thunder Shock; Lv 1 Bite; Lv 1 Leer; Lv 1 Charge; Lv 4 Spark; Lv 8 Thunder Wave; Lv 12 Volt Switch; Lv 16 Discharge; Lv 20 Crunch; Lv 24 Roar; Lv 28 Agility; Lv 32 Thunderbolt; Lv 36 Night Slash; Lv 40 Dark Pulse; Lv 44 Wild Charge; Lv 48 Protect; Lv 52 Magnet Rise; Lv 56 Thunder; Lv 60 Sucker Punch
+
+#031 — Glimlot
+Type: Water
+ Evolution: → #032 Fentotl (Lv. 18)
+ Stats: HP 54 / Atk 57 / Def 46 / SpA 64 / SpD 52 / Spe 47 (BST 320)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Tail Whip; Lv 3 Water Gun; Lv 6 Withdraw; Lv 9 Water Pulse; Lv 12 Aqua Jet; Lv 15 Protect; Lv 18 Brine; Lv 21 Bubble Beam; Lv 24 Whirlpool; Lv 27 Rain Dance; Lv 30 Surf; Lv 33 Aqua Tail; Lv 36 Hydro Pump
+#032 — Fentotl
+Type: Water / Dark
+ Evolution: → #033 Morbaxol (Lv. 36)
+ Stats: HP 76 / Atk 80 / Def 68 / SpA 63 / SpD 62 / Spe 71 (BST 420)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Water Gun; Lv 1 Leer; Lv 4 Withdraw; Lv 8 Water Pulse; Lv 12 Thief; Lv 16 Aqua Jet; Lv 20 Bubble Beam; Lv 24 Taunt; Lv 28 Brine; Lv 32 Crunch; Lv 36 Surf; Lv 40 Sucker Punch; Lv 44 Rain Dance
+#033 — Morbaxol
+Type: Water / Dark
+ Evolution: —
+ Stats: HP 100 / Atk 78 / Def 79 / SpA 80 / SpD 87 / Spe 96 (BST 520)
+ Level-Up Moves:
+ Lv 1 Water Gun; Lv 1 Thief; Lv 1 Leer; Lv 1 Withdraw; Lv 4 Water Pulse; Lv 8 Aqua Jet; Lv 12 Taunt; Lv 16 Bubble Beam; Lv 20 Crunch; Lv 24 Brine; Lv 28 Surf; Lv 32 Sucker Punch; Lv 36 Dark Pulse; Lv 40 Rain Dance; Lv 44 Liquidation; Lv 48 Protect; Lv 52 Nasty Plot; Lv 56 Hydro Pump; Lv 60 Knock Off
+
+#034 — Snarlil
+Type: Fighting
+ Evolution: → #035 Tasmor (Lv. 18)
+ Stats: HP 53 / Atk 60 / Def 60 / SpA 47 / SpD 48 / Spe 52 (BST 320)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Leer; Lv 3 Rock Smash; Lv 6 Low Kick; Lv 9 Work Up; Lv 12 Mach Punch; Lv 15 Protect; Lv 18 Brick Break; Lv 21 Low Sweep; Lv 24 Bulk Up; Lv 27 Drain Punch; Lv 30 Counter; Lv 33 Close Combat
+#035 — Tasmor
+Type: Fighting
+ Evolution: → #036 Devastan (Lv. 38)
+ Stats: HP 75 / Atk 76 / Def 76 / SpA 68 / SpD 62 / Spe 63 (BST 420)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Leer; Lv 1 Rock Smash; Lv 4 Low Kick; Lv 8 Work Up; Lv 12 Mach Punch; Lv 16 Brick Break; Lv 20 Low Sweep; Lv 24 Bulk Up; Lv 28 Drain Punch; Lv 32 Protect; Lv 36 Counter; Lv 40 Close Combat; Lv 44 Dynamic Punch
+#036 — Devastan
+Type: Fighting / Rock
+ Evolution: —
+ Stats: HP 91 / Atk 117 / Def 99 / SpA 60 / SpD 73 / Spe 80 (BST 520)
+ Level-Up Moves:
+ Lv 1 Rock Smash; Lv 1 Low Kick; Lv 1 Rock Throw; Lv 1 Leer; Lv 4 Mach Punch; Lv 8 Rock Tomb; Lv 12 Brick Break; Lv 16 Bulk Up; Lv 20 Rock Slide; Lv 24 Drain Punch; Lv 28 Protect; Lv 32 Stone Edge; Lv 36 Counter; Lv 40 Close Combat; Lv 44 Sandstorm; Lv 48 Stealth Rock; Lv 52 Dynamic Punch; Lv 56 Head Smash; Lv 60 Detect
+
+#037 — Spikimp
+Type: Dark / Electric
+ Evolution: → #038 Spiklash (Lv. 18)
+ Stats: HP 45 / Atk 55 / Def 40 / SpA 45 / SpD 40 / Spe 75 (BST 300)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Leer; Lv 3 Thunder Shock; Lv 6 Charge; Lv 9 Thief; Lv 12 Spark; Lv 15 Taunt; Lv 18 Thunder Wave; Lv 21 Volt Switch; Lv 24 Bite; Lv 27 Electro Ball; Lv 30 Sucker Punch; Lv 33 Discharge; Lv 36 Crunch
+#038 — Spiklash
+Type: Dark / Electric
+ Evolution: → #039 Voltigar (Lv. 36)
+ Stats: HP 65 / Atk 90 / Def 65 / SpA 60 / SpD 60 / Spe 100 (BST 440)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Leer; Lv 1 Thunder Shock; Lv 4 Charge; Lv 8 Spark; Lv 12 Thief; Lv 16 Taunt; Lv 20 Thunder Wave; Lv 24 Volt Switch; Lv 28 Bite; Lv 32 Discharge; Lv 36 Crunch; Lv 40 Agility; Lv 44 Sucker Punch
+#039 — Voltigar
+Type: Dark / Electric
+ Evolution: —
+ Stats: HP 85 / Atk 125 / Def 85 / SpA 80 / SpD 80 / Spe 115 (BST 570)
+ Level-Up Moves:
+ Lv 1 Thunder Shock; Lv 1 Thief; Lv 1 Leer; Lv 1 Charge; Lv 4 Spark; Lv 8 Taunt; Lv 12 Thunder Wave; Lv 16 Volt Switch; Lv 20 Crunch; Lv 24 Discharge; Lv 28 Agility; Lv 32 Dark Pulse; Lv 36 Thunderbolt; Lv 40 Sucker Punch; Lv 44 Wild Charge; Lv 48 Protect; Lv 52 Nasty Plot; Lv 56 Magnet Rise; Lv 60 Thunder
+
+#040 — Scorillet
+Type: Fire
+ Evolution: → #041 Cindermaw (Lv. 28)
+ Stats: HP 51 / Atk 57 / Def 52 / SpA 58 / SpD 45 / Spe 57 (BST 320)
+ Level-Up Moves:
+ Lv 1 Scratch; Lv 1 Growl; Lv 4 Ember; Lv 7 Smokescreen; Lv 10 Flame Charge; Lv 13 Fire Spin; Lv 16 Bite; Lv 20 Flame Burst; Lv 24 Protect; Lv 28 Incinerate; Lv 32 Fire Fang; Lv 36 Flamethrower
+#041 — Cindermaw
+Type: Fire / Rock
+ Evolution: —
+ Stats: HP 71 / Atk 112 / Def 102 / SpA 69 / SpD 69 / Spe 97 (BST 520)
+ Level-Up Moves:
+ Lv 1 Scratch; Lv 1 Ember; Lv 1 Rock Throw; Lv 1 Growl; Lv 4 Smokescreen; Lv 8 Flame Charge; Lv 12 Rock Tomb; Lv 16 Fire Spin; Lv 20 Rock Slide; Lv 24 Flame Burst; Lv 28 Protect; Lv 32 Flamethrower; Lv 36 Stone Edge; Lv 40 Fire Fang; Lv 44 Sandstorm; Lv 48 Will-O-Wisp; Lv 52 Overheat; Lv 56 Head Smash; Lv 60 Flare Blitz
+
+#042 — Ripplet
+Type: Water
+ Evolution: → #043 Currentide (Lv. 18)
+ Stats: HP 52 / Atk 54 / Def 59 / SpA 51 / SpD 52 / Spe 52 (BST 320)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Tail Whip; Lv 3 Water Gun; Lv 6 Withdraw; Lv 9 Bubble; Lv 12 Water Pulse; Lv 15 Protect; Lv 18 Bubble Beam; Lv 21 Brine; Lv 24 Whirlpool; Lv 27 Rain Dance; Lv 30 Surf; Lv 33 Aqua Tail; Lv 36 Hydro Pump
+#043 — Currentide
+Type: Water
+ Evolution: → #044 Brineel (Lv. 36)
+ Stats: HP 70 / Atk 58 / Def 70 / SpA 69 / SpD 85 / Spe 68 (BST 420)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Tail Whip; Lv 1 Water Gun; Lv 4 Withdraw; Lv 8 Water Pulse; Lv 12 Protect; Lv 16 Bubble Beam; Lv 20 Brine; Lv 24 Rain Dance; Lv 28 Whirlpool; Lv 32 Surf; Lv 36 Aqua Tail; Lv 40 Rest; Lv 44 Hydro Pump
+#044 — Brineel
+Type: Water
+ Evolution: —
+ Stats: HP 94 / Atk 88 / Def 86 / SpA 89 / SpD 89 / Spe 74 (BST 520)
+ Level-Up Moves (cleaned to remove repeated loop):
+ Lv 1 Water Gun; Lv 1 Water Pulse; Lv 1 Withdraw; Lv 1 Tail Whip; Lv 4 Protect; Lv 8 Bubble Beam; Lv 12 Brine; Lv 16 Rain Dance; Lv 20 Surf; Lv 24 Whirlpool; Lv 28 Aqua Tail; Lv 32 Hydro Pump; Lv 36 Rest; Lv 40 Liquidation
+
+#045 — Skerrfin
+Type: Water
+ Evolution: → #046 Gutterray (Lv. 26)
+ Stats: HP 53 / Atk 46 / Def 57 / SpA 52 / SpD 65 / Spe 47 (BST 320)
+ Level-Up Moves:
+ Lv 1 Tackle; Lv 1 Tail Whip; Lv 3 Water Gun; Lv 6 Bubble; Lv 9 Aqua Jet; Lv 12 Water Pulse; Lv 15 Protect; Lv 18 Brine; Lv 21 Bubble Beam; Lv 24 Whirlpool; Lv 27 Rain Dance; Lv 30 Surf; Lv 33 Aqua Tail; Lv 36 Hydro Pump
+#046 — Gutterray
+Type: Water / Poison
+ Evolution: → #047 Reefwisp (Lv. 40)
+ Stats: HP 75 / Atk 59 / Def 79 / SpA 82 / SpD 67 / Spe 58 (BST 420)
+ Level-Up Moves:
+ Lv 1 Water Gun; Lv 1 Poison Sting; Lv 1 Tail Whip; Lv 4 Smog; Lv 8 Water Pulse; Lv 12 Acid; Lv 16 Protect; Lv 20 Bubble Beam; Lv 24 Venoshock; Lv 28 Brine; Lv 32 Toxic Spikes; Lv 36 Surf; Lv 40 Sludge Bomb; Lv 44 Rain Dance
+#047 — Reefwisp
+Type: Water / Fairy
+ Evolution: —
+ Stats: HP 100 / Atk 69 / Def 82 / SpA 95 / SpD 106 / Spe 68 (BST 520)
+ Level-Up Moves:
+ Lv 1 Water Gun; Lv 1 Fairy Wind; Lv 1 Tail Whip; Lv 1 Protect; Lv 4 Water Pulse; Lv 8 Disarming Voice; Lv 12 Bubble Beam; Lv 16 Draining Kiss; Lv 20 Surf; Lv 24 Misty Terrain; Lv 28 Dazzling Gleam; Lv 32 Rain Dance; Lv 36 Moonblast; Lv 40 Aqua Tail; Lv 44 Aromatherapy; Lv 48 Protect; Lv 52 Hydro Pump; Lv 56 Calm Mind; Lv 60 Wish
+
+#048 — Oracub
+Type: Psychic
+ Evolution: → #049 Augurusk (Lv. 24)
+ Stats: HP 45 / Atk 45 / Def 49 / SpA 65 / SpD 69 / Spe 47 (BST 320)
+ Level-Up Moves:
+ Lv 1 Pound; Lv 1 Leer; Lv 3 Confusion; Lv 6 Calm Mind; Lv 9 Psybeam; Lv 12 Reflect; Lv 15 Protect; Lv 18 Psyshock; Lv 21 Light Screen; Lv 24 Psychic; Lv 27 Future Sight; Lv 30 Recover; Lv 33 Take Down; Lv 36 Zen Headbutt
+#049 — Augurusk
+Type: Psychic / Rock
+ Evolution: —
+ Stats: HP 86 / Atk 94 / Def 92 / SpA 85 / SpD 90 / Spe 73 (BST 520)
+ Level-Up Moves:
+ Lv 1 Confusion; Lv 1 Rock Throw; Lv 1 Leer; Lv 1 Protect; Lv 4 Psybeam; Lv 8 Rock Tomb; Lv 12 Reflect; Lv 16 Ancient Power; Lv 20 Psyshock; Lv 24 Rock Slide; Lv 28 Calm Mind; Lv 32 Psychic; Lv 36 Stone Edge; Lv 40 Future Sight; Lv 44 Sandstorm; Lv 48 Recover; Lv 52 Head Smash; Lv 56 Light Screen; Lv 60 Protect
+#050 — Runeling
+Type: Psychic
+ Evolution: —
+ Stats: HP 74 / Atk 60 / Def 65 / SpA 90 / SpD 95 / Spe 76 (BST 460)
+ Level-Up Moves:
+ Lv 1 Pound; Lv 1 Growl; Lv 3 Confusion; Lv 6 Psybeam; Lv 9 Reflect; Lv 12 Light Screen; Lv 15 Protect; Lv 20 Calm Mind; Lv 25 Psyshock; Lv 30 Psychic; Lv 35 Future Sight; Lv 40 Recover; Lv 45 Dazzling Gleam; Lv 50 Rest; Lv 55 Substitute; Lv 60 Protect
+
+Dex #051–#075
+#051 — Pixsprout
+Type: Fairy / Grass
+ Evolution: → #052 Gladerin (Lv. 18)
+ Stats: HP 52 / Atk 58 / Def 45 / SpA 65 / SpD 50 / Spe 50 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 3 Vine Whip; Lv 6 Leech Seed; Lv 9 Fairy Wind; Lv 12 Protect; Lv 15 Magical Leaf; Lv 20 Draining Kiss; Lv 25 Dazzling Gleam; Lv 30 Synthesis; Lv 35 Play Rough
+#052 — Gladerin
+Type: Fairy / Grass
+ Evolution: → #053 Lullivy (Lv. 36)
+ Stats: HP 62 / Atk 68 / Def 58 / SpA 88 / SpD 72 / Spe 52 (BST 400)
+ Moves: Lv 1 Peck; Lv 1 Growl; Lv 1 Fairy Wind; Lv 4 Leech Seed; Lv 8 Vine Whip; Lv 12 Protect; Lv 16 Draining Kiss; Lv 20 Magical Leaf; Lv 24 Misty Terrain; Lv 28 Dazzling Gleam; Lv 32 Synthesis; Lv 36 Play Rough; Lv 40 Aromatherapy; Lv 44 Moonblast
+#053 — Lullivy
+Type: Fairy / Grass
+ Evolution: —
+ Stats: HP 88 / Atk 74 / Def 74 / SpA 112 / SpD 102 / Spe 85 (BST 535)
+ Moves: Lv 1 Peck; Lv 1 Fairy Wind; Lv 1 Vine Whip; Lv 1 Leech Seed; Lv 4 Draining Kiss; Lv 8 Magical Leaf; Lv 12 Protect; Lv 16 Dazzling Gleam; Lv 20 Synthesis; Lv 24 Misty Terrain; Lv 28 Calm Mind; Lv 32 Play Rough; Lv 36 Moonblast; Lv 40 Aromatherapy; Lv 44 Solar Beam; Lv 48 Wish; Lv 52 Roost; Lv 56 Substitute; Lv 60 Protect
+#054 — Pebblit
+Type: Rock
+ Evolution: → #055 Cairnox (Lv. 18)
+ Stats: HP 46 / Atk 63 / Def 64 / SpA 36 / SpD 51 / Spe 60 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 3 Rock Throw; Lv 6 Rock Tomb; Lv 9 Endure; Lv 12 Sandstorm; Lv 15 Protect; Lv 20 Rock Slide; Lv 25 Stealth Rock; Lv 30 Stone Edge; Lv 35 Head Smash
+#055 — Cairnox
+Type: Rock
+ Evolution: → #056 Monolithorn (Lv. 38)
+ Stats: HP 70 / Atk 88 / Def 90 / SpA 40 / SpD 72 / Spe 60 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 1 Rock Throw; Lv 4 Rock Tomb; Lv 8 Endure; Lv 12 Sandstorm; Lv 16 Protect; Lv 20 Rock Slide; Lv 24 Stealth Rock; Lv 28 Ancient Power; Lv 32 Stone Edge; Lv 36 Take Down; Lv 40 Head Smash; Lv 44 Sandstorm
+#056 — Monolithorn
+Type: Rock / Steel
+ Evolution: —
+ Stats: HP 90 / Atk 116 / Def 135 / SpA 42 / SpD 82 / Spe 70 (BST 535)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 1 Rock Throw; Lv 1 Metal Claw; Lv 4 Rock Tomb; Lv 8 Iron Defense; Lv 12 Protect; Lv 16 Rock Slide; Lv 20 Stealth Rock; Lv 24 Gyro Ball; Lv 28 Iron Head; Lv 32 Sandstorm; Lv 36 Stone Edge; Lv 40 Heavy Slam; Lv 44 Flash Cannon; Lv 48 Head Smash; Lv 52 Iron Defense; Lv 56 Protect; Lv 60 Sandstorm
+#057 — Driftkit
+Type: Ghost
+ Evolution: → #058 Shadewick (Lv. 26)
+ Stats: HP 48 / Atk 45 / Def 45 / SpA 70 / SpD 55 / Spe 57 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 3 Astonish; Lv 6 Night Shade; Lv 9 Confuse Ray; Lv 12 Protect; Lv 15 Hex; Lv 20 Will-O-Wisp; Lv 25 Shadow Ball; Lv 30 Destiny Bond; Lv 35 Protect
+#058 — Shadewick
+Type: Ghost / Fire
+ Evolution: —
+ Stats: HP 78 / Atk 62 / Def 70 / SpA 112 / SpD 88 / Spe 90 (BST 500)
+ Moves (cleaned to remove repeated loop):
+ Lv 1 Astonish; Lv 1 Ember; Lv 1 Harden; Lv 1 Protect; Lv 4 Night Shade; Lv 8 Confuse Ray; Lv 12 Fire Spin; Lv 16 Hex; Lv 20 Will-O-Wisp; Lv 24 Flame Burst; Lv 28 Shadow Ball; Lv 32 Flamethrower; Lv 36 Destiny Bond; Lv 40 Overheat; Lv 44 Protect; Lv 60 Rest
+#059 — Bristlet
+Type: Bug / Rock
+ Evolution: → #060 Cragcarap (Lv. 18)
+ Stats: HP 50 / Atk 55 / Def 70 / SpA 40 / SpD 55 / Spe 50 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 3 Struggle Bug; Lv 6 Rock Throw; Lv 9 Endure; Lv 12 Bug Bite; Lv 15 Rock Tomb; Lv 20 Protect; Lv 25 Rock Slide; Lv 30 X-Scissor; Lv 35 Stone Edge
+#060 — Cragcarap
+Type: Bug / Rock
+ Evolution: → #061 Bastilisk (Lv. 40)
+ Stats: HP 72 / Atk 80 / Def 92 / SpA 55 / SpD 71 / Spe 50 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 1 Struggle Bug; Lv 4 Rock Throw; Lv 8 Bug Bite; Lv 12 Rock Tomb; Lv 16 Protect; Lv 20 Rock Slide; Lv 24 Fury Cutter; Lv 28 Stealth Rock; Lv 32 X-Scissor; Lv 36 Stone Edge; Lv 40 Sandstorm; Lv 44 Bug Buzz
+#061 — Bastilisk
+Type: Bug / Rock
+ Evolution: —
+ Stats: HP 92 / Atk 112 / Def 118 / SpA 62 / SpD 89 / Spe 62 (BST 535)
+ Moves (cleaned to remove repeated loop):
+ Lv 1 Tackle; Lv 1 Harden; Lv 1 Struggle Bug; Lv 1 Rock Throw; Lv 4 Bug Bite; Lv 8 Rock Tomb; Lv 12 Protect; Lv 16 Rock Slide; Lv 20 Stealth Rock; Lv 24 X-Scissor; Lv 28 Sandstorm; Lv 32 Stone Edge; Lv 36 Bug Buzz; Lv 40 Head Smash; Lv 44 Quiver Dance; Lv 48 Protect; Lv 60 Rest
+#062 — Budgeon
+Type: Normal / Flying
+ Evolution: → #063 Skylark (Lv. 18)
+ Stats: HP 52 / Atk 55 / Def 45 / SpA 40 / SpD 45 / Spe 83 (BST 320)
+ Moves: Lv 1 Peck; Lv 1 Growl; Lv 3 Quick Attack; Lv 6 Wing Attack; Lv 9 Tailwind; Lv 12 Protect; Lv 15 Aerial Ace; Lv 20 Roost; Lv 25 Air Slash; Lv 30 Brave Bird; Lv 35 Protect
+#063 — Skylark
+Type: Normal / Flying
+ Evolution: → #064 Galecrest (Lv. 36)
+ Stats: HP 68 / Atk 80 / Def 60 / SpA 55 / SpD 65 / Spe 92 (BST 420)
+ Moves: Lv 1 Peck; Lv 1 Growl; Lv 1 Quick Attack; Lv 4 Wing Attack; Lv 8 Tailwind; Lv 12 Protect; Lv 16 Aerial Ace; Lv 20 Roost; Lv 24 Air Slash; Lv 28 Take Down; Lv 32 Brave Bird; Lv 36 Double-Edge; Lv 40 Tailwind; Lv 44 Protect
+#064 — Galecrest
+Type: Flying
+ Evolution: —
+ Stats: HP 86 / Atk 112 / Def 78 / SpA 60 / SpD 80 / Spe 119 (BST 535)
+ Moves (cleaned):
+ Lv 1 Peck; Lv 1 Quick Attack; Lv 1 Wing Attack; Lv 1 Tailwind; Lv 4 Aerial Ace; Lv 8 Roost; Lv 12 Protect; Lv 16 Air Slash; Lv 20 Brave Bird; Lv 24 Tailwind; Lv 28 Take Down; Lv 32 Hurricane; Lv 36 Double-Edge; Lv 40 Roost; Lv 44 Protect; Lv 56 Substitute; Lv 60 Rest
+#065 — Burrowbit
+Type: Ground
+ Evolution: → #066 Dunejack (Lv. 22)
+ Stats: HP 52 / Atk 58 / Def 55 / SpA 40 / SpD 50 / Spe 65 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Sand Attack; Lv 3 Mud-Slap; Lv 6 Bulldoze; Lv 9 Protect; Lv 12 Dig; Lv 15 Sandstorm; Lv 20 Mud Bomb; Lv 25 Earthquake; Lv 30 Protect; Lv 35 Earth Power
+#066 — Dunejack
+Type: Ground
+ Evolution: —
+ Stats: HP 88 / Atk 110 / Def 90 / SpA 55 / SpD 82 / Spe 85 (BST 510)
+ Moves (cleaned to remove repeated end-loop):
+ Lv 1 Tackle; Lv 1 Sand Attack; Lv 1 Mud-Slap; Lv 1 Protect; Lv 4 Bulldoze; Lv 8 Dig; Lv 12 Sandstorm; Lv 16 Mud Bomb; Lv 24 Earthquake; Lv 28 Earth Power; Lv 36 Rest; Lv 52 Substitute
+#067 — Spritzap
+Type: Electric / Fairy
+ Evolution: → #068 Glimmerk (Lv. 18)
+ Stats: HP 46 / Atk 42 / Def 46 / SpA 72 / SpD 64 / Spe 50 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growl; Lv 3 Thunder Shock; Lv 6 Charge; Lv 9 Fairy Wind; Lv 12 Protect; Lv 15 Thunder Wave; Lv 20 Disarming Voice; Lv 25 Dazzling Gleam; Lv 30 Thunderbolt; Lv 35 Wish
+#068 — Glimmerk
+Type: Electric / Fairy
+ Evolution: → #069 Prismalia (Lv. 36)
+ Stats: HP 60 / Atk 55 / Def 60 / SpA 95 / SpD 75 / Spe 75 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Thunder Shock; Lv 1 Fairy Wind; Lv 4 Charge; Lv 8 Protect; Lv 12 Thunder Wave; Lv 16 Disarming Voice; Lv 20 Volt Switch; Lv 24 Draining Kiss; Lv 28 Dazzling Gleam; Lv 32 Thunderbolt; Lv 36 Misty Terrain; Lv 40 Wish; Lv 44 Protect
+#069 — Prismalia
+Type: Electric / Fairy
+ Evolution: —
+ Stats: HP 80 / Atk 70 / Def 78 / SpA 118 / SpD 95 / Spe 94 (BST 535)
+ Moves: Lv 1 Thunder Shock; Lv 1 Fairy Wind; Lv 1 Charge; Lv 1 Protect; Lv 4 Thunder Wave; Lv 8 Disarming Voice; Lv 12 Volt Switch; Lv 16 Draining Kiss; Lv 20 Dazzling Gleam; Lv 24 Thunderbolt; Lv 28 Misty Terrain; Lv 32 Calm Mind; Lv 36 Thunder; Lv 40 Moonblast; Lv 44 Magnet Rise; Lv 48 Wish; Lv 52 Protect; Lv 56 Substitute; Lv 60 Rest
+#070 — Bramblet
+Type: Grass / Dark
+ Evolution: → #071 Thornshad (Lv. 18)
+ Stats: HP 48 / Atk 60 / Def 50 / SpA 52 / SpD 50 / Spe 60 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 3 Vine Whip; Lv 6 Leech Seed; Lv 9 Thief; Lv 12 Protect; Lv 15 Razor Leaf; Lv 20 Taunt; Lv 25 Seed Bomb; Lv 30 Night Slash; Lv 35 Crunch
+#071 — Thornshad
+Type: Grass / Dark
+ Evolution: → #072 Briarovere (Lv. 38)
+ Stats: HP 68 / Atk 82 / Def 72 / SpA 70 / SpD 70 / Spe 58 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 1 Vine Whip; Lv 4 Leech Seed; Lv 8 Thief; Lv 12 Protect; Lv 16 Razor Leaf; Lv 20 Taunt; Lv 24 Seed Bomb; Lv 28 Night Slash; Lv 32 Crunch; Lv 36 Synthesis; Lv 40 Dark Pulse; Lv 44 Protect
+#072 — Briarovere
+Type: Grass / Dark
+ Evolution: —
+ Stats: HP 90 / Atk 112 / Def 96 / SpA 82 / SpD 85 / Spe 70 (BST 535)
+ Moves (cleaned):
+ Lv 1 Tackle; Lv 1 Growth; Lv 1 Vine Whip; Lv 1 Thief; Lv 4 Leech Seed; Lv 8 Razor Leaf; Lv 12 Protect; Lv 16 Taunt; Lv 20 Seed Bomb; Lv 24 Night Slash; Lv 28 Crunch; Lv 32 Synthesis; Lv 36 Dark Pulse; Lv 40 Power Whip; Lv 44 Protect; Lv 48 Solar Beam; Lv 52 Substitute; Lv 56 Rest
+#073 — Kelpip
+Type: Water / Grass
+ Evolution: → #074 Seasilk (Lv. 24)
+ Stats: HP 50 / Atk 50 / Def 55 / SpA 70 / SpD 55 / Spe 40 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 3 Water Gun; Lv 6 Vine Whip; Lv 9 Withdraw; Lv 12 Protect; Lv 15 Water Pulse; Lv 20 Mega Drain; Lv 25 Bubble Beam; Lv 30 Giga Drain; Lv 35 Surf
+#074 — Seasilk
+Type: Water / Grass
+ Evolution: —
+ Stats: HP 80 / Atk 70 / Def 80 / SpA 110 / SpD 95 / Spe 75 (BST 510)
+ Moves: Lv 1 Water Gun; Lv 1 Vine Whip; Lv 1 Growth; Lv 1 Protect; Lv 4 Water Pulse; Lv 8 Mega Drain; Lv 12 Bubble Beam; Lv 16 Leech Seed; Lv 20 Giga Drain; Lv 24 Surf; Lv 28 Rain Dance; Lv 32 Seed Bomb; Lv 36 Aqua Tail; Lv 40 Synthesis; Lv 44 Protect; Lv 48 Hydro Pump; Lv 52 Solar Beam; Lv 56 Substitute; Lv 60 Rest
+#075 — Frostlet
+Type: Ice
+ Evolution: → #076 Mycelurk (Lv. 28)
+ Stats: HP 50 / Atk 60 / Def 50 / SpA 60 / SpD 50 / Spe 50 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growl; Lv 3 Powder Snow; Lv 6 Icy Wind; Lv 9 Protect; Lv 12 Ice Shard; Lv 15 Hail; Lv 20 Frost Breath; Lv 25 Ice Beam; Lv 30 Protect; Lv 35 Blizzard
+
+Part 3B — Dex #076–#100
+#076 — Mycelurk
+Type: Grass / Poison
+ Evolution: → #077 Sporegnash (Lv. 28)
+ Stats: HP 70 / Atk 65 / Def 75 / SpA 85 / SpD 75 / Spe 50 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 1 Vine Whip; Lv 4 Leech Seed; Lv 8 Poison Sting; Lv 12 Protect; Lv 16 Mega Drain; Lv 20 Venoshock; Lv 24 Toxic Spikes; Lv 28 Seed Bomb; Lv 32 Sludge Bomb; Lv 36 Synthesis; Lv 40 Giga Drain; Lv 44 Toxic
+#077 — Sporegnash
+Type: Grass / Poison
+ Evolution: —
+ Stats: HP 92 / Atk 106 / Def 98 / SpA 82 / SpD 92 / Spe 65 (BST 535)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 1 Vine Whip; Lv 1 Poison Sting; Lv 4 Leech Seed; Lv 8 Mega Drain; Lv 12 Protect; Lv 16 Venoshock; Lv 20 Toxic Spikes; Lv 24 Seed Bomb; Lv 28 Sludge Bomb; Lv 32 Synthesis; Lv 36 Giga Drain; Lv 40 Toxic; Lv 44 Power Whip; Lv 48 Protect; Lv 52 Solar Beam; Lv 56 Substitute; Lv 60 Rest
+#078 — Glintoad
+Type: Water / Fairy
+ Evolution: Use Dusk Stone → #079 Murkrow (Thalorian Form)
+ Stats: HP 50 / Atk 45 / Def 55 / SpA 65 / SpD 55 / Spe 50 (BST 320)
+ Moves: Lv 1 Pound; Lv 1 Growl; Lv 3 Water Gun; Lv 6 Fairy Wind; Lv 9 Protect; Lv 12 Bubble; Lv 15 Disarming Voice; Lv 20 Bubble Beam; Lv 25 Misty Terrain; Lv 30 Dazzling Gleam; Lv 35 Surf
+#079 — Murkrow (Thalorian Form)
+Type: Poison / Dark
+ Evolution: → #080 Honchkrow (Thalorian Form) (Lv. 32)
+ Stats: HP 60 / Atk 70 / Def 60 / SpA 65 / SpD 60 / Spe 65 (BST 380)
+ Moves: Lv 1 Peck; Lv 1 Leer; Lv 3 Poison Sting; Lv 6 Smog; Lv 9 Thief; Lv 12 Protect; Lv 15 Venoshock; Lv 20 Taunt; Lv 25 Sludge; Lv 30 Knock Off; Lv 35 Toxic; Lv 40 Crunch; Lv 45 Sludge Bomb; Lv 50 Sucker Punch
+#080 — Honchkrow (Thalorian Form)
+Type: Poison / Dark
+ Evolution: —
+ Stats: HP 90 / Atk 120 / Def 85 / SpA 70 / SpD 85 / Spe 85 (BST 535)
+ Moves: Lv 1 Peck; Lv 1 Poison Sting; Lv 1 Thief; Lv 1 Protect; Lv 4 Smog; Lv 8 Venoshock; Lv 12 Taunt; Lv 16 Sludge; Lv 20 Knock Off; Lv 24 Toxic; Lv 28 Crunch; Lv 32 Sludge Bomb; Lv 36 Sucker Punch; Lv 40 Dark Pulse; Lv 44 Protect; Lv 48 Gunk Shot; Lv 52 Nasty Plot; Lv 56 Substitute; Lv 60 Rest
+#081 — Puffsage
+Type: Grass / Psychic
+ Evolution: → #082 Dreamdill (Lv. 35)
+ Stats: HP 48 / Atk 42 / Def 50 / SpA 78 / SpD 62 / Spe 40 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 3 Confusion; Lv 6 Vine Whip; Lv 9 Protect; Lv 12 Psybeam; Lv 15 Leech Seed; Lv 20 Magical Leaf; Lv 25 Reflect; Lv 30 Psychic; Lv 35 Calm Mind
+#082 — Dreamdill
+Type: Grass / Psychic
+ Evolution: → #083 Sageveil (Lv. 45)
+ Stats: HP 70 / Atk 60 / Def 70 / SpA 105 / SpD 85 / Spe 55 (BST 445)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 1 Confusion; Lv 4 Vine Whip; Lv 8 Psybeam; Lv 12 Protect; Lv 16 Leech Seed; Lv 20 Magical Leaf; Lv 24 Reflect; Lv 28 Calm Mind; Lv 32 Psychic; Lv 36 Light Screen; Lv 40 Future Sight; Lv 44 Synthesis
+#083 — Sageveil
+Type: Grass / Psychic
+ Evolution: —
+ Stats: HP 85 / Atk 70 / Def 85 / SpA 120 / SpD 105 / Spe 70 (BST 535)
+ Moves: Lv 1 Confusion; Lv 1 Vine Whip; Lv 1 Growth; Lv 1 Protect; Lv 4 Psybeam; Lv 8 Leech Seed; Lv 12 Magical Leaf; Lv 16 Reflect; Lv 20 Calm Mind; Lv 24 Psychic; Lv 28 Light Screen; Lv 32 Future Sight; Lv 36 Synthesis; Lv 40 Giga Drain; Lv 44 Protect; Lv 48 Solar Beam; Lv 52 Substitute; Lv 56 Rest; Lv 60 Protect
+#084 — Raggle
+Type: Normal / Bug
+ Evolution: → #085 Stitchurn (Lv. 20)
+ Stats: HP 52 / Atk 50 / Def 50 / SpA 45 / SpD 45 / Spe 78 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 String Shot; Lv 3 Struggle Bug; Lv 6 Protect; Lv 9 Bug Bite; Lv 12 Quick Attack; Lv 15 Endure; Lv 20 Fury Cutter; Lv 25 X-Scissor; Lv 30 Bug Buzz; Lv 35 Protect
+#085 — Stitchurn
+Type: Bug / Ghost
+ Evolution: → #086 Seamreap (Lv. 40)
+ Stats: HP 70 / Atk 80 / Def 70 / SpA 70 / SpD 70 / Spe 60 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Struggle Bug; Lv 1 Astonish; Lv 4 Protect; Lv 8 Bug Bite; Lv 12 Confuse Ray; Lv 16 Fury Cutter; Lv 20 Hex; Lv 24 X-Scissor; Lv 28 Shadow Ball; Lv 32 Will-O-Wisp; Lv 36 Bug Buzz; Lv 40 Destiny Bond; Lv 44 Protect
+#086 — Seamreap
+Type: Bug / Ghost
+ Evolution: —
+ Stats: HP 88 / Atk 112 / Def 92 / SpA 92 / SpD 86 / Spe 65 (BST 535)
+ Moves: Lv 1 Struggle Bug; Lv 1 Astonish; Lv 1 Protect; Lv 1 Confuse Ray; Lv 4 Bug Bite; Lv 8 Fury Cutter; Lv 12 Hex; Lv 16 X-Scissor; Lv 20 Shadow Ball; Lv 24 Will-O-Wisp; Lv 28 Bug Buzz; Lv 32 Destiny Bond; Lv 36 Leech Life; Lv 40 Protect; Lv 52 Substitute; Lv 56 Rest; Lv 60 Protect
+#087 — Puddlepup
+Type: Water / Ground
+ Evolution: → #088 Mudmutt (Lv. 24)
+ Stats: HP 55 / Atk 55 / Def 55 / SpA 50 / SpD 50 / Spe 55 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Tail Whip; Lv 3 Water Gun; Lv 6 Mud-Slap; Lv 9 Protect; Lv 12 Water Pulse; Lv 15 Bulldoze; Lv 20 Mud Bomb; Lv 25 Bubble Beam; Lv 30 Dig; Lv 35 Surf
+#088 — Mudmutt
+Type: Water / Ground
+ Evolution: —
+ Stats: HP 90 / Atk 105 / Def 95 / SpA 70 / SpD 80 / Spe 70 (BST 510)
+ Moves: Lv 1 Tackle; Lv 1 Water Gun; Lv 1 Mud-Slap; Lv 1 Protect; Lv 4 Water Pulse; Lv 8 Bulldoze; Lv 12 Mud Bomb; Lv 16 Bubble Beam; Lv 20 Dig; Lv 24 Surf; Lv 28 Sandstorm; Lv 32 Earthquake; Lv 36 Aqua Tail; Lv 40 Protect; Lv 44 Earth Power; Lv 48 Substitute; Lv 52 Rest; Lv 56 Protect; Lv 60 Earthquake
+#089 — Cavernip
+Type: Rock / Ground
+ Evolution: → #090 Drillersk (Lv. 18)
+ Stats: HP 55 / Atk 60 / Def 60 / SpA 40 / SpD 50 / Spe 55 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 3 Rock Throw; Lv 6 Mud-Slap; Lv 9 Rock Tomb; Lv 12 Protect; Lv 15 Bulldoze; Lv 20 Dig; Lv 25 Rock Slide; Lv 30 Sandstorm; Lv 35 Earthquake
+#090 — Drillersk
+Type: Rock / Ground
+ Evolution: → #091 Quakemaw (Lv. 38)
+ Stats: HP 70 / Atk 95 / Def 85 / SpA 50 / SpD 60 / Spe 60 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 1 Rock Throw; Lv 4 Mud-Slap; Lv 8 Rock Tomb; Lv 12 Protect; Lv 16 Bulldoze; Lv 20 Dig; Lv 24 Rock Slide; Lv 28 Sandstorm; Lv 32 Earthquake; Lv 36 Stone Edge; Lv 40 Earth Power; Lv 44 Protect
+#091 — Quakemaw
+Type: Rock / Ground
+ Evolution: —
+ Stats: HP 92 / Atk 122 / Def 112 / SpA 55 / SpD 80 / Spe 74 (BST 535)
+ Moves: Lv 1 Tackle; Lv 1 Rock Throw; Lv 1 Mud-Slap; Lv 1 Protect; Lv 4 Rock Tomb; Lv 8 Bulldoze; Lv 12 Dig; Lv 16 Rock Slide; Lv 20 Sandstorm; Lv 24 Earthquake; Lv 28 Stone Edge; Lv 32 Earth Power; Lv 36 Stealth Rock; Lv 40 Protect; Lv 44 Head Smash; Lv 48 Substitute; Lv 52 Rest; Lv 56 Protect; Lv 60 Earthquake
+#092 — Flickerfae
+Type: Fairy
+ Evolution: → #093 Lanternymph (Lv. 18)
+ Stats: HP 52 / Atk 40 / Def 50 / SpA 70 / SpD 68 / Spe 40 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growl; Lv 3 Fairy Wind; Lv 6 Protect; Lv 9 Disarming Voice; Lv 12 Draining Kiss; Lv 15 Misty Terrain; Lv 20 Dazzling Gleam; Lv 25 Calm Mind; Lv 30 Moonblast; Lv 35 Wish
+#093 — Lanternymph
+Type: Fairy / Psychic
+ Evolution: → #094 Illumoria (Lv. 36)
+ Stats: HP 70 / Atk 55 / Def 65 / SpA 95 / SpD 80 / Spe 55 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Fairy Wind; Lv 1 Confusion; Lv 4 Protect; Lv 8 Disarming Voice; Lv 12 Psybeam; Lv 16 Draining Kiss; Lv 20 Reflect; Lv 24 Light Screen; Lv 28 Dazzling Gleam; Lv 32 Calm Mind; Lv 36 Psychic; Lv 40 Moonblast; Lv 44 Protect
+#094 — Illumoria
+Type: Fairy / Psychic
+ Evolution: —
+ Stats: HP 85 / Atk 70 / Def 85 / SpA 120 / SpD 105 / Spe 70 (BST 535)
+ Moves: Lv 1 Fairy Wind; Lv 1 Confusion; Lv 1 Protect; Lv 1 Disarming Voice; Lv 4 Psybeam; Lv 8 Draining Kiss; Lv 12 Reflect; Lv 16 Light Screen; Lv 20 Dazzling Gleam; Lv 24 Calm Mind; Lv 28 Psychic; Lv 32 Moonblast; Lv 36 Future Sight; Lv 40 Protect; Lv 44 Wish; Lv 48 Substitute; Lv 52 Rest; Lv 56 Protect; Lv 60 Psychic
+#095 — Miremite
+Type: Bug / Grass
+ Evolution: → #096 Fenweevil (Lv. 24)
+ Stats: HP 50 / Atk 55 / Def 55 / SpA 55 / SpD 55 / Spe 50 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 String Shot; Lv 3 Struggle Bug; Lv 6 Vine Whip; Lv 9 Protect; Lv 12 Bug Bite; Lv 15 Leech Seed; Lv 20 Fury Cutter; Lv 25 Magical Leaf; Lv 30 X-Scissor; Lv 35 Bug Buzz
+#096 — Fenweevil
+Type: Bug / Grass
+ Evolution: —
+ Stats: HP 82 / Atk 112 / Def 92 / SpA 78 / SpD 86 / Spe 60 (BST 510)
+ Moves: Lv 1 Struggle Bug; Lv 1 Vine Whip; Lv 1 Protect; Lv 1 Bug Bite; Lv 4 Leech Seed; Lv 8 Fury Cutter; Lv 12 Magical Leaf; Lv 16 X-Scissor; Lv 20 Bug Buzz; Lv 24 Seed Bomb; Lv 28 Synthesis; Lv 32 Leech Life; Lv 36 Protect; Lv 40 Power Whip; Lv 44 Substitute; Lv 48 Rest; Lv 52 Protect; Lv 56 Bug Buzz; Lv 60 Power Whip
+#097 — Pondrake
+Type: Water / Dragon
+ Evolution: —
+ Stats: HP 78 / Atk 88 / Def 78 / SpA 88 / SpD 88 / Spe 90 (BST 510)
+ Moves: Lv 1 Tackle; Lv 1 Tail Whip; Lv 3 Water Gun; Lv 6 Dragon Breath; Lv 9 Protect; Lv 12 Water Pulse; Lv 15 Dragon Tail; Lv 20 Bubble Beam; Lv 25 Surf; Lv 30 Dragon Claw; Lv 35 Aqua Tail; Lv 40 Dragon Pulse; Lv 45 Rain Dance; Lv 50 Protect; Lv 55 Outrage; Lv 60 Hydro Pump
+#098 — Bloomfin
+Type: Water / Fairy
+ Evolution: → #099 Floramere (Lv. 28)
+ Stats: HP 55 / Atk 45 / Def 55 / SpA 70 / SpD 70 / Spe 25 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Tail Whip; Lv 3 Water Gun; Lv 6 Fairy Wind; Lv 9 Protect; Lv 12 Bubble; Lv 15 Disarming Voice; Lv 20 Bubble Beam; Lv 25 Dazzling Gleam; Lv 30 Surf; Lv 35 Wish
+#099 — Floramere
+Type: Water / Fairy
+ Evolution: —
+ Stats: HP 92 / Atk 62 / Def 88 / SpA 105 / SpD 110 / Spe 78 (BST 535)
+ Moves: Lv 1 Water Gun; Lv 1 Fairy Wind; Lv 1 Protect; Lv 1 Disarming Voice; Lv 4 Bubble; Lv 8 Bubble Beam; Lv 12 Draining Kiss; Lv 16 Dazzling Gleam; Lv 20 Surf; Lv 24 Rain Dance; Lv 28 Misty Terrain; Lv 32 Moonblast; Lv 36 Calm Mind; Lv 40 Aqua Tail; Lv 44 Protect; Lv 48 Wish; Lv 52 Substitute; Lv 56 Rest; Lv 60 Hydro Pump
+#100 — Tidemurk
+Type: Water / Dark
+ Evolution: —
+ Stats: HP 72 / Atk 90 / Def 70 / SpA 78 / SpD 70 / Spe 80 (BST 460)
+ Moves: Lv 1 Scratch; Lv 1 Tail Whip; Lv 3 Water Gun; Lv 6 Protect; Lv 9 Thief; Lv 12 Water Pulse; Lv 15 Taunt; Lv 20 Bubble Beam; Lv 25 Crunch; Lv 30 Surf; Lv 35 Dark Pulse; Lv 40 Aqua Tail; Lv 45 Protect; Lv 50 Sucker Punch; Lv 55 Hydro Pump; Lv 60 Knock Off
+
+Dex #101–#125
+#101 — Brineshade
+Type: Water / Ghost
+ Evolution: —
+ Stats: HP 76 / Atk 72 / Def 85 / SpA 108 / SpD 94 / Spe 100 (BST 535)
+ Moves: Lv 1 Tackle; Lv 1 Growl; Lv 1 Water Gun; Lv 1 Protect; Lv 4 Confuse Ray; Lv 8 Water Pulse; Lv 12 Bubble Beam; Lv 16 Hex; Lv 20 Shadow Ball; Lv 24 Rain Dance; Lv 28 Surf; Lv 32 Will-O-Wisp; Lv 36 Hydro Pump; Lv 40 Destiny Bond; Lv 44 Liquidation; Lv 48 Protect; Lv 52 Icy Wind; Lv 56 Night Shade; Lv 60 Shadow Claw
+#102 — Nectip
+Type: Bug / Fairy
+ Evolution: → #103 Nectarune (Lv. 24)
+ Stats: HP 49 / Atk 47 / Def 52 / SpA 61 / SpD 56 / Spe 55 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 String Shot; Lv 3 Struggle Bug; Lv 6 Fairy Wind; Lv 9 Bug Bite; Lv 12 Protect; Lv 15 Disarming Voice; Lv 20 Draining Kiss; Lv 25 Silver Wind; Lv 30 Dazzling Gleam; Lv 35 Bug Buzz
+#103 — Nectarune
+Type: Bug / Fairy
+ Evolution: —
+ Stats: HP 85 / Atk 70 / Def 78 / SpA 105 / SpD 102 / Spe 90 (BST 530)
+ Moves: Lv 1 Tackle; Lv 1 Fairy Wind; Lv 1 Struggle Bug; Lv 1 Protect; Lv 4 Bug Bite; Lv 8 Disarming Voice; Lv 12 Draining Kiss; Lv 16 Silver Wind; Lv 20 Dazzling Gleam; Lv 24 Bug Buzz; Lv 28 Misty Terrain; Lv 32 Quiver Dance; Lv 36 Moonblast; Lv 40 Aromatherapy; Lv 44 Protect; Lv 48 Substitute; Lv 52 Rest; Lv 56 Bug Buzz; Lv 60 Moonblast
+#104 — Reeflet
+Type: Water / Rock
+ Evolution: → #105 Coralmason (Lv. 30)
+ Stats: HP 52 / Atk 55 / Def 63 / SpA 45 / SpD 55 / Spe 50 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 3 Water Gun; Lv 6 Rock Throw; Lv 9 Rock Tomb; Lv 12 Protect; Lv 15 Water Pulse; Lv 20 Bubble Beam; Lv 25 Rock Slide; Lv 30 Surf; Lv 35 Stone Edge
+#105 — Coralmason
+Type: Water / Rock
+ Evolution: —
+ Stats: HP 88 / Atk 105 / Def 112 / SpA 70 / SpD 85 / Spe 60 (BST 520)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 1 Water Gun; Lv 1 Rock Throw; Lv 4 Rock Tomb; Lv 8 Water Pulse; Lv 12 Protect; Lv 16 Bubble Beam; Lv 20 Rock Slide; Lv 24 Stealth Rock; Lv 28 Surf; Lv 32 Aqua Tail; Lv 36 Stone Edge; Lv 40 Sandstorm; Lv 44 Protect; Lv 48 Head Smash; Lv 52 Hydro Pump; Lv 56 Rest; Lv 60 Stone Edge
+#106 — Knuckit
+Type: Fighting
+ Evolution: → #107 Brawlisk (Lv. 34)
+ Stats: HP 55 / Atk 65 / Def 55 / SpA 35 / SpD 50 / Spe 60 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Leer; Lv 3 Low Kick; Lv 6 Rock Smash; Lv 9 Work Up; Lv 12 Protect; Lv 15 Mach Punch; Lv 20 Brick Break; Lv 25 Bulk Up; Lv 30 Drain Punch; Lv 35 Close Combat
+#107 — Brawlisk
+Type: Fighting / Dark
+ Evolution: —
+ Stats: HP 88 / Atk 118 / Def 88 / SpA 55 / SpD 75 / Spe 96 (BST 520)
+ Moves: Lv 1 Tackle; Lv 1 Leer; Lv 1 Low Kick; Lv 1 Thief; Lv 4 Work Up; Lv 8 Mach Punch; Lv 12 Protect; Lv 16 Brick Break; Lv 20 Taunt; Lv 24 Drain Punch; Lv 28 Night Slash; Lv 32 Bulk Up; Lv 36 Crunch; Lv 40 Close Combat; Lv 44 Protect; Lv 48 Sucker Punch; Lv 52 Rest; Lv 56 Dark Pulse; Lv 60 Close Combat
+#108 — Pebbleaf
+Type: Rock / Grass
+ Evolution: → #109 Boulderbloom (Lv. 24)
+ Stats: HP 54 / Atk 58 / Def 62 / SpA 46 / SpD 50 / Spe 50 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 3 Vine Whip; Lv 6 Rock Throw; Lv 9 Rock Tomb; Lv 12 Protect; Lv 15 Razor Leaf; Lv 20 Leech Seed; Lv 25 Seed Bomb; Lv 30 Rock Slide; Lv 35 Stone Edge
+#109 — Boulderbloom
+Type: Rock / Grass
+ Evolution: —
+ Stats: HP 92 / Atk 112 / Def 118 / SpA 60 / SpD 78 / Spe 60 (BST 520)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 1 Vine Whip; Lv 1 Rock Throw; Lv 4 Rock Tomb; Lv 8 Protect; Lv 12 Razor Leaf; Lv 16 Leech Seed; Lv 20 Rock Slide; Lv 24 Seed Bomb; Lv 28 Stealth Rock; Lv 32 Sandstorm; Lv 36 Stone Edge; Lv 40 Giga Drain; Lv 44 Protect; Lv 48 Solar Beam; Lv 52 Rest; Lv 56 Head Smash; Lv 60 Leaf Blade
+#110 — Tidekit
+Type: Water
+ Evolution: → #111 Siltseal (Lv. 18)
+ Stats: HP 48 / Atk 50 / Def 45 / SpA 60 / SpD 55 / Spe 62 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Tail Whip; Lv 3 Water Gun; Lv 6 Withdraw; Lv 9 Water Pulse; Lv 12 Protect; Lv 15 Bubble Beam; Lv 20 Brine; Lv 25 Whirlpool; Lv 30 Surf; Lv 35 Hydro Pump
+#111 — Siltseal
+Type: Water / Ground
+ Evolution: → #112 Deltaquag (Lv. 40)
+ Stats: HP 70 / Atk 70 / Def 78 / SpA 62 / SpD 70 / Spe 70 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Tail Whip; Lv 1 Water Gun; Lv 4 Mud-Slap; Lv 8 Water Pulse; Lv 12 Protect; Lv 16 Bulldoze; Lv 20 Bubble Beam; Lv 24 Dig; Lv 28 Mud Bomb; Lv 32 Surf; Lv 36 Sandstorm; Lv 40 Earthquake; Lv 44 Protect
+#112 — Deltaquag
+Type: Water / Ground
+ Evolution: → #113 Marshquake (Lv. 40)
+ Stats: HP 88 / Atk 105 / Def 95 / SpA 55 / SpD 82 / Spe 70 (BST 495)
+ Moves: Lv 1 Tackle; Lv 1 Water Gun; Lv 1 Mud-Slap; Lv 1 Protect; Lv 4 Water Pulse; Lv 8 Bulldoze; Lv 12 Bubble Beam; Lv 16 Dig; Lv 20 Mud Bomb; Lv 24 Surf; Lv 28 Sandstorm; Lv 32 Earthquake; Lv 36 Protect; Lv 40 Earth Power; Lv 44 Rest
+#113 — Marshquake
+Type: Water / Ground
+ Evolution: —
+ Stats: HP 105 / Atk 118 / Def 105 / SpA 60 / SpD 92 / Spe 60 (BST 540)
+ Moves: Lv 1 Tackle; Lv 1 Water Gun; Lv 1 Mud-Slap; Lv 1 Protect; Lv 4 Water Pulse; Lv 8 Bulldoze; Lv 12 Bubble Beam; Lv 16 Dig; Lv 20 Mud Bomb; Lv 24 Surf; Lv 28 Sandstorm; Lv 32 Earthquake; Lv 36 Earth Power; Lv 40 Protect; Lv 44 Rest; Lv 48 Substitute; Lv 52 Earthquake; Lv 56 Hydro Pump; Lv 60 Protect
+#114 — Emberling
+Type: Fire
+ Evolution: → #115 Ashhorn (Lv. 22)
+ Stats: HP 50 / Atk 55 / Def 45 / SpA 60 / SpD 50 / Spe 60 (BST 320)
+ Moves: Lv 1 Scratch; Lv 1 Growl; Lv 4 Ember; Lv 7 Smokescreen; Lv 10 Flame Charge; Lv 13 Protect; Lv 16 Fire Spin; Lv 20 Flame Burst; Lv 25 Incinerate; Lv 30 Flamethrower; Lv 35 Overheat
+#115 — Ashhorn
+Type: Fire / Steel
+ Evolution: → #116 Cauterforge (Lv. 40)
+ Stats: HP 70 / Atk 85 / Def 85 / SpA 70 / SpD 70 / Spe 40 (BST 420)
+ Moves: Lv 1 Scratch; Lv 1 Growl; Lv 1 Ember; Lv 4 Metal Claw; Lv 8 Smokescreen; Lv 12 Protect; Lv 16 Flame Charge; Lv 20 Iron Defense; Lv 24 Fire Spin; Lv 28 Gyro Ball; Lv 32 Flame Burst; Lv 36 Iron Head; Lv 40 Flamethrower; Lv 44 Will-O-Wisp
+#116 — Cauterforge
+Type: Fire / Steel
+ Evolution: —
+ Stats: HP 90 / Atk 115 / Def 125 / SpA 70 / SpD 85 / Spe 55 (BST 540)
+ Moves: Lv 1 Ember; Lv 1 Metal Claw; Lv 1 Protect; Lv 1 Smokescreen; Lv 4 Flame Charge; Lv 8 Iron Defense; Lv 12 Fire Spin; Lv 16 Gyro Ball; Lv 20 Flame Burst; Lv 24 Iron Head; Lv 28 Flamethrower; Lv 32 Will-O-Wisp; Lv 36 Heavy Slam; Lv 40 Flash Cannon; Lv 44 Protect; Lv 48 Overheat; Lv 52 Rest; Lv 56 Flare Blitz; Lv 60 Protect
+#117 — Pipsqueak
+Type: Normal
+ Evolution: → #118 Squealot (Lv. 18)
+ Stats: HP 55 / Atk 45 / Def 45 / SpA 40 / SpD 45 / Spe 90 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growl; Lv 3 Quick Attack; Lv 6 Tail Whip; Lv 9 Headbutt; Lv 12 Protect; Lv 15 Work Up; Lv 20 Take Down; Lv 25 Double-Edge; Lv 30 Rest; Lv 35 Hyper Beam
+#118 — Squealot
+Type: Normal
+ Evolution: → #119 Boarrier (Lv. 36)
+ Stats: HP 75 / Atk 70 / Def 70 / SpA 45 / SpD 70 / Spe 90 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Growl; Lv 1 Quick Attack; Lv 4 Tail Whip; Lv 8 Headbutt; Lv 12 Protect; Lv 16 Work Up; Lv 20 Take Down; Lv 24 Rest; Lv 28 Double-Edge; Lv 32 Protect; Lv 36 Hyper Beam; Lv 40 Substitute; Lv 44 Rest
+#119 — Boarrier
+Type: Normal / Fighting
+ Evolution: —
+ Stats: HP 95 / Atk 112 / Def 85 / SpA 45 / SpD 78 / Spe 85 (BST 500)
+ Moves: Lv 1 Tackle; Lv 1 Quick Attack; Lv 1 Low Kick; Lv 1 Work Up; Lv 4 Headbutt; Lv 8 Rock Smash; Lv 12 Protect; Lv 16 Brick Break; Lv 20 Bulk Up; Lv 24 Take Down; Lv 28 Drain Punch; Lv 32 Protect; Lv 36 Close Combat; Lv 40 Double-Edge; Lv 44 Detect; Lv 48 Rest; Lv 52 Substitute; Lv 56 Close Combat; Lv 60 Hyper Beam
+#120 — Glimmergnat
+Type: Bug / Electric
+ Evolution: → #121 Neonidge (Lv. 24)
+ Stats: HP 45 / Atk 40 / Def 50 / SpA 70 / SpD 55 / Spe 60 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 String Shot; Lv 3 Struggle Bug; Lv 6 Thunder Shock; Lv 9 Charge; Lv 12 Protect; Lv 15 Bug Bite; Lv 20 Spark; Lv 25 Volt Switch; Lv 30 Bug Buzz; Lv 35 Discharge
+#121 — Neonidge
+Type: Bug / Electric
+ Evolution: —
+ Stats: HP 80 / Atk 65 / Def 78 / SpA 112 / SpD 90 / Spe 85 (BST 510)
+ Moves: Lv 1 Struggle Bug; Lv 1 Thunder Shock; Lv 1 Protect; Lv 1 String Shot; Lv 4 Charge; Lv 8 Bug Bite; Lv 12 Spark; Lv 16 Volt Switch; Lv 20 Bug Buzz; Lv 24 Thunder Wave; Lv 28 Discharge; Lv 32 Thunderbolt; Lv 36 Quiver Dance; Lv 40 Protect; Lv 44 Magnet Rise; Lv 48 Rest; Lv 52 Substitute; Lv 56 Thunder; Lv 60 Bug Buzz
+#122 — Cindertip
+Type: Fire / Fairy
+ Evolution: —
+ Stats: HP 70 / Atk 60 / Def 70 / SpA 95 / SpD 95 / Spe 75 (BST 465)
+ Moves: Lv 1 Scratch; Lv 1 Growl; Lv 4 Ember; Lv 8 Fairy Wind; Lv 12 Protect; Lv 16 Disarming Voice; Lv 20 Flame Burst; Lv 24 Draining Kiss; Lv 28 Dazzling Gleam; Lv 32 Flamethrower; Lv 36 Will-O-Wisp; Lv 40 Moonblast; Lv 44 Protect; Lv 48 Overheat; Lv 52 Rest; Lv 56 Substitute; Lv 60 Protect
+#123 — Hatchling
+Type: Dragon
+ Evolution: → #124 Wyrmkin (Lv. 28)
+ Stats: HP 55 / Atk 60 / Def 50 / SpA 55 / SpD 50 / Spe 50 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Growl; Lv 3 Dragon Breath; Lv 6 Protect; Lv 9 Headbutt; Lv 12 Dragon Tail; Lv 15 Work Up; Lv 20 Dragon Claw; Lv 25 Protect; Lv 30 Dragon Pulse; Lv 35 Dragon Dance
+#124 — Wyrmkin
+Type: Dragon
+ Evolution: → #125 Drakeshard (Lv. 44)
+ Stats: HP 70 / Atk 85 / Def 70 / SpA 80 / SpD 70 / Spe 45 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Dragon Breath; Lv 1 Growl; Lv 4 Protect; Lv 8 Headbutt; Lv 12 Dragon Tail; Lv 16 Work Up; Lv 20 Dragon Claw; Lv 24 Protect; Lv 28 Dragon Dance; Lv 32 Dragon Pulse; Lv 36 Rest; Lv 40 Substitute; Lv 44 Outrage
+#125 — Drakeshard
+Type: Dragon / Rock
+ Evolution: —
+ Stats: HP 92 / Atk 122 / Def 112 / SpA 70 / SpD 80 / Spe 59 (BST 535)
+ Moves: Lv 1 Tackle; Lv 1 Dragon Breath; Lv 1 Rock Throw; Lv 1 Protect; Lv 4 Rock Tomb; Lv 8 Dragon Tail; Lv 12 Stealth Rock; Lv 16 Dragon Claw; Lv 20 Rock Slide; Lv 24 Dragon Dance; Lv 28 Stone Edge; Lv 32 Dragon Pulse; Lv 36 Sandstorm; Lv 40 Protect; Lv 44 Outrage; Lv 48 Head Smash; Lv 52 Rest; Lv 56 Substitute; Lv 60 Draco Meteor
+
+Dex #126–#147
+#126 — Skulkid
+Type: Dark
+ Evolution: → #127 Nightgraze (Lv. 22)
+ Stats: HP 52 / Atk 60 / Def 45 / SpA 45 / SpD 50 / Spe 68 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Leer; Lv 3 Thief; Lv 6 Taunt; Lv 9 Protect; Lv 12 Assurance; Lv 15 Knock Off; Lv 20 Night Slash; Lv 25 Crunch; Lv 30 Dark Pulse; Lv 35 Sucker Punch
+#127 — Nightgraze
+Type: Dark / Grass
+ Evolution: → #128 Dreadbramble (Lv. 40)
+ Stats: HP 70 / Atk 85 / Def 70 / SpA 70 / SpD 70 / Spe 55 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 1 Thief; Lv 4 Protect; Lv 8 Vine Whip; Lv 12 Taunt; Lv 16 Razor Leaf; Lv 20 Knock Off; Lv 24 Seed Bomb; Lv 28 Night Slash; Lv 32 Leech Seed; Lv 36 Crunch; Lv 40 Dark Pulse; Lv 44 Protect
+#128 — Dreadbramble
+Type: Dark / Grass
+ Evolution: —
+ Stats: HP 90 / Atk 112 / Def 96 / SpA 82 / SpD 85 / Spe 70 (BST 535)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 1 Thief; Lv 1 Protect; Lv 4 Vine Whip; Lv 8 Razor Leaf; Lv 12 Taunt; Lv 16 Knock Off; Lv 20 Seed Bomb; Lv 24 Night Slash; Lv 28 Leech Seed; Lv 32 Crunch; Lv 36 Dark Pulse; Lv 40 Synthesis; Lv 44 Protect; Lv 48 Power Whip; Lv 52 Rest; Lv 56 Substitute; Lv 60 Solar Beam
+#129 — Caveling
+Type: Rock
+ Evolution: → #130 Stoneling (Lv. 24)
+ Stats: HP 50 / Atk 55 / Def 65 / SpA 35 / SpD 55 / Spe 60 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 3 Rock Throw; Lv 6 Rock Tomb; Lv 9 Endure; Lv 12 Protect; Lv 15 Sandstorm; Lv 20 Rock Slide; Lv 25 Stealth Rock; Lv 30 Stone Edge; Lv 35 Head Smash
+#130 — Stoneling
+Type: Rock / Steel
+ Evolution: → #131 Bastionite (Lv. 40)
+ Stats: HP 70 / Atk 80 / Def 100 / SpA 40 / SpD 70 / Spe 60 (BST 420)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 1 Rock Throw; Lv 4 Metal Claw; Lv 8 Rock Tomb; Lv 12 Iron Defense; Lv 16 Protect; Lv 20 Rock Slide; Lv 24 Gyro Ball; Lv 28 Stealth Rock; Lv 32 Iron Head; Lv 36 Sandstorm; Lv 40 Heavy Slam; Lv 44 Protect
+#131 — Bastionite
+Type: Rock / Steel
+ Evolution: —
+ Stats: HP 92 / Atk 112 / Def 135 / SpA 42 / SpD 82 / Spe 72 (BST 535)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 1 Rock Throw; Lv 1 Metal Claw; Lv 4 Rock Tomb; Lv 8 Iron Defense; Lv 12 Protect; Lv 16 Rock Slide; Lv 20 Stealth Rock; Lv 24 Gyro Ball; Lv 28 Iron Head; Lv 32 Sandstorm; Lv 36 Stone Edge; Lv 40 Heavy Slam; Lv 44 Flash Cannon; Lv 48 Head Smash; Lv 52 Rest; Lv 56 Protect; Lv 60 Stone Edge
+#132 — Pyrestoat
+Type: Fire / Ground
+ Evolution: → #133 Cinderdune (Lv. 18)
+ Stats: HP 52 / Atk 58 / Def 52 / SpA 58 / SpD 45 / Spe 55 (BST 320)
+ Moves: Lv 1 Scratch; Lv 1 Sand Attack; Lv 4 Ember; Lv 7 Mud-Slap; Lv 10 Protect; Lv 13 Flame Charge; Lv 16 Bulldoze; Lv 20 Fire Spin; Lv 25 Dig; Lv 30 Flamethrower; Lv 35 Earthquake
+#133 — Cinderdune
+Type: Fire / Ground
+ Evolution: → #134 Duneinferno (Lv. 40)
+ Stats: HP 70 / Atk 85 / Def 80 / SpA 70 / SpD 60 / Spe 55 (BST 420)
+ Moves: Lv 1 Scratch; Lv 1 Ember; Lv 1 Sand Attack; Lv 4 Mud-Slap; Lv 8 Protect; Lv 12 Flame Charge; Lv 16 Bulldoze; Lv 20 Fire Spin; Lv 24 Dig; Lv 28 Sandstorm; Lv 32 Flamethrower; Lv 36 Earth Power; Lv 40 Overheat; Lv 44 Protect
+#134 — Duneinferno
+Type: Fire / Ground
+ Evolution: —
+ Stats: HP 90 / Atk 112 / Def 96 / SpA 82 / SpD 75 / Spe 80 (BST 535)
+ Moves: Lv 1 Ember; Lv 1 Mud-Slap; Lv 1 Protect; Lv 1 Sand Attack; Lv 4 Flame Charge; Lv 8 Bulldoze; Lv 12 Fire Spin; Lv 16 Dig; Lv 20 Sandstorm; Lv 24 Flamethrower; Lv 28 Earthquake; Lv 32 Will-O-Wisp; Lv 36 Earth Power; Lv 40 Overheat; Lv 44 Protect; Lv 48 Rest; Lv 52 Substitute; Lv 56 Flare Blitz; Lv 60 Earthquake
+#135 — Ferrowisp
+Type: Steel / Ghost
+ Evolution: → #136 Anvilspecter (Lv. 18)
+ Stats: HP 50 / Atk 60 / Def 55 / SpA 55 / SpD 55 / Spe 45 (BST 320)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 3 Metal Claw; Lv 6 Astonish; Lv 9 Protect; Lv 12 Iron Defense; Lv 15 Hex; Lv 20 Gyro Ball; Lv 25 Shadow Ball; Lv 30 Iron Head; Lv 35 Destiny Bond
+#136 — Anvilspecter
+Type: Steel / Ghost
+ Evolution: → #137 Forgehaunt (Lv. 36)
+ Stats: HP 70 / Atk 80 / Def 90 / SpA 70 / SpD 70 / Spe 40 (BST 420)
+ Moves: Lv 1 Metal Claw; Lv 1 Astonish; Lv 1 Protect; Lv 4 Iron Defense; Lv 8 Hex; Lv 12 Gyro Ball; Lv 16 Shadow Ball; Lv 20 Iron Head; Lv 24 Will-O-Wisp; Lv 28 Protect; Lv 32 Flash Cannon; Lv 36 Destiny Bond; Lv 40 Heavy Slam; Lv 44 Rest
+#137 — Forgehaunt
+Type: Steel / Ghost
+ Evolution: —
+ Stats: HP 90 / Atk 115 / Def 125 / SpA 70 / SpD 85 / Spe 50 (BST 535)
+ Moves: Lv 1 Metal Claw; Lv 1 Astonish; Lv 1 Protect; Lv 1 Iron Defense; Lv 4 Hex; Lv 8 Gyro Ball; Lv 12 Shadow Ball; Lv 16 Iron Head; Lv 20 Will-O-Wisp; Lv 24 Flash Cannon; Lv 28 Heavy Slam; Lv 32 Protect; Lv 36 Destiny Bond; Lv 40 Rest; Lv 44 Substitute; Lv 48 Flash Cannon; Lv 52 Protect; Lv 56 Heavy Slam; Lv 60 Shadow Claw
+#138 — Clawbun
+Type: Normal
+ Evolution: → #139 Pounchit (Lv. 18)
+ Stats: HP 50 / Atk 60 / Def 45 / SpA 35 / SpD 45 / Spe 85 (BST 320)
+ Moves: Lv 1 Scratch; Lv 1 Growl; Lv 3 Quick Attack; Lv 6 Tail Whip; Lv 9 Headbutt; Lv 12 Protect; Lv 15 Work Up; Lv 20 Take Down; Lv 25 Double-Edge; Lv 30 Rest; Lv 35 Hyper Beam
+#139 — Pounchit
+Type: Normal / Fighting
+ Evolution: → #140 Brawlapin (Lv. 36)
+ Stats: HP 70 / Atk 85 / Def 65 / SpA 40 / SpD 60 / Spe 100 (BST 420)
+ Moves: Lv 1 Scratch; Lv 1 Growl; Lv 1 Quick Attack; Lv 4 Low Kick; Lv 8 Protect; Lv 12 Rock Smash; Lv 16 Brick Break; Lv 20 Work Up; Lv 24 Bulk Up; Lv 28 Drain Punch; Lv 32 Protect; Lv 36 Close Combat; Lv 40 Double-Edge; Lv 44 Detect
+#140 — Brawlapin
+Type: Fighting
+ Evolution: —
+ Stats: HP 88 / Atk 122 / Def 92 / SpA 45 / SpD 78 / Spe 110 (BST 535)
+ Moves (cleaned):
+ Lv 1 Low Kick; Lv 1 Rock Smash; Lv 1 Protect; Lv 1 Work Up; Lv 4 Mach Punch; Lv 8 Brick Break; Lv 12 Bulk Up; Lv 16 Drain Punch; Lv 20 Protect; Lv 24 Close Combat; Lv 28 Detect; Lv 32 Rest; Lv 36 Substitute; Lv 48 Dynamic Punch; Lv 60 Close Combat
+#141 — Glowmoss
+Type: Grass / Fairy
+ Evolution: —
+ Stats: HP 78 / Atk 55 / Def 70 / SpA 95 / SpD 110 / Spe 72 (BST 480)
+ Moves: Lv 1 Pound; Lv 1 Harden; Lv 3 Vine Whip; Lv 6 Fairy Wind; Lv 9 Protect; Lv 12 Leech Seed; Lv 15 Magical Leaf; Lv 20 Draining Kiss; Lv 25 Dazzling Gleam; Lv 30 Giga Drain; Lv 35 Synthesis; Lv 40 Moonblast; Lv 45 Protect; Lv 50 Rest; Lv 55 Substitute; Lv 60 Solar Beam
+#142 — Mistraven
+Type: Flying / Dark
+ Evolution: → #143 Stormcorv (Lv. 34)
+ Stats: HP 52 / Atk 60 / Def 45 / SpA 45 / SpD 50 / Spe 68 (BST 320)
+ Moves: Lv 1 Peck; Lv 1 Growl; Lv 3 Gust; Lv 6 Thief; Lv 9 Protect; Lv 12 Wing Attack; Lv 15 Taunt; Lv 20 Aerial Ace; Lv 25 Tailwind; Lv 30 Air Slash; Lv 35 Crunch
+#143 — Stormcorv
+Type: Flying / Dark
+ Evolution: —
+ Stats: HP 90 / Atk 112 / Def 80 / SpA 60 / SpD 80 / Spe 98 (BST 520)
+ Moves: Lv 1 Peck; Lv 1 Gust; Lv 1 Thief; Lv 1 Protect; Lv 4 Wing Attack; Lv 8 Taunt; Lv 12 Aerial Ace; Lv 16 Tailwind; Lv 20 Air Slash; Lv 24 Crunch; Lv 28 Protect; Lv 32 Dark Pulse; Lv 36 Brave Bird; Lv 40 Rest; Lv 44 Substitute; Lv 48 Hurricane; Lv 52 Protect; Lv 56 Sucker Punch; Lv 60 Brave Bird
+#144 — Flintusk
+Type: Rock
+ Evolution: —
+ Stats: HP 84 / Atk 110 / Def 105 / SpA 40 / SpD 70 / Spe 60 (BST 469)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 3 Rock Throw; Lv 6 Rock Tomb; Lv 9 Endure; Lv 12 Protect; Lv 15 Sandstorm; Lv 20 Rock Slide; Lv 25 Stealth Rock; Lv 30 Stone Edge; Lv 35 Head Smash; Lv 40 Protect; Lv 45 Rest; Lv 50 Substitute; Lv 55 Stone Edge; Lv 60 Sandstorm
+#145 — Timino
+Type: Normal / Rock
+ Evolution: → #146 Brutusk (Lv. 18)
+ Stats: HP 55 / Atk 60 / Def 70 / SpA 25 / SpD 60 / Spe 60 (BST 330)
+ Moves: Lv 1 Tackle; Lv 1 Harden; Lv 3 Rock Throw; Lv 6 Protect; Lv 9 Rock Tomb; Lv 12 Endure; Lv 15 Headbutt; Lv 18 Rock Slide; Lv 21 Sandstorm; Lv 24 Stealth Rock; Lv 27 Take Down; Lv 30 Stone Edge; Lv 33 Protect; Lv 36 Rest
+#146 — Brutusk
+Type: Dark / Rock
+ Evolution: → #147 Justyrn (Lv. 36)
+ Stats: HP 80 / Atk 110 / Def 95 / SpA 40 / SpD 75 / Spe 70 (BST 470)
+ Moves: Lv 1 Tackle; Lv 1 Rock Throw; Lv 1 Thief; Lv 1 Protect; Lv 4 Rock Tomb; Lv 8 Taunt; Lv 12 Rock Slide; Lv 16 Knock Off; Lv 20 Crunch; Lv 24 Sandstorm; Lv 28 Stealth Rock; Lv 32 Dark Pulse; Lv 36 Stone Edge; Lv 40 Protect; Lv 44 Rest
+#147 — Justyrn
+Type: Rock / Steel
+ Evolution: —
+ Stats: HP 95 / Atk 120 / Def 150 / SpA 45 / SpD 105 / Spe 95 (BST 610)
+ Moves: Lv 1 Tackle; Lv 1 Rock Throw; Lv 1 Metal Claw; Lv 1 Protect; Lv 4 Rock Tomb; Lv 8 Iron Defense; Lv 12 Rock Slide; Lv 16 Stealth Rock; Lv 20 Iron Head; Lv 24 Sandstorm; Lv 28 Stone Edge; Lv 32 Heavy Slam; Lv 36 Protect; Lv 40 Flash Cannon; Lv 44 Rest; Lv 48 Head Smash; Lv 52 Substitute; Lv 56 Protect; Lv 60 Stone Edge
+
+Legendaries / Apex / Aged Variants — Dex #148–#156
+#148 — Pytavor
+Type: Grass / Dragon
+ Evolution: —
+ Stats: HP 106 / Atk 90 / Def 90 / SpA 120 / SpD 110 / Spe 84 (BST 600)
+ Moves: Lv 1 Vine Whip; Lv 1 Dragon Breath; Lv 1 Growth; Lv 4 Protect; Lv 8 Magical Leaf; Lv 12 Dragon Tail; Lv 16 Leech Seed; Lv 20 Seed Bomb; Lv 24 Dragon Claw; Lv 28 Synthesis; Lv 32 Dragon Pulse; Lv 36 Dragon Dance; Lv 40 Giga Drain; Lv 44 Protect; Lv 48 Outrage; Lv 52 Solar Beam; Lv 56 Rest; Lv 60 Draco Meteor
+#149 — Fontessa
+Type: Water / Fairy
+ Evolution: —
+ Stats: HP 105 / Atk 75 / Def 95 / SpA 125 / SpD 115 / Spe 85 (BST 600)
+ Moves (fixed; previously cut off):
+ Lv 1 Water Gun; Lv 1 Fairy Wind; Lv 1 Tail Whip; Lv 4 Protect; Lv 8 Water Pulse; Lv 12 Disarming Voice; Lv 16 Bubble Beam; Lv 20 Draining Kiss; Lv 24 Surf; Lv 28 Misty Terrain; Lv 32 Dazzling Gleam; Lv 36 Calm Mind; Lv 40 Moonblast; Lv 44 Protect; Lv 48 Hydro Pump; Lv 52 Rest; Lv 56 Substitute; Lv 60 Wish
+#150 — Aged Titan (Apex)
+Type: Rock / Electric
+ Evolution: —
+ Stats: HP 92 / Atk 115 / Def 120 / SpA 75 / SpD 83 / Spe 50 (BST 535)
+ Moves: Lv 1 Tackle; Lv 1 Rock Throw; Lv 1 Thunder Shock; Lv 1 Protect; Lv 4 Smack Down; Lv 8 Charge; Lv 12 Sandstorm; Lv 16 Electro Ball; Lv 20 Discharge; Lv 24 Ancient Power; Lv 28 Thunder Wave; Lv 32 Rock Slide; Lv 36 Stealth Rock; Lv 40 Rest; Lv 44 Agility; Lv 48 Wild Charge; Lv 52 Magnet Rise; Lv 56 Head Smash; Lv 60 Stone Edge
+#151 — Moldraith (Weed-Fungus Source)
+Type: Grass / Poison
+ Evolution: —
+ Stats: HP 95 / Atk 85 / Def 90 / SpA 125 / SpD 110 / Spe 95 (BST 600)
+ Moves: Lv 1 Absorb; Lv 1 Poison Sting; Lv 1 Growth; Lv 4 Protect; Lv 8 Mega Drain; Lv 12 Smog; Lv 16 Venoshock; Lv 20 Leech Seed; Lv 24 Seed Bomb; Lv 28 Toxic Spikes; Lv 32 Sludge Bomb; Lv 36 Giga Drain; Lv 40 Synthesis; Lv 44 Protect; Lv 48 Toxic; Lv 52 Power Whip; Lv 56 Rest; Lv 60 Solar Beam
+#152 — Aged Miregloop (Aged Variant)
+Type: Grass / Poison
+ Evolution: —
+ Stats: HP 90 / Atk 85 / Def 120 / SpA 70 / SpD 100 / Spe 70 (BST 535)
+ Moves: Lv 1 Pound; Lv 1 Harden; Lv 1 Absorb; Lv 4 Acid; Lv 8 Protect; Lv 12 Mega Drain; Lv 16 Venoshock; Lv 20 Toxic Spikes; Lv 24 Seed Bomb; Lv 28 Rock Tomb; Lv 32 Sludge Bomb; Lv 36 Giga Drain; Lv 40 Sandstorm; Lv 44 Protect; Lv 48 Toxic; Lv 52 Power Whip; Lv 56 Rest; Lv 60 Solar Beam
+#153 — Aged Briarovere (Aged Variant)
+Type: Grass / Poison
+ Evolution: —
+ Stats: HP 92 / Atk 112 / Def 98 / SpA 82 / SpD 83 / Spe 68 (BST 535)
+ Moves: Lv 1 Tackle; Lv 1 Growth; Lv 1 Vine Whip; Lv 4 Poison Sting; Lv 8 Protect; Lv 12 Razor Leaf; Lv 16 Venoshock; Lv 20 Seed Bomb; Lv 24 Toxic Spikes; Lv 28 Crunch; Lv 32 Sludge Bomb; Lv 36 Synthesis; Lv 40 Giga Drain; Lv 44 Protect; Lv 48 Toxic; Lv 52 Power Whip; Lv 56 Rest; Lv 60 Solar Beam
+#154 — Aged Honchkrow (Thalorian) (Aged Variant)
+Type: Poison / Flying
+ Evolution: —
+ Stats: HP 90 / Atk 120 / Def 85 / SpA 70 / SpD 85 / Spe 85 (BST 535)
+ Moves: Lv 1 Peck; Lv 1 Gust; Lv 1 Poison Sting; Lv 4 Smog; Lv 8 Protect; Lv 12 Wing Attack; Lv 16 Venoshock; Lv 20 Air Cutter; Lv 24 Toxic Spikes; Lv 28 Air Slash; Lv 32 Sludge Bomb; Lv 36 Tailwind; Lv 40 Brave Bird; Lv 44 Protect; Lv 48 Toxic; Lv 52 Hurricane; Lv 56 Rest; Lv 60 Gunk Shot
+#155 — Aged Luxray (Aged Variant)
+Type: Electric / Fairy
+ Evolution: —
+ Stats: HP 80 / Atk 97 / Def 78 / SpA 110 / SpD 90 / Spe 80 (BST 535)
+ Moves: Lv 1 Thunder Shock; Lv 1 Fairy Wind; Lv 1 Leer; Lv 4 Charge; Lv 8 Protect; Lv 12 Spark; Lv 16 Thunder Wave; Lv 20 Disarming Voice; Lv 24 Volt Switch; Lv 28 Dazzling Gleam; Lv 32 Thunderbolt; Lv 36 Calm Mind; Lv 40 Wild Charge; Lv 44 Protect; Lv 48 Moonblast; Lv 52 Magnet Rise; Lv 56 Rest; Lv 60 Thunder
+#156 — Aged Gargryph (Aged Variant)
+Type: Rock / Ghost
+ Evolution: —
+ Stats: HP 85 / Atk 113 / Def 120 / SpA 61 / SpD 90 / Spe 66 (BST 535)
+ Moves: Lv 1 Peck; Lv 1 Rock Throw; Lv 1 Astonish; Lv 4 Endure; Lv 8 Smack Down; Lv 12 Protect; Lv 16 Ancient Power; Lv 20 Hex; Lv 24 Rock Slide; Lv 28 Shadow Ball; Lv 32 Sandstorm; Lv 36 Stone Edge; Lv 40 Will-O-Wisp; Lv 44 Protect; Lv 48 Destiny Bond; Lv 52 Head Smash; Lv 56 Rest; Lv 60 Shadow Claw
+
+Thalorian Gible Line (Regional Variant) — Dex #157–#159
+#157 — Gible (Thalorian Form)
+Type: Ice / Rock
+ Evolution: → #158 Gabite (Thalorian Form) (Lv. 24)
+ Stats: HP 55 / Atk 70 / Def 65 / SpA 35 / SpD 45 / Spe 60 (BST 330)
+ Moves: Lv 1 Tackle; Lv 1 Sand Attack; Lv 3 Powder Snow; Lv 6 Rock Tomb; Lv 9 Protect; Lv 12 Ice Shard; Lv 15 Dragon Breath; Lv 18 Rock Slide; Lv 21 Icy Wind; Lv 24 Avalanche; Lv 27 Sandstorm; Lv 30 Ice Fang; Lv 33 Stone Edge; Lv 36 Ice Beam
+#158 — Gabite (Thalorian Form)
+Type: Ice / Rock
+ Evolution: → #159 Garchomp (Thalorian Form) (Lv. 48)
+ Stats: HP 76 / Atk 95 / Def 85 / SpA 45 / SpD 60 / Spe 74 (BST 435)
+ Moves: Lv 1 Tackle; Lv 1 Powder Snow; Lv 1 Rock Tomb; Lv 4 Protect; Lv 8 Ice Shard; Lv 12 Dragon Breath; Lv 16 Rock Slide; Lv 20 Icy Wind; Lv 24 Avalanche; Lv 28 Sandstorm; Lv 32 Ice Fang; Lv 36 Stone Edge; Lv 40 Dragon Claw; Lv 44 Ice Beam; Lv 48 Protect; Lv 52 Earthquake
+#159 — Garchomp (Thalorian Form)
+Type: Ice / Dragon
+ Evolution: —
+ Stats: HP 96 / Atk 130 / Def 95 / SpA 65 / SpD 85 / Spe 109 (BST 580)
+ Ability: Heat Absorb (custom) — Fire-type moves deal no damage; heals 1/4 max HP instead.
+ Moves: Lv 1 Dragon Breath; Lv 1 Powder Snow; Lv 1 Protect; Lv 1 Ice Shard; Lv 4 Icy Wind; Lv 8 Rock Tomb; Lv 12 Dragon Claw; Lv 16 Avalanche; Lv 20 Ice Fang; Lv 24 Dragon Tail; Lv 28 Ice Beam; Lv 32 Dragon Dance; Lv 36 Earthquake; Lv 40 Protect; Lv 44 Dragon Pulse; Lv 48 Blizzard; Lv 52 Outrage; Lv 56 Rest; Lv 60 Draco Meteor
+
+Signature Moves (Locked / Current)
+Starters — Final Evolutions
+Arcanquid — Rune Deluge (Water, Special) — Power 85 / Acc 100 / PP 10
+ Effect: 30% confuse. If Rain active, also lowers target Sp. Def by 1. Learns: Lv 44 / on evolution.
+
+
+Thronoak — Crownbreaker (Fighting, Physical) — Power 95 / Acc 100 / PP 10
+ Effect: If Thronoak’s Defense > target’s Defense, gains +1 priority. Learns: Lv 44 / on evolution.
+
+
+Inferyx — Smokejack (Dark, Physical) — Power 80 / Acc 100 / PP 10
+ Effect: If target holds an item, steals it (fails if none / cannot remove). 20% flinch. Learns: Lv 42 / on evolution.
+
+
+Key Existing Line
+Luxray — X-Ray Break (Electric, Physical) — Power 85 / Acc 100 / PP 10
+ Effect: Ignores Reflect/Light Screen for damage calculation. Learns: Lv 40.
+
+
+Thalorian Murkrow Line (Poison/Dark)
+Murkrow (Thalorian) — Toxin Shot (Poison, Physical) — Power 20 / Acc 100 / PP 20
+ Effect: Hits 2–5 times; each hit 20% poison. Learns: Lv 18.
+
+
+Honchkrow (Thalorian) — Plume Gatling (Poison, Physical) — Power 25 / Acc 95 / PP 10
+ Effect: Hits 4–6 times; if at least one hit lands, target Accuracy -1 after attack. Learns: Lv 40 (Honchkrow only).
+
+
+Sprigadet Branch Evolutions
+Cerelodge — Harvest Stampede (Grass, Physical) — Power 90 / Acc 100 / PP 10
+ Effect: Heals user 25% of damage dealt. Learns: Lv 42.
+
+
+Armaroust — Forgeguard (Steel, Physical) — Power 85 / Acc 100 / PP 10
+ Effect: After damage, user Defense +1. Learns: Lv 42.
+
+
+Herbend — Tonic Burst (Poison, Special) — Power 80 / Acc 100 / PP 10
+ Effect: After damage, cures user’s status condition. Learns: Lv 42.
+
+
+Legendaries
+Pytavor — Life-Fruit Radiance (Grass, Special) — Power 90 / Acc 100 / PP 5
+ Effect: Heals user 50% of damage dealt; if user ≤50% HP, Sp. Def +1. Learns: Lv 60.
+
+
+Fontessa — Everflow (Water, Special) — Power 90 / Acc 100 / PP 5
+ Effect: Creates Everflow Veil 5 turns: allies take 25% less damage from special moves. Learns: Lv 60.
+
+
+Moldraith — Blight Spores (Grass, Special) — Power 85 / Acc 100 / PP 5
+ Effect: If target not statused → Poisoned. If already statused → power becomes 120. Learns: Lv 60.
+
+
+Pseudo Line Anchor
+Justyrn — Verdict Horn (Steel, Physical) — Power 95 / Acc 100 / PP 10
+ Effect: If target used a damaging move last turn, deals double damage. Learns: Lv 46.
+
+
+Regional Forms
+Flygon (Thalorian Form) — Drakeweb Rush (Bug, Physical) — Power 85 / Acc 100 / PP 10
+ Effect: Clears hazards on user’s side after damage. Learns: Lv 44.
+
+
+Garchomp (Thalorian Form) — Glacier Rend (Ice, Physical) — Power 95 / Acc 100 / PP 5
+ Effect: Ignores target’s Defense boosts (not base Defense). Learns: Lv 52.
+
