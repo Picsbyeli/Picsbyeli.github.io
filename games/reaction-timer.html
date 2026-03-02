@@ -381,17 +381,44 @@
                 bgColor = 'bg-gray';
                 updateDisplay();
                 
-                // Update leaderboard
-                // create entry for Firebase (only if logged in)
+                // Save score to Firebase if logged in
                 if (window.gameAuth && window.gameAuth.isLoggedIn()) {
                     const u = window.gameAuth.getUser();
                     const entry = { uid: u.uid, name: u.displayName || u.email || 'Anonymous', time, ts: Date.now() };
-                    // push to database under reaction_timer collection
                     try {
                         await window.firebasePush(window.firebaseRef(window.firebaseDatabase, 'reaction_timer'), entry);
-                    } catch (err) { console.error('firebase push error', err); }
+                        console.log('Score saved to Firebase:', entry);
+                    } catch (err) { 
+                        console.error('Firebase push error:', err);
+                    }
                 }
-                // refresh local leaderboard display from database
+                
+                // Always save to localStorage as backup
+                try {
+                    const playerName = (window.gameAuth && window.gameAuth.isLoggedIn()) 
+                        ? (window.gameAuth.getUser().displayName || window.gameAuth.getUser().email || 'Anonymous')
+                        : 'Guest';
+                    const saved = localStorage.getItem('gameLeaderboard') || '{}';
+                    const leaderboardData = JSON.parse(saved);
+                    if (!leaderboardData['Reaction Timer']) {
+                        leaderboardData['Reaction Timer'] = [];
+                    }
+                    leaderboardData['Reaction Timer'].push({
+                        name: playerName,
+                        time: time,
+                        date: new Date().toISOString()
+                    });
+                    // Keep only top 10
+                    leaderboardData['Reaction Timer'] = leaderboardData['Reaction Timer']
+                        .sort((a, b) => a.time - b.time)
+                        .slice(0, 10);
+                    localStorage.setItem('gameLeaderboard', JSON.stringify(leaderboardData));
+                    console.log('Score saved to localStorage');
+                } catch (err) {
+                    console.error('localStorage save error:', err);
+                }
+                
+                // refresh leaderboard display
                 await loadLeaderboard();
             } else if (state === 'result') {
                 reactionTime = null;
@@ -400,88 +427,64 @@
                 updateDisplay();
             }
         }
-        
-        function updateDisplay() {
-            const gameArea = document.getElementById('gameArea');
-            gameArea.className = `game-area ${bgColor}`;
-            
-            // Hide all states
-            document.getElementById('waitingState').classList.add('hidden');
-            document.getElementById('readyState').classList.add('hidden');
-            document.getElementById('goState').classList.add('hidden');
-            document.getElementById('resultState').classList.add('hidden');
-            
-            // Show current state
-            if (state === 'waiting') {
-                document.getElementById('waitingState').classList.remove('hidden');
-            } else if (state === 'ready') {
-                document.getElementById('readyState').classList.remove('hidden');
-            } else if (state === 'go') {
-                document.getElementById('goState').classList.remove('hidden');
-            } else if (state === 'result') {
-                document.getElementById('resultState').classList.remove('hidden');
-                document.getElementById('resultTime').textContent = `${reactionTime}ms`;
-                document.getElementById('resultLabel').textContent = getSpeedLabel(reactionTime);
-            }
-        }
-        
-        function updateLeaderboard() {
-            const entriesEl = document.getElementById('leaderboardEntries');
-            entriesEl.innerHTML = '';
-            
-            leaderboard.forEach((entry, index) => {
-                const entryEl = document.createElement('div');
-                entryEl.className = `leaderboard-entry ${index === 0 ? 'entry-gold' : 'entry-normal'}`;
-                
-                entryEl.innerHTML = `
-                    <div class="entry-info">
-                        <span class="entry-rank">#${index + 1}</span>
-                        <span class="entry-name">${entry.name}</span>
-                        ${entry.title ? `<span class="entry-title">${entry.title}</span>` : ''}
-                    </div>
-                    <span class="entry-time">${entry.time}ms</span>
-                `;
-                
-                entriesEl.appendChild(entryEl);
-            });
-        }
 
         async function loadLeaderboard() {
-            // fetch reaction timer scores from Firebase
-            if (!window.firebaseDatabase) return;
-            try {
-                const dbRef = window.firebaseRef(window.firebaseDatabase, 'reaction_timer');
-                const snap = await window.firebaseGet(dbRef);
-                const data = snap.val() || {};
-                // Sort by time (ascending) and get top 5 fastest
-                const arr = Object.values(data)
-                    .sort((a, b) => a.time - b.time)
-                    .slice(0, 5);
-                leaderboard = arr.map((e, idx) => ({ 
-                    name: e.name, 
-                    time: e.time, 
-                    title: idx === 0 ? 'Sigma 67er' : '' 
-                }));
-                updateLeaderboard();
-                
-                // Also save to localStorage for the main leaderboard to pick up
+            // First try Firebase
+            let fbScores = [];
+            if (window.firebaseDatabase) {
+                try {
+                    const dbRef = window.firebaseRef(window.firebaseDatabase, 'reaction_timer');
+                    const snap = await window.firebaseGet(dbRef);
+                    const data = snap.val() || {};
+                    fbScores = Object.values(data)
+                        .sort((a, b) => a.time - b.time)
+                        .slice(0, 5);
+                    console.log('Loaded from Firebase:', fbScores);
+                } catch (err) {
+                    console.error('Failed to load from Firebase:', err);
+                }
+            }
+            
+            // If Firebase is empty, try localStorage
+            if (fbScores.length === 0) {
                 try {
                     const saved = localStorage.getItem('gameLeaderboard') || '{}';
                     const leaderboardData = JSON.parse(saved);
-                    leaderboardData['Reaction Timer'] = arr.map(e => ({
+                    fbScores = (leaderboardData['Reaction Timer'] || [])
+                        .sort((a, b) => a.time - b.time)
+                        .slice(0, 5);
+                    console.log('Loaded from localStorage:', fbScores);
+                } catch (err) {
+                    console.error('Failed to load from localStorage:', err);
+                }
+            }
+            
+            // Update display
+            leaderboard = fbScores.map((e, idx) => ({ 
+                name: e.name, 
+                time: e.time, 
+                title: idx === 0 ? 'Sigma 67er' : '' 
+            }));
+            updateLeaderboard();
+            
+            // Sync to localStorage
+            if (fbScores.length > 0) {
+                try {
+                    const saved = localStorage.getItem('gameLeaderboard') || '{}';
+                    const leaderboardData = JSON.parse(saved);
+                    leaderboardData['Reaction Timer'] = fbScores.map(e => ({
                         name: e.name,
                         time: e.time,
                         date: new Date(e.ts || Date.now()).toISOString()
                     }));
                     localStorage.setItem('gameLeaderboard', JSON.stringify(leaderboardData));
                 } catch (err) {
-                    console.warn('failed to save to localStorage', err);
+                    console.warn('Failed to sync to localStorage:', err);
                 }
-            } catch (err) {
-                console.error('failed loading leaderboard', err);
             }
         }
         
+</html>
         // Add hidden class to CSS
         const style = document.createElement('style');
         style.textContent = '.hidden { display: none !important; }';
