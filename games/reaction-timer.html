@@ -243,6 +243,14 @@
         // authentication helper
         window.gameAuth = new GameAuth(app);
 
+        // Wait for auth to initialize, then setup UI and init game
+        window.gameAuth.onAuthStateChanged(() => {
+            // trigger game init only after auth state settles
+            if (typeof init === 'function') {
+                init();
+            }
+        });
+
         // global function used in existing code (already present) but keep for consistency
         window.submitScore = async function(gameName, playerScore) {
             if (window.gameAuth && window.gameAuth.isLoggedIn()) {
@@ -320,21 +328,15 @@
             updateDisplay();
             updateLeaderboard();
             
-            // monitor auth status
+            // display current auth status
             const userInfo = document.getElementById('userInfo');
-            function updateUserInfo() {
-                if (window.gameAuth && window.gameAuth.isLoggedIn()) {
-                    const u = window.gameAuth.getUser();
-                    userInfo.textContent = `Logged in as ${u.displayName || u.email}`;
-                } else {
-                    userInfo.innerHTML = `Not logged in. <a href="../auth.html">Login</a>`;
-                }
+            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                const u = window.gameAuth.getUser();
+                userInfo.textContent = `Logged in as ${u.displayName || u.email}`;
+            } else {
+                userInfo.innerHTML = `Not logged in. <a href="../auth.html">Login</a>`;
             }
-            updateUserInfo();
-            if (window.gameAuth) {
-                window.gameAuth.onAuthStateChanged(updateUserInfo);
-            }
-            // load leaderboard from database initially
+            // load leaderboard from database
             loadLeaderboard();
         }
         
@@ -465,7 +467,8 @@
         style.textContent = '.hidden { display: none !important; }';
         document.head.appendChild(style);
         
-        init();
+        // init() is called by auth state listener, not here
+        // This prevents page reloads when auth state changes
     </script>
 </body>
 </html>
