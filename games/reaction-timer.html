@@ -447,16 +447,36 @@
         }
 
         async function loadLeaderboard() {
-            // fetch top 5 lowest reaction times from Firebase
+            // fetch reaction timer scores from Firebase
             if (!window.firebaseDatabase) return;
             try {
                 const dbRef = window.firebaseRef(window.firebaseDatabase, 'reaction_timer');
-                const q = window.firebaseQuery(dbRef, window.firebaseOrderByChild('time'), window.firebaseLimitToFirst(5));
-                const snap = await window.firebaseGet(q);
+                const snap = await window.firebaseGet(dbRef);
                 const data = snap.val() || {};
-                const arr = Object.values(data).sort((a, b) => a.time - b.time).slice(0, 5);
-                leaderboard = arr.map((e, idx) => ({ name: e.name, time: e.time, title: idx === 0 ? 'Sigma 67er' : '' }));
+                // Sort by time (ascending) and get top 5 fastest
+                const arr = Object.values(data)
+                    .sort((a, b) => a.time - b.time)
+                    .slice(0, 5);
+                leaderboard = arr.map((e, idx) => ({ 
+                    name: e.name, 
+                    time: e.time, 
+                    title: idx === 0 ? 'Sigma 67er' : '' 
+                }));
                 updateLeaderboard();
+                
+                // Also save to localStorage for the main leaderboard to pick up
+                try {
+                    const saved = localStorage.getItem('gameLeaderboard') || '{}';
+                    const leaderboardData = JSON.parse(saved);
+                    leaderboardData['Reaction Timer'] = arr.map(e => ({
+                        name: e.name,
+                        time: e.time,
+                        date: new Date(e.ts || Date.now()).toISOString()
+                    }));
+                    localStorage.setItem('gameLeaderboard', JSON.stringify(leaderboardData));
+                } catch (err) {
+                    console.warn('failed to save to localStorage', err);
+                }
             } catch (err) {
                 console.error('failed loading leaderboard', err);
             }
