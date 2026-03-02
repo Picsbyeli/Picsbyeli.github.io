@@ -21,7 +21,7 @@ class GameHub {
     }
 
     // Load category leaders from leaderboard
-    loadCategoryLeaders() {
+    async loadCategoryLeaders() {
         const categories = {
             'Reflex': ['reaction_timer', 'Reaction Timer'],
             'Puzzle': ['ArtBlock', 'Mini Sudoku', 'Lights Out'],
@@ -32,6 +32,37 @@ class GameHub {
         };
 
         try {
+            // First, try to load Firebase data for reaction timer if available
+            if (window.firebaseDatabase && window.firebaseRef && window.firebaseQuery && window.firebaseOrderByChild && window.firebaseLimitToFirst && window.firebaseGet) {
+                try {
+                    const timerRef = window.firebaseRef(window.firebaseDatabase, 'reaction_timer');
+                    const timerQuery = window.firebaseQuery(
+                        timerRef,
+                        window.firebaseOrderByChild('time'),
+                        window.firebaseLimitToFirst(10)
+                    );
+                    const timerSnapshot = await window.firebaseGet(timerQuery);
+                    
+                    if (timerSnapshot.exists()) {
+                        const scores = [];
+                        timerSnapshot.forEach(child => {
+                            const data = child.val();
+                            scores.push({
+                                name: data.name || 'Unknown',
+                                time: data.time || 0,
+                                date: new Date(data.ts || Date.now()).toISOString()
+                            });
+                        });
+                        const saved = localStorage.getItem('gameLeaderboard');
+                        const leaderboard = saved ? JSON.parse(saved) : {};
+                        leaderboard['Reaction Timer'] = scores.sort((a, b) => a.time - b.time);
+                        localStorage.setItem('gameLeaderboard', JSON.stringify(leaderboard));
+                    }
+                } catch (err) {
+                    console.warn('Could not load Firebase reaction timer:', err);
+                }
+            }
+
             // Get leaderboard data from localStorage
             const saved = localStorage.getItem('gameLeaderboard');
             const scores = saved ? JSON.parse(saved) : {};

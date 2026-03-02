@@ -392,6 +392,8 @@
                 this.renderTabs();
                 this.renderLeaderboard();
                 this.updateStats();
+                // Load Firebase scores after initial render
+                this.loadAllFirebaseScores();
             }
 
             loadScores() {
@@ -436,8 +438,16 @@
                     // Merge Firebase scores with localStorage scores
                     Object.assign(this.scores, this.firebaseScores);
                     
+                    // Save merged scores back to localStorage
+                    localStorage.setItem('gameLeaderboard', JSON.stringify(this.scores));
+                    
                     this.renderTabs();
                     this.renderLeaderboard();
+                    this.updateStats();
+                } catch (error) {
+                    console.error('Error loading Firebase scores:', error);
+                }
+            };
                     this.updateStats();
                 } catch (error) {
                     console.error('Error loading Firebase scores:', error);
