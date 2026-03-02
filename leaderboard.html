@@ -11,31 +11,38 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
         import { getAuth } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+        import { getDatabase, ref, query, orderByChild, limitToFirst, get } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js';
         import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
         import { getStorage } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
         import { GameAuth } from './js/firebase-auth.js';
 
         const firebaseConfig = {
-            apiKey: "AIzaSyDn2cL3G7YIU5F9pYcwWp3vd6rT8GHfVlE",
+            apiKey: "AIzaSyAQE2mo6RNgwG-WaooCpoZjQ9Z8G2MHvx8",
             authDomain: "profile-9e9f9.firebaseapp.com",
+            databaseURL: "https://profile-9e9f9-default-rtdb.firebaseio.com",
             projectId: "profile-9e9f9",
-            storageBucket: "profile-9e9f9.appspot.com",
-            messagingSenderId: "412374234567",
-            appId: "1:412374234567:web:8a9b5c6d7e8f9g0h1i2j3k4l"
+            storageBucket: "profile-9e9f9.firebasestorage.app",
+            messagingSenderId: "610449223815",
+            appId: "1:610449223815:web:3cdb864b4314d2b901c822",
+            measurementId: "G-7R4Z3ZSZ67"
         };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        window.firebaseApp = app;
+        window.firebaseDatabase = database;
+        window.firebaseRef = ref;
+        window.firebaseQuery = query;
+        window.firebaseOrderByChild = orderByChild;
+        window.firebaseLimitToFirst = limitToFirst;
+        window.firebaseGet = get;
         window.gameAuth = new GameAuth(app);
         
         // Load Firebase scores when page loads
         window.addEventListener('load', async () => {
-            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
-                // Try to load scores for common games
-                const commonGames = ['Snake', 'Tic-tac-toe', 'Memory Cards', 'Connect 4', 'Pong'];
-                for (const game of commonGames) {
-                    await window.leaderboard?.loadFirebaseScores(game);
-                }
+            if (window.leaderboard) {
+                await window.leaderboard.loadAllFirebaseScores();
             }
         });
     </script>
@@ -128,6 +135,64 @@
         .score-entry:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
+        }
+        .category-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .category-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .category-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .category-leaders {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .category-leader {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .category-leader:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+        .category-leader .medal {
+            font-size: 1.2rem;
+            min-width: 30px;
+        }
+        .category-leader .name {
+            flex: 1;
+            font-weight: 600;
+            word-break: break-word;
+        }
+        .category-leader .stat {
+            font-size: 0.85rem;
+            color: #FFD700;
+        }
+        .category-card .empty {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
         }
         .rank {
             font-size: 1.5rem;
@@ -294,13 +359,30 @@
             constructor() {
                 this.selectedGame = 'overall';
                 this.scores = {};
+                this.firebaseScores = {};
+                this.categories = {
+                    'Reflex': ['reaction_timer', 'Reaction Timer'],
+                    'Puzzle': ['ArtBlock', 'Mini Sudoku', 'Lights Out'],
+                    'Action': ['EvolBait', 'Dodge', 'Brick Breaker', 'Snake'],
+                    'Strategy': ['Chess', 'Connect 4', 'Tic-Tac-Toe'],
+                    'Casual': ['2048', 'Cookie Clicker', 'Pong'],
+                    'Knowledge': ['Trivia', 'Animal Twenty Questions', 'School Trivia']
+                };
+                this.gameCategories = {};
+                Object.entries(this.categories).forEach(([cat, games]) => {
+                    games.forEach(game => {
+                        this.gameCategories[game] = cat;
+                    });
+                });
                 this.gameEmojis = {
                     'overall': '🌟', '2048': '🔢', 'Animal Twenty Questions': '🐾', 
                     'Brick Breaker': '🧱', 'Chess': '♟️', 'Connect 4': '🔴',
                     'Cookie Clicker': '🍪', 'Dodge': '🏃', 'Emoji Guess': '😊', 
                     'Evolmon': '🐾', 'Hangman': '🎪', 'Imposter': '🕵️', 
                     'Memory Cards': '🧠', 'Pong': '🏓', 'Snake': '🐍',
-                    'Tic-Tac-Toe': '❌', 'Trivia': '🧠', 'Typing Speed': '⌨️'
+                    'Tic-Tac-Toe': '❌', 'Trivia': '🧠', 'Typing Speed': '⌨️',
+                    'Reaction Timer': '⚡', 'reaction_timer': '⚡', 'EvolBait': '🎣',
+                    'Mini Sudoku': '🔢', 'Lights Out': '💡'
                 };
                 this.init();
             }
@@ -322,9 +404,50 @@
                 }
             }
 
+            async loadAllFirebaseScores() {
+                if (!window.firebaseDatabase) {
+                    console.warn('Firebase database not initialized');
+                    return;
+                }
+
+                try {
+                    // Load Reaction Timer scores
+                    const timerRef = window.firebaseRef(window.firebaseDatabase, 'reaction_timer');
+                    const timerQuery = window.firebaseQuery(
+                        timerRef,
+                        window.firebaseOrderByChild('time'),
+                        window.firebaseLimitToFirst(10)
+                    );
+                    const timerSnapshot = await window.firebaseGet(timerQuery);
+                    
+                    if (timerSnapshot.exists()) {
+                        const scores = [];
+                        timerSnapshot.forEach(child => {
+                            const data = child.val();
+                            scores.push({
+                                name: data.name || 'Unknown',
+                                time: data.time || 0,
+                                date: new Date(data.ts || Date.now()).toISOString()
+                            });
+                        });
+                        this.firebaseScores['Reaction Timer'] = scores.sort((a, b) => a.time - b.time);
+                    }
+
+                    // Merge Firebase scores with localStorage scores
+                    Object.assign(this.scores, this.firebaseScores);
+                    
+                    this.renderTabs();
+                    this.renderLeaderboard();
+                    this.updateStats();
+                } catch (error) {
+                    console.error('Error loading Firebase scores:', error);
+                }
+            }
+
             renderTabs() {
                 const container = document.getElementById('game-tabs');
                 container.innerHTML = '<button class="game-tab active" data-game="overall">🌟 Overall</button>';
+                container.innerHTML += '<button class="game-tab" data-game="categories">🎯 Categories</button>';
 
                 Object.keys(this.scores).forEach(game => {
                     const emoji = this.gameEmojis[game] || '🎮';
@@ -342,20 +465,33 @@
                 document.querySelectorAll('.game-tab').forEach(tab => {
                     tab.classList.toggle('active', tab.dataset.game === game);
                 });
-                this.renderLeaderboard();
-                this.updateStats();
+                
+                if (game === 'categories') {
+                    const scoresEl = document.getElementById('scores-list');
+                    const titleEl = document.getElementById('leaderboard-title');
+                    const statsEl = document.getElementById('stats-grid');
+                    
+                    titleEl.textContent = '🎯 Best in Each Category';
+                    scoresEl.innerHTML = this.renderCategorySection();
+                    statsEl.classList.add('stats-hidden');
+                } else {
+                    this.renderLeaderboard();
+                    this.updateStats();
+                }
             }
 
             getOverallLeaderboard() {
                 const playerTotals = {};
                 
                 Object.entries(this.scores).forEach(([game, gameScores]) => {
+                    if (!Array.isArray(gameScores)) return;
                     gameScores.forEach(entry => {
-                        if (!playerTotals[entry.username]) {
-                            playerTotals[entry.username] = { total: 0, games: 0 };
+                        const playerName = entry.name || entry.username;
+                        if (!playerTotals[playerName]) {
+                            playerTotals[playerName] = { total: 0, games: 0 };
                         }
-                        playerTotals[entry.username].total += entry.score;
-                        playerTotals[entry.username].games += 1;
+                        playerTotals[playerName].total += entry.score || 0;
+                        playerTotals[playerName].games += 1;
                     });
                 });
 
@@ -367,6 +503,66 @@
                     }))
                     .sort((a, b) => b.score - a.score)
                     .slice(0, 10);
+            }
+
+            getCategoryLeaders() {
+                const categoryLeaders = {};
+                
+                Object.entries(this.categories).forEach(([category, games]) => {
+                    const categoryScores = {};
+                    
+                    games.forEach(gameName => {
+                        const gameScores = this.scores[gameName] || [];
+                        if (!Array.isArray(gameScores)) return;
+                        
+                        gameScores.slice(0, 3).forEach(entry => {
+                            const playerName = entry.name || entry.username;
+                            if (!categoryScores[playerName]) {
+                                categoryScores[playerName] = { wins: 0, topFinishes: 0 };
+                            }
+                            categoryScores[playerName].topFinishes++;
+                        });
+                    });
+                    
+                    categoryLeaders[category] = Object.entries(categoryScores)
+                        .map(([name, data]) => ({ name, ...data }))
+                        .sort((a, b) => b.topFinishes - a.topFinishes)
+                        .slice(0, 3);
+                });
+                
+                return categoryLeaders;
+            }
+
+            renderCategorySection() {
+                const container = document.getElementById('scores-list');
+                const categoryLeaders = this.getCategoryLeaders();
+                
+                let html = '<div class="category-section">';
+                
+                Object.entries(categoryLeaders).forEach(([category, leaders]) => {
+                    html += '<div class="category-card">';
+                    html += '<h3 class="category-title">' + category + '</h3>';
+                    
+                    if (leaders.length > 0) {
+                        html += '<div class="category-leaders">';
+                        leaders.forEach((leader, index) => {
+                            const medal = index === 0 ? '🏆' : index === 1 ? '🥈' : '🥉';
+                            html += '<div class="category-leader">' +
+                                '<span class="medal">' + medal + '</span>' +
+                                '<span class="name">' + leader.name + '</span>' +
+                                '<span class="stat">' + leader.topFinishes + ' top 3s</span>' +
+                            '</div>';
+                        });
+                        html += '</div>';
+                    } else {
+                        html += '<p class="empty">No scores yet</p>';
+                    }
+                    
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+                return html;
             }
 
             renderLeaderboard() {
@@ -381,7 +577,7 @@
 
                 const displayScores = this.selectedGame === 'overall' 
                     ? this.getOverallLeaderboard() 
-                    : (this.scores[this.selectedGame] || []).slice(0, 10);
+                    : this.getGameScores(this.selectedGame);
 
                 if (this.selectedGame === 'overall') {
                     statsEl.classList.remove('stats-hidden');
@@ -394,14 +590,21 @@
                         const rank = index + 1;
                         const medal = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
                         
+                        let scoreDisplay = '';
+                        if (entry.time !== undefined) {
+                            scoreDisplay = '<div class="score-value">' + (entry.time / 1000).toFixed(2) + 's</div>';
+                        } else if (entry.score !== undefined) {
+                            scoreDisplay = '<div class="score-value">' + entry.score.toLocaleString() + '</div>';
+                        }
+                        
                         return '<div class="score-entry">' +
                             '<div class="rank">' + medal + '</div>' +
                             '<div class="player-info">' +
-                                '<div class="player-name">' + entry.username + '</div>' +
+                                '<div class="player-name">' + (entry.name || entry.username) + '</div>' +
                                 (entry.games ? '<div class="player-stats">' + entry.games + ' games played</div>' : '') +
                             '</div>' +
                             '<div class="score-display">' +
-                                '<div class="score-value">' + entry.score.toLocaleString() + '</div>' +
+                                scoreDisplay +
                                 (entry.date ? '<div class="score-date">' + new Date(entry.date).toLocaleDateString() + '</div>' : '') +
                             '</div>' +
                         '</div>';
@@ -414,6 +617,11 @@
                             : 'Start playing games to appear on the leaderboard!') + '</p>' +
                     '</div>';
                 }
+            }
+
+            getGameScores(gameName) {
+                const scores = this.scores[gameName] || [];
+                return Array.isArray(scores) ? scores.slice(0, 10) : [];
             }
 
             updateStats() {

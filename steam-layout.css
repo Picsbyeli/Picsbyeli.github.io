@@ -1009,3 +1009,117 @@
   background: linear-gradient(135deg, #f59e0b, #f97316);
   color: #fff;
 }
+
+/* Category Leaders Section */
+.category-leaders-section {
+  margin: 40px 0;
+  padding: 25px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2d4654;
+  border-radius: 8px;
+}
+
+.category-leaders-header {
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.category-leaders-header h3 {
+  color: #66c0f4;
+  font-size: 24px;
+  margin: 0 0 8px 0;
+}
+
+.category-leaders-subtitle {
+  color: #8f98a0;
+  font-size: 13px;
+  margin: 0;
+}
+
+.category-leaders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.category-leader-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #316282;
+  border-radius: 6px;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.category-leader-card:hover {
+  background: rgba(102, 192, 244, 0.1);
+  border-color: #66c0f4;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(102, 192, 244, 0.15);
+}
+
+.category-leader-card h4 {
+  color: #66c0f4;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.category-leader-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  gap: 10px;
+}
+
+.category-leader-item .medal {
+  font-size: 20px;
+  width: 30px;
+  text-align: center;
+}
+
+.category-leader-item .player-name {
+  flex: 1;
+  color: #c7d5e0;
+  font-size: 13px;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.category-leader-item .stat {
+  color: #b8d631;
+  font-size: 11px;
+  background: rgba(184, 214, 49, 0.1);
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.loading-placeholder {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 30px;
+  color: #8f98a0;
+}
+
+.view-full-leaderboard-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #66c0f4, #449cf0);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.view-full-leaderboard-btn:hover {
+  background: linear-gradient(135deg, #449cf0, #2a8eba);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 192, 244, 0.3);
+}

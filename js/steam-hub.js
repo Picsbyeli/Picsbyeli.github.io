@@ -13,8 +13,106 @@ class GameHub {
         this.renderGames();
         this.updateSidebar();
         
+        // Load category leaders from leaderboard data
+        this.loadCategoryLeaders();
+        
         // Load and apply user settings (background, displayName, etc.)
         this.loadAndApplyUserSettings();
+    }
+
+    // Load category leaders from leaderboard
+    loadCategoryLeaders() {
+        const categories = {
+            'Reflex': ['reaction_timer', 'Reaction Timer'],
+            'Puzzle': ['ArtBlock', 'Mini Sudoku', 'Lights Out'],
+            'Action': ['EvolBait', 'Dodge', 'Brick Breaker', 'Snake'],
+            'Strategy': ['Chess', 'Connect 4', 'Tic-Tac-Toe'],
+            'Casual': ['2048', 'Cookie Clicker', 'Pong'],
+            'Knowledge': ['Trivia', 'Animal Twenty Questions', 'School Trivia']
+        };
+
+        try {
+            // Get leaderboard data from localStorage
+            const saved = localStorage.getItem('gameLeaderboard');
+            const scores = saved ? JSON.parse(saved) : {};
+
+            const categoryLeaders = {};
+
+            // For each category, find the top player(s)
+            Object.entries(categories).forEach(([category, games]) => {
+                const categoryScores = {};
+
+                games.forEach(gameName => {
+                    const gameScores = scores[gameName] || [];
+                    if (!Array.isArray(gameScores) || gameScores.length === 0) return;
+
+                    // Get top 3 from this game
+                    gameScores.slice(0, 3).forEach(entry => {
+                        const playerName = entry.name || entry.username;
+                        if (!playerName) return;
+                        
+                        if (!categoryScores[playerName]) {
+                            categoryScores[playerName] = { wins: 0, topFinishes: 0 };
+                        }
+                        categoryScores[playerName].topFinishes++;
+                    });
+                });
+
+                // Sort by top finishes
+                categoryLeaders[category] = Object.entries(categoryScores)
+                    .map(([name, data]) => ({ name, topFinishes: data.topFinishes }))
+                    .sort((a, b) => b.topFinishes - a.topFinishes)
+                    .slice(0, 3);
+            });
+
+            this.renderCategoryLeaders(categoryLeaders);
+        } catch (error) {
+            console.warn('Could not load category leaders:', error);
+        }
+    }
+
+    // Render category leaders section
+    renderCategoryLeaders(categoryLeaders) {
+        const container = document.getElementById('category-leaders-grid');
+        if (!container) return;
+
+        if (!categoryLeaders || Object.keys(categoryLeaders).length === 0) {
+            container.innerHTML = '<div class="loading-placeholder"><p>Play some games to see leaders!</p></div>';
+            return;
+        }
+
+        const medals = ['🏆', '🥈', '🥉'];
+        const categoryEmojis = {
+            'Reflex': '⚡',
+            'Puzzle': '🧩',
+            'Action': '💥',
+            'Strategy': '♟️',
+            'Casual': '🎮',
+            'Knowledge': '🧠'
+        };
+
+        let html = '';
+
+        Object.entries(categoryLeaders).forEach(([category, leaders]) => {
+            html += '<div class="category-leader-card">';
+            html += `<h4>${categoryEmojis[category] || '🎮'} ${category}</h4>`;
+
+            if (leaders.length > 0) {
+                leaders.forEach((leader, index) => {
+                    html += '<div class="category-leader-item">';
+                    html += `<span class="medal">${medals[index]}</span>`;
+                    html += `<span class="player-name">${leader.name}</span>`;
+                    html += `<span class="stat">${leader.topFinishes} top 3s</span>`;
+                    html += '</div>';
+                });
+            } else {
+                html += '<p style="color: #8f98a0; font-size: 12px; margin: 0;">No scores yet</p>';
+            }
+
+            html += '</div>';
+        });
+
+        container.innerHTML = html;
     }
 
     // Load user settings from Firebase/localStorage and apply them
