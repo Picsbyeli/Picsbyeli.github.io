@@ -447,7 +447,13 @@
             renderTabs() {
                 const container = document.getElementById('game-tabs');
                 container.innerHTML = '<button class="game-tab active" data-game="overall">🌟 Overall</button>';
-                container.innerHTML += '<button class="game-tab" data-game="categories">🎯 Categories</button>';
+                
+                const categoriesBtn = document.createElement('button');
+                categoriesBtn.className = 'game-tab';
+                categoriesBtn.setAttribute('data-game', 'categories');
+                categoriesBtn.textContent = '🎯 Categories';
+                categoriesBtn.onclick = () => this.selectGame('categories');
+                container.appendChild(categoriesBtn);
 
                 Object.keys(this.scores).forEach(game => {
                     const emoji = this.gameEmojis[game] || '🎮';
@@ -513,10 +519,12 @@
                     
                     games.forEach(gameName => {
                         const gameScores = this.scores[gameName] || [];
-                        if (!Array.isArray(gameScores)) return;
+                        if (!Array.isArray(gameScores) || gameScores.length === 0) return;
                         
                         gameScores.slice(0, 3).forEach(entry => {
                             const playerName = entry.name || entry.username;
+                            if (!playerName) return;
+                            
                             if (!categoryScores[playerName]) {
                                 categoryScores[playerName] = { wins: 0, topFinishes: 0 };
                             }
@@ -525,7 +533,7 @@
                     });
                     
                     categoryLeaders[category] = Object.entries(categoryScores)
-                        .map(([name, data]) => ({ name, ...data }))
+                        .map(([name, data]) => ({ name, topFinishes: data.topFinishes }))
                         .sort((a, b) => b.topFinishes - a.topFinishes)
                         .slice(0, 3);
                 });
