@@ -325,19 +325,23 @@
         ];
         
         async function init() {
-            updateDisplay();
-            updateLeaderboard();
-            
-            // display current auth status
-            const userInfo = document.getElementById('userInfo');
-            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
-                const u = window.gameAuth.getUser();
-                userInfo.textContent = `Logged in as ${u.displayName || u.email}`;
-            } else {
-                userInfo.innerHTML = `Not logged in. <a href="../auth.html">Login</a>`;
+            try {
+                updateDisplay();
+                updateLeaderboard();
+                
+                // display current auth status
+                const userInfo = document.getElementById('userInfo');
+                if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                    const u = window.gameAuth.getUser();
+                    userInfo.textContent = `Logged in as ${u.displayName || u.email}`;
+                } else {
+                    userInfo.innerHTML = `Not logged in. <a href="../auth.html">Login</a>`;
+                }
+                // load leaderboard from database
+                await loadLeaderboard();
+            } catch (err) {
+                console.error('init error:', err);
             }
-            // load leaderboard from database
-            await loadLeaderboard();
         }
         
         function getSpeedLabel(time) {
@@ -346,6 +350,51 @@
             if (time < 300) return 'Fast! 👍';
             if (time < 400) return 'Average 😐';
             return 'Slow... 🐌';
+        }
+
+        function updateDisplay() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.className = `game-area ${bgColor}`;
+
+            // Hide all states
+            document.getElementById('waitingState').classList.add('hidden');
+            document.getElementById('readyState').classList.add('hidden');
+            document.getElementById('goState').classList.add('hidden');
+            document.getElementById('resultState').classList.add('hidden');
+
+            // Show current state
+            if (state === 'waiting') {
+                document.getElementById('waitingState').classList.remove('hidden');
+            } else if (state === 'ready') {
+                document.getElementById('readyState').classList.remove('hidden');
+            } else if (state === 'go') {
+                document.getElementById('goState').classList.remove('hidden');
+            } else if (state === 'result') {
+                document.getElementById('resultState').classList.remove('hidden');
+                document.getElementById('resultTime').textContent = `${reactionTime}ms`;
+                document.getElementById('resultLabel').textContent = getSpeedLabel(reactionTime);
+            }
+        }
+
+        function updateLeaderboard() {
+            const entriesEl = document.getElementById('leaderboardEntries');
+            entriesEl.innerHTML = '';
+
+            leaderboard.forEach((entry, index) => {
+                const entryEl = document.createElement('div');
+                entryEl.className = `leaderboard-entry ${index === 0 ? 'entry-gold' : 'entry-normal'}`;
+
+                entryEl.innerHTML = `
+                    <div class="entry-info">
+                        <span class="entry-rank">#${index + 1}</span>
+                        <span class="entry-name">${entry.name}</span>
+                        ${entry.title ? `<span class="entry-title">${entry.title}</span>` : ''}
+                    </div>
+                    <span class="entry-time">${entry.time}ms</span>
+                `;
+
+                entriesEl.appendChild(entryEl);
+            });
         }
         
         function startTest() {
@@ -364,17 +413,29 @@
             }, delay);
         }
         
-        async function handleClick() {
-            if (state === 'waiting') {
-                startTest();
-            } else if (state === 'ready') {
-                // Too early!
-                clearTimeout(timeout);
-                state = 'waiting';
-                bgColor = 'bg-blue';
-                updateDisplay();
-                alert('Too early! Wait for the color change!');
-            } else if (state === 'go') {
+        // wrapper so onclick can be sync; inner async handles errors
+        function handleClick() {
+            console.log('handleClick invoked, state=', state);
+            (async () => {
+                if (state === 'waiting') {
+                    console.log('starting test');
+                    startTest();
+                } else if (state === 'ready') {
+                    // Too early!
+                    clearTimeout(timeout);
+                    state = 'waiting';
+                    bgColor = 'bg-blue';
+                    updateDisplay();
+                    // show non-blocking message
+                    console.log('Clicked too early');
+                    const infoEl = document.getElementById('resultLabel');
+                    if (infoEl) {
+                        infoEl.textContent = 'Too early! Try again.';
+                        // clear message after 1.5s
+                        setTimeout(() => { infoEl.textContent = ''; }, 1500);
+                    }
+                } else if (state === 'go') {
+                    console.log('user clicked GO, time calculation');
                 const time = Date.now() - startTime;
                 reactionTime = time;
                 state = 'result';
@@ -420,12 +481,15 @@
                 
                 // refresh leaderboard display
                 await loadLeaderboard();
-            } else if (state === 'result') {
+                } else if (state === 'result') {
                 reactionTime = null;
                 state = 'waiting';
                 bgColor = 'bg-blue';
                 updateDisplay();
             }
+            })().catch(err => {
+                console.error('handleClick error:', err);
+            });
         }
 
         async function loadLeaderboard() {
