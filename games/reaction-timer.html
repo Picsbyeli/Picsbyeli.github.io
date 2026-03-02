@@ -211,6 +211,52 @@
             z-index: 1000;
         }
     </style>
+    <!-- Firebase setup for authentication and leaderboard storage -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getDatabase, ref, push, query, orderByChild, limitToFirst, get } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js';
+        import { GameAuth } from '../js/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQE2mo6RNgwG-WaooCpoZjQ9Z8G2MHvx8",
+            authDomain: "profile-9e9f9.firebaseapp.com",
+            databaseURL: "https://profile-9e9f9-default-rtdb.firebaseio.com",
+            projectId: "profile-9e9f9",
+            storageBucket: "profile-9e9f9.firebasestorage.app",
+            messagingSenderId: "610449223815",
+            appId: "1:610449223815:web:3cdb864b4314d2b901c822",
+            measurementId: "G-7R4Z3ZSZ67"
+        };
+
+        // initialize firebase and make globals
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        window.firebaseApp = app;
+        window.firebaseDatabase = database;
+        window.firebaseRef = ref;
+        window.firebasePush = push;
+        window.firebaseQuery = query;
+        window.firebaseOrderByChild = orderByChild;
+        window.firebaseLimitToFirst = limitToFirst;
+        window.firebaseGet = get;
+
+        // authentication helper
+        window.gameAuth = new GameAuth(app);
+
+        // global function used in existing code (already present) but keep for consistency
+        window.submitScore = async function(gameName, playerScore) {
+            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                // store in RTDB under gameName key
+                const user = window.gameAuth.getUser();
+                const entry = { uid: user.uid, name: user.displayName || 'Anonymous', time: playerScore, ts: Date.now() };
+                try {
+                    await push(ref(database, `reaction_timer/${gameName}`), entry);
+                } catch (err) {
+                    console.error('failed to push score', err);
+                }
+            }
+        };
+    </script>
 </head>
 <body>
     <a href="../index.html" class="back-btn">← Back to Hub</a>
@@ -244,22 +290,14 @@
     
     <div class="leaderboard">
         <div class="leaderboard-container">
-            <div class="name-input-container">
-                <input 
-                    type="text" 
-                    id="userNameInput" 
-                    class="name-input"
-                    placeholder="Your name"
-                    maxlength="20"
-                    value="You"
-                />
-            </div>
-            
+            <!-- user info is populated from Firebase auth; no manual name entry to prevent fake scores -->
+            <div id="userInfo" style="margin-bottom:16px;font-size:1rem;color:#ddd;"></div>
+
             <h2 class="leaderboard-title">
                 <span class="trophy-icon">🏆</span>
                 Leaderboard
             </h2>
-            
+
             <div id="leaderboardEntries"></div>
         </div>
     </div>
@@ -267,15 +305,9 @@
     <script>
         let state = 'waiting'; // waiting, ready, go, result
         let reactionTime = null;
-        let leaderboard = [
-            { name: 'Alex', time: 234, title: 'Sigma 67er' },
-            { name: 'Jordan', time: 267 },
-            { name: 'Casey', time: 289 },
-            { name: 'Morgan', time: 312 },
-            { name: 'Riley', time: 345 }
-        ];
+        // leaderboard will be fetched from Firebase; fallback empty
+        let leaderboard = [];
         let bgColor = 'bg-blue';
-        let userName = 'You';
         let startTime = null;
         let timeout = null;
         
@@ -288,9 +320,22 @@
             updateDisplay();
             updateLeaderboard();
             
-            document.getElementById('userNameInput').addEventListener('input', (e) => {
-                userName = e.target.value || 'You';
-            });
+            // monitor auth status
+            const userInfo = document.getElementById('userInfo');
+            function updateUserInfo() {
+                if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                    const u = window.gameAuth.getUser();
+                    userInfo.textContent = `Logged in as ${u.displayName || u.email}`;
+                } else {
+                    userInfo.innerHTML = `Not logged in. <a href="../auth.html">Login</a>`;
+                }
+            }
+            updateUserInfo();
+            if (window.gameAuth) {
+                window.gameAuth.onAuthStateChanged(updateUserInfo);
+            }
+            // load leaderboard from database initially
+            loadLeaderboard();
         }
         
         function getSpeedLabel(time) {
@@ -317,7 +362,7 @@
             }, delay);
         }
         
-        function handleClick() {
+        async function handleClick() {
             if (state === 'waiting') {
                 startTest();
             } else if (state === 'ready') {
@@ -335,24 +380,17 @@
                 updateDisplay();
                 
                 // Update leaderboard
-                const newEntry = { name: userName, time, title: '' };
-                const newLeaderboard = [...leaderboard, newEntry]
-                    .sort((a, b) => a.time - b.time)
-                    .slice(0, 5);
-                
-                // Assign title to first place
-                if (newLeaderboard[0]) {
-                    newLeaderboard[0].title = 'Sigma 67er';
+                // create entry for Firebase (only if logged in)
+                if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                    const u = window.gameAuth.getUser();
+                    const entry = { uid: u.uid, name: u.displayName || u.email || 'Anonymous', time, ts: Date.now() };
+                    // push to database under reaction_timer collection
+                    try {
+                        await window.firebasePush(window.firebaseRef(window.firebaseDatabase, 'reaction_timer'), entry);
+                    } catch (err) { console.error('firebase push error', err); }
                 }
-                
-                leaderboard = newLeaderboard;
-                updateLeaderboard();
-                
-                // Submit score to global leaderboard (lower time = higher score)
-                if (typeof submitScore === 'function') {
-                    const score = Math.max(0, 2000 - time); // Higher score for faster reactions
-                    submitScore('Reaction Timer', score);
-                }
+                // refresh local leaderboard display from database
+                loadLeaderboard();
             } else if (state === 'result') {
                 reactionTime = null;
                 state = 'waiting';
@@ -404,6 +442,22 @@
                 
                 entriesEl.appendChild(entryEl);
             });
+        }
+
+        async function loadLeaderboard() {
+            // fetch top 5 lowest reaction times from Firebase
+            if (!window.firebaseDatabase) return;
+            try {
+                const dbRef = window.firebaseRef(window.firebaseDatabase, 'reaction_timer');
+                const q = window.firebaseQuery(dbRef, window.firebaseOrderByChild('time'), window.firebaseLimitToFirst(5));
+                const snap = await window.firebaseGet(q);
+                const data = snap.val() || {};
+                const arr = Object.values(data).sort((a, b) => a.time - b.time).slice(0, 5);
+                leaderboard = arr.map((e, idx) => ({ name: e.name, time: e.time, title: idx === 0 ? 'Sigma 67er' : '' }));
+                updateLeaderboard();
+            } catch (err) {
+                console.error('failed loading leaderboard', err);
+            }
         }
         
         // Add hidden class to CSS
