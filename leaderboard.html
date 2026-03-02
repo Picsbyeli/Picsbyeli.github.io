@@ -413,14 +413,9 @@
                 }
 
                 try {
-                    // Load Reaction Timer scores
+                    // Load Reaction Timer scores from Firebase
                     const timerRef = window.firebaseRef(window.firebaseDatabase, 'reaction_timer');
-                    const timerQuery = window.firebaseQuery(
-                        timerRef,
-                        window.firebaseOrderByChild('time'),
-                        window.firebaseLimitToFirst(10)
-                    );
-                    const timerSnapshot = await window.firebaseGet(timerQuery);
+                    const timerSnapshot = await window.firebaseGet(timerRef);
                     
                     if (timerSnapshot.exists()) {
                         const scores = [];
