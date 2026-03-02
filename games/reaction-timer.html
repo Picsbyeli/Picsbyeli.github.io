@@ -324,7 +324,7 @@
             'bg-purple', 'bg-pink', 'bg-indigo'
         ];
         
-        function init() {
+        async function init() {
             updateDisplay();
             updateLeaderboard();
             
@@ -337,7 +337,7 @@
                 userInfo.innerHTML = `Not logged in. <a href="../auth.html">Login</a>`;
             }
             // load leaderboard from database
-            loadLeaderboard();
+            await loadLeaderboard();
         }
         
         function getSpeedLabel(time) {
@@ -392,7 +392,7 @@
                     } catch (err) { console.error('firebase push error', err); }
                 }
                 // refresh local leaderboard display from database
-                loadLeaderboard();
+                await loadLeaderboard();
             } else if (state === 'result') {
                 reactionTime = null;
                 state = 'waiting';
