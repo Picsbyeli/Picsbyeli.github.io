@@ -436,57 +436,57 @@
                     }
                 } else if (state === 'go') {
                     console.log('user clicked GO, time calculation');
-                const time = Date.now() - startTime;
-                reactionTime = time;
-                state = 'result';
-                bgColor = 'bg-gray';
-                updateDisplay();
-                
-                // Save score to Firebase if logged in
-                if (window.gameAuth && window.gameAuth.isLoggedIn()) {
-                    const u = window.gameAuth.getUser();
-                    const entry = { uid: u.uid, name: u.displayName || u.email || 'Anonymous', time, ts: Date.now() };
+                    const time = Date.now() - startTime;
+                    reactionTime = time;
+                    state = 'result';
+                    bgColor = 'bg-gray';
+                    updateDisplay();
+                    
+                    // Save score to Firebase if logged in
+                    if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                        const u = window.gameAuth.getUser();
+                        const entry = { uid: u.uid, name: u.displayName || u.email || 'Anonymous', time, ts: Date.now() };
+                        try {
+                            await window.firebasePush(window.firebaseRef(window.firebaseDatabase, 'reaction_timer'), entry);
+                            console.log('Score saved to Firebase:', entry);
+                        } catch (err) { 
+                            console.error('Firebase push error:', err);
+                        }
+                    }
+                    
+                    // Always save to localStorage as backup
                     try {
-                        await window.firebasePush(window.firebaseRef(window.firebaseDatabase, 'reaction_timer'), entry);
-                        console.log('Score saved to Firebase:', entry);
-                    } catch (err) { 
-                        console.error('Firebase push error:', err);
+                        const playerName = (window.gameAuth && window.gameAuth.isLoggedIn()) 
+                            ? (window.gameAuth.getUser().displayName || window.gameAuth.getUser().email || 'Anonymous')
+                            : 'Guest';
+                        const saved = localStorage.getItem('gameLeaderboard') || '{}';
+                        const leaderboardData = JSON.parse(saved);
+                        if (!leaderboardData['Reaction Timer']) {
+                            leaderboardData['Reaction Timer'] = [];
+                        }
+                        leaderboardData['Reaction Timer'].push({
+                            name: playerName,
+                            time: time,
+                            date: new Date().toISOString()
+                        });
+                        // Keep only top 10
+                        leaderboardData['Reaction Timer'] = leaderboardData['Reaction Timer']
+                            .sort((a, b) => a.time - b.time)
+                            .slice(0, 10);
+                        localStorage.setItem('gameLeaderboard', JSON.stringify(leaderboardData));
+                        console.log('Score saved to localStorage');
+                    } catch (err) {
+                        console.error('localStorage save error:', err);
                     }
-                }
-                
-                // Always save to localStorage as backup
-                try {
-                    const playerName = (window.gameAuth && window.gameAuth.isLoggedIn()) 
-                        ? (window.gameAuth.getUser().displayName || window.gameAuth.getUser().email || 'Anonymous')
-                        : 'Guest';
-                    const saved = localStorage.getItem('gameLeaderboard') || '{}';
-                    const leaderboardData = JSON.parse(saved);
-                    if (!leaderboardData['Reaction Timer']) {
-                        leaderboardData['Reaction Timer'] = [];
-                    }
-                    leaderboardData['Reaction Timer'].push({
-                        name: playerName,
-                        time: time,
-                        date: new Date().toISOString()
-                    });
-                    // Keep only top 10
-                    leaderboardData['Reaction Timer'] = leaderboardData['Reaction Timer']
-                        .sort((a, b) => a.time - b.time)
-                        .slice(0, 10);
-                    localStorage.setItem('gameLeaderboard', JSON.stringify(leaderboardData));
-                    console.log('Score saved to localStorage');
-                } catch (err) {
-                    console.error('localStorage save error:', err);
-                }
-                
-                // refresh leaderboard display
-                await loadLeaderboard();
+                    
+                    // refresh leaderboard display
+                    await loadLeaderboard();
                 } else if (state === 'result') {
-                reactionTime = null;
-                state = 'waiting';
-                bgColor = 'bg-blue';
-                updateDisplay();
-            }
+                    reactionTime = null;
+                    state = 'waiting';
+                    bgColor = 'bg-blue';
+                    updateDisplay();
+                }
             })().catch(err => {
                 console.error('handleClick error:', err);
             });
