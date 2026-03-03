@@ -413,25 +413,57 @@
                 }
 
                 try {
+                    // First load localStorage scores
+                    const saved = localStorage.getItem('gameLeaderboard');
+                    const localScores = saved ? JSON.parse(saved) : {};
+                    
                     // Load Reaction Timer scores from Firebase
                     const timerRef = window.firebaseRef(window.firebaseDatabase, 'reaction_timer');
                     const timerSnapshot = await window.firebaseGet(timerRef);
                     
+                    const allReactionTimerScores = [];
+                    
+                    // Add Firebase scores
                     if (timerSnapshot.exists()) {
-                        const scores = [];
                         timerSnapshot.forEach(child => {
                             const data = child.val();
-                            scores.push({
+                            allReactionTimerScores.push({
                                 name: data.name || 'Unknown',
                                 time: data.time || 0,
                                 date: new Date(data.ts || Date.now()).toISOString()
                             });
                         });
-                        this.firebaseScores['Reaction Timer'] = scores.sort((a, b) => a.time - b.time);
+                    }
+                    
+                    // Add localStorage scores for this game
+                    if (localScores['Reaction Timer'] && Array.isArray(localScores['Reaction Timer'])) {
+                        localScores['Reaction Timer'].forEach(entry => {
+                            allReactionTimerScores.push({
+                                name: entry.name || 'Unknown',
+                                time: entry.time || 0,
+                                date: entry.date || new Date().toISOString()
+                            });
+                        });
+                    }
+                    
+                    // Sort all scores by time and remove duplicates
+                    const uniqueScores = {};
+                    allReactionTimerScores.sort((a, b) => a.time - b.time).forEach(score => {
+                        const key = score.name + ':' + score.time;
+                        if (!uniqueScores[key]) {
+                            uniqueScores[key] = score;
+                        }
+                    });
+                    
+                    const mergedScores = Object.values(uniqueScores).sort((a, b) => a.time - b.time);
+                    
+                    if (mergedScores.length > 0) {
+                        this.firebaseScores['Reaction Timer'] = mergedScores;
+                        this.scores['Reaction Timer'] = mergedScores;
                     }
 
-                    // Merge Firebase scores with localStorage scores
-                    Object.assign(this.scores, this.firebaseScores);
+                    // Merge all Firebase scores with localStorage
+                    Object.assign(this.scores, localScores, this.firebaseScores);
                     
                     // Save merged scores back to localStorage
                     localStorage.setItem('gameLeaderboard', JSON.stringify(this.scores));
@@ -442,7 +474,7 @@
                 } catch (error) {
                     console.error('Error loading Firebase scores:', error);
                 }
-            };
+            }
                     this.updateStats();
                 } catch (error) {
                     console.error('Error loading Firebase scores:', error);
@@ -584,9 +616,10 @@
                 const statsEl = document.getElementById('stats-grid');
 
                 const emoji = this.gameEmojis[this.selectedGame] || '🎮';
+                const limit = (this.selectedGame === 'Reaction Timer' || this.selectedGame === 'reaction_timer') ? 3 : 10;
                 titleEl.textContent = this.selectedGame === 'overall' 
                     ? '🏆 Overall Top Scorers' 
-                    : emoji + ' ' + this.selectedGame + ' - Top 10';
+                    : emoji + ' ' + this.selectedGame + ' - Top ' + limit;
 
                 const displayScores = this.selectedGame === 'overall' 
                     ? this.getOverallLeaderboard() 
@@ -634,7 +667,9 @@
 
             getGameScores(gameName) {
                 const scores = this.scores[gameName] || [];
-                return Array.isArray(scores) ? scores.slice(0, 10) : [];
+                // Show top 3 for Reaction Timer, top 10 for others
+                const limit = (gameName === 'Reaction Timer' || gameName === 'reaction_timer') ? 3 : 10;
+                return Array.isArray(scores) ? scores.slice(0, limit) : [];
             }
 
             updateStats() {
