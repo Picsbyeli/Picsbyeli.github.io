@@ -329,8 +329,8 @@
         // Wait for auth to initialize, then setup UI and init game
         window.gameAuth.onAuthStateChanged(() => {
             // trigger game init only after auth state settles
-            if (typeof init === 'function') {
-                init();
+            if (typeof checkPlayerStatus === 'function') {
+                checkPlayerStatus();
             }
         });
 
@@ -451,11 +451,16 @@
         
         function showLoginModal() {
             const modal = document.getElementById('loginModal');
-            modal.classList.remove('hidden');
-            document.getElementById('nameInput').focus();
-            document.getElementById('nameInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') playAsGuest();
-            });
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+            const input = document.getElementById('nameInput');
+            if (input) {
+                input.focus();
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') playAsGuest();
+                });
+            }
         }
         
         function playAsGuest() {
@@ -484,19 +489,29 @@
         
         function startGame() {
             const modal = document.getElementById('loginModal');
-            modal.classList.add('hidden');
-            document.getElementById('gameArea').style.display = 'flex';
-            document.getElementById('leaderboardSection').style.display = 'block';
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            const gameArea = document.getElementById('gameArea');
+            if (gameArea) {
+                gameArea.style.display = 'flex';
+            }
+            const leaderboardSection = document.getElementById('leaderboardSection');
+            if (leaderboardSection) {
+                leaderboardSection.style.display = 'block';
+            }
             updateDisplay();
             updateLeaderboard();
             
             const userInfo = document.getElementById('userInfo');
-            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
-                const u = window.gameAuth.getUser();
-                playerName = u.displayName || u.email;
-                userInfo.innerHTML = `<strong>✓ Logged in as ${playerName}</strong> <button onclick="logout()" style="margin-left: 12px; padding: 4px 12px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">Logout</button>`;
-            } else {
-                userInfo.innerHTML = `<strong>Playing as: ${playerName}</strong> | <a href="../auth.html" style="color: #3b82f6; text-decoration: none; cursor: pointer;">Sign in for persistent scores</a>`;
+            if (userInfo) {
+                if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                    const u = window.gameAuth.getUser();
+                    playerName = u.displayName || u.email;
+                    userInfo.innerHTML = `<strong>✓ Logged in as ${playerName}</strong> <button onclick="logout()" style="margin-left: 12px; padding: 4px 12px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">Logout</button>`;
+                } else {
+                    userInfo.innerHTML = `<strong>Playing as: ${playerName}</strong> | <a href="../auth.html" style="color: #3b82f6; text-decoration: none; cursor: pointer;">Sign in for persistent scores</a>`;
+                }
             }
             loadLeaderboard();
         }
@@ -507,6 +522,17 @@
             } catch (err) {
                 console.error('init error:', err);
             }
+        }
+        
+        // Auto-initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('DOM ready, checking player status');
+                checkPlayerStatus();
+            });
+        } else {
+            console.log('DOM already loaded, checking player status');
+            checkPlayerStatus();
         }
         
         function getSpeedLabel(time) {
