@@ -4,18 +4,1331 @@
   <meta charset="utf-8" />
   <title>TraEvol — Train & Evolve Your Drawing</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="../styles.css" rel="stylesheet" />
-  <link href="../steam-layout.css" rel="stylesheet" />
   <style>
-    body { background: #0c0e14; color: #e8e6f0; margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    #root { min-height: 100vh; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #0c0e14; 
+      color: #e8e6f0; 
+      margin: 0; 
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    html, body, #root { height: 100%; width: 100%; }
   </style>
 </head>
 <body>
   <div id="root"></div>
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
-  <script type="module" src="TraEvolApp.js"></script>
+  
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/three@r152/build/three.min.js"></script>
+  
+  <script type="module">
+    const React = window.React;
+    const ReactDOM = window.ReactDOM;
+    const THREE = window.THREE;
+    const { useState, useEffect, useRef, useCallback } = React;
+    const { createElement: h } = React;
+
+    // ============================================================
+    // TRAEVOL — Train + Evolve Your Drawing
+    // ============================================================
+
+// ─── JSON DATA: Expressions ────────────────────────────────
+const EXPRESSIONS_DATA = {
+  version: "1.0.0",
+  expressions: [
+    { id:"exp_happy",name:"Happy",emoji:"😊",intensityLevels:[1,2,3],sliders:{browTiltDeg:{min:-10,max:6,default:-2,step:1},browHeight:{min:-10,max:12,default:6,step:1},eyelidOpen:{min:20,max:100,default:70,step:5},eyeSquint:{min:0,max:60,default:20,step:5},mouthCorner:{min:-40,max:60,default:35,step:5},jawDrop:{min:0,max:50,default:10,step:5},cheekRaise:{min:0,max:60,default:30,step:5}},stepChecklist:["Draw a simple head (circle + jaw wedge).","Place brow & eye line; eyes slightly squinted.","Angle eyebrows gently upward toward outside.","Curve mouth corners up; add cheek lift.","Refine eyelids and add smile creases.","Clean pass: simplify lines."],tips:["Cheeks lift and eyelids compress slightly.","Avoid overly high eyebrows unless excited surprise."]},
+    { id:"exp_sad",name:"Sad",emoji:"😢",intensityLevels:[1,2,3],sliders:{browTiltDeg:{min:-25,max:10,default:-12,step:1},browHeight:{min:-10,max:12,default:2,step:1},eyelidOpen:{min:20,max:100,default:55,step:5},eyeSquint:{min:0,max:60,default:10,step:5},mouthCorner:{min:-60,max:30,default:-25,step:5},jawDrop:{min:0,max:50,default:5,step:5},cheekRaise:{min:0,max:60,default:5,step:5}},stepChecklist:["Draw head and centerline.","Tilt inner eyebrows up.","Lower upper eyelid slightly.","Turn mouth corners down subtly.","Add under-eye crease.","Clean up lines."],tips:["Sadness shows strongest in inner brow angle.","Use softer curves."]},
+    { id:"exp_angry",name:"Angry",emoji:"😠",intensityLevels:[1,2,3],sliders:{browTiltDeg:{min:-10,max:30,default:18,step:1},browHeight:{min:-12,max:8,default:-6,step:1},eyelidOpen:{min:10,max:100,default:45,step:5},eyeSquint:{min:0,max:80,default:35,step:5},mouthCorner:{min:-30,max:30,default:-5,step:5},jawDrop:{min:0,max:60,default:10,step:5},cheekRaise:{min:0,max:60,default:10,step:5}},stepChecklist:["Block in head; squared jaw.","Angle brows down center.","Squint eyes tightly.","Compress mouth line.","Add brow crease.","Sharp angles, tight shapes."],tips:["Anger = compression.","Jaw drop → yelling."]},
+    { id:"exp_fear",name:"Fear",emoji:"😨",intensityLevels:[1,2,3],sliders:{browTiltDeg:{min:-20,max:20,default:-5,step:1},browHeight:{min:-10,max:20,default:10,step:1},eyelidOpen:{min:30,max:140,default:95,step:5},eyeSquint:{min:0,max:50,default:5,step:5},mouthCorner:{min:-20,max:40,default:5,step:5},jawDrop:{min:0,max:80,default:30,step:5},cheekRaise:{min:0,max:60,default:0,step:5}},stepChecklist:["Construct head.","Raise brows, open eyes.","Brow shape tense.","Open mouth with jaw drop.","Add under-eye tension.","Fear = wide + tense."],tips:["Fear mixes open with tension.","Add strain cues vs surprise."]},
+    { id:"exp_surprise",name:"Surprise",emoji:"😲",intensityLevels:[1,2,3],sliders:{browTiltDeg:{min:-10,max:15,default:0,step:1},browHeight:{min:-10,max:25,default:14,step:1},eyelidOpen:{min:30,max:150,default:105,step:5},eyeSquint:{min:0,max:40,default:0,step:5},mouthCorner:{min:-10,max:30,default:0,step:5},jawDrop:{min:0,max:90,default:40,step:5},cheekRaise:{min:0,max:60,default:0,step:5}},stepChecklist:["Place features lightly.","Raise brows, wide eyes.","Round mouth into O.","Keep cheeks relaxed.","Refine eyelid arcs.","Clean pass."],tips:["Surprise = openness without strain.","Round mouth is key cue."]},
+    { id:"exp_neutral",name:"Neutral",emoji:"😐",intensityLevels:[1,2,3],sliders:{browTiltDeg:{min:-10,max:10,default:0,step:1},browHeight:{min:-10,max:10,default:0,step:1},eyelidOpen:{min:20,max:120,default:70,step:5},eyeSquint:{min:0,max:60,default:5,step:5},mouthCorner:{min:-20,max:20,default:0,step:5},jawDrop:{min:0,max:40,default:0,step:5},cheekRaise:{min:0,max:60,default:0,step:5}},stepChecklist:["Construct head and centerline.","Flat relaxed brows.","Natural eyelids.","Gentle mouth line.","Refine symmetry.","Your baseline."],tips:["Control for comparison.","Small shifts matter."]},
+    { id:"exp_confident",name:"Confident",emoji:"😏",intensityLevels:[1,2,3],sliders:{browTiltDeg:{min:-10,max:20,default:6,step:1},browHeight:{min:-10,max:12,default:2,step:1},eyelidOpen:{min:20,max:120,default:60,step:5},eyeSquint:{min:0,max:70,default:15,step:5},mouthCorner:{min:-10,max:45,default:15,step:5},jawDrop:{min:0,max:40,default:0,step:5},cheekRaise:{min:0,max:60,default:10,step:5}},stepChecklist:["Stable jaw/neck.","Slightly lower lids.","Firm brow shape.","Asymmetrical smirk.","Mouth corners slightly up.","Controlled and relaxed."],tips:["Calm eyes + subtle mouth lift.","Don't over-squint."]},
+    { id:"exp_tired",name:"Tired",emoji:"😴",intensityLevels:[1,2,3],sliders:{browTiltDeg:{min:-15,max:10,default:0,step:1},browHeight:{min:-20,max:10,default:-8,step:1},eyelidOpen:{min:5,max:120,default:30,step:5},eyeSquint:{min:0,max:70,default:20,step:5},mouthCorner:{min:-30,max:20,default:-10,step:5},jawDrop:{min:0,max:60,default:5,step:5},cheekRaise:{min:0,max:60,default:0,step:5}},stepChecklist:["Relax jaw and shapes.","Lower brow height.","Half-close eyelids.","Mouth flat or slightly down.","Optional eye-bag line.","Droop + softness."],tips:["Tired = droop not anger.","Subtle under-eye cues."]},
+  ]
+};
+
+// ─── JSON DATA: Body Presets ───────────────────────────────
+const BODY_PRESETS = { version:"1.0.0", presets:[
+  {id:"body_average_adult",name:"Average Adult",headCount:{min:7,max:8,default:7.5},silhouetteRatios:{shoulderToHip:{min:0.9,max:1.2,default:1.05},waistToHip:{min:0.65,max:0.95,default:0.8}},landmarks:{shoulderLine:"1.5 heads",ribcageBottom:"3 heads",pelvisTop:"3.5 heads",crotch:"4 heads",knee:"6 heads"},notes:["Baseline for figure practice."]},
+  {id:"body_petite",name:"Petite",headCount:{min:6.5,max:7.5,default:6.75},silhouetteRatios:{shoulderToHip:{min:0.85,max:1.15,default:1.0},waistToHip:{min:0.6,max:0.95,default:0.78}},landmarks:{shoulderLine:"1.4 heads",ribcageBottom:"2.9 heads",pelvisTop:"3.3 heads",crotch:"3.8 heads",knee:"5.6 heads"},notes:["Shorter limbs relative to torso."]},
+  {id:"body_tall",name:"Tall",headCount:{min:8,max:8.75,default:8.25},silhouetteRatios:{shoulderToHip:{min:0.9,max:1.25,default:1.08},waistToHip:{min:0.65,max:0.95,default:0.8}},landmarks:{shoulderLine:"1.6 heads",ribcageBottom:"3.2 heads",pelvisTop:"3.8 heads",crotch:"4.2 heads",knee:"6.4 heads"},notes:["Longer legs and forearms."]},
+  {id:"body_athletic",name:"Athletic",headCount:{min:7.5,max:8.5,default:8.0},silhouetteRatios:{shoulderToHip:{min:1.0,max:1.35,default:1.2},waistToHip:{min:0.7,max:0.95,default:0.82}},landmarks:{shoulderLine:"1.5 heads",ribcageBottom:"3.1 heads",pelvisTop:"3.7 heads",crotch:"4.1 heads",knee:"6.1 heads"},notes:["Emphasize deltoid + thigh volume."]},
+  {id:"body_curvy",name:"Curvy",headCount:{min:7,max:8,default:7.5},silhouetteRatios:{shoulderToHip:{min:0.85,max:1.15,default:0.98},waistToHip:{min:0.55,max:0.85,default:0.68}},landmarks:{shoulderLine:"1.5 heads",ribcageBottom:"3.0 heads",pelvisTop:"3.6 heads",crotch:"4.0 heads",knee:"6.0 heads"},notes:["Smooth S-curves in silhouette."]},
+  {id:"body_stocky",name:"Stocky",headCount:{min:6.75,max:7.75,default:7.0},silhouetteRatios:{shoulderToHip:{min:0.95,max:1.3,default:1.12},waistToHip:{min:0.75,max:1.05,default:0.92}},landmarks:{shoulderLine:"1.45 heads",ribcageBottom:"2.95 heads",pelvisTop:"3.45 heads",crotch:"3.9 heads",knee:"5.7 heads"},notes:["Thick forms; clear joints."]},
+  {id:"body_plus_size",name:"Plus-Size",headCount:{min:6.75,max:8,default:7.5},silhouetteRatios:{shoulderToHip:{min:0.85,max:1.25,default:1.05},waistToHip:{min:0.75,max:1.1,default:0.95}},landmarks:{shoulderLine:"1.5 heads",ribcageBottom:"3.1 heads",pelvisTop:"3.7 heads",crotch:"4.1 heads",knee:"6.0 heads"},notes:["Layered forms; soft edge transitions."]},
+  {id:"body_youth_teen",name:"Youth/Teen",headCount:{min:6,max:7.5,default:6.5},silhouetteRatios:{shoulderToHip:{min:0.85,max:1.15,default:0.98},waistToHip:{min:0.65,max:0.95,default:0.8}},landmarks:{shoulderLine:"1.35 heads",ribcageBottom:"2.7 heads",pelvisTop:"3.1 heads",crotch:"3.6 heads",knee:"5.2 heads"},notes:["Larger head relative to body."]},
+]};
+
+// ─── JSON DATA: Hair Templates ─────────────────────────────
+const HAIR_TEMPLATES = { version:"1.0.0", templates:[
+  {id:"hair_straight_short_crop",name:"Straight — Short Crop",type:"Straight",length:"Short",steps:["Set hairline","Block cap mass","Add part","Add 3–5 clumps","Refine edge"],flow:"Fwd/Down",notes:["One main mass first."]},
+  {id:"hair_straight_bob",name:"Straight — Bob",type:"Straight",length:"Short",steps:["Hairline + part","Block bob shape","Cut line at jaw","Add end clumps","Add shine band"],flow:"Down",notes:["Ends taper to wedges."]},
+  {id:"hair_straight_long_layered",name:"Straight — Long Layered",type:"Straight",length:"Long",steps:["Hairline","Curtain mass","2–3 layers","Clump groups","Shine/value"],flow:"Down/Out",notes:["Long S-curves for elegance."]},
+  {id:"hair_wavy_short_shag",name:"Wavy — Short Shag",type:"Wavy",length:"Short",steps:["Hairline","Block shag mass","Wave rhythm lines","Define clumps","Refine silhouette"],flow:"Down/Out",notes:["Waves = repeating S rhythm."]},
+  {id:"hair_wavy_long_beach",name:"Wavy — Long Beach",type:"Wavy",length:"Long",steps:["Hairline","Big mass","4–6 clumps","S-waves inside clumps","Shine/value"],flow:"Down/Out",notes:["Waves bigger near ends."]},
+  {id:"hair_curly_short_ringlets",name:"Curly — Short Ringlets",type:"Curly",length:"Short",steps:["Hairline","Round mass","6–10 ringlet clumps","Add depth","Refine edge"],flow:"Out/Down",notes:["Grouped spirals, not strands."]},
+  {id:"hair_curly_long",name:"Curly — Long",type:"Curly",length:"Long",steps:["Hairline","Cascading mass","Split into clumps","Curl rhythm lines","Shadow under clumps"],flow:"Down/Out",notes:["Overlapping clumps for depth."]},
+  {id:"hair_coily_short_afro",name:"Coily — Short Afro",type:"Coily",length:"Short",steps:["Hairline","Cloud mass","Edge texture clusters","Shadow core","Refine shape"],flow:"Out",notes:["Texture = clusters not lines."]},
+  {id:"hair_coily_locs",name:"Coily — Locs",type:"Coily",length:"Long",steps:["Hairline","Loc bundle masses","8–14 loc groups","Add overlaps","Subtle texture"],flow:"Down",notes:["Keep grouped into sections."]},
+  {id:"hair_messy_spiky",name:"Stylized — Messy Spiky",type:"Stylized",length:"Short",steps:["Hairline","Overall mass","Spike triangles","Vary spike size","Shadow base"],flow:"Up/Out",notes:["Vary lengths."]},
+]};
+
+// ─── JSON DATA: Art Styles ─────────────────────────────────
+const STYLES_DATA = { version:"1.0.0", styles:[
+  {id:"style_realistic",name:"Realistic",icon:"🎨",brushPresets:[{name:"Pencil",tool:"pencil",size:3,opacity:0.55},{name:"Ink Pen",tool:"pen",size:2,opacity:0.9},{name:"Soft Shade",tool:"brush",size:18,opacity:0.18}],notes:["Accurate proportions and values.","Soft gradients, controlled edges."]},
+  {id:"style_manga",name:"Manga / Anime",icon:"⚡",brushPresets:[{name:"Light Sketch",tool:"pencil",size:4,opacity:0.5},{name:"Tapered Ink",tool:"pen",size:3,opacity:1.0},{name:"Cell Shade",tool:"marker",size:22,opacity:0.28}],notes:["Simplify nose/lips; emphasize eyes.","Clean shapes, cell shading."]},
+  {id:"style_comic",name:"Comic / Western",icon:"💥",brushPresets:[{name:"Sketch",tool:"pencil",size:4,opacity:0.55},{name:"Bold Ink",tool:"pen",size:5,opacity:1.0},{name:"Crosshatch",tool:"pen",size:2,opacity:0.7}],notes:["Line weight for depth.","Shadows as graphic shapes."]},
+  {id:"style_chibi",name:"Chibi",icon:"🌟",brushPresets:[{name:"Chibi Sketch",tool:"pencil",size:5,opacity:0.55},{name:"Clean Outline",tool:"pen",size:4,opacity:1.0},{name:"Simple Shade",tool:"marker",size:18,opacity:0.22}],notes:["Big head, small body.","Silhouette readability matters most."]},
+  {id:"style_stylized",name:"Stylized",icon:"🔥",brushPresets:[{name:"Loose Sketch",tool:"pencil",size:6,opacity:0.5},{name:"Expressive Ink",tool:"pen",size:4,opacity:0.95},{name:"Block Shade",tool:"marker",size:24,opacity:0.2}],notes:["Push proportions intentionally.","Consistent shape language."]},
+]};
+
+// ─── Lessons ───────────────────────────────────────────────
+const LESSONS_DATA = [
+  {id:"L01",title:"Lines & Mark Making",chapter:"Fundamentals",difficulty:"Beginner",duration:"15 min",icon:"✏️",description:"Control your hand and make confident marks.",steps:[{title:"Warm Up",instruction:"Draw 20 straight lines across canvas.",check:"Lines relatively straight."},{title:"Curved Lines",instruction:"Draw 20 S-curves and C-curves.",check:"Curves smooth."},{title:"Line Weight",instruction:"Draw 10 lines varying pressure.",check:"3 distinct weights visible."},{title:"Hatching",instruction:"Fill square with hatching then crosshatching.",check:"Lines parallel and even."}]},
+  {id:"L02",title:"Basic Shapes",chapter:"Fundamentals",difficulty:"Beginner",duration:"15 min",icon:"⭕",description:"Master circles, squares, triangles.",steps:[{title:"Circles",instruction:"Draw 10 circles of various sizes.",check:"Round and closed."},{title:"Squares",instruction:"Draw 10 squares/rectangles.",check:"Sharp corners."},{title:"Triangles",instruction:"Draw 10 different triangles.",check:"Clean connected edges."},{title:"Combine",instruction:"Build a simple object using basic shapes.",check:"Recognizable with 3+ shapes."}]},
+  {id:"L03",title:"Form & Volume",chapter:"Fundamentals",difficulty:"Beginner",duration:"20 min",icon:"🧊",description:"Turn flat shapes into 3D forms.",steps:[{title:"Sphere",instruction:"Draw circle, add core/cast shadow + highlight.",check:"Appears 3D."},{title:"Cube",instruction:"Draw 3/4 view cube, shade faces.",check:"3 visible faces."},{title:"Cylinder",instruction:"Draw cylinder with curved shading.",check:"Shading follows surface."},{title:"Stack Forms",instruction:"Stack sphere+cube+cylinder, shade consistently.",check:"Same light direction."}]},
+  {id:"L04",title:"Light & Shadow",chapter:"Fundamentals",difficulty:"Beginner",duration:"20 min",icon:"💡",description:"How light creates form and mood.",steps:[{title:"Value Scale",instruction:"5 boxes from white to black.",check:"5 distinct values."},{title:"Single Light",instruction:"Sphere lit from upper left. Label zones.",check:"All 5 zones identifiable."},{title:"Dramatic",instruction:"Face with strong side lighting.",check:"Clear contrast."},{title:"Ambient",instruction:"Same face, soft front lighting.",check:"Soft subtle shadows."}]},
+  {id:"L05",title:"Perspective Basics",chapter:"Fundamentals",difficulty:"Beginner",duration:"25 min",icon:"🏗️",description:"1-point and 2-point perspective.",steps:[{title:"Horizon",instruction:"Draw horizon + center vanishing point.",check:"Marked."},{title:"1-Point Boxes",instruction:"Draw 5 boxes converging to VP.",check:"Lines recede correctly."},{title:"2-Point Setup",instruction:"Horizon + 2 VPs.",check:"VPs on horizon."},{title:"2-Point Boxes",instruction:"Draw 3 boxes in 2-point perspective.",check:"Edges converge correctly."}]},
+  {id:"L06",title:"Gesture Drawing",chapter:"Figure",difficulty:"Beginner",duration:"15 min",icon:"🏃",description:"Capture energy and movement.",steps:[{title:"Line of Action",instruction:"Draw 10 sweeping energy lines.",check:"Clear direction/flow."},{title:"30s Gestures",instruction:"5 full figures in 30s each.",check:"Capture movement."},{title:"1-Min Gestures",instruction:"Add ribcage/pelvis shapes.",check:"Major masses suggested."},{title:"Rhythm Lines",instruction:"One figure using only flowing curves.",check:"Continuous flow."}]},
+  {id:"L07",title:"Head Construction",chapter:"Figure",difficulty:"Beginner",duration:"20 min",icon:"👤",description:"Build heads from basic shapes.",steps:[{title:"Sphere + Jaw",instruction:"5 head shapes.",check:"Proportional and 3D."},{title:"Feature Lines",instruction:"Center, brow, eye, nose, mouth lines.",check:"Follow curvature."},{title:"Eye Placement",instruction:"Eyes on eye line, 1-eye gap.",check:"Evenly spaced."},{title:"Full Face",instruction:"Add all features.",check:"Proportional."}]},
+  {id:"L08",title:"Eyes in Detail",chapter:"Figure",difficulty:"Beginner",duration:"20 min",icon:"👁️",description:"Draw expressive eyes across styles.",steps:[{title:"Anatomy",instruction:"Full eye with all parts.",check:"All present."},{title:"Angles",instruction:"Front, 3/4, side view.",check:"Shape changes with angle."},{title:"Stylize",instruction:"Manga, Comic, Chibi versions.",check:"Distinctly different."},{title:"Expression Eyes",instruction:"6 eye pairs showing emotions.",check:"Clearly readable."}]},
+  {id:"L09",title:"Hands Simplified",chapter:"Figure",difficulty:"Intermediate",duration:"25 min",icon:"✋",description:"Break hands into simple shapes.",steps:[{title:"Mitten",instruction:"Palm rectangle + thumb wedge.",check:"Reads as hand."},{title:"Fingers",instruction:"4 fingers with 3 segments.",check:"Correct proportions."},{title:"Key Poses",instruction:"Open, fist, pointing, gripping, relaxed.",check:"Recognizable."},{title:"With Objects",instruction:"Holding cup, pencil, phone.",check:"Natural grip."}]},
+  {id:"L10",title:"Composition",chapter:"Design",difficulty:"Beginner",duration:"20 min",icon:"🖼️",description:"Arrange elements for impact.",steps:[{title:"Rule of Thirds",instruction:"3x3 grid, subject at intersection.",check:"Not dead center."},{title:"Leading Lines",instruction:"Lines guide eye to focal point.",check:"Attention directed."},{title:"Framing",instruction:"Frame subject with environment.",check:"Visually framed."},{title:"Thumbnails",instruction:"6 tiny composition sketches.",check:"One stands out strongest."}]},
+  {id:"L11",title:"Hair Fundamentals",chapter:"Character",difficulty:"Beginner",duration:"20 min",icon:"💇",description:"Hair as forms, not strands.",steps:[{title:"Mass",instruction:"ONE big shape on skull.",check:"Volume correct on skull."},{title:"Clumps",instruction:"4-6 tapering clumps.",check:"Distinct, varied sizes."},{title:"Flow",instruction:"Flow lines showing direction.",check:"Consistent with gravity."},{title:"Value",instruction:"Shine band + shadow.",check:"Clear light/shadow."}]},
+  {id:"L12",title:"Expressions Crash Course",chapter:"Character",difficulty:"Beginner",duration:"20 min",icon:"😊",description:"6 universal expressions.",steps:[{title:"Neutral",instruction:"Face with clear feature lines.",check:"Proportional neutral."},{title:"Happy & Sad",instruction:"Happy + sad copies.",check:"Clearly different."},{title:"Angry & Fear",instruction:"Angry + fear.",check:"Tense vs open+strained."},{title:"Surprise & Disgust",instruction:"Surprise + disgust.",check:"Open vs asymmetric."}]},
+];
+
+// ─── Drills ────────────────────────────────────────────────
+const DRILLS_DATA = [
+  {id:"D01",name:"30s Gesture Blitz",category:"Gesture",duration:30,reps:10,description:"Gesture/flow of a pose in 30s.",skill:"gesture"},
+  {id:"D02",name:"Circle Confidence",category:"Shapes",duration:60,reps:20,description:"20 clean varied circles.",skill:"shapes"},
+  {id:"D03",name:"Straight Lines",category:"Lines",duration:60,reps:20,description:"20 straight lines, no ruler.",skill:"lines"},
+  {id:"D04",name:"Box Rotation",category:"Perspective",duration:120,reps:6,description:"Rotate box 30° each time.",skill:"perspective"},
+  {id:"D05",name:"Value Scales",category:"Shading",duration:120,reps:3,description:"5-step value scales.",skill:"shading"},
+  {id:"D06",name:"Expression Speed",category:"Expressions",duration:60,reps:6,description:"Each expression in 10s.",skill:"expressions"},
+  {id:"D07",name:"Silhouette Check",category:"Design",duration:120,reps:3,description:"Fill character solid black.",skill:"design"},
+  {id:"D08",name:"Mirror Symmetry",category:"Control",duration:120,reps:4,description:"Mirror shape freehand.",skill:"control"},
+  {id:"D09",name:"Hand Studies",category:"Anatomy",duration:180,reps:5,description:"Your hand in 5 poses.",skill:"anatomy"},
+  {id:"D10",name:"1-Min Head",category:"Anatomy",duration:60,reps:5,description:"Full head in 60s.",skill:"anatomy"},
+  {id:"D11",name:"Hair Mass Drill",category:"Character",duration:120,reps:4,description:"4 hairstyles as masses then clumps.",skill:"hair"},
+  {id:"D12",name:"Perspective Room",category:"Perspective",duration:300,reps:1,description:"1-point room with 2 objects.",skill:"perspective"},
+  {id:"D13",name:"S-Curve Flow",category:"Lines",duration:60,reps:15,description:"15 flowing S-curves.",skill:"lines"},
+  {id:"D14",name:"Shading Spheres",category:"Shading",duration:180,reps:3,description:"3 spheres, different lights.",skill:"shading"},
+  {id:"D15",name:"Dynamic Poses",category:"Gesture",duration:60,reps:5,description:"5 action poses in 60s each.",skill:"gesture"},
+  {id:"D16",name:"Eye Expressions",category:"Expressions",duration:120,reps:8,description:"8 emotion eye pairs.",skill:"expressions"},
+  {id:"D17",name:"Body Type Compare",category:"Anatomy",duration:300,reps:3,description:"Same pose, 3 body types.",skill:"anatomy"},
+  {id:"D18",name:"Thumbnails",category:"Design",duration:120,reps:6,description:"6 tiny compositions.",skill:"design"},
+  {id:"D19",name:"Contour Drawing",category:"Control",duration:180,reps:3,description:"3 contour drawings.",skill:"control"},
+  {id:"D20",name:"Style Switch",category:"Character",duration:300,reps:3,description:"Same face in 3 styles.",skill:"expressions"},
+];
+
+const SKILL_TREE = [
+  {id:"lines",name:"Lines",icon:"✏️",requires:[],lessons:["L01"]},
+  {id:"shapes",name:"Shapes",icon:"⭕",requires:["lines"],lessons:["L02"]},
+  {id:"shading",name:"Form & Light",icon:"💡",requires:["shapes"],lessons:["L03","L04"]},
+  {id:"perspective",name:"Perspective",icon:"🏗️",requires:["shapes"],lessons:["L05"]},
+  {id:"gesture",name:"Gesture",icon:"🏃",requires:["lines"],lessons:["L06"]},
+  {id:"anatomy",name:"Head & Hands",icon:"👤",requires:["shapes","gesture"],lessons:["L07","L08","L09"]},
+  {id:"expressions",name:"Expressions",icon:"😊",requires:["anatomy"],lessons:["L12"]},
+  {id:"hair",name:"Hair",icon:"💇",requires:["shading"],lessons:["L11"]},
+  {id:"design",name:"Composition",icon:"🖼️",requires:["shading","perspective"],lessons:["L10"]},
+];
+
+const COLOR_PALETTES = { basic:["#000000","#333333","#666666","#999999","#cccccc","#ffffff","#ff0000","#ff6600","#ffcc00","#33cc33","#0066ff","#9933ff","#ff3399","#663300","#ff9966","#99ccff"] };
+
+// ─── Theme ─────────────────────────────────────────────────
+const T = {
+  bg:"#0c0e14",bgCard:"#13161f",bgHover:"#1a1e2b",
+  border:"#252a38",borderLight:"#333a4d",
+  accent:"#6c5ce7",accentLight:"#a29bfe",accentDim:"#4834d4",
+  text:"#e8e6f0",textDim:"#8b8a97",textMuted:"#5a596b",
+  success:"#00cec9",warning:"#fdcb6e",danger:"#e17055",
+};
+
+    // ─── Utils ─────────────────────────────────────────────────
+    const lerp = (a,b,t) => a+(b-a)*t;
+    const getToday = () => new Date().toISOString().split("T")[0];
+    const loadS = (k,f) => { try { const r=JSON.parse(localStorage.getItem(k)||"null"); return r??f; } catch{return f;} };
+    const saveS = (k,v) => { localStorage.setItem(k,JSON.stringify(v)); };
+
+    // ─── Slider ────────────────────────────────────────────────
+    const Slider = ({label,value,min,max,step=1,onChange,suffix=""}) => h("div", {style:{marginBottom:6}},
+      h("div", {style:{display:"flex",justifyContent:"space-between",fontSize:10,color:T.textDim,marginBottom:1}},
+        h("span", null, label),
+        h("span", {style:{color:T.accentLight,fontWeight:600}}, (typeof value==='number'?value.toFixed(step<1?2:0):value)+(suffix||""))
+      ),
+      h("input", {type:"range",min,max,step,value,onChange:e=>onChange(Number(e.target.value)),style:{width:"100%",accentColor:T.accent,height:3,cursor:"pointer"}})
+    );// ─── NavBar ────────────────────────────────────────────────
+const NavBar = ({page,setPage,streak}) => {
+  const items = [{id:"dashboard",icon:"🏠",l:"Home"},{id:"lessons",icon:"📖",l:"Lessons"},{id:"drills",icon:"🏋️",l:"Drills"},{id:"studio",icon:"🎭",l:"Studio"},{id:"pose3d",icon:"🧍",l:"3D Pose"},{id:"canvas",icon:"🖌️",l:"Draw"},{id:"gallery",icon:"🖼️",l:"Gallery"}];
+  return (
+    <nav style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 12px",background:T.bgCard,borderBottom:`1px solid ${T.border}`,position:"sticky",top:0,zIndex:100}}>
+      <div style={{display:"flex",alignItems:"center",gap:4}}>
+        <span style={{fontSize:20,fontWeight:800,background:`linear-gradient(135deg,${T.accent},${T.success})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>TraEvol</span>
+        {streak>0&&<span style={{fontSize:11,color:T.warning,marginLeft:6}}>🔥{streak}</span>}
+      </div>
+      <div style={{display:"flex",gap:1}}>
+        {items.map(n=>(
+          <button key={n.id} onClick={()=>setPage(n.id)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:0,padding:"3px 8px",borderRadius:6,border:"none",cursor:"pointer",background:page===n.id?T.accent+"22":"transparent",color:page===n.id?T.accentLight:T.textDim,fontSize:10,transition:"all 0.15s"}}>
+            <span style={{fontSize:16}}>{n.icon}</span><span>{n.l}</span>
+          </button>
+        ))}
+      </div>
+      <button onClick={()=>setPage("settings")} style={{background:"none",border:"none",color:T.textDim,fontSize:18,cursor:"pointer"}}>⚙️</button>
+    </nav>
+  );
+};
+
+// ============================================================
+// 3D POSE STUDIO — The main new feature
+// ============================================================
+const POSE_PRESETS = {
+  tpose: { name:"T-Pose", joints:{ lShoulderZ:0,rShoulderZ:0,lShoulderX:-Math.PI/2,rShoulderX:Math.PI/2,lElbowX:0,rElbowX:0,lHipX:0,rHipX:0,lKneeX:0,rKneeX:0,spineX:0,neckX:0,lHipZ:0,rHipZ:0 }},
+  relaxed: { name:"Relaxed", joints:{ lShoulderZ:-0.15,rShoulderZ:0.15,lShoulderX:-0.35,rShoulderX:0.35,lElbowX:-0.25,rElbowX:-0.25,lHipX:0,rHipX:0,lKneeX:0,rKneeX:0,spineX:0,neckX:0.05,lHipZ:0.05,rHipZ:-0.05 }},
+  action: { name:"Action Hero", joints:{ lShoulderZ:-0.3,rShoulderZ:0.1,lShoulderX:-1.2,rShoulderX:0.8,lElbowX:-1.4,rElbowX:-0.9,lHipX:-0.3,rHipX:0.25,lKneeX:-0.6,rKneeX:-0.15,spineX:0.1,neckX:-0.1,lHipZ:0.15,rHipZ:-0.1 }},
+  sitting: { name:"Sitting", joints:{ lShoulderZ:-0.1,rShoulderZ:0.1,lShoulderX:-0.2,rShoulderX:0.2,lElbowX:-0.8,rElbowX:-0.8,lHipX:-1.55,rHipX:-1.55,lKneeX:1.55,rKneeX:1.55,spineX:0.05,neckX:-0.05,lHipZ:0.15,rHipZ:-0.15 }},
+  walking: { name:"Walking", joints:{ lShoulderZ:-0.1,rShoulderZ:0.1,lShoulderX:0.3,rShoulderX:-0.3,lElbowX:-0.2,rElbowX:-0.5,lHipX:-0.4,rHipX:0.35,lKneeX:-0.1,rKneeX:-0.6,spineX:0.03,neckX:0,lHipZ:0,rHipZ:0 }},
+  fighting: { name:"Fighting Stance", joints:{ lShoulderZ:-0.4,rShoulderZ:0.2,lShoulderX:-1.5,rShoulderX:0.6,lElbowX:-2.0,rElbowX:-1.5,lHipX:-0.2,rHipX:0.15,lKneeX:-0.4,rKneeX:-0.2,spineX:0.15,neckX:-0.1,lHipZ:0.2,rHipZ:-0.15 }},
+};
+
+const PROP_DEFS = [
+  { id:"none", name:"None", icon:"❌" },
+  { id:"sword", name:"Sword", icon:"⚔️" },
+  { id:"shield", name:"Shield", icon:"🛡️" },
+  { id:"staff", name:"Staff", icon:"🪄" },
+  { id:"cup", name:"Cup", icon:"☕" },
+  { id:"book", name:"Book", icon:"📕" },
+  { id:"orb", name:"Orb", icon:"🔮" },
+];
+
+const MANNEQUIN_COLORS = {
+  default: 0x8899aa,
+  joint: 0x667788,
+  selected: 0x6c5ce7,
+  hover: 0xa29bfe,
+  prop: 0xbb8855,
+  ground: 0x1a1e2b,
+  gridLine: 0x252a38,
+};
+
+const PoseStudio = ({ onCaptureRef }) => {
+  const mountRef = useRef(null);
+  const stateRef = useRef(null); // single ref holds ALL mutable 3D state
+  const [selectedJoint, setSelectedJoint] = useState(null);
+  const [hoveredJoint, setHoveredJoint] = useState(null);
+  const [bodyScale, setBodyScale] = useState({shoulders:1.05,waist:0.8,hips:1.0,limbThick:1.0});
+  const [activeProp, setActiveProp] = useState({left:"none",right:"none"});
+  const [camUI, setCamUI] = useState({theta:0,phi:0.45,dist:5.5,targetY:2.0});
+  const [showGrid, setShowGrid] = useState(true);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [anglesUI, setAnglesUI] = useState({...POSE_PRESETS.relaxed.joints});
+
+  // ── Build entire 3D system once on mount ──
+  useEffect(() => {
+    const container = mountRef.current;
+    if (!container) return;
+
+    // ── Core Three.js objects ──
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x181c24);
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    const renderer = new THREE.WebGLRenderer({ antialias:true, preserveDrawingBuffer:true, alpha:false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+    const cvs = renderer.domElement;
+    cvs.style.display = "block";
+    cvs.style.width = "100%";
+    cvs.style.height = "100%";
+
+    // Sizing
+    const resize = () => {
+      const w = container.clientWidth, h = container.clientHeight;
+      if (w < 1 || h < 1) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(container);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0x99aabb, 0.8));
+    const key = new THREE.DirectionalLight(0xffeedd, 1.0);
+    key.position.set(4, 7, 5);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0x8899cc, 0.4);
+    fill.position.set(-3, 4, -3);
+    scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xaabbcc, 0.25);
+    rim.position.set(0, 2, -6);
+    scene.add(rim);
+
+    // Ground + grid
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(14, 14),
+      new THREE.MeshPhongMaterial({color:0x1a1e2b})
+    );
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+    const grid = new THREE.GridHelper(14, 28, 0x2a2f3d, 0x2a2f3d);
+    grid.position.y = 0.005;
+    scene.add(grid);
+
+    // ── Build mannequin ──
+    const bodyMat = () => new THREE.MeshPhongMaterial({color:0x8899aa, shininess:30});
+    const jointMat = () => new THREE.MeshPhongMaterial({color:0x667788, shininess:40});
+    const joints = {};   // name → mesh
+    const parts = {};    // name → mesh (limbs/boxes for scale)
+    const jMeshes = [];  // flat list for raycasting
+
+    const mkJ = (name, r, pos, parent) => {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), jointMat());
+      m.position.set(pos[0], pos[1], pos[2]);
+      m.userData = {isJoint:true, jointName:name};
+      parent.add(m);
+      joints[name] = m;
+      jMeshes.push(m);
+      return m;
+    };
+    const mkCyl = (name, rt, rb, h, pos, parent) => {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, 10), bodyMat());
+      m.position.set(pos[0], pos[1], pos[2]);
+      parent.add(m);
+      parts[name] = m;
+      return m;
+    };
+    const mkBox = (name, sx, sy, sz, pos, parent) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), bodyMat());
+      m.position.set(pos[0], pos[1], pos[2]);
+      parent.add(m);
+      parts[name] = m;
+      return m;
+    };
+
+    const root = new THREE.Group();
+    scene.add(root);
+
+    // HIPS at y=2.15 (center of body)
+    const hips   = mkJ("hips",    0.14, [0, 2.15, 0], root);
+    mkBox("hipBlock", 0.55, 0.22, 0.22, [0, 0.05, 0], hips);
+
+    const spine  = mkJ("spine",   0.12, [0, 0.48, 0], hips);
+    mkCyl("torsoLow", 0.15, 0.19, 0.38, [0, -0.17, 0], spine);
+
+    const chest  = mkJ("chest",   0.13, [0, 0.40, 0], spine);
+    mkBox("ribcage", 0.56, 0.35, 0.24, [0, 0, 0], chest);
+
+    const neck   = mkJ("neck",    0.065,[0, 0.26, 0], chest);
+    mkCyl("neckCyl", 0.045, 0.055, 0.14, [0, 0.09, 0], neck);
+
+    const head   = mkJ("head",    0.19, [0, 0.30, 0], neck);
+    // Nose so you see facing direction
+    const noseMat = new THREE.MeshPhongMaterial({color:0x99aabb});
+    const nose = new THREE.Mesh(new THREE.CylinderGeometry(0, 0.035, 0.09, 6), noseMat);
+    nose.rotation.x = Math.PI / 2;
+    nose.position.set(0, -0.02, 0.18);
+    head.add(nose);
+
+    // ARMS
+    const lSh = mkJ("lShoulder", 0.10, [-0.36, 0.15, 0], chest);
+    mkCyl("lUpArm", 0.058, 0.065, 0.46, [0, -0.26, 0], lSh);
+    const lEl = mkJ("lElbow",    0.07, [0, -0.50, 0], lSh);
+    mkCyl("lFoArm", 0.048, 0.058, 0.40, [0, -0.23, 0], lEl);
+    const lHa = mkJ("lHand",     0.055,[0, -0.46, 0], lEl);
+
+    const rSh = mkJ("rShoulder", 0.10, [0.36, 0.15, 0], chest);
+    mkCyl("rUpArm", 0.058, 0.065, 0.46, [0, -0.26, 0], rSh);
+    const rEl = mkJ("rElbow",    0.07, [0, -0.50, 0], rSh);
+    mkCyl("rFoArm", 0.048, 0.058, 0.40, [0, -0.23, 0], rEl);
+    const rHa = mkJ("rHand",     0.055,[0, -0.46, 0], rEl);
+
+    // LEGS
+    const lHi = mkJ("lHip",  0.10, [-0.17, -0.14, 0], hips);
+    mkCyl("lThigh", 0.078, 0.088, 0.60, [0, -0.33, 0], lHi);
+    const lKn = mkJ("lKnee", 0.078,[0, -0.66, 0], lHi);
+    mkCyl("lShin",  0.058, 0.068, 0.56, [0, -0.31, 0], lKn);
+    const lFt = mkJ("lFoot", 0.048,[0, -0.61, 0], lKn);
+    mkBox("lFootBox", 0.10, 0.05, 0.22, [0, -0.01, 0.06], lFt);
+
+    const rHi = mkJ("rHip",  0.10, [0.17, -0.14, 0], hips);
+    mkCyl("rThigh", 0.078, 0.088, 0.60, [0, -0.33, 0], rHi);
+    const rKn = mkJ("rKnee", 0.078,[0, -0.66, 0], rHi);
+    mkCyl("rShin",  0.058, 0.068, 0.56, [0, -0.31, 0], rKn);
+    const rFt = mkJ("rFoot", 0.048,[0, -0.61, 0], rKn);
+    mkBox("rFootBox", 0.10, 0.05, 0.22, [0, -0.01, 0.06], rFt);
+
+    // ── PROPS — children of hand joints, correct local orientation ──
+    // Hand local space: Y-axis points along forearm (toward shoulder = +Y, toward fingers = -Y)
+    // Z = forward (palm faces -Z in rest), X = side
+    const pMat = (c=0xbb8855) => new THREE.MeshPhongMaterial({color:c, shininess:20});
+
+    const buildHandProps = (handJoint) => {
+      const set = {};
+
+      // SWORD — blade extends down from grip (along -Y, continuing forearm line)
+      const sword = new THREE.Group();
+      sword.add((() => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.14, 6), pMat(0x553322)); m.position.y = 0; return m; })());  // grip at hand
+      sword.add((() => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.025, 0.035), pMat()); m.position.y = -0.08; return m; })());  // guard
+      sword.add((() => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.70, 0.012), pMat(0xaaaacc)); m.position.y = -0.45; return m; })());  // blade
+      sword.add((() => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 4), pMat()); m.position.y = 0.095; return m; })());  // pommel
+      sword.visible = false;
+      handJoint.add(sword);
+      set.sword = sword;
+
+      // SHIELD — flat disc on the back of the forearm (faces +Z = forward)
+      const shield = new THREE.Group();
+      shield.add((() => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.03, 16), pMat()); m.rotation.x = Math.PI/2; return m; })());
+      shield.add((() => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), pMat()); m.position.z = 0.025; return m; })());
+      shield.position.set(0, 0.15, 0.18); // offset up forearm and forward
+      shield.visible = false;
+      handJoint.add(shield);
+      set.shield = shield;
+
+      // STAFF — long pole, hand grips middle, extends both up and down along Y
+      const staff = new THREE.Group();
+      staff.add((() => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.028, 1.6, 6), pMat(0x664422)); return m; })());
+      staff.add((() => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshPhongMaterial({color:0x4488ff,emissive:0x223366})); m.position.y = 0.84; return m; })());
+      staff.position.y = -0.2; // shift so hand is at upper third
+      staff.visible = false;
+      handJoint.add(staff);
+      set.staff = staff;
+
+      // CUP — held sideways by arm, opening faces outward (+Z)
+      const cup = new THREE.Group();
+      cup.add((() => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.042, 0.10, 8), pMat(0xccaa77)); return m; })());
+      cup.add((() => { const m = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.008, 6, 8), pMat(0xccaa77)); m.position.set(0.06, 0, 0); return m; })());
+      // Rotate cup so opening faces +Z (forward from hand) and sits upright
+      cup.rotation.x = -Math.PI / 2;
+      cup.position.set(0, -0.08, 0.06);
+      cup.visible = false;
+      handJoint.add(cup);
+      set.cup = cup;
+
+      // BOOK — flat rectangle held in front of hand, spine along Y
+      const book = new THREE.Group();
+      book.add((() => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.22, 0.03), pMat(0x882222)); return m; })());
+      book.add((() => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.20, 0.022), pMat(0xeeddcc)); m.position.z = 0.003; return m; })());
+      book.position.set(0, -0.05, 0.10);
+      book.visible = false;
+      handJoint.add(book);
+      set.book = book;
+
+      // ORB — floating in palm
+      const orb = new THREE.Group();
+      orb.add(new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 8), new THREE.MeshPhongMaterial({color:0x44ddaa, emissive:0x115533, transparent:true, opacity:0.85})));
+      orb.position.y = -0.10;
+      orb.visible = false;
+      handJoint.add(orb);
+      set.orb = orb;
+
+      return set;
+    };
+
+    const propSets = {
+      left: buildHandProps(lHa),
+      right: buildHandProps(rHa),
+    };
+
+    // ── State object — everything the loop + handlers read/write ──
+    const S = {
+      scene, camera, renderer, grid, root,
+      joints, parts, jMeshes, propSets,
+      cam: {theta:0, phi:0.45, dist:5.5, targetY:2.0},
+      angles: {...POSE_PRESETS.relaxed.joints},
+      drag: {active:false, mode:null, sx:0, sy:0, joint:null},
+      selected: null,
+      hovered: null,
+      raycaster: new THREE.Raycaster(),
+      mouse: new THREE.Vector2(),
+    };
+    stateRef.current = S;
+
+    // ── Apply joint angles from S.angles ──
+    const applyPose = () => {
+      const a = S.angles, j = S.joints;
+      if (!j.lShoulder) return;
+      j.hips.rotation.set(0, a.hipsY||0, 0);
+      j.spine.rotation.set(a.spineX||0, a.spineY||0, a.spineZ||0);
+      j.chest.rotation.set(0, 0, 0); // controlled via spine
+      j.neck.rotation.set(a.neckX||0, a.neckY||0, 0);
+      j.head.rotation.set(a.headX||0, a.headY||0, 0);
+      j.lShoulder.rotation.set(a.lShoulderX||0, 0, a.lShoulderZ||0);
+      j.rShoulder.rotation.set(a.rShoulderX||0, 0, a.rShoulderZ||0);
+      j.lElbow.rotation.set(a.lElbowX||0, 0, 0);
+      j.rElbow.rotation.set(a.rElbowX||0, 0, 0);
+      j.lHip.rotation.set(a.lHipX||0, 0, a.lHipZ||0);
+      j.rHip.rotation.set(a.rHipX||0, 0, a.rHipZ||0);
+      j.lKnee.rotation.set(a.lKneeX||0, 0, 0);
+      j.rKnee.rotation.set(a.rKneeX||0, 0, 0);
+    };
+    applyPose();
+
+    // ── Camera from spherical coords ──
+    const updateCam = () => {
+      const c = S.cam;
+      camera.position.set(
+        c.dist * Math.sin(c.theta) * Math.cos(c.phi),
+        c.targetY + c.dist * Math.sin(c.phi),
+        c.dist * Math.cos(c.theta) * Math.cos(c.phi)
+      );
+      camera.lookAt(0, c.targetY, 0);
+    };
+    updateCam();
+
+    // ── Animation loop ──
+    let raf;
+    const tick = () => {
+      raf = requestAnimationFrame(tick);
+      applyPose();
+      updateCam();
+      renderer.render(scene, camera);
+    };
+    tick();
+
+    // ── Hit-test helper ──
+    const hitJoint = (cx, cy) => {
+      const rect = cvs.getBoundingClientRect();
+      S.mouse.set(((cx - rect.left) / rect.width) * 2 - 1, -((cy - rect.top) / rect.height) * 2 + 1);
+      S.raycaster.setFromCamera(S.mouse, camera);
+      const hits = S.raycaster.intersectObjects(S.jMeshes, false);
+      for (const h of hits) { if (h.object.userData.isJoint) return h.object.userData.jointName; }
+      return null;
+    };
+
+    // ── Native DOM event handlers (no React batching, immediate) ──
+    const onDown = (e) => {
+      e.preventDefault();
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      const hit = hitJoint(cx, cy);
+      if (hit) {
+        S.drag = {active:true, mode:"joint", sx:cx, sy:cy, joint:hit};
+        S.selected = hit;
+        setSelectedJoint(hit);
+        // Highlight
+        S.jMeshes.forEach(m => {
+          m.material.color.setHex(m.userData.jointName === hit ? MANNEQUIN_COLORS.selected : MANNEQUIN_COLORS.joint);
+        });
+      } else {
+        S.drag = {active:true, mode:"orbit", sx:cx, sy:cy, joint:null};
+      }
+    };
+
+    const onMove = (e) => {
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      const d = S.drag;
+
+      if (!d.active) {
+        // Hover
+        const hit = hitJoint(cx, cy);
+        if (hit !== S.hovered) {
+          S.hovered = hit;
+          setHoveredJoint(hit);
+          S.jMeshes.forEach(m => {
+            const n = m.userData.jointName;
+            m.material.color.setHex(
+              n === hit ? MANNEQUIN_COLORS.hover :
+              n === S.selected ? MANNEQUIN_COLORS.selected :
+              MANNEQUIN_COLORS.joint
+            );
+          });
+        }
+        cvs.style.cursor = hit ? "pointer" : "grab";
+        return;
+      }
+
+      cvs.style.cursor = "grabbing";
+      const dx = (cx - d.sx) * 0.007;
+      const dy = (cy - d.sy) * 0.007;
+      d.sx = cx;
+      d.sy = cy;
+
+      if (d.mode === "orbit") {
+        S.cam.theta -= dx * 3;
+        S.cam.phi = Math.max(-0.5, Math.min(Math.PI/2.05, S.cam.phi + dy * 2));
+        setCamUI({...S.cam});
+      } else if (d.mode === "joint" && d.joint) {
+        // Joint drag mapping:
+        // Vertical mouse = X rotation (flex/extend, the main one)
+        // Horizontal mouse = Z rotation (abduction) or Y (twist)
+        const jm = {
+          lShoulder: [{k:"lShoulderX",d:"y",s:-1.3},{k:"lShoulderZ",d:"x",s:-1.0}],
+          rShoulder: [{k:"rShoulderX",d:"y",s:-1.3},{k:"rShoulderZ",d:"x",s:1.0}],
+          lElbow:    [{k:"lElbowX",   d:"y",s:-1.5}],
+          rElbow:    [{k:"rElbowX",   d:"y",s:-1.5}],
+          lHip:      [{k:"lHipX",     d:"y",s:-1.3},{k:"lHipZ",d:"x",s:-0.8}],
+          rHip:      [{k:"rHipX",     d:"y",s:-1.3},{k:"rHipZ",d:"x",s:0.8}],
+          lKnee:     [{k:"lKneeX",    d:"y",s:-1.5}],
+          rKnee:     [{k:"rKneeX",    d:"y",s:-1.5}],
+          spine:     [{k:"spineX",    d:"y",s:-0.8},{k:"spineY",d:"x",s:1.0}],
+          neck:      [{k:"neckX",     d:"y",s:-1.0},{k:"neckY",d:"x",s:1.0}],
+          head:      [{k:"headX",     d:"y",s:-1.0},{k:"headY",d:"x",s:1.0}],
+          hips:      [{k:"hipsY",     d:"x",s:1.5}],
+          chest:     [{k:"spineX",    d:"y",s:-0.5},{k:"spineZ",d:"x",s:0.5}],
+        };
+        const maps = jm[d.joint];
+        if (maps) {
+          maps.forEach(m => {
+            const delta = m.d === "x" ? dx * m.s : dy * m.s;
+            S.angles[m.k] = (S.angles[m.k] || 0) + delta;
+          });
+          setAnglesUI({...S.angles});
+        }
+      }
+    };
+
+    const onUp = () => {
+      S.drag = {active:false, mode:null, sx:0, sy:0, joint:null};
+      cvs.style.cursor = "grab";
+    };
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      S.cam.dist = Math.max(1.5, Math.min(14, S.cam.dist + e.deltaY * 0.005));
+      setCamUI({...S.cam});
+    };
+
+    // Attach to the CANVAS element directly — bypasses React event system entirely
+    cvs.addEventListener("mousedown", onDown);
+    cvs.addEventListener("mousemove", onMove);
+    cvs.addEventListener("mouseup", onUp);
+    cvs.addEventListener("mouseleave", onUp);
+    cvs.addEventListener("touchstart", onDown, {passive:false});
+    cvs.addEventListener("touchmove", onMove, {passive:false});
+    cvs.addEventListener("touchend", onUp);
+    cvs.addEventListener("wheel", onWheel, {passive:false});
+    // Also catch mouseup on window in case mouse leaves canvas during drag
+    const winUp = () => { if (S.drag.active) onUp(); };
+    window.addEventListener("mouseup", winUp);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      cvs.removeEventListener("mousedown", onDown);
+      cvs.removeEventListener("mousemove", onMove);
+      cvs.removeEventListener("mouseup", onUp);
+      cvs.removeEventListener("mouseleave", onUp);
+      cvs.removeEventListener("touchstart", onDown);
+      cvs.removeEventListener("touchmove", onMove);
+      cvs.removeEventListener("touchend", onUp);
+      cvs.removeEventListener("wheel", onWheel);
+      window.removeEventListener("mouseup", winUp);
+      if (container.contains(cvs)) container.removeChild(cvs);
+      renderer.dispose();
+    };
+  }, []); // mount once
+
+  // ── Sync React UI → S (for sliders/presets) ──
+  useEffect(() => {
+    const S = stateRef.current; if (!S) return;
+    S.cam = {...camUI};
+  }, [camUI]);
+
+  useEffect(() => {
+    const S = stateRef.current; if (!S) return;
+    S.angles = {...anglesUI};
+  }, [anglesUI]);
+
+  useEffect(() => {
+    const S = stateRef.current; if (!S) return;
+    const bp = S.parts, j = S.joints;
+    if (!bp.ribcage) return;
+    bp.ribcage.scale.x = bodyScale.shoulders;
+    bp.hipBlock.scale.x = bodyScale.hips;
+    bp.torsoLow.scale.set(bodyScale.waist, 1, bodyScale.waist);
+    j.lShoulder.position.x = -0.36 * bodyScale.shoulders;
+    j.rShoulder.position.x = 0.36 * bodyScale.shoulders;
+    j.lHip.position.x = -0.17 * bodyScale.hips;
+    j.rHip.position.x = 0.17 * bodyScale.hips;
+    ["lUpArm","rUpArm","lFoArm","rFoArm","lThigh","rThigh","lShin","rShin"].forEach(k => {
+      if (bp[k]) bp[k].scale.set(bodyScale.limbThick, 1, bodyScale.limbThick);
+    });
+  }, [bodyScale]);
+
+  useEffect(() => {
+    const S = stateRef.current; if (!S) return;
+    if (S.grid) S.grid.visible = showGrid;
+  }, [showGrid]);
+
+  useEffect(() => {
+    const S = stateRef.current; if (!S) return;
+    ["left","right"].forEach(side => {
+      const set = S.propSets[side];
+      if (!set) return;
+      Object.entries(set).forEach(([id, grp]) => { grp.visible = (activeProp[side] === id); });
+    });
+  }, [activeProp]);
+
+  const captureSnapshot = () => {
+    const S = stateRef.current; if (!S) return;
+    S.renderer.render(S.scene, S.camera);
+    const url = S.renderer.domElement.toDataURL("image/png");
+    setCapturedImage(url);
+    if (onCaptureRef) onCaptureRef(url);
+  };
+
+  const loadPreset = (key) => {
+    const p = POSE_PRESETS[key];
+    if (!p) return;
+    const a = {...p.joints};
+    setAnglesUI(a);
+    const S = stateRef.current;
+    if (S) S.angles = {...a};
+  };
+
+  const setCamField = (field, val) => {
+    setCamUI(prev => {
+      const n = {...prev, [field]:val};
+      const S = stateRef.current;
+      if (S) S.cam = {...n};
+      return n;
+    });
+  };
+
+  const jLabel = (j) => ({hips:"Hips",spine:"Spine",chest:"Chest",neck:"Neck",head:"Head",lShoulder:"L Shoulder",rShoulder:"R Shoulder",lElbow:"L Elbow",rElbow:"R Elbow",lHand:"L Hand",rHand:"R Hand",lHip:"L Hip",rHip:"R Hip",lKnee:"L Knee",rKnee:"R Knee",lFoot:"L Foot",rFoot:"R Foot"})[j]||j;
+
+  return (
+    <div style={{ display:"flex", height:"100%", background:T.bg }}>
+      <div style={{ width:260, background:T.bgCard, borderRight:`1px solid ${T.border}`, overflowY:"auto", padding:12, display:"flex", flexDirection:"column", gap:10 }}>
+        <h3 style={{ color:T.text, fontSize:14, margin:0 }}>🧍 3D Pose Studio</h3>
+
+        <div>
+          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, fontWeight:600 }}>POSE PRESETS</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:3 }}>
+            {Object.entries(POSE_PRESETS).map(([k, v]) => (
+              <button key={k} onClick={() => loadPreset(k)} style={{ padding:"5px 8px", borderRadius:6, fontSize:11, border:`1px solid ${T.border}`, background:T.bg, color:T.text, cursor:"pointer" }}>{v.name}</button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ padding:8, borderRadius:8, background:T.bg, border:`1px solid ${T.border}` }}>
+          <div style={{ fontSize:11, color:T.textDim, marginBottom:4 }}>SELECTED JOINT</div>
+          <div style={{ fontSize:14, color: selectedJoint ? T.accentLight : T.textMuted, fontWeight:600 }}>
+            {selectedJoint ? jLabel(selectedJoint) : "Click a joint to select"}
+          </div>
+          {selectedJoint && <div style={{ fontSize:10, color:T.textDim, marginTop:2 }}>Drag ↕ flex/extend • Drag ↔ rotate/spread</div>}
+        </div>
+
+        <div>
+          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, fontWeight:600 }}>LEFT HAND PROP</div>
+          <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
+            {PROP_DEFS.map(p => (
+              <button key={p.id} onClick={() => setActiveProp(prev => ({...prev,left:p.id}))} title={p.name} style={{ padding:"3px 8px", borderRadius:5, fontSize:13, border:`1px solid ${activeProp.left===p.id?T.accent:T.border}`, background:activeProp.left===p.id?T.accent+"22":"transparent", color:T.text, cursor:"pointer" }}>{p.icon}</button>
+            ))}
+          </div>
+          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, marginTop:8, fontWeight:600 }}>RIGHT HAND PROP</div>
+          <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
+            {PROP_DEFS.map(p => (
+              <button key={p.id} onClick={() => setActiveProp(prev => ({...prev,right:p.id}))} title={p.name} style={{ padding:"3px 8px", borderRadius:5, fontSize:13, border:`1px solid ${activeProp.right===p.id?T.accent:T.border}`, background:activeProp.right===p.id?T.accent+"22":"transparent", color:T.text, cursor:"pointer" }}>{p.icon}</button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, fontWeight:600 }}>BODY PROPORTIONS</div>
+          <Slider label="Shoulders" value={bodyScale.shoulders} min={0.7} max={1.4} step={0.05} onChange={v => setBodyScale(p=>({...p,shoulders:v}))} />
+          <Slider label="Waist" value={bodyScale.waist} min={0.5} max={1.2} step={0.05} onChange={v => setBodyScale(p=>({...p,waist:v}))} />
+          <Slider label="Hips" value={bodyScale.hips} min={0.7} max={1.4} step={0.05} onChange={v => setBodyScale(p=>({...p,hips:v}))} />
+          <Slider label="Limb Thickness" value={bodyScale.limbThick} min={0.6} max={1.5} step={0.05} onChange={v => setBodyScale(p=>({...p,limbThick:v}))} />
+        </div>
+
+        <div>
+          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, fontWeight:600 }}>CAMERA</div>
+          <Slider label="Rotation" value={camUI.theta} min={-Math.PI} max={Math.PI} step={0.05} onChange={v=>setCamField("theta",v)} />
+          <Slider label="Height" value={camUI.phi} min={-0.3} max={1.4} step={0.05} onChange={v=>setCamField("phi",v)} />
+          <Slider label="Distance" value={camUI.dist} min={1.5} max={14} step={0.1} onChange={v=>setCamField("dist",v)} />
+          <Slider label="Focus Y" value={camUI.targetY} min={0} max={3.5} step={0.1} onChange={v=>setCamField("targetY",v)} />
+          <div style={{display:"flex",gap:3,marginTop:4}}>
+            {[{l:"Front",t:0,p:0.45},{l:"Side",t:Math.PI/2,p:0.35},{l:"Back",t:Math.PI,p:0.35},{l:"Top",t:0,p:1.35},{l:"Low",t:0.2,p:0.05}].map(v=>(
+              <button key={v.l} onClick={()=>{const n={...camUI,theta:v.t,phi:v.p};setCamUI(n);const S=stateRef.current;if(S)S.cam={...n};}} style={{flex:1,padding:"4px",borderRadius:4,fontSize:10,border:`1px solid ${T.border}`,background:T.bg,color:T.textDim,cursor:"pointer"}}>{v.l}</button>
+            ))}
+          </div>
+        </div>
+
+        <button onClick={()=>setShowGrid(!showGrid)} style={{padding:"6px",borderRadius:6,fontSize:11,border:`1px solid ${showGrid?T.accent:T.border}`,background:showGrid?T.accent+"22":"transparent",color:showGrid?T.accentLight:T.textDim,cursor:"pointer"}}>📐 Grid</button>
+
+        <button onClick={captureSnapshot} style={{ padding:"10px 16px", borderRadius:8, background:`linear-gradient(135deg,${T.accent},${T.success})`, color:"#fff", border:"none", cursor:"pointer", fontSize:13, fontWeight:700 }}>
+          📸 Capture as Reference
+        </button>
+        {capturedImage && <div style={{fontSize:10,color:T.success,marginTop:2}}>✓ Captured! Go to Draw tab to use it.</div>}
+      </div>
+
+      {/* 3D viewport — canvas fills this div, events are native on canvas */}
+      <div ref={mountRef} style={{ flex:1, position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:10, left:10, padding:"6px 12px", background:"rgba(12,14,20,0.88)", borderRadius:8, fontSize:11, color:T.textDim, border:`1px solid ${T.border}`, pointerEvents:"none", zIndex:1 }}>
+          {selectedJoint ? `✦ ${jLabel(selectedJoint)} — drag to pose` : hoveredJoint ? `→ ${jLabel(hoveredJoint)} — click to select` : "Click joint to pose • Drag empty to orbit • Scroll to zoom"}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================
+// DRAWING CANVAS (now with reference overlay support)
+// ============================================================
+const DrawingCanvas = ({ embedded=false, referenceImage=null }) => {
+  const canvasRef = useRef(null);
+  const [tool, setTool] = useState("pencil");
+  const [color, setColor] = useState("#000000");
+  const [brushSize, setBrushSize] = useState(3);
+  const [opacity, setOpacity] = useState(1);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
+  const [showSymmetry, setShowSymmetry] = useState(false);
+  const [activeLayer, setActiveLayer] = useState(1);
+  const [layers, setLayers] = useState([
+    { name:"Reference",visible:true,opacity:0.3,strokes:[] },
+    { name:"Sketch",visible:true,opacity:0.5,strokes:[] },
+    { name:"Line",visible:true,opacity:1,strokes:[] },
+    { name:"Shade",visible:true,opacity:0.7,strokes:[] },
+  ]);
+  const [currentStroke, setCurrentStroke] = useState(null);
+  const [redoStack, setRedoStack] = useState([]);
+  const [refOpacity, setRefOpacity] = useState(0.3);
+  const [showRef, setShowRef] = useState(true);
+  const refImageRef = useRef(null);
+
+  useEffect(() => {
+    if (referenceImage) {
+      const img = new Image();
+      img.onload = () => { refImageRef.current = img; };
+      img.src = referenceImage;
+    }
+  }, [referenceImage]);
+
+  const getToolSettings = useCallback(() => {
+    const base = { pencil:{size:brushSize,opacity:opacity*0.6,cap:"round"}, pen:{size:brushSize,opacity:opacity*0.95,cap:"round"}, marker:{size:brushSize*3,opacity:opacity*0.35,cap:"square"}, brush:{size:brushSize*2,opacity:opacity*0.5,cap:"round"}, eraser:{size:brushSize*2,opacity:1,cap:"round"} };
+    return base[tool] || base.pencil;
+  }, [tool, brushSize, opacity]);
+
+  const getPos = useCallback((e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return {x:0,y:0};
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x:(cx-rect.left)*(canvas.width/rect.width), y:(cy-rect.top)*(canvas.height/rect.height) };
+  }, []);
+
+  const startDraw = useCallback((e) => {
+    e.preventDefault();
+    if (activeLayer === 0 && referenceImage) return; // Can't draw on reference layer
+    const pos = getPos(e);
+    const s = getToolSettings();
+    setCurrentStroke({ tool, color: tool==="eraser"?"#ffffff":color, size:s.size, opacity:s.opacity, cap:s.cap, points:[pos], layer:activeLayer });
+    setIsDrawing(true);
+  }, [getPos, getToolSettings, tool, color, activeLayer, referenceImage]);
+
+  const draw = useCallback((e) => {
+    if (!isDrawing||!currentStroke) return;
+    e.preventDefault();
+    setCurrentStroke(prev => ({...prev, points:[...prev.points, getPos(e)]}));
+  }, [isDrawing, currentStroke, getPos]);
+
+  const endDraw = useCallback(() => {
+    if (!isDrawing||!currentStroke) return;
+    setIsDrawing(false);
+    setLayers(prev => {
+      const next = [...prev];
+      next[currentStroke.layer] = {...next[currentStroke.layer], strokes:[...next[currentStroke.layer].strokes, currentStroke]};
+      return next;
+    });
+    setRedoStack([]);
+    setCurrentStroke(null);
+  }, [isDrawing, currentStroke]);
+
+  const undo = useCallback(() => {
+    setLayers(prev => {
+      const next = prev.map(l => ({...l}));
+      for (let i = next.length-1; i >= 1; i--) {
+        if (next[i].strokes.length > 0) {
+          const removed = next[i].strokes[next[i].strokes.length-1];
+          next[i] = {...next[i], strokes:next[i].strokes.slice(0,-1)};
+          setRedoStack(p => [...p, removed]);
+          break;
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const redo = useCallback(() => {
+    if (redoStack.length===0) return;
+    const stroke = redoStack[redoStack.length-1];
+    setRedoStack(p => p.slice(0,-1));
+    setLayers(prev => {
+      const next = [...prev];
+      next[stroke.layer] = {...next[stroke.layer], strokes:[...next[stroke.layer].strokes, stroke]};
+      return next;
+    });
+  }, [redoStack]);
+
+  const clearLayer = useCallback(() => {
+    setLayers(prev => { const n=[...prev]; n[activeLayer]={...n[activeLayer],strokes:[]}; return n; });
+  }, [activeLayer]);
+
+  const clearAll = useCallback(() => {
+    setLayers(prev => prev.map((l,i) => i===0?l:{...l,strokes:[]}));
+    setRedoStack([]);
+  }, []);
+
+  const renderCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Reference image on layer 0
+    if (referenceImage && refImageRef.current && showRef && layers[0].visible) {
+      ctx.save();
+      ctx.globalAlpha = refOpacity;
+      const img = refImageRef.current;
+      const scale = Math.min(canvas.width/img.width, canvas.height/img.height);
+      const iw = img.width*scale, ih = img.height*scale;
+      ctx.drawImage(img, (canvas.width-iw)/2, (canvas.height-ih)/2, iw, ih);
+      ctx.restore();
+    }
+
+    if (showGrid) {
+      ctx.strokeStyle = "#e0e0e0"; ctx.lineWidth = 0.5;
+      for (let x=0;x<canvas.width;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+      for (let y=0;y<canvas.height;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+    }
+    if (showSymmetry) {
+      ctx.strokeStyle="#6c5ce755";ctx.lineWidth=1;ctx.setLineDash([5,5]);
+      ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    const drawStroke = (stroke) => {
+      if (stroke.points.length<2) return;
+      ctx.save();
+      ctx.globalAlpha = stroke.opacity;
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = stroke.size;
+      ctx.lineCap = stroke.cap||"round";
+      ctx.lineJoin = "round";
+      if (stroke.tool==="eraser") ctx.globalCompositeOperation="destination-out";
+      ctx.beginPath();
+      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+      for (let i=1;i<stroke.points.length;i++){
+        const p=stroke.points[i-1],c=stroke.points[i];
+        ctx.quadraticCurveTo(p.x,p.y,(p.x+c.x)/2,(p.y+c.y)/2);
+      }
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    layers.forEach((layer,i) => {
+      if (!layer.visible||i===0) return;
+      ctx.save();
+      ctx.globalAlpha = layer.opacity;
+      layer.strokes.forEach(drawStroke);
+      ctx.restore();
+    });
+    if (currentStroke) drawStroke(currentStroke);
+  }, [layers, currentStroke, showGrid, showSymmetry, referenceImage, refOpacity, showRef]);
+
+  useEffect(() => { renderCanvas(); }, [renderCanvas]);
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.ctrlKey||e.metaKey) { if(e.key==="z"){e.preventDefault();e.shiftKey?redo():undo();}}
+      if(e.key==="b")setTool("brush");
+      if(e.key==="p")setTool("pencil");
+      if(e.key==="e")setTool("eraser");
+    };
+    window.addEventListener("keydown",handleKey);
+    return()=>window.removeEventListener("keydown",handleKey);
+  }, [undo,redo]);
+
+  const exportPNG = () => {
+    const c = canvasRef.current; if(!c)return;
+    const link = document.createElement("a");
+    link.download = "traevol-drawing.png";
+    link.href = c.toDataURL("image/png");
+    link.click();
+  };
+
+  const tools = [{id:"pencil",icon:"✏️",l:"Pencil"},{id:"pen",icon:"🖊️",l:"Pen"},{id:"marker",icon:"🖍️",l:"Marker"},{id:"brush",icon:"🖌️",l:"Brush"},{id:"eraser",icon:"🧹",l:"Eraser"}];
+
+  return (
+    <div style={{display:"flex",gap:0,height:embedded?"100%":"auto",background:T.bg,borderRadius:embedded?0:12,overflow:"hidden",border:embedded?"none":`1px solid ${T.border}`}}>
+      {/* Tool dock */}
+      <div style={{width:52,background:T.bgCard,borderRight:`1px solid ${T.border}`,padding:"6px 4px",display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
+        {tools.map(t=>(
+          <button key={t.id} title={t.l} onClick={()=>setTool(t.id)} style={{width:36,height:36,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${tool===t.id?T.accent:"transparent"}`,background:tool===t.id?T.accent+"22":"transparent",color:tool===t.id?"#fff":T.textDim,cursor:"pointer",fontSize:16}}>{t.icon}</button>
+        ))}
+        <div style={{height:1,width:"80%",background:T.border,margin:"2px 0"}} />
+        <button title="Undo" onClick={undo} style={{width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:T.textDim,cursor:"pointer",fontSize:16}}>↩️</button>
+        <button title="Redo" onClick={redo} style={{width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:T.textDim,cursor:"pointer",fontSize:16}}>↪️</button>
+        <button title="Clear Layer" onClick={clearLayer} style={{width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:T.textDim,cursor:"pointer",fontSize:16}}>🗑️</button>
+        <button title="Clear All" onClick={clearAll} style={{width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:T.danger,cursor:"pointer",fontSize:14}}>💣</button>
+        <div style={{height:1,width:"80%",background:T.border,margin:"2px 0"}} />
+        <button title="Grid" onClick={()=>setShowGrid(!showGrid)} style={{width:36,height:36,borderRadius:8,border:`1px solid ${showGrid?T.accent:"transparent"}`,background:showGrid?T.accent+"22":"transparent",color:T.textDim,cursor:"pointer",fontSize:16}}>📐</button>
+        <button title="Symmetry" onClick={()=>setShowSymmetry(!showSymmetry)} style={{width:36,height:36,borderRadius:8,border:`1px solid ${showSymmetry?T.accent:"transparent"}`,background:showSymmetry?T.accent+"22":"transparent",color:T.textDim,cursor:"pointer",fontSize:16}}>↕️</button>
+        <div style={{flex:1}} />
+        <button title="Export PNG" onClick={exportPNG} style={{width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:T.textDim,cursor:"pointer",fontSize:16}}>💾</button>
+      </div>
+
+      {/* Canvas area */}
+      <div style={{flex:1,display:"flex",flexDirection:"column"}}>
+        {/* Toolbar */}
+        <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 10px",background:T.bgCard,borderBottom:`1px solid ${T.border}`,flexWrap:"wrap"}}>
+          <input type="color" value={color} onChange={e=>setColor(e.target.value)} style={{width:24,height:24,border:"none",borderRadius:4,cursor:"pointer",background:"none"}} />
+          {COLOR_PALETTES.basic.slice(0,12).map(c=>(
+            <button key={c} onClick={()=>setColor(c)} style={{width:16,height:16,borderRadius:3,background:c,border:color===c?`2px solid ${T.accentLight}`:`1px solid ${T.border}`,cursor:"pointer"}} />
+          ))}
+          <div style={{width:1,height:18,background:T.border}} />
+          <span style={{fontSize:10,color:T.textDim}}>Size</span>
+          <input type="range" min={1} max={40} value={brushSize} onChange={e=>setBrushSize(Number(e.target.value))} style={{width:70,accentColor:T.accent}} />
+          <span style={{fontSize:10,color:T.accentLight}}>{brushSize}</span>
+          <span style={{fontSize:10,color:T.textDim,marginLeft:4}}>Opacity</span>
+          <input type="range" min={0.05} max={1} step={0.05} value={opacity} onChange={e=>setOpacity(Number(e.target.value))} style={{width:60,accentColor:T.accent}} />
+          <span style={{fontSize:10,color:T.accentLight}}>{Math.round(opacity*100)}%</span>
+          {referenceImage && <>
+            <div style={{width:1,height:18,background:T.border}} />
+            <button onClick={()=>setShowRef(!showRef)} style={{padding:"2px 8px",borderRadius:4,fontSize:10,border:`1px solid ${showRef?T.success:T.border}`,background:showRef?T.success+"22":"transparent",color:showRef?T.success:T.textDim,cursor:"pointer"}}>
+              {showRef?"🖼️ Ref ON":"🖼️ Ref OFF"}
+            </button>
+            <span style={{fontSize:10,color:T.textDim}}>Ref Opacity</span>
+            <input type="range" min={0.05} max={1} step={0.05} value={refOpacity} onChange={e=>setRefOpacity(Number(e.target.value))} style={{width:60,accentColor:T.success}} />
+          </>}
+        </div>
+
+        {/* Canvas */}
+        <div style={{flex:1,display:"flex",justifyContent:"center",alignItems:"center",background:"#2a2a3a",padding:6,overflow:"auto"}}>
+          <canvas ref={canvasRef} width={800} height={560}
+            onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
+            onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw}
+            style={{borderRadius:3,cursor:activeLayer===0&&referenceImage?"not-allowed":"crosshair",maxWidth:"100%",background:"#fff",boxShadow:"0 4px 20px rgba(0,0,0,0.4)"}}
+          />
+        </div>
+
+        {/* Layers */}
+        <div style={{display:"flex",gap:3,padding:"4px 10px",background:T.bgCard,borderTop:`1px solid ${T.border}`}}>
+          <span style={{fontSize:10,color:T.textDim,alignSelf:"center",marginRight:4}}>Layers:</span>
+          {layers.map((l,i) => (
+            <button key={i} onClick={()=>setActiveLayer(i)} style={{
+              padding:"3px 10px",borderRadius:5,border:`1px solid ${activeLayer===i?T.accent:T.border}`,
+              background:activeLayer===i?T.accent+"22":"transparent",
+              color:activeLayer===i?T.accentLight:T.textDim,fontSize:10,cursor:"pointer",display:"flex",alignItems:"center",gap:3,
+            }}>
+              <span onClick={e=>{e.stopPropagation();setLayers(p=>{const n=[...p];n[i]={...n[i],visible:!n[i].visible};return n;});}} style={{opacity:l.visible?1:0.3,fontSize:12}}>
+                {l.visible?"👁️":"·"}
+              </span>
+              {l.name}
+              {i===0&&referenceImage&&<span style={{fontSize:9,color:T.success}}>📷</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Expression Face SVG ───────────────────────────────────
+const ExpressionFace = ({sliderValues,size=260}) => {
+  const s=sliderValues; const cx=size/2,cy=size/2; const headR=size*0.38;
+  const browTilt=(s.browTiltDeg||0)*0.3,browH=(s.browHeight||0)*0.8;
+  const eyelid=(s.eyelidOpen||70)/100,squint=(s.eyeSquint||0)/100;
+  const mouthC=(s.mouthCorner||0)*0.25,jawDrop=(s.jawDrop||0)*0.35;
+  const cheekR=(s.cheekRaise||0)*0.15;
+  const eyeY=cy-headR*0.12-browH*0.3,eyeSpacing=headR*0.35;
+  const eyeW=headR*0.22,eyeH=eyeW*0.55*eyelid*(1-squint*0.4);
+  const browY=eyeY-headR*0.18+browH*0.2;
+  const mouthY=cy+headR*0.35+jawDrop*0.5;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <ellipse cx={cx} cy={cy-headR*0.08} rx={headR*0.82} ry={headR*0.88} fill="#fde8d0" stroke="#c4956a" strokeWidth={1.5}/>
+      <ellipse cx={cx} cy={cy+headR*0.35+jawDrop*0.2} rx={headR*0.55} ry={headR*0.42+jawDrop*0.15} fill="#fde8d0" stroke="#c4956a" strokeWidth={1.5}/>
+      <ellipse cx={cx} cy={cy+headR*0.1} rx={headR*0.78} ry={headR*0.6} fill="#fde8d0"/>
+      {cheekR>2&&<>{[-1,1].map(side=><ellipse key={side} cx={cx+side*eyeSpacing*0.8} cy={eyeY+headR*0.35-cheekR*0.5} rx={headR*0.15} ry={headR*0.1} fill={`rgba(255,150,150,${cheekR*0.02})`}/>)}</>}
+      {[-1,1].map(side=>{const ex=cx+side*eyeSpacing;return(<g key={side}><ellipse cx={ex} cy={eyeY} rx={eyeW} ry={Math.max(eyeH,2)} fill="#fff" stroke="#6b4423" strokeWidth={1.2}/><circle cx={ex} cy={eyeY+eyeH*0.1} r={Math.max(eyeH*0.6,3)} fill="#3d2914"/><circle cx={ex} cy={eyeY+eyeH*0.1} r={Math.max(eyeH*0.35,2)} fill="#1a0f05"/><circle cx={ex+eyeW*0.2} cy={eyeY-eyeH*0.2} r={Math.max(eyeH*0.2,1)} fill="#fff"/></g>);})}
+      {[-1,1].map(side=><line key={`b${side}`} x1={cx+side*eyeSpacing-eyeW*1.1} y1={browY+browTilt*side} x2={cx+side*eyeSpacing+eyeW*1.1} y2={browY-browTilt*side} stroke="#5c3317" strokeWidth={2.5} strokeLinecap="round"/>)}
+      <path d={`M${cx-4} ${cy+headR*0.12} Q${cx} ${cy+headR*0.22} ${cx+4} ${cy+headR*0.12}`} fill="none" stroke="#c4956a" strokeWidth={1}/>
+      <path d={`M${cx-headR*0.22} ${mouthY+mouthC*0.5} Q${cx-headR*0.1} ${mouthY+jawDrop*0.8-mouthC*0.3} ${cx} ${mouthY+jawDrop*0.6} Q${cx+headR*0.1} ${mouthY+jawDrop*0.8-mouthC*0.3} ${cx+headR*0.22} ${mouthY+mouthC*0.5}`} fill={jawDrop>8?"#8b1a1a":"none"} stroke="#8b4513" strokeWidth={1.8} strokeLinecap="round"/>
+    </svg>
+  );
+};
+
+// ─── Expression Trainer ────────────────────────────────────
+const ExpressionTrainer = ({onOpenCanvas}) => {
+  const [sel,setSel] = useState(EXPRESSIONS_DATA.expressions[0]);
+  const [sv,setSv] = useState({});
+  const [intensity,setInt] = useState(2);
+  const [mode,setMode] = useState("copy");
+  const [done,setDone] = useState([]);
+  const [hidden,setHidden] = useState(false);
+  useEffect(()=>{const d={};Object.entries(sel.sliders).forEach(([k,v])=>{d[k]=Math.round(lerp(0,v.default,intensity/3));});setSv(d);setDone([]);},[sel,intensity]);
+  return (
+    <div style={{display:"flex",gap:12,height:"100%",padding:12}}>
+      <div style={{width:160,flexShrink:0,overflowY:"auto"}}>
+        {EXPRESSIONS_DATA.expressions.map(exp=>(
+          <button key={exp.id} onClick={()=>setSel(exp)} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 10px",marginBottom:3,width:"100%",borderRadius:6,border:`1px solid ${sel.id===exp.id?T.accent:T.border}`,background:sel.id===exp.id?T.accent+"22":T.bgCard,color:sel.id===exp.id?T.accentLight:T.text,cursor:"pointer",fontSize:12,textAlign:"left"}}>
+            <span style={{fontSize:16}}>{exp.emoji}</span>{exp.name}
+          </button>
+        ))}
+      </div>
+      <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+        <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+          {["copy","memory","variation"].map(m=>(<button key={m} onClick={()=>{setMode(m);setHidden(false);}} style={{padding:"3px 10px",borderRadius:5,fontSize:10,border:`1px solid ${mode===m?T.accent:T.border}`,background:mode===m?T.accent+"22":"transparent",color:mode===m?T.accentLight:T.textDim,cursor:"pointer",textTransform:"capitalize"}}>{m}</button>))}
+          <div style={{width:1,height:14,background:T.border}}/>
+          {[1,2,3].map(i=>(<button key={i} onClick={()=>setInt(i)} style={{width:24,height:24,borderRadius:5,fontSize:11,fontWeight:700,border:`1px solid ${intensity===i?T.accent:T.border}`,background:intensity===i?T.accent+"22":"transparent",color:intensity===i?T.accentLight:T.textDim,cursor:"pointer"}}>{i}</button>))}
+        </div>
+        <div style={{background:T.bgCard,borderRadius:10,padding:12,border:`1px solid ${T.border}`,position:"relative"}}>
+          {mode==="memory"&&!hidden&&<button onClick={()=>setHidden(true)} style={{position:"absolute",top:6,right:6,padding:"3px 10px",borderRadius:5,background:T.warning,color:"#000",fontSize:10,fontWeight:700,border:"none",cursor:"pointer"}}>Hide</button>}
+          {mode==="memory"&&hidden?<div style={{width:260,height:260,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",color:T.textDim,fontSize:13}}>Draw from memory! 🧠<button onClick={()=>setHidden(false)} style={{marginTop:6,padding:"3px 10px",borderRadius:5,background:T.accent,color:"#fff",border:"none",cursor:"pointer",fontSize:10}}>Reveal</button></div>:<ExpressionFace sliderValues={sv}/>}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"2px 12px",width:"100%",maxWidth:460}}>
+          {Object.entries(sel.sliders).map(([key,cfg])=>(<Slider key={key} label={key.replace(/([A-Z])/g," $1")} value={sv[key]??cfg.default} min={cfg.min} max={cfg.max} step={cfg.step} onChange={v=>setSv(p=>({...p,[key]:v}))}/>))}
+        </div>
+        <button onClick={onOpenCanvas} style={{padding:"8px 20px",borderRadius:7,background:T.accent,color:"#fff",border:"none",cursor:"pointer",fontSize:13,fontWeight:600}}>🖌️ Open Canvas</button>
+      </div>
+      <div style={{width:230,flexShrink:0,overflowY:"auto"}}>
+        <h4 style={{color:T.text,fontSize:13,margin:"0 0 6px"}}>Steps</h4>
+        {sel.stepChecklist.map((s,i)=>(<button key={i} onClick={()=>setDone(p=>p.includes(i)?p.filter(x=>x!==i):[...p,i])} style={{display:"flex",alignItems:"flex-start",gap:6,padding:"6px 8px",marginBottom:3,width:"100%",borderRadius:5,border:`1px solid ${T.border}`,background:done.includes(i)?T.success+"15":T.bgCard,color:done.includes(i)?T.success:T.text,cursor:"pointer",fontSize:11,textAlign:"left",lineHeight:1.3}}><span style={{flexShrink:0}}>{done.includes(i)?"✅":"⬜"}</span>{s}</button>))}
+        <h4 style={{color:T.text,fontSize:13,margin:"12px 0 6px"}}>💡 Tips</h4>
+        {sel.tips.map((t,i)=>(<p key={i} style={{fontSize:11,color:T.textDim,lineHeight:1.4,marginBottom:4,paddingLeft:6,borderLeft:`2px solid ${T.accent}33`}}>{t}</p>))}
+      </div>
+    </div>
+  );
+};
+
+// ─── Body Viewer, Hair Studio, Styles (compact) ───────────
+const BodyViewer = () => {
+  const [sel,setSel]=useState(BODY_PRESETS.presets[0]);
+  const [hc,setHc]=useState(sel.headCount.default);
+  const [sh,setSh]=useState(sel.silhouetteRatios.shoulderToHip.default);
+  const [wh,setWh]=useState(sel.silhouetteRatios.waistToHip.default);
+  useEffect(()=>{setHc(sel.headCount.default);setSh(sel.silhouetteRatios.shoulderToHip.default);setWh(sel.silhouetteRatios.waistToHip.default);},[sel]);
+  const w=220,h=460; const headH=h/hc,headW=headH*0.7,cx=w/2;
+  const sW=headW*2.2*sh,hW=headW*2.2,waW=hW*wh;
+  return (
+    <div style={{display:"flex",gap:12,padding:12}}>
+      <div style={{width:180,flexShrink:0,overflowY:"auto"}}>{BODY_PRESETS.presets.map(p=>(<button key={p.id} onClick={()=>setSel(p)} style={{display:"block",width:"100%",padding:"6px 10px",marginBottom:3,borderRadius:6,border:`1px solid ${sel.id===p.id?T.accent:T.border}`,background:sel.id===p.id?T.accent+"22":T.bgCard,color:sel.id===p.id?T.accentLight:T.text,cursor:"pointer",fontSize:12,textAlign:"left"}}>{p.name}</button>))}</div>
+      <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+        <div style={{background:T.bgCard,borderRadius:10,padding:12,border:`1px solid ${T.border}`}}>
+          <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+            {Array.from({length:Math.ceil(hc)+1},(_,i)=>(<g key={i}><line x1={0} y1={i*headH} x2={w} y2={i*headH} stroke={T.accent+"33"} strokeWidth={0.5} strokeDasharray="4 4"/><text x={3} y={i*headH+10} fill={T.textMuted} fontSize={8}>{i}</text></g>))}
+            <ellipse cx={cx} cy={headH*0.5} rx={headW/2} ry={headH*0.48} fill={T.accent+"22"} stroke={T.accent} strokeWidth={1.5}/>
+            <rect x={cx-headW*0.2} y={headH*0.9} width={headW*0.4} height={headH*0.5} fill={T.accent+"15"} stroke={T.accent} strokeWidth={1} rx={3}/>
+            <path d={`M${cx-sW/2} ${headH*1.5} L${cx-waW/2} ${headH*3} L${cx-hW/2} ${headH*4} L${cx+hW/2} ${headH*4} L${cx+waW/2} ${headH*3} L${cx+sW/2} ${headH*1.5} Z`} fill={T.accent+"15"} stroke={T.accent} strokeWidth={1.5}/>
+            {[-1,1].map(s=>(<g key={s}><line x1={cx+s*hW*0.3} y1={headH*4} x2={cx+s*hW*0.25} y2={headH*hc*0.95} stroke={T.accent} strokeWidth={headW*0.25} strokeLinecap="round" opacity={0.3}/><line x1={cx+s*sW/2} y1={headH*1.6} x2={cx+s*(sW/2+headW*0.8)} y2={headH*4.2} stroke={T.accent} strokeWidth={headW*0.18} strokeLinecap="round" opacity={0.3}/></g>))}
+          </svg>
+        </div>
+        <div style={{width:"100%",maxWidth:360}}>
+          <Slider label="Head Count" value={hc} min={sel.headCount.min} max={sel.headCount.max} step={0.25} onChange={setHc}/>
+          <Slider label="Shoulder/Hip" value={sh} min={sel.silhouetteRatios.shoulderToHip.min} max={sel.silhouetteRatios.shoulderToHip.max} step={0.05} onChange={setSh}/>
+          <Slider label="Waist/Hip" value={wh} min={sel.silhouetteRatios.waistToHip.min} max={sel.silhouetteRatios.waistToHip.max} step={0.05} onChange={setWh}/>
+        </div>
+      </div>
+      <div style={{width:200,flexShrink:0}}><h4 style={{color:T.text,fontSize:13,margin:"0 0 6px"}}>Landmarks</h4>{Object.entries(sel.landmarks).map(([k,v])=>(<div key={k} style={{fontSize:11,color:T.textDim,marginBottom:4,display:"flex",justifyContent:"space-between"}}><span style={{color:T.text}}>{k.replace(/([A-Z])/g," $1")}</span><span style={{color:T.accentLight}}>{v}</span></div>))}<h4 style={{color:T.text,fontSize:13,margin:"12px 0 6px"}}>Notes</h4>{sel.notes.map((n,i)=>(<p key={i} style={{fontSize:11,color:T.textDim,lineHeight:1.4,paddingLeft:6,borderLeft:`2px solid ${T.accent}33`,marginBottom:4}}>{n}</p>))}</div>
+    </div>
+  );
+};
+
+const HairStudio = () => {
+  const [tf,setTf]=useState("All");
+  const [sel,setSel]=useState(HAIR_TEMPLATES.templates[0]);
+  const [done,setDone]=useState([]);
+  const types=["All","Straight","Wavy","Curly","Coily","Stylized"];
+  const filtered=tf==="All"?HAIR_TEMPLATES.templates:HAIR_TEMPLATES.templates.filter(t=>t.type===tf);
+  useEffect(()=>{setDone([]);},[sel]);
+  return (
+    <div style={{display:"flex",gap:12,padding:12}}>
+      <div style={{width:200,flexShrink:0,overflowY:"auto"}}>
+        <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:8}}>{types.map(t=>(<button key={t} onClick={()=>setTf(t)} style={{padding:"2px 8px",borderRadius:5,fontSize:10,border:`1px solid ${tf===t?T.accent:T.border}`,background:tf===t?T.accent+"22":"transparent",color:tf===t?T.accentLight:T.textDim,cursor:"pointer"}}>{t}</button>))}</div>
+        {filtered.map(h=>(<button key={h.id} onClick={()=>setSel(h)} style={{display:"block",width:"100%",padding:"5px 8px",marginBottom:2,borderRadius:5,border:`1px solid ${sel.id===h.id?T.accent:T.border}`,background:sel.id===h.id?T.accent+"22":T.bgCard,color:sel.id===h.id?T.accentLight:T.text,cursor:"pointer",fontSize:11,textAlign:"left"}}>{h.name}</button>))}
+      </div>
+      <div style={{flex:1}}>
+        <div style={{background:T.bgCard,borderRadius:10,padding:16,border:`1px solid ${T.border}`}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><h3 style={{color:T.text,fontSize:16,margin:0}}>{sel.name}</h3><div style={{display:"flex",gap:6}}><span style={{padding:"2px 8px",borderRadius:5,background:T.accent+"22",color:T.accentLight,fontSize:10}}>{sel.type}</span><span style={{padding:"2px 8px",borderRadius:5,background:T.success+"22",color:T.success,fontSize:10}}>{sel.length}</span><span style={{padding:"2px 8px",borderRadius:5,background:T.warning+"22",color:T.warning,fontSize:10}}>Flow: {sel.flow}</span></div></div>
+          {sel.steps.map((step,i)=>(<button key={i} onClick={()=>setDone(p=>p.includes(i)?p.filter(x=>x!==i):[...p,i])} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",marginBottom:4,width:"100%",borderRadius:6,border:`1px solid ${T.border}`,background:done.includes(i)?T.success+"15":T.bg,color:done.includes(i)?T.success:T.text,cursor:"pointer",fontSize:12,textAlign:"left"}}><span style={{width:20,height:20,borderRadius:999,background:done.includes(i)?T.success:T.accent+"33",color:done.includes(i)?"#fff":T.accentLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,flexShrink:0}}>{done.includes(i)?"✓":i+1}</span>{step}</button>))}
+          {sel.notes.length>0&&<div style={{marginTop:12}}>{sel.notes.map((n,i)=>(<p key={i} style={{fontSize:11,color:T.textDim,lineHeight:1.4,paddingLeft:6,borderLeft:`2px solid ${T.accent}33`,marginBottom:3}}>{n}</p>))}</div>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const StylesViewer = () => {
+  const [sel,setSel]=useState(STYLES_DATA.styles[0]);
+  return (
+    <div style={{padding:12,display:"flex",gap:12}}>
+      <div style={{width:180,flexShrink:0}}>{STYLES_DATA.styles.map(s=>(<button key={s.id} onClick={()=>setSel(s)} style={{display:"flex",alignItems:"center",gap:6,width:"100%",padding:"8px 10px",marginBottom:3,borderRadius:6,border:`1px solid ${sel.id===s.id?T.accent:T.border}`,background:sel.id===s.id?T.accent+"22":T.bgCard,color:sel.id===s.id?T.accentLight:T.text,cursor:"pointer",fontSize:12,textAlign:"left"}}><span style={{fontSize:16}}>{s.icon}</span>{s.name}</button>))}</div>
+      <div style={{flex:1}}><div style={{background:T.bgCard,borderRadius:10,padding:16,border:`1px solid ${T.border}`}}><h2 style={{color:T.text,fontSize:18,marginBottom:12,display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:24}}>{sel.icon}</span>{sel.name}</h2><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:6,marginBottom:12}}>{sel.brushPresets.map(bp=>(<div key={bp.name} style={{padding:10,borderRadius:6,background:T.bg,border:`1px solid ${T.border}`}}><div style={{fontWeight:600,color:T.text,fontSize:12,marginBottom:4}}>{bp.name}</div><div style={{fontSize:10,color:T.textDim}}>Tool: {bp.tool} • Size: {bp.size} • {Math.round(bp.opacity*100)}%</div></div>))}</div>{sel.notes.map((n,i)=>(<p key={i} style={{fontSize:12,color:T.textDim,lineHeight:1.5,paddingLeft:10,borderLeft:`2px solid ${T.accent}33`,marginBottom:6}}>{n}</p>))}</div></div>
+    </div>
+  );
+};
+
+const CharacterStudio = ({setPage}) => {
+  const [tab,setTab]=useState("expressions");
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div style={{display:"flex",gap:3,padding:"6px 12px",background:T.bgCard,borderBottom:`1px solid ${T.border}`}}>
+        {[{id:"expressions",l:"🎭 Expressions"},{id:"bodies",l:"🧍 Bodies"},{id:"hair",l:"💇 Hair"},{id:"styles",l:"🎨 Styles"}].map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"6px 14px",borderRadius:6,border:`1px solid ${tab===t.id?T.accent:T.border}`,background:tab===t.id?T.accent+"22":"transparent",color:tab===t.id?T.accentLight:T.textDim,cursor:"pointer",fontSize:12,fontWeight:tab===t.id?600:400}}>{t.l}</button>))}
+      </div>
+      <div style={{flex:1,overflowY:"auto"}}>
+        {tab==="expressions"&&<ExpressionTrainer onOpenCanvas={()=>setPage("canvas")}/>}
+        {tab==="bodies"&&<BodyViewer/>}
+        {tab==="hair"&&<HairStudio/>}
+        {tab==="styles"&&<StylesViewer/>}
+      </div>
+    </div>
+  );
+};
+
+// ─── Lesson, Drill, Dashboard, etc. (compact) ─────────────
+const LessonViewer = ({lesson,onBack,onComplete}) => {
+  const [cs,setCs]=useState(0);
+  const [done,setDone]=useState([]);
+  const step=lesson.steps[cs];
+  return (
+    <div style={{display:"flex",height:"100%"}}>
+      <div style={{flex:1}}><DrawingCanvas embedded/></div>
+      <div style={{width:300,background:T.bgCard,borderLeft:`1px solid ${T.border}`,display:"flex",flexDirection:"column",overflowY:"auto"}}>
+        <div style={{padding:12,borderBottom:`1px solid ${T.border}`}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:T.accentLight,cursor:"pointer",fontSize:11,marginBottom:4}}>← Back</button>
+          <h3 style={{color:T.text,fontSize:16,margin:0}}>{lesson.icon} {lesson.title}</h3>
+          <div style={{height:3,background:T.border,borderRadius:2,marginTop:6}}><div style={{height:3,background:T.accent,borderRadius:2,width:`${(done.length/lesson.steps.length)*100}%`,transition:"width 0.3s"}}/></div>
+        </div>
+        <div style={{flex:1,padding:12}}>
+          <div style={{display:"flex",gap:3,marginBottom:12}}>{lesson.steps.map((_,i)=>(<button key={i} onClick={()=>setCs(i)} style={{flex:1,height:28,borderRadius:5,border:`1px solid ${cs===i?T.accent:T.border}`,background:done.includes(i)?T.success+"33":cs===i?T.accent+"22":"transparent",color:done.includes(i)?T.success:cs===i?T.accentLight:T.textDim,cursor:"pointer",fontSize:11,fontWeight:700}}>{done.includes(i)?"✓":i+1}</button>))}</div>
+          <div style={{background:T.bg,borderRadius:8,padding:12,border:`1px solid ${T.border}`,marginBottom:10}}>
+            <h4 style={{color:T.accentLight,fontSize:13,marginBottom:6}}>Step {cs+1}: {step.title}</h4>
+            <p style={{color:T.text,fontSize:12,lineHeight:1.5,marginBottom:8}}>{step.instruction}</p>
+            <div style={{background:T.success+"11",borderRadius:6,padding:8,border:`1px solid ${T.success}33`}}><span style={{fontSize:10,color:T.success,fontWeight:600}}>✓ Check:</span><p style={{fontSize:11,color:T.textDim,margin:"3px 0 0"}}>{step.check}</p></div>
+          </div>
+          <button onClick={()=>{if(!done.includes(cs))setDone(p=>[...p,cs]);if(cs<lesson.steps.length-1)setCs(cs+1);}} style={{width:"100%",padding:"8px",borderRadius:6,background:T.accent,color:"#fff",border:"none",cursor:"pointer",fontSize:12,fontWeight:600}}>{done.includes(cs)?"Next →":"Done & Next →"}</button>
+          {done.length===lesson.steps.length&&<button onClick={()=>onComplete(lesson.id)} style={{width:"100%",padding:"10px",borderRadius:6,background:T.success,color:"#fff",border:"none",cursor:"pointer",fontSize:13,fontWeight:700,marginTop:8}}>🎉 Complete!</button>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const LessonLibrary = ({completedLessons,setPage,setActiveLesson}) => {
+  const chapters=[...new Set(LESSONS_DATA.map(l=>l.chapter))];
+  return (<div style={{padding:16}}><h1 style={{color:T.text,fontSize:22,marginBottom:16}}>📖 Lessons</h1>{chapters.map(ch=>(<div key={ch} style={{marginBottom:20}}><h2 style={{color:T.accentLight,fontSize:14,marginBottom:8,paddingBottom:4,borderBottom:`1px solid ${T.border}`}}>{ch}</h2><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:10}}>{LESSONS_DATA.filter(l=>l.chapter===ch).map(lesson=>{const d=completedLessons.includes(lesson.id);return(<button key={lesson.id} onClick={()=>{setActiveLesson(lesson);setPage("lessonView");}} style={{padding:14,borderRadius:10,border:`1px solid ${d?T.success:T.border}`,background:T.bgCard,cursor:"pointer",textAlign:"left",position:"relative"}}>{d&&<div style={{position:"absolute",top:6,right:6,background:T.success,color:"#fff",fontSize:9,padding:"1px 6px",borderRadius:999,fontWeight:700}}>✓</div>}<div style={{fontSize:24,marginBottom:6}}>{lesson.icon}</div><h3 style={{color:T.text,fontSize:14,margin:"0 0 3px"}}>{lesson.title}</h3><p style={{color:T.textDim,fontSize:11,margin:"0 0 6px",lineHeight:1.3}}>{lesson.description}</p><span style={{fontSize:10,color:T.accentLight,background:T.accent+"22",padding:"1px 6px",borderRadius:3}}>{lesson.difficulty}</span></button>);})}</div></div>))}</div>);
+};
+
+const DrillGym = ({completedDrills,onComplete,setPage}) => {
+  const [active,setActive]=useState(null);
+  const [timer,setTimer]=useState(0);
+  const [running,setRunning]=useState(false);
+  const [rep,setRep]=useState(0);
+  const [cf,setCf]=useState("All");
+  const timerRef=useRef(null);
+  const cats=[...new Set(DRILLS_DATA.map(d=>d.category))];
+  const filtered=cf==="All"?DRILLS_DATA:DRILLS_DATA.filter(d=>d.category===cf);
+  useEffect(()=>{if(running&&timer>0){timerRef.current=setTimeout(()=>setTimer(t=>t-1),1000);}else if(running&&timer<=0){setRunning(false);setRep(r=>r+1);}return()=>clearTimeout(timerRef.current);},[running,timer]);
+  if(active){const d=rep>=active.reps;return(
+    <div style={{padding:16,display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+      <button onClick={()=>setActive(null)} style={{alignSelf:"flex-start",background:"none",border:"none",color:T.accentLight,cursor:"pointer",fontSize:12}}>← Back</button>
+      <h2 style={{color:T.text,fontSize:20}}>{active.name}</h2>
+      <p style={{color:T.textDim,fontSize:13,maxWidth:450,textAlign:"center"}}>{active.description}</p>
+      <div style={{width:150,height:150,borderRadius:"50%",border:`3px solid ${running?T.accent:T.border}`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:T.bgCard}}>
+        <span style={{fontSize:40,fontWeight:800,color:timer<=5&&running?T.danger:T.text,fontVariantNumeric:"tabular-nums"}}>{Math.floor(timer/60)}:{String(timer%60).padStart(2,"0")}</span>
+        <span style={{fontSize:11,color:T.textDim}}>Rep {Math.min(rep+1,active.reps)}/{active.reps}</span>
+      </div>
+      <div style={{display:"flex",gap:6}}>
+        <button onClick={()=>{setTimer(active.duration);setRunning(true);}} style={{padding:"8px 20px",borderRadius:6,background:T.accent,color:"#fff",border:"none",cursor:"pointer",fontSize:13,fontWeight:600}}>{running?"Reset":rep>0?"Next Rep":"▶ Start"}</button>
+        {running&&<button onClick={()=>setRunning(false)} style={{padding:"8px 20px",borderRadius:6,background:T.warning,color:"#000",border:"none",cursor:"pointer",fontSize:13,fontWeight:600}}>⏸</button>}
+      </div>
+      {d&&<button onClick={()=>{onComplete(active.id);setActive(null);}} style={{padding:"10px 28px",borderRadius:6,background:T.success,color:"#fff",border:"none",cursor:"pointer",fontSize:14,fontWeight:700}}>🎉 Complete!</button>}
+      <div style={{width:"100%",maxWidth:700,marginTop:8}}><DrawingCanvas embedded/></div>
+    </div>);}
+  return (<div style={{padding:16}}><h1 style={{color:T.text,fontSize:22,marginBottom:10}}>🏋️ Drills</h1><div style={{display:"flex",gap:3,marginBottom:12,flexWrap:"wrap"}}><button onClick={()=>setCf("All")} style={{padding:"3px 10px",borderRadius:5,fontSize:11,border:`1px solid ${cf==="All"?T.accent:T.border}`,background:cf==="All"?T.accent+"22":"transparent",color:cf==="All"?T.accentLight:T.textDim,cursor:"pointer"}}>All</button>{cats.map(c=>(<button key={c} onClick={()=>setCf(c)} style={{padding:"3px 10px",borderRadius:5,fontSize:11,border:`1px solid ${cf===c?T.accent:T.border}`,background:cf===c?T.accent+"22":"transparent",color:cf===c?T.accentLight:T.textDim,cursor:"pointer"}}>{c}</button>))}</div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:8}}>{filtered.map(drill=>{const d=completedDrills.includes(drill.id);return(<button key={drill.id} onClick={()=>{setActive(drill);setTimer(drill.duration);setRep(0);setRunning(false);}} style={{padding:12,borderRadius:8,border:`1px solid ${d?T.success:T.border}`,background:T.bgCard,cursor:"pointer",textAlign:"left",position:"relative"}}>{d&&<span style={{position:"absolute",top:6,right:6,background:T.success,color:"#fff",fontSize:9,padding:"1px 6px",borderRadius:999,fontWeight:700}}>✓</span>}<h3 style={{color:T.text,fontSize:13,margin:"0 0 3px"}}>{drill.name}</h3><p style={{color:T.textDim,fontSize:10,margin:"0 0 6px",lineHeight:1.3}}>{drill.description}</p><span style={{fontSize:10,color:T.accentLight,background:T.accent+"22",padding:"1px 6px",borderRadius:3}}>{drill.category}</span></button>);})}</div></div>);
+};
+
+const SkillTreeView = ({completedLessons}) => {
+  const isUnlocked=s=>s.requires.every(r=>{const rs=SKILL_TREE.find(x=>x.id===r);return rs&&rs.lessons.every(l=>completedLessons.includes(l));});
+  const isComplete=s=>s.lessons.length>0&&s.lessons.every(l=>completedLessons.includes(l));
+  return (<div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",padding:12}}>{SKILL_TREE.map(skill=>{const u=isUnlocked(skill),c=isComplete(skill),p=skill.lessons.length>0?skill.lessons.filter(l=>completedLessons.includes(l)).length/skill.lessons.length:0;return(<div key={skill.id} style={{width:100,padding:10,borderRadius:10,textAlign:"center",border:`2px solid ${c?T.success:u?T.accent:T.border}`,background:c?T.success+"15":u?T.accent+"11":T.bgCard,opacity:u?1:0.5}}><div style={{fontSize:24,marginBottom:2}}>{skill.icon}</div><div style={{fontSize:11,fontWeight:700,color:c?T.success:u?T.accentLight:T.textMuted}}>{skill.name}</div>{skill.lessons.length>0&&<div style={{height:3,background:T.border,borderRadius:2,marginTop:4}}><div style={{height:3,background:c?T.success:T.accent,borderRadius:2,width:`${p*100}%`}}/></div>}<div style={{fontSize:9,color:T.textMuted,marginTop:2}}>{c?"Complete!":u?`${Math.round(p*100)}%`:"🔒"}</div></div>);})}</div>);
+};
+
+const Dashboard = ({completedLessons,completedDrills,streak,setPage}) => {
+  const next=LESSONS_DATA.find(l=>!completedLessons.includes(l.id));
+  return (
+    <div style={{padding:16,maxWidth:860,margin:"0 auto"}}>
+      <div style={{background:`linear-gradient(135deg,${T.accent}33,${T.success}22)`,borderRadius:14,padding:24,marginBottom:16,border:`1px solid ${T.accent}44`}}>
+        <h1 style={{color:T.text,fontSize:24,margin:"0 0 2px",fontWeight:800}}>Welcome back! 🎨</h1>
+        <p style={{color:T.textDim,fontSize:13,margin:0}}>Ready to level up?</p>
+        <div style={{display:"flex",gap:12,marginTop:12}}>
+          {[{v:`🔥 ${streak}`,l:"Streak",c:T.warning},{v:`${completedLessons.length}/${LESSONS_DATA.length}`,l:"Lessons",c:T.accentLight},{v:`${completedDrills.length}/${DRILLS_DATA.length}`,l:"Drills",c:T.success}].map(s=>(<div key={s.l} style={{background:T.bgCard+"cc",borderRadius:8,padding:"10px 16px",flex:1,textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:10,color:T.textDim}}>{s.l}</div></div>))}
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8,marginBottom:16}}>
+        {[{l:"Free Draw",i:"🖌️",p:"canvas",c:T.accent},{l:"Lessons",i:"📖",p:"lessons",c:T.success},{l:"Drills",i:"🏋️",p:"drills",c:T.warning},{l:"Character Studio",i:"🎭",p:"studio",c:"#e17055"},{l:"3D Pose Studio",i:"🧍",p:"pose3d",c:"#00cec9"}].map(q=>(<button key={q.l} onClick={()=>setPage(q.p)} style={{padding:14,borderRadius:10,border:`1px solid ${q.c}44`,background:T.bgCard,cursor:"pointer",textAlign:"center"}}><div style={{fontSize:28,marginBottom:4}}>{q.i}</div><div style={{fontSize:12,fontWeight:600,color:T.text}}>{q.l}</div></button>))}
+      </div>
+      {next&&<div style={{background:T.bgCard,borderRadius:10,padding:14,border:`1px solid ${T.border}`,marginBottom:16}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:32}}>{next.icon}</span><div style={{flex:1}}><h3 style={{color:T.text,fontSize:15,margin:0}}>{next.title}</h3><p style={{color:T.textDim,fontSize:11,margin:"2px 0"}}>{next.description}</p></div><button onClick={()=>setPage("lessons")} style={{padding:"7px 16px",borderRadius:6,background:T.accent,color:"#fff",border:"none",cursor:"pointer",fontSize:12,fontWeight:600}}>Start →</button></div></div>}
+      <div style={{background:T.bgCard,borderRadius:10,padding:14,border:`1px solid ${T.border}`}}><div style={{fontSize:11,color:T.textDim,marginBottom:8,fontWeight:600,textTransform:"uppercase",letterSpacing:1}}>Skill Tree</div><SkillTreeView completedLessons={completedLessons}/></div>
+    </div>
+  );
+};
+
+const Gallery = () => (<div style={{padding:16,textAlign:"center"}}><h1 style={{color:T.text,fontSize:22}}>🖼️ Gallery</h1><p style={{color:T.textDim,fontSize:13}}>Saved drawings appear here. Use Export in canvas!</p><div style={{marginTop:30,padding:30,borderRadius:10,border:`2px dashed ${T.border}`,color:T.textMuted,fontSize:13}}>No saved drawings yet.</div></div>);
+
+const Settings = ({dailyGoal,setDailyGoal}) => (<div style={{padding:16,maxWidth:460}}><h1 style={{color:T.text,fontSize:22,marginBottom:16}}>⚙️ Settings</h1><div style={{background:T.bgCard,borderRadius:10,padding:16,border:`1px solid ${T.border}`,marginBottom:12}}><h3 style={{color:T.text,fontSize:13,marginBottom:8}}>Daily Goal</h3><div style={{display:"flex",gap:6}}>{[5,10,15,20,30].map(m=>(<button key={m} onClick={()=>setDailyGoal(m)} style={{padding:"6px 14px",borderRadius:6,border:`1px solid ${dailyGoal===m?T.accent:T.border}`,background:dailyGoal===m?T.accent+"22":"transparent",color:dailyGoal===m?T.accentLight:T.textDim,cursor:"pointer",fontSize:12}}>{m}m</button>))}</div></div><div style={{background:T.bgCard,borderRadius:10,padding:16,border:`1px solid ${T.border}`}}><h3 style={{color:T.text,fontSize:13,marginBottom:8}}>Shortcuts</h3>{[["B","Brush"],["P","Pencil"],["E","Eraser"],["Ctrl+Z","Undo"],["Ctrl+Shift+Z","Redo"]].map(([k,d])=>(<div key={k} style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{color:T.textDim,fontSize:11}}>{d}</span><kbd style={{background:T.bg,color:T.accentLight,padding:"1px 6px",borderRadius:3,fontSize:10,border:`1px solid ${T.border}`}}>{k}</kbd></div>))}</div></div>);
+
+    // ─── MAIN APP ────────────────────────────────────────────────
+    function App() {
+      const [page, setPage] = useState("dashboard");
+      const [completedLessons, setCL] = useState(() => loadS("traevol_cl", []));
+      const [completedDrills, setCD] = useState(() => loadS("traevol_cd", []));
+      const [streak, setStreak] = useState(() => loadS("traevol_streak", 0));
+      const [lastActive, setLA] = useState(() => loadS("traevol_la", ""));
+      const [dailyGoal, setDG] = useState(() => loadS("traevol_dg", 10));
+      const [activeLesson, setAL] = useState(null);
+      const [capturedRef, setCapturedRef] = useState(null);  useEffect(() => {
+    const today = getToday();
+    if (lastActive !== today) {
+      const y = new Date(Date.now()-86400000).toISOString().split("T")[0];
+      if (lastActive===y) setStreak(s=>s+1);
+      else if (lastActive) setStreak(1);
+      else setStreak(1);
+      setLA(today);
+    }
+  }, []);
+
+  useEffect(()=>{saveS("cl",completedLessons);},[completedLessons]);
+  useEffect(()=>{saveS("cd",completedDrills);},[completedDrills]);
+  useEffect(()=>{saveS("streak",streak);},[streak]);
+  useEffect(()=>{saveS("la",lastActive);},[lastActive]);
+  useEffect(()=>{saveS("dg",dailyGoal);},[dailyGoal]);
+
+  const completeLesson = (id) => { if(!completedLessons.includes(id)) setCL(p=>[...p,id]); setPage("lessons"); };
+  const completeDrill = (id) => { if(!completedDrills.includes(id)) setCD(p=>[...p,id]); };
+
+  const renderPage = () => {
+    switch(page) {
+      case "dashboard": return h(Dashboard, {completedLessons,completedDrills,streak,setPage});
+      case "canvas": return h("div", {style:{height:"calc(100vh - 46px)"}}, h(DrawingCanvas, {embedded:true}));
+      case "studio": return h(CharacterStudio, {setPage});
+      case "pose3d": return h(PoseStudio, {onCaptureRef:setCapturedRef});
+      case "lessons": return h(LessonLibrary, {completedLessons,setPage,setActiveLesson:setAL});
+      case "lessonView": return activeLesson ? h(LessonViewer, {lesson:activeLesson,onBack:()=>setPage("lessons"),onComplete:completeLesson}) : null;
+      case "drills": return h(DrillGym, {completedDrills,onComplete:completeDrill,setPage});
+      case "gallery": return h(Gallery);
+      case "settings": return h(Settings, {dailyGoal,setDailyGoal:setDG});
+      default: return h(Dashboard, {completedLessons,completedDrills,streak,setPage});
+    }
+  };
+
+  return h("div", {style:{minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}},
+    h(NavBar, {page,setPage,streak}),
+    h("main", {style:{height:"calc(100vh - 46px)",overflowY:"auto"}}, renderPage())
+  );
+  }
+
+  // Mount the app
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(h(App));
+  </script>
 </body>
 </html>
