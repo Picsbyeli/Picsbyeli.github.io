@@ -1,37 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>TraEvol — Train & Evolve Your Drawing</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      background: #0c0e14; 
-      color: #e8e6f0; 
-      margin: 0; 
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    }
-    html, body, #root { height: 100%; width: 100%; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TraEvol — Train + Evolve Your Drawing</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body,#root{height:100%;overflow:hidden;}
+body{background:#0a0c12;color:#e6e4f2;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}
+button{font-family:inherit;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:#333;border-radius:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+</style>
 </head>
 <body>
-  <div id="root"></div>
-  
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/three@r152/build/three.min.js"></script>
-  
-  <script type="module">
-    const React = window.React;
-    const ReactDOM = window.ReactDOM;
-    const THREE = window.THREE;
-    const { useState, useEffect, useRef, useCallback } = React;
-    const { createElement: h } = React;
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-    // ============================================================
-    // TRAEVOL — Train + Evolve Your Drawing
-    // ============================================================
+
+// ============================================================
+// TRAEVOL — Train + Evolve Your Drawing (v2 with 3D Pose Studio)
+// ============================================================
 
 // ─── JSON DATA: Expressions ────────────────────────────────
 const EXPRESSIONS_DATA = {
@@ -146,20 +141,23 @@ const T = {
   success:"#00cec9",warning:"#fdcb6e",danger:"#e17055",
 };
 
-    // ─── Utils ─────────────────────────────────────────────────
-    const lerp = (a,b,t) => a+(b-a)*t;
-    const getToday = () => new Date().toISOString().split("T")[0];
-    const loadS = (k,f) => { try { const r=JSON.parse(localStorage.getItem(k)||"null"); return r??f; } catch{return f;} };
-    const saveS = (k,v) => { localStorage.setItem(k,JSON.stringify(v)); };
+// ─── Utils ─────────────────────────────────────────────────
+const lerp = (a,b,t) => a+(b-a)*t;
+const getToday = () => new Date().toISOString().split("T")[0];
+const loadS = (k,f) => { try { const r=JSON.parse(window._ts?.[k]||"null"); return r??f; } catch{return f;} };
+const saveS = (k,v) => { if(!window._ts)window._ts={}; window._ts[k]=JSON.stringify(v); };
 
-    // ─── Slider ────────────────────────────────────────────────
-    const Slider = ({label,value,min,max,step=1,onChange,suffix=""}) => h("div", {style:{marginBottom:6}},
-      h("div", {style:{display:"flex",justifyContent:"space-between",fontSize:10,color:T.textDim,marginBottom:1}},
-        h("span", null, label),
-        h("span", {style:{color:T.accentLight,fontWeight:600}}, (typeof value==='number'?value.toFixed(step<1?2:0):value)+(suffix||""))
-      ),
-      h("input", {type:"range",min,max,step,value,onChange:e=>onChange(Number(e.target.value)),style:{width:"100%",accentColor:T.accent,height:3,cursor:"pointer"}})
-    );// ─── NavBar ────────────────────────────────────────────────
+// ─── Slider ────────────────────────────────────────────────
+const Slider = ({label,value,min,max,step=1,onChange,suffix=""}) => (
+  <div style={{marginBottom:6}}>
+    <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:T.textDim,marginBottom:1}}>
+      <span>{label}</span><span style={{color:T.accentLight,fontWeight:600}}>{typeof value==='number'?value.toFixed(step<1?2:0):value}{suffix}</span>
+    </div>
+    <input type="range" min={min} max={max} step={step} value={value} onChange={e=>onChange(Number(e.target.value))} style={{width:"100%",accentColor:T.accent,height:3,cursor:"pointer"}} />
+  </div>
+);
+
+// ─── NavBar ────────────────────────────────────────────────
 const NavBar = ({page,setPage,streak}) => {
   const items = [{id:"dashboard",icon:"🏠",l:"Home"},{id:"lessons",icon:"📖",l:"Lessons"},{id:"drills",icon:"🏋️",l:"Drills"},{id:"studio",icon:"🎭",l:"Studio"},{id:"pose3d",icon:"🧍",l:"3D Pose"},{id:"canvas",icon:"🖌️",l:"Draw"},{id:"gallery",icon:"🖼️",l:"Gallery"}];
   return (
@@ -212,6 +210,15 @@ const MANNEQUIN_COLORS = {
   gridLine: 0x252a38,
 };
 
+
+const FX_DEFS = [
+  {id:"none",n:"❌ None"},{id:"fire",n:"🔥 Fire"},{id:"sparks",n:"⚡ Sparks"},
+  {id:"aura",n:"💫 Aura"},{id:"trail",n:"🌀 Trail"},{id:"dust",n:"💨 Dust"},
+  {id:"rain",n:"🌧️ Rain"},{id:"snow",n:"❄️ Snow"},{id:"magic",n:"✨ Magic"},{id:"speed",n:"💥 Speed"},
+];
+const FX_ATTACH_PTS = [{k:"hips",l:"Body"},{k:"lHand",l:"L Hand"},{k:"rHand",l:"R Hand"},{k:"head",l:"Head"},{k:"lFoot",l:"L Foot"},{k:"rFoot",l:"R Foot"}];
+const EASE_FNS = {linear:t=>t, easeIn:t=>t*t, easeOut:t=>t*(2-t), easeInOut:t=>t<.5?2*t*t:-1+(4-2*t)*t};
+
 const PoseStudio = ({ onCaptureRef }) => {
   const mountRef = useRef(null);
   const stateRef = useRef(null); // single ref holds ALL mutable 3D state
@@ -223,6 +230,26 @@ const PoseStudio = ({ onCaptureRef }) => {
   const [showGrid, setShowGrid] = useState(true);
   const [capturedImage, setCapturedImage] = useState(null);
   const [anglesUI, setAnglesUI] = useState({...POSE_PRESETS.relaxed.joints});
+
+  // Animation state
+  const [keyframes, setKeyframes] = useState([]);
+  const [totalFrames, setTotalFrames] = useState(60);
+  const [animFps, setAnimFps] = useState(24);
+  const [curFrame, setCurFrame] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [easeMode, setEaseMode] = useState("linear");
+  const [loopMode, setLoopMode] = useState("loop");
+  const [sideTab, setSideTab] = useState("pose");
+  // Effects state
+  const [activeFx, setActiveFx] = useState("none");
+  const [fxAttach, setFxAttach] = useState("hips");
+  const [fxIntensity, setFxIntensity] = useState(50);
+  const [fxSz, setFxSz] = useState(50);
+  const [fxSpd, setFxSpd] = useState(50);
+  const [fxC1, setFxC1] = useState("#00e5d0");
+  const [fxC2, setFxC2] = useState("#7c6cf0");
+  const animRef = useRef({playDir:1,particles:[],fxGroup:null});
+
 
   // ── Build entire 3D system once on mount ──
   useEffect(() => {
@@ -432,16 +459,16 @@ const PoseStudio = ({ onCaptureRef }) => {
     };
 
     // ── State object — everything the loop + handlers read/write ──
+    const fxGroup = new THREE.Group(); scene.add(fxGroup);
+    animRef.current.fxGroup = fxGroup; animRef.current.particles = [];
     const S = {
       scene, camera, renderer, grid, root,
       joints, parts, jMeshes, propSets,
       cam: {theta:0, phi:0.45, dist:5.5, targetY:2.0},
       angles: {...POSE_PRESETS.relaxed.joints},
       drag: {active:false, mode:null, sx:0, sy:0, joint:null},
-      selected: null,
-      hovered: null,
-      raycaster: new THREE.Raycaster(),
-      mouse: new THREE.Vector2(),
+      selected: null, hovered: null,
+      raycaster: new THREE.Raycaster(), mouse: new THREE.Vector2(),
     };
     stateRef.current = S;
 
@@ -451,7 +478,7 @@ const PoseStudio = ({ onCaptureRef }) => {
       if (!j.lShoulder) return;
       j.hips.rotation.set(0, a.hipsY||0, 0);
       j.spine.rotation.set(a.spineX||0, a.spineY||0, a.spineZ||0);
-      j.chest.rotation.set(0, 0, 0); // controlled via spine
+      j.chest.rotation.set(0, 0, 0);
       j.neck.rotation.set(a.neckX||0, a.neckY||0, 0);
       j.head.rotation.set(a.headX||0, a.headY||0, 0);
       j.lShoulder.rotation.set(a.lShoulderX||0, 0, a.lShoulderZ||0);
@@ -462,6 +489,10 @@ const PoseStudio = ({ onCaptureRef }) => {
       j.rHip.rotation.set(a.rHipX||0, 0, a.rHipZ||0);
       j.lKnee.rotation.set(a.lKneeX||0, 0, 0);
       j.rKnee.rotation.set(a.rKneeX||0, 0, 0);
+      j.lHand.rotation.set(a.lHandX||0, 0, 0);
+      j.rHand.rotation.set(a.rHandX||0, 0, 0);
+      j.lFoot.rotation.set(a.lFootX||0, 0, 0);
+      j.rFoot.rotation.set(a.rFootX||0, 0, 0);
     };
     applyPose();
 
@@ -477,12 +508,23 @@ const PoseStudio = ({ onCaptureRef }) => {
     };
     updateCam();
 
-    // ── Animation loop ──
     let raf;
+    const clock = new THREE.Clock();
     const tick = () => {
       raf = requestAnimationFrame(tick);
-      applyPose();
-      updateCam();
+      const dt = clock.getDelta();
+      applyPose(); updateCam();
+      const ar = animRef.current;
+      if (ar.fxGroup && ar.particles) {
+        const dead = [];
+        ar.particles.forEach((p,i) => {
+          const u=p.userData; u.vy+=(u.gr||0)*dt;
+          p.position.x+=(u.vx||0)*dt; p.position.y+=(u.vy||0)*dt; p.position.z+=(u.vz||0)*dt;
+          u.life-=dt; const lr=Math.max(0,u.life/u.ml); p.material.opacity=lr*.8;
+          if(u.sh) p.scale.setScalar(Math.max(.01,lr)); if(u.life<=0) dead.push(i);
+        });
+        for(let i=dead.length-1;i>=0;i--){const dp=ar.particles[dead[i]];ar.fxGroup.remove(dp);dp.geometry.dispose();dp.material.dispose();ar.particles.splice(dead[i],1);}
+      }
       renderer.render(scene, camera);
     };
     tick();
@@ -541,38 +583,46 @@ const PoseStudio = ({ onCaptureRef }) => {
       }
 
       cvs.style.cursor = "grabbing";
-      const dx = (cx - d.sx) * 0.007;
-      const dy = (cy - d.sy) * 0.007;
+      // High sensitivity: ~250px drag = full 360° rotation (2π rad)
+      // Formula: 250px * 0.025 = 6.28 rad = 360°
+      const dx = (cx - d.sx) * 0.025;
+      const dy = (cy - d.sy) * 0.025;
       d.sx = cx;
       d.sy = cy;
 
       if (d.mode === "orbit") {
-        S.cam.theta -= dx * 3;
-        S.cam.phi = Math.max(-0.5, Math.min(Math.PI/2.05, S.cam.phi + dy * 2));
+        S.cam.theta -= dx * 1.2;
+        S.cam.phi = Math.max(-0.5, Math.min(Math.PI/2.05, S.cam.phi + dy * 0.8));
         setCamUI({...S.cam});
       } else if (d.mode === "joint" && d.joint) {
-        // Joint drag mapping:
-        // Vertical mouse = X rotation (flex/extend, the main one)
-        // Horizontal mouse = Z rotation (abduction) or Y (twist)
+        // Joint drag mapping — NO CLAMPING so full 360° is possible
+        // Vertical mouse drag → X rotation (flex/extend) — primary axis
+        // Horizontal mouse drag → Z rotation (abduction/spread) or Y (twist)
+        // Sensitivity multipliers tuned so ~250px = full revolution
         const jm = {
-          lShoulder: [{k:"lShoulderX",d:"y",s:-1.3},{k:"lShoulderZ",d:"x",s:-1.0}],
-          rShoulder: [{k:"rShoulderX",d:"y",s:-1.3},{k:"rShoulderZ",d:"x",s:1.0}],
-          lElbow:    [{k:"lElbowX",   d:"y",s:-1.5}],
-          rElbow:    [{k:"rElbowX",   d:"y",s:-1.5}],
-          lHip:      [{k:"lHipX",     d:"y",s:-1.3},{k:"lHipZ",d:"x",s:-0.8}],
-          rHip:      [{k:"rHipX",     d:"y",s:-1.3},{k:"rHipZ",d:"x",s:0.8}],
-          lKnee:     [{k:"lKneeX",    d:"y",s:-1.5}],
-          rKnee:     [{k:"rKneeX",    d:"y",s:-1.5}],
-          spine:     [{k:"spineX",    d:"y",s:-0.8},{k:"spineY",d:"x",s:1.0}],
-          neck:      [{k:"neckX",     d:"y",s:-1.0},{k:"neckY",d:"x",s:1.0}],
-          head:      [{k:"headX",     d:"y",s:-1.0},{k:"headY",d:"x",s:1.0}],
-          hips:      [{k:"hipsY",     d:"x",s:1.5}],
+          lShoulder: [{k:"lShoulderX",d:"y",s:-1.0},{k:"lShoulderZ",d:"x",s:-1.0}],
+          rShoulder: [{k:"rShoulderX",d:"y",s:-1.0},{k:"rShoulderZ",d:"x",s:1.0}],
+          lElbow:    [{k:"lElbowX",   d:"y",s:-1.0}],
+          rElbow:    [{k:"rElbowX",   d:"y",s:-1.0}],
+          lHip:      [{k:"lHipX",     d:"y",s:-1.0},{k:"lHipZ",d:"x",s:-1.0}],
+          rHip:      [{k:"rHipX",     d:"y",s:-1.0},{k:"rHipZ",d:"x",s:1.0}],
+          lKnee:     [{k:"lKneeX",    d:"y",s:-1.0}],
+          rKnee:     [{k:"rKneeX",    d:"y",s:-1.0}],
+          spine:     [{k:"spineX",    d:"y",s:-0.7},{k:"spineY",d:"x",s:0.7}],
+          neck:      [{k:"neckX",     d:"y",s:-0.8},{k:"neckY",d:"x",s:0.8}],
+          head:      [{k:"headX",     d:"y",s:-0.8},{k:"headY",d:"x",s:0.8}],
+          hips:      [{k:"hipsY",     d:"x",s:1.0}],
           chest:     [{k:"spineX",    d:"y",s:-0.5},{k:"spineZ",d:"x",s:0.5}],
+          lHand:     [{k:"lHandX",    d:"y",s:-1.0}],
+          rHand:     [{k:"rHandX",    d:"y",s:-1.0}],
+          lFoot:     [{k:"lFootX",    d:"y",s:-1.0}],
+          rFoot:     [{k:"rFootX",    d:"y",s:-1.0}],
         };
         const maps = jm[d.joint];
         if (maps) {
           maps.forEach(m => {
             const delta = m.d === "x" ? dx * m.s : dy * m.s;
+            // Accumulate with NO limits — full 360° and beyond
             S.angles[m.k] = (S.angles[m.k] || 0) + delta;
           });
           setAnglesUI({...S.angles});
@@ -581,8 +631,10 @@ const PoseStudio = ({ onCaptureRef }) => {
     };
 
     const onUp = () => {
-      S.drag = {active:false, mode:null, sx:0, sy:0, joint:null};
-      cvs.style.cursor = "grab";
+      if (S.drag.active) {
+        S.drag = {active:false, mode:null, sx:0, sy:0, joint:null};
+        cvs.style.cursor = "grab";
+      }
     };
 
     const onWheel = (e) => {
@@ -591,31 +643,32 @@ const PoseStudio = ({ onCaptureRef }) => {
       setCamUI({...S.cam});
     };
 
-    // Attach to the CANVAS element directly — bypasses React event system entirely
+    // Mouse/touch down on CANVAS to start drags
     cvs.addEventListener("mousedown", onDown);
-    cvs.addEventListener("mousemove", onMove);
-    cvs.addEventListener("mouseup", onUp);
-    cvs.addEventListener("mouseleave", onUp);
     cvs.addEventListener("touchstart", onDown, {passive:false});
     cvs.addEventListener("touchmove", onMove, {passive:false});
     cvs.addEventListener("touchend", onUp);
     cvs.addEventListener("wheel", onWheel, {passive:false});
-    // Also catch mouseup on window in case mouse leaves canvas during drag
-    const winUp = () => { if (S.drag.active) onUp(); };
-    window.addEventListener("mouseup", winUp);
+    // Hover detection on canvas only (when not dragging)
+    const onCanvasMove = (e) => { if (!S.drag.active) onMove(e); };
+    cvs.addEventListener("mousemove", onCanvasMove);
+    // CRITICAL: track mouse on WINDOW during drags — lets user rotate past canvas edge
+    // This is what enables full 360° rotation without hitting a wall
+    const onWindowMove = (e) => { if (S.drag.active) onMove(e); };
+    window.addEventListener("mousemove", onWindowMove);
+    window.addEventListener("mouseup", onUp);
 
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
       cvs.removeEventListener("mousedown", onDown);
-      cvs.removeEventListener("mousemove", onMove);
-      cvs.removeEventListener("mouseup", onUp);
-      cvs.removeEventListener("mouseleave", onUp);
+      cvs.removeEventListener("mousemove", onCanvasMove);
       cvs.removeEventListener("touchstart", onDown);
       cvs.removeEventListener("touchmove", onMove);
       cvs.removeEventListener("touchend", onUp);
       cvs.removeEventListener("wheel", onWheel);
-      window.removeEventListener("mouseup", winUp);
+      window.removeEventListener("mousemove", onWindowMove);
+      window.removeEventListener("mouseup", onUp);
       if (container.contains(cvs)) container.removeChild(cvs);
       renderer.dispose();
     };
@@ -690,76 +743,185 @@ const PoseStudio = ({ onCaptureRef }) => {
 
   const jLabel = (j) => ({hips:"Hips",spine:"Spine",chest:"Chest",neck:"Neck",head:"Head",lShoulder:"L Shoulder",rShoulder:"R Shoulder",lElbow:"L Elbow",rElbow:"R Elbow",lHand:"L Hand",rHand:"R Hand",lHip:"L Hip",rHip:"R Hip",lKnee:"L Knee",rKnee:"R Knee",lFoot:"L Foot",rFoot:"R Foot"})[j]||j;
 
+  const lerpA=(a,b,t)=>{const r={};Object.keys({...a,...b}).forEach(k=>{r[k]=(a[k]||0)*(1-t)+(b[k]||0)*t;});return r;};
+  const getInterpPose = useCallback((f) => {
+    if(!keyframes.length) return anglesUI;
+    if(keyframes.length===1) return {...keyframes[0].a};
+    let bef=null,aft=null;
+    keyframes.forEach(kf=>{if(kf.f<=f)bef=kf;if(kf.f>=f&&!aft)aft=kf;});
+    if(!bef) return {...keyframes[0].a}; if(!aft) return {...keyframes[keyframes.length-1].a};
+    if(bef.f===aft.f) return {...bef.a};
+    return lerpA(bef.a, aft.a, EASE_FNS[easeMode]((f-bef.f)/(aft.f-bef.f)));
+  }, [keyframes, easeMode, anglesUI]);
+
+  const addKf=()=>{setKeyframes(prev=>{const n=prev.filter(k=>k.f!==curFrame);n.push({f:curFrame,a:{...anglesUI}});n.sort((a,b)=>a.f-b.f);return n;});};
+  const delKf=()=>setKeyframes(prev=>prev.filter(k=>k.f!==curFrame));
+  const seekTo=(f)=>{setCurFrame(f);if(keyframes.length>=2){const pose=getInterpPose(f);setAnglesUI(pose);const S=stateRef.current;if(S)S.angles={...pose};}};
+
+  useEffect(()=>{
+    if(!playing) return; const ar=animRef.current;
+    const iv=setInterval(()=>{setCurFrame(prev=>{
+      let next=prev+ar.playDir;
+      if(next>=totalFrames){if(loopMode==="loop")next=0;else if(loopMode==="pingpong"){ar.playDir=-1;next=totalFrames-1;}else{setPlaying(false);return totalFrames;}}
+      if(next<0){if(loopMode==="pingpong"){ar.playDir=1;next=0;}else{setPlaying(false);return 0;}}
+      if(keyframes.length>=2){const pose=getInterpPose(next);setAnglesUI(pose);const S=stateRef.current;if(S)S.angles={...pose};}
+      return next;
+    });}, 1000/animFps);
+    return ()=>clearInterval(iv);
+  }, [playing,animFps,totalFrames,loopMode,keyframes,getInterpPose]);
+
+  const togglePlay=()=>{if(!playing)animRef.current.playDir=1;setPlaying(!playing);};
+
+  // Effects Spawner
+  const spawnFx=useCallback(()=>{
+    const S=stateRef.current,ar=animRef.current;
+    if(!S||!ar.fxGroup||activeFx==="none") return;
+    const tgt=S.joints[fxAttach]; if(!tgt) return;
+    const wp=new THREE.Vector3(); tgt.getWorldPosition(wp);
+    const I=fxIntensity/50,Z=fxSz/50,V=fxSpd/50,rate=Math.ceil(2*I);
+    const c1=new THREE.Color(fxC1),c2=new THREE.Color(fxC2);
+    const spawn=(n,cfg)=>{for(let i=0;i<n;i++){const geo=new THREE.SphereGeometry(cfg.sz*(.5+Math.random()),4,3);const mat=new THREE.MeshBasicMaterial({color:Math.random()>.5?c1:c2,transparent:true,opacity:.8});const p=new THREE.Mesh(geo,mat);p.position.set(wp.x+(Math.random()-.5)*cfg.sp,wp.y+(Math.random()-.5)*cfg.sp,wp.z+(Math.random()-.5)*cfg.sp);p.userData={vx:(Math.random()-.5)*cfg.vs,vy:cfg.vy+Math.random()*cfg.vr,vz:(Math.random()-.5)*cfg.vs,life:cfg.lf*(.5+Math.random()*.5),ml:cfg.lf,gr:cfg.gr||0,sh:cfg.sh!==false};ar.fxGroup.add(p);ar.particles.push(p);}};
+    if(activeFx==="fire") spawn(rate,{sz:.04*Z,sp:.3,vs:.3*V,vy:1.5*V,vr:1*V,lf:.8,gr:0,sh:true});
+    else if(activeFx==="sparks") spawn(rate,{sz:.02*Z,sp:.5,vs:2*V,vy:.5*V,vr:2*V,lf:.4,gr:-3,sh:true});
+    else if(activeFx==="aura") spawn(Math.ceil(rate*.5),{sz:.06*Z,sp:.8,vs:.1*V,vy:.3*V,vr:.2*V,lf:1.2,gr:0,sh:true});
+    else if(activeFx==="dust") spawn(rate,{sz:.05*Z,sp:.6,vs:1*V,vy:.8*V,vr:.5*V,lf:1,gr:-1,sh:true});
+    else if(activeFx==="rain"){for(let i=0;i<rate*2;i++){const g=new THREE.Mesh(new THREE.CylinderGeometry(.005,.005,.15*Z,3),new THREE.MeshBasicMaterial({color:0x6688cc,transparent:true,opacity:.4}));g.position.set((Math.random()-.5)*8,6+Math.random()*2,(Math.random()-.5)*8);g.userData={vx:0,vy:-6*V,vz:0,life:2,ml:2,gr:0,sh:false};ar.fxGroup.add(g);ar.particles.push(g);}}
+    else if(activeFx==="snow"){for(let i=0;i<Math.ceil(rate*.5);i++){const g=new THREE.Mesh(new THREE.SphereGeometry(.02*Z*(.5+Math.random()),4,3),new THREE.MeshBasicMaterial({color:0xeeeeff,transparent:true,opacity:.7}));g.position.set((Math.random()-.5)*8,6+Math.random()*2,(Math.random()-.5)*8);g.userData={vx:(Math.random()-.5)*.3*V,vy:-1*V,vz:(Math.random()-.5)*.3*V,life:4,ml:4,gr:0,sh:false};ar.fxGroup.add(g);ar.particles.push(g);}}
+    else if(activeFx==="magic") spawn(Math.ceil(rate*.3),{sz:.05*Z,sp:1.2,vs:.5*V,vy:.2*V,vr:.5*V,lf:2,gr:0,sh:false});
+    else if(activeFx==="trail"){const gm=new THREE.MeshBasicMaterial({color:c1,transparent:true,opacity:.2*I});Object.values(S.joints).forEach(j=>{const w=new THREE.Vector3();j.getWorldPosition(w);const g=new THREE.Mesh(new THREE.SphereGeometry(.05*Z,4,3),gm.clone());g.position.copy(w);g.userData={vx:0,vy:0,vz:0,life:.6,ml:.6,gr:0,sh:true};ar.fxGroup.add(g);ar.particles.push(g);});}
+    else if(activeFx==="speed"){for(let i=0;i<rate;i++){const len=(.3+Math.random()*.5)*Z;const g=new THREE.Mesh(new THREE.CylinderGeometry(.005,.005,len,3),new THREE.MeshBasicMaterial({color:Math.random()>.5?c1:c2,transparent:true,opacity:.5}));g.rotation.z=Math.PI/2;g.position.set(wp.x+(Math.random()-.5)*.5,wp.y+(Math.random()-.5)*1.5,wp.z-1-Math.random()*2);g.userData={vx:0,vy:0,vz:4*V,life:.5,ml:.5,gr:0,sh:false};ar.fxGroup.add(g);ar.particles.push(g);}}
+  },[activeFx,fxAttach,fxIntensity,fxSz,fxSpd,fxC1,fxC2]);
+
+  useEffect(()=>{if(activeFx==="none")return;const iv=setInterval(spawnFx,activeFx==="trail"?80:33);return()=>clearInterval(iv);},[activeFx,spawnFx]);
+  useEffect(()=>{const ar=animRef.current;if(!ar.fxGroup)return;while(ar.fxGroup.children.length)ar.fxGroup.remove(ar.fxGroup.children[0]);ar.particles=[];},[activeFx]);
+
+  const exportAnimJSON=()=>{const d={keyframes,totalFrames,fps:animFps,easing:easeMode};const bl=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const a=document.createElement("a");a.download="traevol-anim.json";a.href=URL.createObjectURL(bl);a.click();};
+  const importAnimJSON=()=>{const inp=document.createElement("input");inp.type="file";inp.accept=".json";inp.addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.keyframes)setKeyframes(d.keyframes);if(d.totalFrames)setTotalFrames(d.totalFrames);if(d.fps)setAnimFps(d.fps);if(d.easing)setEaseMode(d.easing);}catch(er){alert("Invalid JSON");}};rd.readAsText(f);});inp.click();};
+
+  useEffect(()=>{
+    const hk=(e)=>{if(e.target.tagName==="INPUT")return;
+      if(e.code==="Space"){e.preventDefault();togglePlay();}
+      else if(e.code==="ArrowLeft"){e.preventDefault();seekTo(Math.max(0,curFrame-1));}
+      else if(e.code==="ArrowRight"){e.preventDefault();seekTo(Math.min(totalFrames,curFrame+1));}
+      else if(e.code==="KeyK"){e.preventDefault();addKf();}
+      else if(e.code==="Delete"){e.preventDefault();delKf();}
+    };
+    window.addEventListener("keydown",hk);return()=>window.removeEventListener("keydown",hk);
+  });
+
   return (
-    <div style={{ display:"flex", height:"100%", background:T.bg }}>
-      <div style={{ width:260, background:T.bgCard, borderRight:`1px solid ${T.border}`, overflowY:"auto", padding:12, display:"flex", flexDirection:"column", gap:10 }}>
-        <h3 style={{ color:T.text, fontSize:14, margin:0 }}>🧍 3D Pose Studio</h3>
-
-        <div>
-          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, fontWeight:600 }}>POSE PRESETS</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:3 }}>
-            {Object.entries(POSE_PRESETS).map(([k, v]) => (
-              <button key={k} onClick={() => loadPreset(k)} style={{ padding:"5px 8px", borderRadius:6, fontSize:11, border:`1px solid ${T.border}`, background:T.bg, color:T.text, cursor:"pointer" }}>{v.name}</button>
-            ))}
+    <div style={{display:"flex",flexDirection:"column",height:"100%",background:T.bg}}>
+      <div style={{display:"flex",flex:1,overflow:"hidden"}}>
+        <div style={{width:270,background:T.bgCard,borderRight:`1px solid ${T.border}`,display:"flex",flexDirection:"column",overflow:"hidden",flexShrink:0}}>
+          <div style={{padding:"8px 12px",borderBottom:`1px solid ${T.border}`,fontWeight:700,fontSize:14,background:`linear-gradient(135deg,${T.accent},${T.success})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>TraEvol 3D</div>
+          <div style={{display:"flex",borderBottom:`1px solid ${T.border}`}}>
+            {[{k:"pose",l:"🦴 Pose"},{k:"anim",l:"🎬 Anim"},{k:"fx",l:"✨ FX"}].map(t=>(<button key={t.k} onClick={()=>setSideTab(t.k)} style={{flex:1,padding:"7px 0",fontSize:11,fontWeight:600,color:sideTab===t.k?T.accentLight:T.textMuted,background:"transparent",border:"none",borderBottom:`2px solid ${sideTab===t.k?T.accent:"transparent"}`,cursor:"pointer"}}>{t.l}</button>))}
+          </div>
+          <div style={{flex:1,overflowY:"auto",padding:10,display:"flex",flexDirection:"column",gap:8}}>
+            {sideTab==="pose"&&<>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4}}>PRESETS</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:3}}>{Object.entries(POSE_PRESETS).map(([k,v])=>(<button key={k} onClick={()=>loadPreset(k)} style={{padding:"5px 8px",borderRadius:6,fontSize:11,border:`1px solid ${T.border}`,background:"transparent",color:T.text,cursor:"pointer"}}>{v.name}</button>))}</div>
+              </div>
+              <div style={{padding:8,borderRadius:8,background:T.bg,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim}}>JOINT</div>
+                <div style={{fontSize:14,color:selectedJoint?T.accentLight:T.textMuted,fontWeight:600}}>{selectedJoint?jLabel(selectedJoint):"Click a joint"}</div>
+                {selectedJoint&&<div style={{fontSize:10,color:T.textDim,marginTop:2}}>Drag ↕ flex • Drag ↔ rotate</div>}
+              </div>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4}}>PROPS — L</div>
+                <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>{PROP_DEFS.map(p=>(<button key={p.id} onClick={()=>setActiveProp(prev=>({...prev,left:p.id}))} style={{padding:"3px 8px",borderRadius:5,fontSize:13,border:`1px solid ${activeProp.left===p.id?T.accent:T.border}`,background:activeProp.left===p.id?T.accent+"22":"transparent",color:T.text,cursor:"pointer"}}>{p.icon}</button>))}</div>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4,marginTop:6}}>PROPS — R</div>
+                <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>{PROP_DEFS.map(p=>(<button key={p.id} onClick={()=>setActiveProp(prev=>({...prev,right:p.id}))} style={{padding:"3px 8px",borderRadius:5,fontSize:13,border:`1px solid ${activeProp.right===p.id?T.accent:T.border}`,background:activeProp.right===p.id?T.accent+"22":"transparent",color:T.text,cursor:"pointer"}}>{p.icon}</button>))}</div>
+              </div>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4}}>BODY</div>
+                <Slider label="Shoulders" value={bodyScale.shoulders} min={0.7} max={1.4} step={0.05} onChange={v=>setBodyScale(p=>({...p,shoulders:v}))}/>
+                <Slider label="Waist" value={bodyScale.waist} min={0.5} max={1.2} step={0.05} onChange={v=>setBodyScale(p=>({...p,waist:v}))}/>
+                <Slider label="Hips" value={bodyScale.hips} min={0.7} max={1.4} step={0.05} onChange={v=>setBodyScale(p=>({...p,hips:v}))}/>
+                <Slider label="Limbs" value={bodyScale.limbThick} min={0.6} max={1.5} step={0.05} onChange={v=>setBodyScale(p=>({...p,limbThick:v}))}/>
+              </div>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4}}>CAMERA</div>
+                <Slider label="Rotation" value={camUI.theta} min={-Math.PI} max={Math.PI} step={0.05} onChange={v=>setCamField("theta",v)}/>
+                <Slider label="Height" value={camUI.phi} min={-0.3} max={1.4} step={0.05} onChange={v=>setCamField("phi",v)}/>
+                <Slider label="Distance" value={camUI.dist} min={1.5} max={14} step={0.1} onChange={v=>setCamField("dist",v)}/>
+                <Slider label="Focus Y" value={camUI.targetY} min={0} max={3.5} step={0.1} onChange={v=>setCamField("targetY",v)}/>
+                <div style={{display:"flex",gap:3,marginTop:4}}>{[{l:"Front",t:0,p:0.45},{l:"Side",t:Math.PI/2,p:0.35},{l:"Back",t:Math.PI,p:0.35},{l:"Top",t:0,p:1.35},{l:"Low",t:0.2,p:0.05},{l:"3/4",t:0.6,p:0.4}].map(v=>(<button key={v.l} onClick={()=>{const n={...camUI,theta:v.t,phi:v.p};setCamUI(n);const S=stateRef.current;if(S)S.cam={...n};}} style={{flex:1,padding:"4px",borderRadius:4,fontSize:9,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer"}}>{v.l}</button>))}</div>
+              </div>
+              <div style={{display:"flex",gap:4}}>
+                <button onClick={()=>setShowGrid(!showGrid)} style={{flex:1,padding:"6px",borderRadius:6,fontSize:11,border:`1px solid ${showGrid?T.accent:T.border}`,background:showGrid?T.accent+"22":"transparent",color:showGrid?T.accentLight:T.textDim,cursor:"pointer"}}>📐 Grid</button>
+                <button onClick={()=>loadPreset("relaxed")} style={{flex:1,padding:"6px",borderRadius:6,fontSize:11,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer"}}>↺ Reset</button>
+              </div>
+              <button onClick={captureSnapshot} style={{padding:"10px",borderRadius:8,background:`linear-gradient(135deg,${T.accent},${T.success})`,color:"#fff",border:"none",cursor:"pointer",fontSize:13,fontWeight:700}}>📸 Capture as Reference</button>
+              {capturedImage&&<div style={{fontSize:10,color:T.success}}>✓ Captured!</div>}
+            </>}
+            {sideTab==="anim"&&<>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4}}>KEYFRAMES</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:3}}>
+                  <button onClick={addKf} style={{padding:"5px",borderRadius:6,fontSize:11,border:"none",background:T.accent,color:"#fff",cursor:"pointer"}}>➕ Add KF</button>
+                  <button onClick={delKf} style={{padding:"5px",borderRadius:6,fontSize:11,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer"}}>🗑️ Delete</button>
+                </div>
+                <Slider label="Total Frames" value={totalFrames} min={10} max={999} step={1} onChange={v=>setTotalFrames(v)}/>
+                <Slider label="FPS" value={animFps} min={1} max={60} step={1} onChange={v=>setAnimFps(v)}/>
+              </div>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4}}>EASING</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:3}}>{["linear","easeIn","easeOut","easeInOut"].map(e=>(<button key={e} onClick={()=>setEaseMode(e)} style={{padding:"4px",borderRadius:5,fontSize:10,border:`1px solid ${easeMode===e?T.accent:T.border}`,background:easeMode===e?T.accent+"22":"transparent",color:easeMode===e?T.accentLight:T.textDim,cursor:"pointer"}}>{e}</button>))}</div>
+              </div>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4}}>LOOP</div>
+                <div style={{display:"flex",gap:3}}>{[{k:"loop",l:"🔁"},{k:"pingpong",l:"🔀"},{k:"once",l:"⏹"}].map(m=>(<button key={m.k} onClick={()=>setLoopMode(m.k)} style={{flex:1,padding:"4px",borderRadius:5,fontSize:12,border:`1px solid ${loopMode===m.k?T.accent:T.border}`,background:loopMode===m.k?T.accent+"22":"transparent",color:loopMode===m.k?T.accentLight:T.textDim,cursor:"pointer"}}>{m.l}</button>))}</div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:3}}>
+                <button onClick={exportAnimJSON} style={{padding:"5px",borderRadius:5,fontSize:10,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer"}}>💾 Save</button>
+                <button onClick={importAnimJSON} style={{padding:"5px",borderRadius:5,fontSize:10,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer"}}>📂 Load</button>
+              </div>
+              <div style={{fontSize:9,color:T.textMuted,lineHeight:1.4}}>SPACE play • ←→ step • K add • DEL remove</div>
+            </>}
+            {sideTab==="fx"&&<>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4}}>EFFECTS</div>
+                <div style={{display:"flex",flexDirection:"column",gap:2}}>{FX_DEFS.map(fx=>(<button key={fx.id} onClick={()=>setActiveFx(fx.id)} style={{padding:"6px 10px",borderRadius:6,fontSize:12,border:`1px solid ${activeFx===fx.id?"#00e5d0":T.border}`,background:activeFx===fx.id?"rgba(0,229,208,.08)":"transparent",color:activeFx===fx.id?"#00e5d0":T.textDim,cursor:"pointer",textAlign:"left"}}>{fx.n}</button>))}</div>
+              </div>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <Slider label="Intensity" value={fxIntensity} min={0} max={100} step={1} onChange={v=>setFxIntensity(v)}/>
+                <Slider label="Size" value={fxSz} min={5} max={100} step={1} onChange={v=>setFxSz(v)}/>
+                <Slider label="Speed" value={fxSpd} min={5} max={100} step={1} onChange={v=>setFxSpd(v)}/>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
+                  <span style={{fontSize:10,color:T.textDim}}>Colors</span>
+                  <input type="color" value={fxC1} onChange={e=>setFxC1(e.target.value)} style={{width:24,height:24,border:"none",cursor:"pointer",background:"none"}}/>
+                  <input type="color" value={fxC2} onChange={e=>setFxC2(e.target.value)} style={{width:24,height:24,border:"none",cursor:"pointer",background:"none"}}/>
+                </div>
+              </div>
+              <div style={{background:T.bg,borderRadius:8,padding:8,border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:10,color:T.textDim,fontWeight:700,marginBottom:4}}>ATTACH TO</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:3}}>{FX_ATTACH_PTS.map(a=>(<button key={a.k} onClick={()=>setFxAttach(a.k)} style={{padding:"4px",borderRadius:5,fontSize:10,border:`1px solid ${fxAttach===a.k?T.accent:T.border}`,background:fxAttach===a.k?T.accent+"22":"transparent",color:fxAttach===a.k?T.accentLight:T.textDim,cursor:"pointer"}}>{a.l}</button>))}</div>
+              </div>
+            </>}
           </div>
         </div>
-
-        <div style={{ padding:8, borderRadius:8, background:T.bg, border:`1px solid ${T.border}` }}>
-          <div style={{ fontSize:11, color:T.textDim, marginBottom:4 }}>SELECTED JOINT</div>
-          <div style={{ fontSize:14, color: selectedJoint ? T.accentLight : T.textMuted, fontWeight:600 }}>
-            {selectedJoint ? jLabel(selectedJoint) : "Click a joint to select"}
-          </div>
-          {selectedJoint && <div style={{ fontSize:10, color:T.textDim, marginTop:2 }}>Drag ↕ flex/extend • Drag ↔ rotate/spread</div>}
-        </div>
-
-        <div>
-          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, fontWeight:600 }}>LEFT HAND PROP</div>
-          <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
-            {PROP_DEFS.map(p => (
-              <button key={p.id} onClick={() => setActiveProp(prev => ({...prev,left:p.id}))} title={p.name} style={{ padding:"3px 8px", borderRadius:5, fontSize:13, border:`1px solid ${activeProp.left===p.id?T.accent:T.border}`, background:activeProp.left===p.id?T.accent+"22":"transparent", color:T.text, cursor:"pointer" }}>{p.icon}</button>
-            ))}
-          </div>
-          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, marginTop:8, fontWeight:600 }}>RIGHT HAND PROP</div>
-          <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
-            {PROP_DEFS.map(p => (
-              <button key={p.id} onClick={() => setActiveProp(prev => ({...prev,right:p.id}))} title={p.name} style={{ padding:"3px 8px", borderRadius:5, fontSize:13, border:`1px solid ${activeProp.right===p.id?T.accent:T.border}`, background:activeProp.right===p.id?T.accent+"22":"transparent", color:T.text, cursor:"pointer" }}>{p.icon}</button>
-            ))}
+        <div ref={mountRef} style={{flex:1,position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:10,left:10,padding:"6px 12px",background:"rgba(12,14,20,.88)",borderRadius:8,fontSize:11,color:T.textDim,border:`1px solid ${T.border}`,pointerEvents:"none",zIndex:1}}>
+            {selectedJoint?`✦ ${jLabel(selectedJoint)} — drag to pose`:hoveredJoint?`→ ${jLabel(hoveredJoint)}`:"Click joint • Drag orbit • Scroll zoom"}
           </div>
         </div>
-
-        <div>
-          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, fontWeight:600 }}>BODY PROPORTIONS</div>
-          <Slider label="Shoulders" value={bodyScale.shoulders} min={0.7} max={1.4} step={0.05} onChange={v => setBodyScale(p=>({...p,shoulders:v}))} />
-          <Slider label="Waist" value={bodyScale.waist} min={0.5} max={1.2} step={0.05} onChange={v => setBodyScale(p=>({...p,waist:v}))} />
-          <Slider label="Hips" value={bodyScale.hips} min={0.7} max={1.4} step={0.05} onChange={v => setBodyScale(p=>({...p,hips:v}))} />
-          <Slider label="Limb Thickness" value={bodyScale.limbThick} min={0.6} max={1.5} step={0.05} onChange={v => setBodyScale(p=>({...p,limbThick:v}))} />
-        </div>
-
-        <div>
-          <div style={{ fontSize:11, color:T.textDim, marginBottom:4, fontWeight:600 }}>CAMERA</div>
-          <Slider label="Rotation" value={camUI.theta} min={-Math.PI} max={Math.PI} step={0.05} onChange={v=>setCamField("theta",v)} />
-          <Slider label="Height" value={camUI.phi} min={-0.3} max={1.4} step={0.05} onChange={v=>setCamField("phi",v)} />
-          <Slider label="Distance" value={camUI.dist} min={1.5} max={14} step={0.1} onChange={v=>setCamField("dist",v)} />
-          <Slider label="Focus Y" value={camUI.targetY} min={0} max={3.5} step={0.1} onChange={v=>setCamField("targetY",v)} />
-          <div style={{display:"flex",gap:3,marginTop:4}}>
-            {[{l:"Front",t:0,p:0.45},{l:"Side",t:Math.PI/2,p:0.35},{l:"Back",t:Math.PI,p:0.35},{l:"Top",t:0,p:1.35},{l:"Low",t:0.2,p:0.05}].map(v=>(
-              <button key={v.l} onClick={()=>{const n={...camUI,theta:v.t,phi:v.p};setCamUI(n);const S=stateRef.current;if(S)S.cam={...n};}} style={{flex:1,padding:"4px",borderRadius:4,fontSize:10,border:`1px solid ${T.border}`,background:T.bg,color:T.textDim,cursor:"pointer"}}>{v.l}</button>
-            ))}
-          </div>
-        </div>
-
-        <button onClick={()=>setShowGrid(!showGrid)} style={{padding:"6px",borderRadius:6,fontSize:11,border:`1px solid ${showGrid?T.accent:T.border}`,background:showGrid?T.accent+"22":"transparent",color:showGrid?T.accentLight:T.textDim,cursor:"pointer"}}>📐 Grid</button>
-
-        <button onClick={captureSnapshot} style={{ padding:"10px 16px", borderRadius:8, background:`linear-gradient(135deg,${T.accent},${T.success})`, color:"#fff", border:"none", cursor:"pointer", fontSize:13, fontWeight:700 }}>
-          📸 Capture as Reference
-        </button>
-        {capturedImage && <div style={{fontSize:10,color:T.success,marginTop:2}}>✓ Captured! Go to Draw tab to use it.</div>}
       </div>
-
-      {/* 3D viewport — canvas fills this div, events are native on canvas */}
-      <div ref={mountRef} style={{ flex:1, position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:10, left:10, padding:"6px 12px", background:"rgba(12,14,20,0.88)", borderRadius:8, fontSize:11, color:T.textDim, border:`1px solid ${T.border}`, pointerEvents:"none", zIndex:1 }}>
-          {selectedJoint ? `✦ ${jLabel(selectedJoint)} — drag to pose` : hoveredJoint ? `→ ${jLabel(hoveredJoint)} — click to select` : "Click joint to pose • Drag empty to orbit • Scroll to zoom"}
+      {/* TIMELINE */}
+      <div style={{height:90,background:T.bgCard,borderTop:`1px solid ${T.border}`,display:"flex",flexDirection:"column",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:4,padding:"4px 10px",borderBottom:`1px solid ${T.border}`}}>
+          <button onClick={()=>seekTo(Math.max(0,curFrame-1))} style={{width:26,height:26,borderRadius:5,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer",fontSize:12}}>⏮</button>
+          <button onClick={togglePlay} style={{width:26,height:26,borderRadius:5,border:"none",background:T.accent,color:"#fff",cursor:"pointer",fontSize:12}}>{playing?"⏸":"▶"}</button>
+          <button onClick={()=>seekTo(Math.min(totalFrames,curFrame+1))} style={{width:26,height:26,borderRadius:5,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer",fontSize:12}}>⏭</button>
+          <span style={{fontFamily:"monospace",fontSize:12,color:T.accentLight,minWidth:75,textAlign:"center"}}>{curFrame}/{totalFrames}</span>
+          <input type="range" min={0} max={totalFrames} value={curFrame} onChange={e=>seekTo(parseInt(e.target.value))} style={{flex:1,accentColor:T.accent}}/>
+        </div>
+        <div style={{flex:1,position:"relative",padding:"4px 10px",cursor:"crosshair"}} onClick={e=>{const r=e.currentTarget.getBoundingClientRect();seekTo(Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*totalFrames));}}>
+          <div style={{height:"100%",position:"relative",background:"repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 1px,transparent 1px 50px)",borderRadius:4}}>
+            <div style={{position:"absolute",top:0,left:`${totalFrames>0?curFrame/totalFrames*100:0}%`,width:2,height:"100%",background:"#f06050",zIndex:3,pointerEvents:"none"}}/>
+            {keyframes.map((kf,i)=>(<div key={i} style={{position:"absolute",top:"50%",left:`${totalFrames>0?kf.f/totalFrames*100:0}%`,transform:"translate(-50%,-50%)",width:12,height:12,borderRadius:3,border:"2px solid #f0a050",background:kf.f===curFrame?"#f0a050":T.bgCard,cursor:"pointer",zIndex:2}} onClick={e=>{e.stopPropagation();seekTo(kf.f);}} title={`Frame ${kf.f}`}/>))}
+          </div>
         </div>
       </div>
     </div>
@@ -779,17 +941,75 @@ const DrawingCanvas = ({ embedded=false, referenceImage=null }) => {
   const [showGrid, setShowGrid] = useState(false);
   const [showSymmetry, setShowSymmetry] = useState(false);
   const [activeLayer, setActiveLayer] = useState(1);
-  const [layers, setLayers] = useState([
+
+  // Frame-by-frame animation system
+  const mkLayers = () => [
     { name:"Reference",visible:true,opacity:0.3,strokes:[] },
     { name:"Sketch",visible:true,opacity:0.5,strokes:[] },
     { name:"Line",visible:true,opacity:1,strokes:[] },
     { name:"Shade",visible:true,opacity:0.7,strokes:[] },
-  ]);
+  ];
+  const [frames, setFrames] = useState([{layers:mkLayers()}]);
+  const [curFrameIdx, setCurFrameIdx] = useState(0);
+  const [animMode, setAnimMode] = useState(false);
+  const [onionSkin, setOnionSkin] = useState(true);
+  const [playingAnim, setPlayingAnim] = useState(false);
+  const [drawFps, setDrawFps] = useState(8);
+
+  // Current frame's layers
+  const layers = frames[curFrameIdx] ? frames[curFrameIdx].layers : mkLayers();
+  const setLayers = (fn) => {
+    setFrames(prev => {
+      const next = [...prev];
+      const cur = next[curFrameIdx];
+      if (!cur) return prev;
+      const newLayers = typeof fn === "function" ? fn([...cur.layers]) : fn;
+      next[curFrameIdx] = {...cur, layers: newLayers};
+      return next;
+    });
+  };
+
   const [currentStroke, setCurrentStroke] = useState(null);
   const [redoStack, setRedoStack] = useState([]);
   const [refOpacity, setRefOpacity] = useState(0.3);
   const [showRef, setShowRef] = useState(true);
   const refImageRef = useRef(null);
+
+  // Animation playback
+  useEffect(() => {
+    if (!playingAnim || frames.length < 2) return;
+    const iv = setInterval(() => {
+      setCurFrameIdx(prev => (prev + 1) % frames.length);
+    }, 1000 / drawFps);
+    return () => clearInterval(iv);
+  }, [playingAnim, drawFps, frames.length]);
+
+  const addFrame = () => {
+    const newFrame = {layers:mkLayers()};
+    setFrames(prev => {
+      const next = [...prev];
+      next.splice(curFrameIdx + 1, 0, newFrame);
+      return next;
+    });
+    setCurFrameIdx(curFrameIdx + 1);
+  };
+  const dupFrame = () => {
+    const src = frames[curFrameIdx];
+    if (!src) return;
+    const deep = {layers:src.layers.map(l=>({...l,strokes:[...l.strokes]}))};
+    setFrames(prev => {
+      const next = [...prev];
+      next.splice(curFrameIdx + 1, 0, deep);
+      return next;
+    });
+    setCurFrameIdx(curFrameIdx + 1);
+  };
+  const deleteFrame = () => {
+    if (frames.length <= 1) return;
+    setFrames(prev => prev.filter((_,i) => i !== curFrameIdx));
+    setCurFrameIdx(Math.min(curFrameIdx, frames.length - 2));
+  };
+  const goFrame = (i) => { if (!playingAnim) setCurFrameIdx(Math.max(0, Math.min(frames.length-1, i))); };
 
   useEffect(() => {
     if (referenceImage) {
@@ -923,6 +1143,17 @@ const DrawingCanvas = ({ embedded=false, referenceImage=null }) => {
       ctx.restore();
     };
 
+    // Onion skin: show previous frame ghosted
+    if (animMode && onionSkin && curFrameIdx > 0 && frames[curFrameIdx-1]) {
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      frames[curFrameIdx-1].layers.forEach((layer,i) => {
+        if (!layer.visible||i===0) return;
+        layer.strokes.forEach(drawStroke);
+      });
+      ctx.restore();
+    }
+
     layers.forEach((layer,i) => {
       if (!layer.visible||i===0) return;
       ctx.save();
@@ -931,7 +1162,7 @@ const DrawingCanvas = ({ embedded=false, referenceImage=null }) => {
       ctx.restore();
     });
     if (currentStroke) drawStroke(currentStroke);
-  }, [layers, currentStroke, showGrid, showSymmetry, referenceImage, refOpacity, showRef]);
+  }, [layers, currentStroke, showGrid, showSymmetry, referenceImage, refOpacity, showRef, animMode, onionSkin, curFrameIdx, frames]);
 
   useEffect(() => { renderCanvas(); }, [renderCanvas]);
 
@@ -954,6 +1185,21 @@ const DrawingCanvas = ({ embedded=false, referenceImage=null }) => {
     link.click();
   };
 
+  const exportAllFrames = () => {
+    const c = canvasRef.current; if(!c)return;
+    const origIdx = curFrameIdx;
+    frames.forEach((_,i) => {
+      setCurFrameIdx(i);
+      setTimeout(() => {
+        const link = document.createElement("a");
+        link.download = `traevol-frame-${String(i).padStart(3,"0")}.png`;
+        link.href = c.toDataURL("image/png");
+        link.click();
+        if (i === frames.length-1) setCurFrameIdx(origIdx);
+      }, i * 100);
+    });
+  };
+
   const tools = [{id:"pencil",icon:"✏️",l:"Pencil"},{id:"pen",icon:"🖊️",l:"Pen"},{id:"marker",icon:"🖍️",l:"Marker"},{id:"brush",icon:"🖌️",l:"Brush"},{id:"eraser",icon:"🧹",l:"Eraser"}];
 
   return (
@@ -971,6 +1217,8 @@ const DrawingCanvas = ({ embedded=false, referenceImage=null }) => {
         <div style={{height:1,width:"80%",background:T.border,margin:"2px 0"}} />
         <button title="Grid" onClick={()=>setShowGrid(!showGrid)} style={{width:36,height:36,borderRadius:8,border:`1px solid ${showGrid?T.accent:"transparent"}`,background:showGrid?T.accent+"22":"transparent",color:T.textDim,cursor:"pointer",fontSize:16}}>📐</button>
         <button title="Symmetry" onClick={()=>setShowSymmetry(!showSymmetry)} style={{width:36,height:36,borderRadius:8,border:`1px solid ${showSymmetry?T.accent:"transparent"}`,background:showSymmetry?T.accent+"22":"transparent",color:T.textDim,cursor:"pointer",fontSize:16}}>↕️</button>
+        <div style={{height:1,width:"80%",background:T.border,margin:"2px 0"}} />
+        <button title="Animation Mode" onClick={()=>{setAnimMode(!animMode);setPlayingAnim(false);}} style={{width:36,height:36,borderRadius:8,border:`1px solid ${animMode?"#f0a050":"transparent"}`,background:animMode?"rgba(240,160,80,.15)":"transparent",color:animMode?"#f0a050":T.textDim,cursor:"pointer",fontSize:16}}>🎬</button>
         <div style={{flex:1}} />
         <button title="Export PNG" onClick={exportPNG} style={{width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:T.textDim,cursor:"pointer",fontSize:16}}>💾</button>
       </div>
@@ -1026,6 +1274,37 @@ const DrawingCanvas = ({ embedded=false, referenceImage=null }) => {
             </button>
           ))}
         </div>
+
+        {/* Animation Frame Strip */}
+        {animMode && (
+          <div style={{borderTop:`1px solid ${T.border}`,background:T.bgCard,padding:"4px 10px",display:"flex",flexDirection:"column",gap:4}}>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <button onClick={()=>setPlayingAnim(!playingAnim)} style={{width:24,height:24,borderRadius:5,border:"none",background:playingAnim?"#f06050":T.accent,color:"#fff",cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}>{playingAnim?"⏸":"▶"}</button>
+              <button onClick={addFrame} title="New frame" style={{padding:"2px 8px",borderRadius:4,fontSize:10,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer"}}>➕ New</button>
+              <button onClick={dupFrame} title="Duplicate frame" style={{padding:"2px 8px",borderRadius:4,fontSize:10,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer"}}>📋 Dup</button>
+              <button onClick={deleteFrame} title="Delete frame" style={{padding:"2px 8px",borderRadius:4,fontSize:10,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer"}}>🗑️</button>
+              <div style={{width:1,height:16,background:T.border}} />
+              <button onClick={()=>setOnionSkin(!onionSkin)} style={{padding:"2px 8px",borderRadius:4,fontSize:10,border:`1px solid ${onionSkin?"#f0a050":T.border}`,background:onionSkin?"rgba(240,160,80,.1)":"transparent",color:onionSkin?"#f0a050":T.textDim,cursor:"pointer"}}>🧅 Onion</button>
+              <div style={{width:1,height:16,background:T.border}} />
+              <span style={{fontSize:10,color:T.textDim}}>FPS</span>
+              <input type="range" min={1} max={30} value={drawFps} onChange={e=>setDrawFps(Number(e.target.value))} style={{width:60,accentColor:"#f0a050"}} />
+              <span style={{fontSize:10,color:"#f0a050",fontFamily:"monospace"}}>{drawFps}</span>
+              <div style={{flex:1}} />
+              <button onClick={exportAllFrames} title="Export all frames" style={{padding:"2px 8px",borderRadius:4,fontSize:10,border:`1px solid ${T.border}`,background:"transparent",color:T.textDim,cursor:"pointer"}}>💾 All</button>
+              <span style={{fontSize:10,color:T.accentLight,fontFamily:"monospace"}}>{curFrameIdx+1}/{frames.length}</span>
+            </div>
+            <div style={{display:"flex",gap:3,overflowX:"auto",paddingBottom:2}}>
+              {frames.map((_,i) => (
+                <button key={i} onClick={()=>goFrame(i)} style={{
+                  minWidth:36,height:28,borderRadius:5,fontSize:10,fontWeight:700,fontFamily:"monospace",
+                  border:`2px solid ${i===curFrameIdx?"#f0a050":T.border}`,
+                  background:i===curFrameIdx?"rgba(240,160,80,.15)":"transparent",
+                  color:i===curFrameIdx?"#f0a050":T.textDim,cursor:"pointer",
+                }}>{i+1}</button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1276,16 +1555,20 @@ const Gallery = () => (<div style={{padding:16,textAlign:"center"}}><h1 style={{
 
 const Settings = ({dailyGoal,setDailyGoal}) => (<div style={{padding:16,maxWidth:460}}><h1 style={{color:T.text,fontSize:22,marginBottom:16}}>⚙️ Settings</h1><div style={{background:T.bgCard,borderRadius:10,padding:16,border:`1px solid ${T.border}`,marginBottom:12}}><h3 style={{color:T.text,fontSize:13,marginBottom:8}}>Daily Goal</h3><div style={{display:"flex",gap:6}}>{[5,10,15,20,30].map(m=>(<button key={m} onClick={()=>setDailyGoal(m)} style={{padding:"6px 14px",borderRadius:6,border:`1px solid ${dailyGoal===m?T.accent:T.border}`,background:dailyGoal===m?T.accent+"22":"transparent",color:dailyGoal===m?T.accentLight:T.textDim,cursor:"pointer",fontSize:12}}>{m}m</button>))}</div></div><div style={{background:T.bgCard,borderRadius:10,padding:16,border:`1px solid ${T.border}`}}><h3 style={{color:T.text,fontSize:13,marginBottom:8}}>Shortcuts</h3>{[["B","Brush"],["P","Pencil"],["E","Eraser"],["Ctrl+Z","Undo"],["Ctrl+Shift+Z","Redo"]].map(([k,d])=>(<div key={k} style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{color:T.textDim,fontSize:11}}>{d}</span><kbd style={{background:T.bg,color:T.accentLight,padding:"1px 6px",borderRadius:3,fontSize:10,border:`1px solid ${T.border}`}}>{k}</kbd></div>))}</div></div>);
 
-    // ─── MAIN APP ────────────────────────────────────────────────
-    function App() {
-      const [page, setPage] = useState("dashboard");
-      const [completedLessons, setCL] = useState(() => loadS("traevol_cl", []));
-      const [completedDrills, setCD] = useState(() => loadS("traevol_cd", []));
-      const [streak, setStreak] = useState(() => loadS("traevol_streak", 0));
-      const [lastActive, setLA] = useState(() => loadS("traevol_la", ""));
-      const [dailyGoal, setDG] = useState(() => loadS("traevol_dg", 10));
-      const [activeLesson, setAL] = useState(null);
-      const [capturedRef, setCapturedRef] = useState(null);  useEffect(() => {
+// ============================================================
+// MAIN APP
+// ============================================================
+function App() {
+  const [page, setPage] = useState("dashboard");
+  const [completedLessons, setCL] = useState(() => loadS("cl", []));
+  const [completedDrills, setCD] = useState(() => loadS("cd", []));
+  const [streak, setStreak] = useState(() => loadS("streak", 0));
+  const [lastActive, setLA] = useState(() => loadS("la", ""));
+  const [dailyGoal, setDG] = useState(() => loadS("dg", 10));
+  const [activeLesson, setAL] = useState(null);
+  const [capturedRef, setCapturedRef] = useState(null);
+
+  useEffect(() => {
     const today = getToday();
     if (lastActive !== today) {
       const y = new Date(Date.now()-86400000).toISOString().split("T")[0];
@@ -1307,28 +1590,30 @@ const Settings = ({dailyGoal,setDailyGoal}) => (<div style={{padding:16,maxWidth
 
   const renderPage = () => {
     switch(page) {
-      case "dashboard": return h(Dashboard, {completedLessons,completedDrills,streak,setPage});
-      case "canvas": return h("div", {style:{height:"calc(100vh - 46px)"}}, h(DrawingCanvas, {embedded:true}));
-      case "studio": return h(CharacterStudio, {setPage});
-      case "pose3d": return h(PoseStudio, {onCaptureRef:setCapturedRef});
-      case "lessons": return h(LessonLibrary, {completedLessons,setPage,setActiveLesson:setAL});
-      case "lessonView": return activeLesson ? h(LessonViewer, {lesson:activeLesson,onBack:()=>setPage("lessons"),onComplete:completeLesson}) : null;
-      case "drills": return h(DrillGym, {completedDrills,onComplete:completeDrill,setPage});
-      case "gallery": return h(Gallery);
-      case "settings": return h(Settings, {dailyGoal,setDailyGoal:setDG});
-      default: return h(Dashboard, {completedLessons,completedDrills,streak,setPage});
+      case "dashboard": return <Dashboard completedLessons={completedLessons} completedDrills={completedDrills} streak={streak} setPage={setPage} />;
+      case "lessons": return <LessonLibrary completedLessons={completedLessons} setPage={setPage} setActiveLesson={setAL} />;
+      case "lessonView": return activeLesson ? <LessonViewer lesson={activeLesson} onBack={()=>setPage("lessons")} onComplete={completeLesson} /> : null;
+      case "drills": return <DrillGym completedDrills={completedDrills} onComplete={completeDrill} setPage={setPage} />;
+      case "studio": return <CharacterStudio setPage={setPage} />;
+      case "pose3d": return <PoseStudio onCaptureRef={setCapturedRef} />;
+      case "canvas": return <div style={{height:"calc(100vh - 46px)"}}><DrawingCanvas embedded referenceImage={capturedRef} /></div>;
+      case "gallery": return <Gallery />;
+      case "settings": return <Settings dailyGoal={dailyGoal} setDailyGoal={setDG} />;
+      default: return <Dashboard completedLessons={completedLessons} completedDrills={completedDrills} streak={streak} setPage={setPage} />;
     }
   };
 
-  return h("div", {style:{minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif"}},
-    h(NavBar, {page,setPage,streak}),
-    h("main", {style:{height:"calc(100vh - 46px)",overflowY:"auto"}}, renderPage())
+  return (
+    <div style={{ minHeight:"100vh", background:T.bg, color:T.text, fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif" }}>
+      <NavBar page={page} setPage={setPage} streak={streak} />
+      <main style={{ height:"calc(100vh - 46px)", overflowY:"auto" }}>{renderPage()}</main>
+    </div>
   );
-  }
+}
 
-  // Mount the app
-  const root = ReactDOM.createRoot(document.getElementById("root"));
-  root.render(h(App));
-  </script>
+
+ReactDOM.render(React.createElement(App), document.getElementById("root"));
+
+</script>
 </body>
 </html>
