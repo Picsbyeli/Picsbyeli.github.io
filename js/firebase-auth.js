@@ -307,6 +307,24 @@ class GameAuth {
         }
     }
 
+    // Get user settings as a promise
+    async getSettings() {
+        if (userProfile && userProfile.settings) {
+            return {
+                ...userProfile.settings,
+                displayName: userProfile.displayName || userProfile.username || ''
+            };
+        }
+        
+        // Fallback to localStorage
+        return {
+            theme: localStorage.getItem('gameHub_theme') || 'light',
+            customBackground: localStorage.getItem('gameHub_customBackground') || null,
+            backgroundTheme: localStorage.getItem('gameHub_backgroundTheme') || 'default',
+            displayName: localStorage.getItem('gameHub_displayName') || ''
+        };
+    }
+
     // Submit game score
     async submitScore(gameName, score) {
         if (!currentUser || !userProfile) {
@@ -410,6 +428,9 @@ class GameAuth {
     // Get current user info
     getCurrentUser() {
         return {
+            uid: currentUser?.uid,
+            email: currentUser?.email,
+            displayName: currentUser?.displayName,
             user: currentUser,
             profile: userProfile,
             isLoggedIn: !!currentUser

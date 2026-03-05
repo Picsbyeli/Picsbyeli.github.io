@@ -490,6 +490,7 @@
                 <button class="account-tab" data-tab="favorites">Favorites</button>
                 <button class="account-tab" data-tab="scores">Scores</button>
                 <button class="account-tab" data-tab="settings">Settings</button>
+                <button class="account-tab" data-tab="admin" style="display: none; color: #c0392b;">👑 Admin Panel</button>
                 <button class="account-tab" data-tab="auth">Login/Register</button>
             </div>
 
@@ -658,9 +659,27 @@
                     <h3>Account Management</h3>
                     <p>Sign in to save your progress, access leaderboards, and sync your favorites across devices.</p>
                     
-                    <div class="auth-actions">
+                    <div class="auth-actions" id="auth-actions-container">
                         <a href="auth.html" class="action-btn">Login / Register</a>
                         <button class="action-btn secondary" onclick="clearAllData()">Clear Local Data</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="admin-tab">
+                <div class="profile-section">
+                    <h3>👑 Admin Panel</h3>
+                    <p>Monitor online users and manage the gaming platform.</p>
+                </div>
+                
+                <div class="profile-section">
+                    <h3>Online Users</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <p id="online-count" style="margin: 0; color: #66c0f4; font-size: 16px;">Loading...</p>
+                        <button class="refresh-scores-btn" onclick="AdminModule.renderOnlineUsers()">🔄 Refresh</button>
+                    </div>
+                    <div id="online-users-list" style="min-height: 200px;">
+                        <p style="text-align: center; color: #8f98a0;">Loading online users...</p>
                     </div>
                 </div>
             </div>
@@ -721,6 +740,18 @@
                         tabElement.style.display = 'block';
                         // Load scores when tab is opened
                         this.renderUserScores();
+                    }
+                } else if (tabName === 'admin') {
+                    tabElement = document.getElementById(`${tabName}-tab`);
+                    if (tabElement) {
+                        tabElement.classList.add('active');
+                        // Render online users when admin tab is opened
+                        if (window.AdminModule) {
+                            setTimeout(() => {
+                                AdminModule.renderOnlineUsers();
+                                this.updateOnlineUserCount();
+                            }, 100);
+                        }
                     }
                 } else {
                     tabElement = document.getElementById(`${tabName}-tab`);
@@ -814,6 +845,16 @@
             getTotalPlaytime() {
                 // This would calculate based on actual play data
                 return Math.floor(Math.random() * 50) + 'h';
+            }
+            
+            updateOnlineUserCount() {
+                const onlineUsers = window.AdminModule?.getOnlineUsers?.() || [];
+                const now = Date.now();
+                const activeUsers = onlineUsers.filter(u => (now - u.lastSeen) < (window.AdminModule?.SESSION_TIMEOUT || 30000));
+                const countElement = document.getElementById('online-count');
+                if (countElement) {
+                    countElement.textContent = `${activeUsers.length} user${activeUsers.length !== 1 ? 's' : ''} online`;
+                }
             }
 
             // Storage methods
@@ -1126,6 +1167,62 @@
                     console.log('Firebase auth not available, using localStorage');
                 }
             }
+            
+            // Update auth actions to show sign-out if logged in
+            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                const currentUser = window.gameAuth.getCurrentUser();
+                updateAuthActions(currentUser);
+                
+                // Check if user is admin
+                if (window.AdminModule) {
+                    window.AdminModule.checkAdminStatus();
+                }
+            }
+        }
+        
+        function updateAuthActions(user) {
+            const container = document.getElementById('auth-actions-container');
+            if (!container) return;
+            
+            if (user && window.gameAuth && window.gameAuth.isLoggedIn()) {
+                container.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <p style="margin: 0 0 10px 0; color: #66c0f4;">Logged in as: <strong>${user.email}</strong></p>
+                        <button class="action-btn" onclick="handleSignOut()">Sign Out</button>
+                        <button class="action-btn secondary" onclick="clearAllData()">Clear Local Data</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="display: flex; gap: 10px;">
+                        <a href="auth.html" class="action-btn">Login / Register</a>
+                        <button class="action-btn secondary" onclick="clearAllData()">Clear Local Data</button>
+                    </div>
+                `;
+            }
+        }
+        
+        async function handleSignOut() {
+            if (confirm('Are you sure you want to sign out?')) {
+                try {
+                    if (window.gameAuth) {
+                        const result = await window.gameAuth.logout();
+                        if (result.success) {
+                            // Clear online presence
+                            if (window.AdminModule) {
+                                window.AdminModule.removeUserPresence();
+                            }
+                            alert('✅ You have been signed out.');
+                            location.reload();
+                        } else {
+                            alert('❌ Error signing out: ' + result.error);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                    alert('❌ Error signing out: ' + error.message);
+                }
+            }
         }
         
         async function saveAllSettings() {
@@ -1229,6 +1326,7 @@
         });
     </script>
 
+    <script src="js/admin-module.js"></script>
     <script src="js/help-widget.js"></script>
     <script src="js/music-player.js"></script>
     <script>
