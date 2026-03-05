@@ -399,6 +399,16 @@
         };
 
         function startGame(difficulty) {
+            if (window.requireGamePassword) {
+                window.requireGamePassword(() => {
+                    actuallyStartGame(difficulty);
+                });
+            } else {
+                actuallyStartGame(difficulty);
+            }
+        }
+
+        function actuallyStartGame(difficulty) {
             gameState.difficulty = difficulty;
             const puzzleSet = puzzles[difficulty];
             const randomPuzzle = puzzleSet[Math.floor(Math.random() * puzzleSet.length)];
@@ -554,5 +564,6 @@
             e.target.value = e.target.value.toUpperCase();
         });
     </script>
+    <script src="../js/password-protection.js"></script>
 </body>
 </html>

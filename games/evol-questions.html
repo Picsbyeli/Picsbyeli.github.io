@@ -691,6 +691,16 @@
         }
 
         function startGame(category) {
+            if (window.requireGamePassword) {
+                window.requireGamePassword(() => {
+                    actuallyStartGame(category);
+                });
+            } else {
+                actuallyStartGame(category);
+            }
+        }
+
+        function actuallyStartGame(category) {
             const items = GAME_DATA[category];
             const randomItem = items[Math.floor(Math.random() * items.length)];
             
@@ -862,5 +872,6 @@
             initHelpWidget('Evol Questions');
         });
     </script>
+    <script src="../js/password-protection.js"></script>
 </body>
 </html>

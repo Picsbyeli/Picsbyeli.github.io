@@ -198,6 +198,16 @@
     let answered = false;
 
     function startQuiz() {
+      if (window.requireGamePassword) {
+        window.requireGamePassword(() => {
+          actuallyStartQuiz();
+        });
+      } else {
+        actuallyStartQuiz();
+      }
+    }
+
+    function actuallyStartQuiz() {
       quizStarted = true;
       currentQuestion = 0;
       score = 0;
@@ -313,5 +323,6 @@
     };
     localStorage.setItem("guestUser", JSON.stringify(guestUser));
   </script>
+  <script src="../js/password-protection.js"></script>
 </body>
 </html>

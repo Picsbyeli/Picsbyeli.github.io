@@ -5,6 +5,8 @@
 const PasswordProtection = {
   PASSWORD: 'Pic.aso12!',
   SESSION_KEY: 'website_authenticated',
+  LAST_AUTH_KEY: 'last_password_auth',
+  AUTH_INTERVAL: 30 * 60 * 1000, // 30 minutes in ms
   STORAGE_KEY: 'password_attempts',
   MAX_ATTEMPTS_SESSION: 3,
   MAX_ATTEMPTS_DEVICE: 10,
@@ -22,6 +24,22 @@ const PasswordProtection = {
         this.showPasswordModal();
       }
     }
+  },
+
+  // Check if password re-auth is needed (for non-admins)
+  needsReauth() {
+    if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+      const user = window.gameAuth.getCurrentUser();
+      if (user && user.email === 'elidaslaya@gmail.com') {
+        return false; // Admin bypass
+      }
+    }
+    const lastAuth = parseInt(localStorage.getItem(this.LAST_AUTH_KEY) || '0', 10);
+    return (Date.now() - lastAuth) > this.AUTH_INTERVAL;
+  },
+
+  setLastAuthNow() {
+    localStorage.setItem(this.LAST_AUTH_KEY, Date.now().toString());
   },
   
   isAuthenticated() {
@@ -193,6 +211,7 @@ const PasswordProtection = {
       
       if (enteredPassword === this.PASSWORD) {
         this.setAuthenticated();
+        this.setLastAuthNow();
         modal.style.opacity = '0';
         modal.style.transition = 'opacity 0.3s ease';
         setTimeout(() => {
@@ -272,3 +291,19 @@ const PasswordProtection = {
 document.addEventListener('DOMContentLoaded', () => {
   PasswordProtection.init();
 });
+
+// Utility to require password before gameplay (call from game pages)
+window.requireGamePassword = function(callback) {
+  if (PasswordProtection.needsReauth()) {
+    PasswordProtection.showPasswordModal();
+    // Wait for successful auth
+    const checkInterval = setInterval(() => {
+      if (!PasswordProtection.needsReauth()) {
+        clearInterval(checkInterval);
+        if (typeof callback === 'function') callback();
+      }
+    }, 500);
+  } else {
+    if (typeof callback === 'function') callback();
+  }
+};

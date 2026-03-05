@@ -169,6 +169,16 @@
     let hintsUsed = 0;
 
     function startGame() {
+      if (window.requireGamePassword) {
+        window.requireGamePassword(() => {
+          actuallyStartGame();
+        });
+      } else {
+        actuallyStartGame();
+      }
+    }
+
+    function actuallyStartGame() {
       gameStarted = true;
       currentRiddle = 0;
       score = 0;
@@ -279,5 +289,6 @@
     };
     localStorage.setItem("guestUser", JSON.stringify(guestUser));
   </script>
+  <script src="../js/password-protection.js"></script>
 </body>
 </html>

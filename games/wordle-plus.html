@@ -484,6 +484,16 @@
 
         // Single Player Game
         function startSinglePlayer(difficulty) {
+            if (window.requireGamePassword) {
+                window.requireGamePassword(() => {
+                    actuallyStartSinglePlayer(difficulty);
+                });
+            } else {
+                actuallyStartSinglePlayer(difficulty);
+            }
+        }
+
+        function actuallyStartSinglePlayer(difficulty) {
             gameState.difficulty = difficulty;
             gameState.targetWord = WORD_LISTS[difficulty][Math.floor(Math.random() * WORD_LISTS[difficulty].length)];
             gameState.guesses = [];
@@ -798,5 +808,6 @@
             initHelpWidget('Wordle+');
         });
     </script>
+    <script src="../js/password-protection.js"></script>
 </body>
 </html>
