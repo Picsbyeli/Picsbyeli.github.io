@@ -57,11 +57,13 @@ function gClk(){if(mClk){mClk=false;return{x:mX,y:mY};}return null;}
 const st=Array.from({length:180},()=>({x:Math.random(),y:Math.random(),s:Math.random()*1.5+0.4,b:Math.random()*0.5+0.25,p:Math.random()*6.28}));
 
 // CRUMBLE
-let cTm={};
+let cTm={},fTls=[];
 function cK(f,r,c){return f+'-'+r+'-'+c;}
 function tCr(f,ri,c){const k=cK(f,ri,c);if(cTm[k]===undefined)cTm[k]=CRT;}
-function uCr(dt){for(const k in cTm){cTm[k]-=dt;if(cTm[k]<=0){const p=k.split('-');const f=+p[0],ri=+p[1],c=+p[2];if(ri>=0&&ri<lv.length)[lv[ri].b,lv[ri].l,lv[ri].t,lv[ri].r][f][c]=EM;delete cTm[k];}}}
+function uCr(dt){for(const k in cTm){cTm[k]-=dt;if(cTm[k]<=0){const p=k.split('-');const f=+p[0],ri=+p[1],c=+p[2];if(ri>=0&&ri<lv.length){[lv[ri].b,lv[ri].l,lv[ri].t,lv[ri].r][f][c]=EM;fTls.push({f,ri,c,vy:0,off:0,life:1.5});}delete cTm[k];}}
+for(let i=fTls.length-1;i>=0;i--){const ft=fTls[i];ft.vy+=GR*dt*0.8;ft.off+=ft.vy*dt;ft.life-=dt;if(ft.life<=0||ft.off>20)fTls.splice(i,1);}}
 function gCP(f,ri,c){const k=cK(f,ri,c);return cTm[k]!==undefined?1-(cTm[k]/CRT):-1;}
+function gFToff(f,ri,c){for(const ft of fTls){if(ft.f===f&&ft.ri===ri&&ft.c===c)return ft.off;}return -1;}
 
 // LEVEL GEN
 function gL(n){
@@ -238,10 +240,10 @@ function sU(){try{localStorage.setItem('er_u',''+mxU);}catch(e){}}
 
 let P={},lv=[],tR=0,cR=0,lSw=0,pts=[],dT=0,rF=0,rFT=0,jF=0,jFT=0;
 function th(){return TH[Math.min(4,Math.floor((lev-1)/10))];}
-function rP(){P={x:0,y:0,z:2,vy:0,fc:BT,gn:false,al:true,falling:false};tR=0;cR=0;lSw=0;pts=[];dT=0;cTm={};rF=0;rFT=0;jF=0;jFT=0;}
+function rP(){P={x:0,y:0,z:2,vy:0,fc:BT,gn:false,al:true,falling:false};tR=0;cR=0;lSw=0;pts=[];dT=0;cTm={};fTls=[];rF=0;rFT=0;jF=0;jFT=0;}
 function sL(n){lev=n;lv=gL(n);rP();dths=0;lTm=0;state='PLAYING';}
 function die(){P.al=false;dT=0.7;dths++;for(let i=0;i<20;i++){const a=Math.random()*6.28,sp=Math.random()*5+2;pts.push({x:W/2+(Math.random()-0.5)*30,y:H/2+(Math.random()-0.5)*30,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:20+Math.random()*15,max:35,sz:2+Math.random()*3,col:Math.random()>0.5?'200,200,200':'100,150,255'});}}
-function rsp(){P.x=0;P.y=0;P.z=2;P.vy=0;P.fc=BT;P.gn=false;P.al=true;P.falling=false;tR=0;cR=0;lSw=0;dT=0;cTm={};}
+function rsp(){P.x=0;P.y=0;P.z=2;P.vy=0;P.fc=BT;P.gn=false;P.al=true;P.falling=false;tR=0;cR=0;lSw=0;dT=0;cTm={};fTls=[];}
 
 // TILE
 function gF(rg,f){return[rg.b,rg.l,rg.t,rg.r][f];}
@@ -289,11 +291,15 @@ function dTun(){
     [{f:BT,d:rg.b},{f:LF,d:rg.l},{f:TP,d:rg.t},{f:RT,d:rg.r}].forEach(({f,d})=>{
       for(let c=0;c<COLS;c++){if(d[c]===EM)continue;
         tls.push({cn:tC(f,ri,c),dp:ri*TL+TL/2-P.z+CB,f,cr:d[c]===CR,ri,cl:c});}});}
+  // Add falling tiles to render list
+  for(const ft of fTls){const cn=tC(ft.f,ft.ri,ft.c);const fOff=ft.off;cn.forEach(v=>{switch(ft.f){case BT:v.y-=fOff;break;case TP:v.y+=fOff;break;case LF:v.x-=fOff;break;case RT:v.x+=fOff;break;}});tls.push({cn,dp:ft.ri*TL+TL/2-P.z+CB,f:ft.f,cr:true,ri:ft.ri,cl:ft.c,falling:true,life:ft.life});}
   tls.sort((a,b)=>b.dp-a.dp);
   for(const v of tls){let fl,eg;const sh=v.cr?gCP(v.f,v.ri,v.cl):-1;
-    if(v.cr){fl=t.c;eg=t.ce;}else if(v.f===P.fc){fl=t.t;eg=t.e;}
-    else if(v.f===TP){fl=cF;eg=cE;}else{fl=wF;eg=wE;}
-    dTl(v.cn,fl,eg,Math.max(0,sh));}
+    if(v.falling){fl=t.c;eg=t.ce;const fa=Math.max(0.05,v.life/1.5);X.globalAlpha=fa;dTl(v.cn,fl,eg,0.8);X.globalAlpha=1;}
+    else if(v.cr){fl=t.c;eg=t.ce;dTl(v.cn,fl,eg,Math.max(0,sh));}
+    else if(v.f===P.fc){fl=t.t;eg=t.e;dTl(v.cn,fl,eg,0);}
+    else if(v.f===TP){fl=cF;eg=cE;dTl(v.cn,fl,eg,0);}
+    else{fl=wF;eg=wE;dTl(v.cn,fl,eg,0);}}
 }
 
 function dPl(){
@@ -353,17 +359,35 @@ function upd(dt){
       // Still on solid ground - trigger crumble if needed
       if(tv===CR)tCr(P.fc,Math.floor(P.z/TL),col);
     }else{
-      // Check if straddling adjacent tile
-      const tw2=(TW*2)/COLS,lX=P.x+TW,f=(lX%tw2)/tw2;
-      let onAdj=false,oC=-1;
-      if(f<0.3&&col>0&&gTs(P.fc,P.z,col-1)){onAdj=true;oC=col-1;}
-      if(f>0.7&&col<COLS-1&&gTs(P.fc,P.z,col+1)){onAdj=true;oC=col+1;}
-      if(onAdj){
-        if(oC>=0&&gT(P.fc,P.z,oC)===CR)tCr(P.fc,Math.floor(P.z/TL),oC);
-      }else{
-        // No ground! Start falling immediately
+      // Tile gone - check if it just became a falling tile (player falls with it)
+      const ftOff=gFToff(P.fc,Math.floor(P.z/TL),col);
+      if(ftOff>=0&&ftOff<1.0){
+        // Player is riding the falling tile down!
         P.gn=false;
-        P.falling=true; // Mark as falling into a gap (can't re-ground)
+        P.falling=true;
+        P.vy=-2; // Initial downward pull with the tile
+      }else{
+        // Check if straddling adjacent tile
+        const tw2=(TW*2)/COLS,lX=P.x+TW,f=(lX%tw2)/tw2;
+        let onAdj=false,oC=-1;
+        if(f<0.3&&col>0&&gTs(P.fc,P.z,col-1)){onAdj=true;oC=col-1;}
+        if(f>0.7&&col<COLS-1&&gTs(P.fc,P.z,col+1)){onAdj=true;oC=col+1;}
+        if(onAdj){
+          if(oC>=0&&gT(P.fc,P.z,oC)===CR)tCr(P.fc,Math.floor(P.z/TL),oC);
+        }else{
+          // Check adjacent falling tiles too
+          const tw2b=(TW*2)/COLS,lXb=P.x+TW,fb=(lXb%tw2b)/tw2b;
+          let onFT=false;
+          if(fb<0.3&&col>0){const fo=gFToff(P.fc,Math.floor(P.z/TL),col-1);if(fo>=0&&fo<1.0)onFT=true;}
+          if(fb>0.7&&col<COLS-1){const fo=gFToff(P.fc,Math.floor(P.z/TL),col+1);if(fo>=0&&fo<1.0)onFT=true;}
+          if(onFT){
+            P.gn=false;P.falling=true;P.vy=-2;
+          }else{
+            // No ground! Start falling immediately
+            P.gn=false;
+            P.falling=true;
+          }
+        }
       }
     }
   }
