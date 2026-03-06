@@ -28,17 +28,63 @@ class GameHub {
 
     // Load category leaders from leaderboard
     async loadCategoryLeaders() {
-        const categories = {
-            'Reflex': ['reaction_timer', 'Reaction Timer'],
-            'Puzzle': ['ArtBlock', 'Mini Sudoku', 'Lights Out'],
-            'Action': ['EvolBait', 'Dodge', 'Brick Breaker', 'Snake'],
-            'Strategy': ['Chess', 'Connect 4', 'Tic-Tac-Toe'],
-            'Casual': ['2048', 'Cookie Clicker', 'Pong'],
-            'Knowledge': ['Trivia', 'Animal Twenty Questions', 'School Trivia']
+        // Categories mapped to game display names and their score storage info
+        this.categoryData = {
+            'Reflex': {
+                emoji: '⚡',
+                games: [
+                    { name: 'Reaction Timer', storageKey: 'Reaction Timer', scoreField: 'time', unit: 'ms', lowerBetter: true, firebase: 'reaction_timer' },
+                    { name: 'Typing Speed', storageKey: 'Typing Speed', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Color Dash', storageKey: 'Color Dash', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                ]
+            },
+            'Puzzle': {
+                emoji: '🧩',
+                games: [
+                    { name: 'ArtBlock', storageKey: 'ArtBlock', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Mini Sudoku', storageKey: 'Mini Sudoku', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Lights Out', storageKey: 'Lights Out', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Memory Cards', storageKey: 'Memory Cards', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                ]
+            },
+            'Action': {
+                emoji: '💥',
+                games: [
+                    { name: 'Snake', storageKey: 'Snake', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Brick Breaker', storageKey: 'Brick Breaker', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Dodge', storageKey: 'Dodge', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'EvolBait', storageKey: 'EvolBait', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Flappy Helicopter', storageKey: 'Flappy Helicopter', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                ]
+            },
+            'Strategy': {
+                emoji: '♟️',
+                games: [
+                    { name: 'Chess', storageKey: 'Chess', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Connect 4', storageKey: 'Connect 4', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Tic-Tac-Toe', storageKey: 'Tic-Tac-Toe', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                ]
+            },
+            'Casual': {
+                emoji: '🎮',
+                games: [
+                    { name: '2048', storageKey: '2048', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Pong', storageKey: 'Pong', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Cookie Clicker', storageKey: 'Cookie Clicker', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                ]
+            },
+            'Knowledge': {
+                emoji: '🧠',
+                games: [
+                    { name: 'Trivia', storageKey: 'Trivia', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'School Trivia', storageKey: 'School Trivia', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Animal 20 Questions', storageKey: 'Animal Twenty Questions', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                ]
+            }
         };
 
         try {
-            // First, try to load Firebase data for reaction timer if available
+            // Try to load Firebase data for reaction timer
             if (window.firebaseDatabase && window.firebaseRef && window.firebaseQuery && window.firebaseOrderByChild && window.firebaseLimitToFirst && window.firebaseGet) {
                 try {
                     const timerRef = window.firebaseRef(window.firebaseDatabase, 'reaction_timer');
@@ -56,6 +102,7 @@ class GameHub {
                             scores.push({
                                 name: data.name || 'Unknown',
                                 time: data.time || 0,
+                                score: data.time || 0,
                                 date: new Date(data.ts || Date.now()).toISOString()
                             });
                         });
@@ -69,87 +116,140 @@ class GameHub {
                 }
             }
 
-            // Get leaderboard data from localStorage
-            const saved = localStorage.getItem('gameLeaderboard');
-            const scores = saved ? JSON.parse(saved) : {};
-
-            const categoryLeaders = {};
-
-            // For each category, find the top player(s)
-            Object.entries(categories).forEach(([category, games]) => {
-                const categoryScores = {};
-
-                games.forEach(gameName => {
-                    const gameScores = scores[gameName] || [];
-                    if (!Array.isArray(gameScores) || gameScores.length === 0) return;
-
-                    // Get top 3 from this game
-                    gameScores.slice(0, 3).forEach(entry => {
-                        const playerName = entry.name || entry.username;
-                        if (!playerName) return;
-                        
-                        if (!categoryScores[playerName]) {
-                            categoryScores[playerName] = { wins: 0, topFinishes: 0 };
-                        }
-                        categoryScores[playerName].topFinishes++;
-                    });
-                });
-
-                // Sort by top finishes
-                categoryLeaders[category] = Object.entries(categoryScores)
-                    .map(([name, data]) => ({ name, topFinishes: data.topFinishes }))
-                    .sort((a, b) => b.topFinishes - a.topFinishes)
-                    .slice(0, 3);
-            });
-
-            this.renderCategoryLeaders(categoryLeaders);
+            this.renderCategoryLeaders();
         } catch (error) {
             console.warn('Could not load category leaders:', error);
         }
     }
 
-    // Render category leaders section
-    renderCategoryLeaders(categoryLeaders) {
+    // Get scores for a specific game from localStorage
+    getGameScores(storageKey) {
+        // Check the shared gameLeaderboard first
+        const saved = localStorage.getItem('gameLeaderboard');
+        const leaderboard = saved ? JSON.parse(saved) : {};
+        if (leaderboard[storageKey] && Array.isArray(leaderboard[storageKey]) && leaderboard[storageKey].length > 0) {
+            return leaderboard[storageKey].slice(0, 3);
+        }
+        return [];
+    }
+
+    // Count total scores across all games in a category
+    getCategoryScoreCount(category) {
+        const catData = this.categoryData[category];
+        if (!catData) return 0;
+        let total = 0;
+        catData.games.forEach(game => {
+            total += this.getGameScores(game.storageKey).length;
+        });
+        return total;
+    }
+
+    // Render category leaders section (clickable category cards)
+    renderCategoryLeaders() {
         const container = document.getElementById('category-leaders-grid');
         if (!container) return;
 
-        if (!categoryLeaders || Object.keys(categoryLeaders).length === 0) {
-            container.innerHTML = '<div class="loading-placeholder"><p>Play some games to see leaders!</p></div>';
-            return;
-        }
-
         const medals = ['🏆', '🥈', '🥉'];
-        const categoryEmojis = {
-            'Reflex': '⚡',
-            'Puzzle': '🧩',
-            'Action': '💥',
-            'Strategy': '♟️',
-            'Casual': '🎮',
-            'Knowledge': '🧠'
-        };
-
         let html = '';
 
-        Object.entries(categoryLeaders).forEach(([category, leaders]) => {
-            html += '<div class="category-leader-card">';
-            html += `<h4>${categoryEmojis[category] || '🎮'} ${category}</h4>`;
+        Object.entries(this.categoryData).forEach(([category, catData]) => {
+            const scoreCount = this.getCategoryScoreCount(category);
+            const topPlayer = this.getTopPlayerInCategory(category);
 
-            if (leaders.length > 0) {
-                leaders.forEach((leader, index) => {
-                    html += '<div class="category-leader-item">';
-                    html += `<span class="medal">${medals[index]}</span>`;
-                    html += `<span class="player-name">${leader.name}</span>`;
-                    html += `<span class="stat">${leader.topFinishes} top 3s</span>`;
-                    html += '</div>';
-                });
+            html += `<div class="category-leader-card clickable" onclick="gameHub.openCategoryDetail('${category}')">`;
+            html += `<h4>${catData.emoji} ${category}</h4>`;
+
+            if (topPlayer) {
+                html += '<div class="category-leader-item">';
+                html += `<span class="medal">🏆</span>`;
+                html += `<span class="player-name">${topPlayer.name}</span>`;
+                html += `<span class="stat">${topPlayer.game}</span>`;
+                html += '</div>';
             } else {
                 html += '<p style="color: #8f98a0; font-size: 12px; margin: 0;">No scores yet</p>';
+            }
+
+            html += `<div class="category-game-count">${catData.games.length} games · ${scoreCount} scores</div>`;
+            html += `<div class="click-hint">Click to view details →</div>`;
+            html += '</div>';
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Get the top scoring player across a category
+    getTopPlayerInCategory(category) {
+        const catData = this.categoryData[category];
+        if (!catData) return null;
+
+        for (const game of catData.games) {
+            const scores = this.getGameScores(game.storageKey);
+            if (scores.length > 0) {
+                const top = scores[0];
+                return {
+                    name: top.name || top.username || 'Unknown',
+                    game: game.name
+                };
+            }
+        }
+        return null;
+    }
+
+    // Open detail panel showing all games and their top 3 in a category
+    openCategoryDetail(category) {
+        const catData = this.categoryData[category];
+        if (!catData) return;
+
+        const panel = document.getElementById('category-detail-panel');
+        const titleEl = document.getElementById('detail-panel-title');
+        const gamesEl = document.getElementById('detail-panel-games');
+
+        if (!panel || !titleEl || !gamesEl) return;
+
+        titleEl.textContent = `${catData.emoji} ${category} — Games & Top Scores`;
+
+        const medals = ['🏆', '🥈', '🥉'];
+        let html = '';
+
+        catData.games.forEach(game => {
+            const scores = this.getGameScores(game.storageKey);
+            
+            html += '<div class="detail-game-card">';
+            html += `<div class="detail-game-header">`;
+            html += `<span class="detail-game-name">🎮 ${game.name}</span>`;
+            html += `<span class="detail-game-unit">${game.lowerBetter ? 'Lower is better' : 'Higher is better'}</span>`;
+            html += `</div>`;
+
+            if (scores.length > 0) {
+                html += '<div class="detail-scores-list">';
+                scores.slice(0, 3).forEach((entry, index) => {
+                    const playerName = entry.name || entry.username || 'Unknown';
+                    const scoreVal = entry[game.scoreField] || entry.score || entry.time || 0;
+                    const displayScore = game.lowerBetter ? `${scoreVal}${game.unit}` : `${scoreVal} ${game.unit}`;
+                    
+                    html += `<div class="detail-score-row">`;
+                    html += `<span class="detail-medal">${medals[index] || ''}</span>`;
+                    html += `<span class="detail-player">${playerName}</span>`;
+                    html += `<span class="detail-score">${displayScore}</span>`;
+                    html += `</div>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<div class="detail-no-scores">No scores recorded yet — be the first to play!</div>';
             }
 
             html += '</div>';
         });
 
-        container.innerHTML = html;
+        gamesEl.innerHTML = html;
+        panel.style.display = 'block';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Close the category detail panel
+    closeCategoryDetail() {
+        const panel = document.getElementById('category-detail-panel');
+        if (panel) panel.style.display = 'none';
     }
 
     // Load user settings from Firebase/localStorage and apply them

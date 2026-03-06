@@ -30,9 +30,6 @@
         <a href="#" class="steam-nav-item" data-section="recent">
           🕒 Recently Played
         </a>
-        <a href="leaderboard.html" class="steam-nav-item">
-          🏆 Leaderboard
-        </a>
         <a href="#" class="steam-nav-item" id="account-nav" onclick="handleAccountClick()">
           👤 Account
         </a>
@@ -91,7 +88,7 @@
         <div class="category-leaders-section">
           <div class="category-leaders-header">
             <h3>🎯 Best in Each Category</h3>
-            <p class="category-leaders-subtitle">Top performers across game types</p>
+            <p class="category-leaders-subtitle">Click a category to see top 3 scores for each game</p>
           </div>
           <div class="category-leaders-grid" id="category-leaders-grid">
             <!-- Will be populated by JavaScript -->
@@ -99,9 +96,14 @@
               <p>Loading category leaders...</p>
             </div>
           </div>
-          <a href="leaderboard.html" class="view-full-leaderboard-btn">
-            📊 View Full Leaderboard →
-          </a>
+          <!-- Game scores detail panel (shown when clicking a category) -->
+          <div class="category-detail-panel" id="category-detail-panel" style="display:none;">
+            <div class="detail-panel-header">
+              <h4 id="detail-panel-title">Category Games</h4>
+              <button class="detail-close-btn" onclick="gameHub.closeCategoryDetail()">✕</button>
+            </div>
+            <div class="detail-panel-games" id="detail-panel-games"></div>
+          </div>
         </div>
 
         <div class="content-header">
@@ -355,11 +357,6 @@
       <h3>📝 Wordle Plus</h3>
       <p>Enhanced word guessing game</p>
     </a>
-    <a href="games/ink-runner.html" class="game-card">
-      <h3>🖋️ Ink Runner</h3>
-      <p>Run, jump, and draw through a living sketchbook adventure</p>
-    </a>
-
     <a href="games/evol-defense.html" class="game-card">
       <h3>🗼 EVOL DEFENSE</h3>
       <p>Classic tower defense with 19 character classes - strategic grid-based gameplay!</p>
