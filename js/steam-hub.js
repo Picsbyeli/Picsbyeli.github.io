@@ -5,8 +5,14 @@ class GameHub {
         this.favorites = this.loadFavorites();
         this.recentlyPlayed = this.loadRecentlyPlayed();
         this.currentView = 'grid';
-        this.currentSort = 'name';
+        this.currentSort = 'recent';
         this.searchTerm = '';
+        this.currentPage = 1;
+        this.gamesPerPage = 15;
+        
+        // Admin-only Pokemon games (Evolmon is NOT in this list - it's open to all)
+        this.adminOnlyGames = ['pokemon-veil/VOE', 'pokemon-veil/pokemon-veil-of-eternity'];
+        this.adminEmail = 'elidaslaya@gmail.com';
         
         this.initializeGames();
         this.setupEventListeners();
@@ -319,21 +325,28 @@ class GameHub {
         // Extract games from the hidden games data section
         const gamesDataDiv = document.getElementById('games-data');
         const gameCards = gamesDataDiv ? gamesDataDiv.querySelectorAll('.game-card') : [];
+        const totalGames = gameCards.length;
         
         this.games = Array.from(gameCards).map((card, index) => {
             const img = card.querySelector('img');
             const title = card.querySelector('h3').textContent;
             const description = card.querySelector('p').textContent;
             const href = card.getAttribute('href');
+            const gameId = this.generateGameId(href);
+            
+            // Last games in the HTML are the newest (added most recently)
+            // So reverse: index 0 = oldest, last index = newest
+            const daysAgo = totalGames - 1 - index;
             
             return {
-                id: this.generateGameId(href),
+                id: gameId,
                 title: title,
                 description: description,
                 href: href,
                 image: img ? img.src : null,
                 emoji: this.extractEmoji(title),
-                dateAdded: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)), // Simulate dates
+                dateAdded: new Date(Date.now() - (daysAgo * 24 * 60 * 60 * 1000)),
+                adminOnly: this.adminOnlyGames.includes(gameId),
             };
         });
     }
@@ -353,6 +366,7 @@ class GameHub {
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 this.searchTerm = e.target.value.toLowerCase();
+                this.currentPage = 1;
                 this.renderGames();
             });
         }
@@ -362,6 +376,7 @@ class GameHub {
         if (sortSelect) {
             sortSelect.addEventListener('change', (e) => {
                 this.currentSort = e.target.value;
+                this.currentPage = 1;
                 this.renderGames();
             });
         }
@@ -505,14 +520,95 @@ class GameHub {
         return filtered;
     }
 
+    isAdmin() {
+        if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+            const user = window.gameAuth.getCurrentUser();
+            if (user && user.email === this.adminEmail) return true;
+        }
+        return false;
+    }
+
     renderGames() {
         const filteredGames = this.filterAndSortGames();
         
+        // Pagination
+        const totalPages = Math.ceil(filteredGames.length / this.gamesPerPage);
+        if (this.currentPage > totalPages) this.currentPage = totalPages || 1;
+        const start = (this.currentPage - 1) * this.gamesPerPage;
+        const pageGames = filteredGames.slice(start, start + this.gamesPerPage);
+        
         if (this.currentView === 'grid') {
-            this.renderGridView(filteredGames);
+            this.renderGridView(pageGames);
         } else {
-            this.renderListView(filteredGames);
+            this.renderListView(pageGames);
         }
+        
+        this.renderPagination(filteredGames.length, totalPages);
+    }
+
+    renderPagination(totalGames, totalPages) {
+        // Remove old pagination
+        const old = document.querySelector('.games-pagination');
+        if (old) old.remove();
+        
+        if (totalPages <= 1) return;
+        
+        const paginationDiv = document.createElement('div');
+        paginationDiv.className = 'games-pagination';
+        
+        let html = '';
+        
+        // Previous button
+        html += `<button class="page-btn ${this.currentPage === 1 ? 'disabled' : ''}" 
+                  onclick="gameHub.goToPage(${this.currentPage - 1})" 
+                  ${this.currentPage === 1 ? 'disabled' : ''}>← Prev</button>`;
+        
+        // Page numbers
+        const maxVisible = 5;
+        let startPage = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+        if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+        
+        if (startPage > 1) {
+            html += `<button class="page-btn" onclick="gameHub.goToPage(1)">1</button>`;
+            if (startPage > 2) html += `<span class="page-dots">...</span>`;
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="page-btn ${i === this.currentPage ? 'active' : ''}" 
+                      onclick="gameHub.goToPage(${i})">${i}</button>`;
+        }
+        
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) html += `<span class="page-dots">...</span>`;
+            html += `<button class="page-btn" onclick="gameHub.goToPage(${totalPages})">${totalPages}</button>`;
+        }
+        
+        // Next button
+        html += `<button class="page-btn ${this.currentPage === totalPages ? 'disabled' : ''}" 
+                  onclick="gameHub.goToPage(${this.currentPage + 1})" 
+                  ${this.currentPage === totalPages ? 'disabled' : ''}>Next →</button>`;
+        
+        html += `<span class="page-info">Page ${this.currentPage} of ${totalPages} (${totalGames} games)</span>`;
+        
+        paginationDiv.innerHTML = html;
+        
+        // Insert after games container
+        const container = this.currentView === 'grid' ? document.querySelector('.games-grid') : document.querySelector('.games-list');
+        if (container && container.parentNode) {
+            container.parentNode.insertBefore(paginationDiv, container.nextSibling);
+        }
+    }
+
+    goToPage(page) {
+        const filteredGames = this.filterAndSortGames();
+        const totalPages = Math.ceil(filteredGames.length / this.gamesPerPage);
+        if (page < 1 || page > totalPages) return;
+        this.currentPage = page;
+        this.renderGames();
+        // Scroll to top of games
+        const content = document.querySelector('.steam-content');
+        if (content) content.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     renderGridView(games) {
@@ -527,8 +623,12 @@ class GameHub {
             return;
         }
 
-        container.innerHTML = games.map(game => `
-            <div class="steam-game-card" data-game-id="${game.id}">
+        const isAdmin = this.isAdmin();
+        container.innerHTML = games.map(game => {
+            const locked = game.adminOnly && !isAdmin;
+            return `
+            <div class="steam-game-card ${locked ? 'admin-locked' : ''}" data-game-id="${game.id}">
+                ${locked ? '<div class="admin-lock-badge">🔒 Admin Only</div>' : ''}
                 <div class="game-image">
                     ${game.image ? `<img src="${game.image}" alt="${game.title}" onerror="this.parentElement.innerHTML='${game.emoji}'">` : game.emoji}
                 </div>
@@ -541,13 +641,13 @@ class GameHub {
                                 title="${this.favorites.includes(game.id) ? 'Remove from favorites' : 'Add to favorites'}">
                             ${this.favorites.includes(game.id) ? '★' : '☆'}
                         </button>
-                        <button class="play-btn" onclick="gameHub.playGame('${game.id}', '${game.href}')">
-                            Play
+                        <button class="play-btn ${locked ? 'locked-btn' : ''}" onclick="${locked ? 'alert(\'This game is only available to admin users.\')' : `gameHub.playGame('${game.id}', '${game.href}')`}">
+                            ${locked ? '🔒 Locked' : 'Play'}
                         </button>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
     }
 
     renderListView(games) {
@@ -562,11 +662,14 @@ class GameHub {
             return;
         }
 
-        listContainer.innerHTML = games.map(game => `
-            <div class="steam-game-list-item" data-game-id="${game.id}">
+        const isAdmin = this.isAdmin();
+        listContainer.innerHTML = games.map(game => {
+            const locked = game.adminOnly && !isAdmin;
+            return `
+            <div class="steam-game-list-item ${locked ? 'admin-locked' : ''}" data-game-id="${game.id}">
                 <div class="list-game-icon">${game.emoji}</div>
                 <div class="list-game-info">
-                    <h4 class="list-game-title">${game.title}</h4>
+                    <h4 class="list-game-title">${game.title} ${locked ? '🔒' : ''}</h4>
                     <p class="list-game-description">${game.description}</p>
                 </div>
                 <div class="game-actions">
@@ -575,12 +678,12 @@ class GameHub {
                             title="${this.favorites.includes(game.id) ? 'Remove from favorites' : 'Add to favorites'}">
                         ${this.favorites.includes(game.id) ? '★' : '☆'}
                     </button>
-                    <button class="play-btn" onclick="gameHub.playGame('${game.id}', '${game.href}')">
-                        Play
+                    <button class="play-btn ${locked ? 'locked-btn' : ''}" onclick="${locked ? 'alert(\'This game is only available to admin users.\')' : `gameHub.playGame('${game.id}', '${game.href}')`}">
+                        ${locked ? '🔒 Locked' : 'Play'}
                     </button>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
     }
 
     renderFavorites() {
@@ -772,238 +875,11 @@ function loadFirebaseAuth() {
 
 // Initialize when DOM is loaded
 let gameHub;
-let dailyChallengeCalendar;
 
 document.addEventListener('DOMContentLoaded', () => {
     gameHub = new GameHub();
     initializeFirebaseAuth();
-    dailyChallengeCalendar = new DailyChallengeCalendar();
 });
-
-// Daily Challenge Calendar System
-class DailyChallengeCalendar {
-    constructor() {
-        this.currentDate = new Date();
-        this.viewingDate = new Date();
-        this.challengeData = this.loadChallengeData();
-        this.games = [];
-        
-        // Wait for games to be initialized
-        setTimeout(() => {
-            if (gameHub && gameHub.games) {
-                this.games = gameHub.games;
-            }
-            this.init();
-        }, 100);
-    }
-
-    init() {
-        this.renderCalendar();
-        this.renderTodaysChallenge();
-        this.updateStats();
-    }
-
-    loadChallengeData() {
-        const stored = localStorage.getItem('dailyChallengeData');
-        if (stored) {
-            return JSON.parse(stored);
-        }
-        return {
-            completedDays: {},  // { 'YYYY-MM-DD': { gameId, completed, points } }
-            streak: 0,
-            bestStreak: 0,
-            totalPoints: 0,
-            totalCompleted: 0,
-            lastCompletedDate: null
-        };
-    }
-
-    saveChallengeData() {
-        localStorage.setItem('dailyChallengeData', JSON.stringify(this.challengeData));
-        
-        // Also save to Firebase if logged in
-        if (typeof window.gameAuth !== 'undefined' && window.gameAuth.isLoggedIn()) {
-            window.gameAuth.updateUserProfile({
-                'dailyChallengeData': this.challengeData
-            }).catch(err => console.log('Could not sync challenge data:', err));
-        }
-    }
-
-    getDailyChallenge(dateStr) {
-        // Generate a consistent daily challenge based on the date
-        if (this.games.length === 0) return null;
-        
-        // Use date string to generate a seed for random selection
-        const seed = dateStr.split('-').reduce((a, b) => parseInt(a) + parseInt(b), 0);
-        const gameIndex = seed % this.games.length;
-        return this.games[gameIndex];
-    }
-
-    renderCalendar() {
-        const grid = document.getElementById('calendar-grid');
-        const title = document.getElementById('calendar-month-title');
-        
-        if (!grid || !title) return;
-
-        const year = this.viewingDate.getFullYear();
-        const month = this.viewingDate.getMonth();
-        
-        title.textContent = this.viewingDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const today = new Date();
-        const todayStr = this.getDateString(today);
-
-        let html = '';
-        
-        // Day headers
-        ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].forEach(day => {
-            html += `<div class="calendar-day-header">${day}</div>`;
-        });
-
-        // Empty cells before month starts
-        for (let i = 0; i < firstDay; i++) {
-            html += '<div class="calendar-day empty"></div>';
-        }
-
-        // Day cells
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const isToday = dateStr === todayStr;
-            const isFuture = new Date(dateStr) > today;
-            const isCompleted = this.challengeData.completedDays[dateStr]?.completed;
-
-            let classes = 'calendar-day';
-            if (isToday) classes += ' today';
-            if (isCompleted) classes += ' completed';
-            if (isFuture) classes += ' future';
-
-            html += `<div class="${classes}" data-date="${dateStr}" title="${isCompleted ? 'Completed!' : ''}">${day}</div>`;
-        }
-
-        grid.innerHTML = html;
-    }
-
-    renderTodaysChallenge() {
-        const todayStr = this.getDateString(new Date());
-        const challenge = this.getDailyChallenge(todayStr);
-        const isCompleted = this.challengeData.completedDays[todayStr]?.completed;
-
-        const iconEl = document.getElementById('challenge-game-icon');
-        const nameEl = document.getElementById('challenge-game-name');
-        const descEl = document.getElementById('challenge-description');
-        const btnEl = document.getElementById('play-challenge-btn');
-        const cardEl = document.getElementById('daily-challenge-card');
-
-        if (!challenge || !iconEl) return;
-
-        iconEl.textContent = challenge.emoji || '🎮';
-        nameEl.textContent = challenge.title.replace(/[^\w\s]/gi, '').trim();
-        descEl.textContent = isCompleted 
-            ? '✅ Challenge completed! Come back tomorrow for a new challenge.'
-            : `Play ${challenge.title.replace(/[^\w\s]/gi, '').trim()} to complete today's challenge!`;
-        
-        if (isCompleted) {
-            btnEl.textContent = 'Completed ✓';
-            btnEl.disabled = true;
-            cardEl.classList.add('completed');
-        } else {
-            btnEl.textContent = 'Play Now';
-            btnEl.disabled = false;
-            cardEl.classList.remove('completed');
-        }
-
-        // Store current challenge for play button
-        this.currentChallenge = challenge;
-    }
-
-    playDailyChallenge() {
-        if (!this.currentChallenge) return;
-        
-        const todayStr = this.getDateString(new Date());
-        
-        // Mark as completed before navigating
-        this.completeChallenge(todayStr, this.currentChallenge.id);
-        
-        // Navigate to game
-        window.location.href = this.currentChallenge.href;
-    }
-
-    completeChallenge(dateStr, gameId) {
-        const points = 100; // Base points for completing a challenge
-        
-        this.challengeData.completedDays[dateStr] = {
-            gameId: gameId,
-            completed: true,
-            points: points,
-            completedAt: new Date().toISOString()
-        };
-
-        // Update streak
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = this.getDateString(yesterday);
-
-        if (this.challengeData.lastCompletedDate === yesterdayStr) {
-            this.challengeData.streak++;
-        } else if (this.challengeData.lastCompletedDate !== dateStr) {
-            this.challengeData.streak = 1;
-        }
-
-        this.challengeData.lastCompletedDate = dateStr;
-        this.challengeData.totalPoints += points;
-        this.challengeData.totalCompleted++;
-
-        if (this.challengeData.streak > this.challengeData.bestStreak) {
-            this.challengeData.bestStreak = this.challengeData.streak;
-        }
-
-        this.saveChallengeData();
-        this.updateStats();
-        this.renderCalendar();
-        this.renderTodaysChallenge();
-        
-        // Sync achievements with updated challenge data
-        if (window.achievementsManager) {
-            window.achievementsManager.syncWithGameData();
-        }
-    }
-
-    updateStats() {
-        const streakEl = document.getElementById('streak-count');
-        const completedEl = document.getElementById('challenges-completed');
-        const pointsEl = document.getElementById('total-points');
-        const bestStreakEl = document.getElementById('best-streak');
-
-        if (streakEl) streakEl.textContent = this.challengeData.streak;
-        if (completedEl) completedEl.textContent = this.challengeData.totalCompleted;
-        if (pointsEl) pointsEl.textContent = this.challengeData.totalPoints;
-        if (bestStreakEl) bestStreakEl.textContent = this.challengeData.bestStreak;
-    }
-
-    navigate(direction) {
-        this.viewingDate.setMonth(this.viewingDate.getMonth() + direction);
-        this.renderCalendar();
-    }
-
-    getDateString(date) {
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    }
-}
-
-// Global functions for calendar navigation
-function navigateCalendar(direction) {
-    if (dailyChallengeCalendar) {
-        dailyChallengeCalendar.navigate(direction);
-    }
-}
-
-function playDailyChallenge() {
-    if (dailyChallengeCalendar) {
-        dailyChallengeCalendar.playDailyChallenge();
-    }
-}
 
 // ============================================
 // ACHIEVEMENTS SYSTEM
@@ -1533,9 +1409,6 @@ function toggleAllAchievements() {
 window.achievementsManager = achievementsManager;
 window.toggleAllAchievements = toggleAllAchievements;
 
-// Export for global access
-window.navigateCalendar = navigateCalendar;
-window.playDailyChallenge = playDailyChallenge;
 // Export for global access
 window.gameHub = gameHub;
 window.handleAccountClick = handleAccountClick;

@@ -66,69 +66,13 @@
           <span class="sort-label">Sort by:</span>
           <select id="sort-select" class="steam-select">
             <option value="name">Name</option>
-            <option value="recent">Recently Added</option>
+            <option value="recent" selected>Recently Added</option>
           </select>
         </div>
       </header>
 
       <!-- Content Area -->
       <section class="steam-content">
-        <!-- Daily Challenge Calendar Section -->
-        <div class="daily-challenge-section" id="daily-challenge-section">
-          <div class="challenge-header">
-            <h2>🎯 Daily Challenges</h2>
-            <div class="streak-display">
-              <span class="streak-flame">🔥</span>
-              <span id="streak-count">0</span> Day Streak
-            </div>
-          </div>
-          
-          <!-- Mini Calendar -->
-          <div class="mini-calendar">
-            <div class="calendar-nav">
-              <button class="calendar-nav-btn" onclick="navigateCalendar(-1)">←</button>
-              <span id="calendar-month-title">December 2025</span>
-              <button class="calendar-nav-btn" onclick="navigateCalendar(1)">→</button>
-            </div>
-            <div class="calendar-grid" id="calendar-grid">
-              <!-- Calendar will be rendered by JavaScript -->
-            </div>
-          </div>
-          
-          <!-- Today's Challenge -->
-          <div class="todays-challenge">
-            <h3>📋 Today's Challenge</h3>
-            <div id="todays-challenge-content">
-              <div class="challenge-card" id="daily-challenge-card">
-                <div class="challenge-game-icon" id="challenge-game-icon">🎮</div>
-                <div class="challenge-details">
-                  <h4 id="challenge-game-name">Loading...</h4>
-                  <p id="challenge-description">Complete today's challenge to earn bonus points!</p>
-                </div>
-                <button class="play-challenge-btn" id="play-challenge-btn" onclick="playDailyChallenge()">
-                  Play Now
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Challenge Progress -->
-          <div class="challenge-progress-section">
-            <div class="progress-stat">
-              <span class="stat-value" id="challenges-completed">0</span>
-              <span class="stat-label">Completed</span>
-            </div>
-            <div class="progress-stat">
-              <span class="stat-value" id="total-points">0</span>
-              <span class="stat-label">Points</span>
-            </div>
-            <div class="progress-stat">
-              <span class="stat-value" id="best-streak">0</span>
-              <span class="stat-label">Best Streak</span>
-            </div>
-          </div>
-        </div>
-
         <!-- Achievements Section -->
         <div class="achievements-section">
           <div class="achievements-header">
