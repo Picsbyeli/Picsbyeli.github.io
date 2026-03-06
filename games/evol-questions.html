@@ -294,6 +294,25 @@
             box-shadow: 0 5px 15px rgba(76,175,80,0.3);
         }
 
+        .result-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .next-game-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2) !important;
+        }
+
+        .change-category-btn {
+            background: linear-gradient(45deg, #607D8B, #455A64) !important;
+        }
+
+        .progress-info {
+            opacity: 0.8;
+        }
+
         .back-btn {
             position: absolute;
             top: 20px;
@@ -412,7 +431,11 @@
             <p>The answer was:</p>
             <div id="result-answer" class="result-answer">Answer</div>
             <p id="result-stats" class="result-stats">Guesses used: 5 / 10</p>
-            <button class="play-again-btn" onclick="showMenu()">Play Again</button>
+            <p id="progress-info" class="result-stats progress-info"></p>
+            <div class="result-buttons">
+                <button id="next-game-btn" class="play-again-btn next-game-btn" onclick="nextGame()">Next Game ➜</button>
+                <button class="play-again-btn change-category-btn" onclick="showMenu()">Change Category</button>
+            </div>
         </div>
     </div>
 
@@ -1648,6 +1671,9 @@
             ]
         };
 
+        // Track played items per category so they don't repeat
+        let playedItems = {};
+
         // Game state
         let gameState = {
             currentCategory: null,
@@ -1710,8 +1736,24 @@
 
         function actuallyStartGame(category) {
             const items = GAME_DATA[category];
-            const randomItem = items[Math.floor(Math.random() * items.length)];
-            
+
+            // Initialize played list for this category if needed
+            if (!playedItems[category]) {
+                playedItems[category] = [];
+            }
+
+            // If all items have been played, reset the list
+            if (playedItems[category].length >= items.length) {
+                playedItems[category] = [];
+            }
+
+            // Filter out already-played items
+            const remaining = items.filter(item => !playedItems[category].includes(item.answer));
+            const randomItem = remaining[Math.floor(Math.random() * remaining.length)];
+
+            // Mark this item as played
+            playedItems[category].push(randomItem.answer);
+
             gameState = {
                 currentCategory: category,
                 currentItem: randomItem,
@@ -1727,6 +1769,11 @@
             updateGameDisplay();
             showGame();
             document.getElementById('guess-input').focus();
+        }
+
+        function nextGame() {
+            // Start the next game in the same category
+            startGame(gameState.currentCategory);
         }
 
         function updateGameDisplay() {
@@ -1833,6 +1880,8 @@
             const resultTitle = document.getElementById('result-title');
             const resultAnswer = document.getElementById('result-answer');
             const resultStats = document.getElementById('result-stats');
+            const progressInfo = document.getElementById('progress-info');
+            const nextBtn = document.getElementById('next-game-btn');
             
             if (won) {
                 resultIcon.textContent = '🏆';
@@ -1853,6 +1902,25 @@
             }
             
             resultAnswer.textContent = gameState.currentItem.answer;
+
+            // Show progress in category
+            const category = gameState.currentCategory;
+            const totalItems = GAME_DATA[category].length;
+            const played = playedItems[category] ? playedItems[category].length : 0;
+            const remainingCount = totalItems - played;
+
+            if (remainingCount > 0) {
+                progressInfo.textContent = `${played} / ${totalItems} completed in ${category} • ${remainingCount} remaining`;
+                nextBtn.textContent = 'Next Game ➜';
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+            } else {
+                progressInfo.textContent = `🎉 All ${totalItems} items completed in ${category}!`;
+                nextBtn.textContent = 'Restart Category ↻';
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+            }
+
             showResult();
         }
 
