@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EvolRun</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;overflow:hidden;font-family:'Courier New',monospace}canvas{display:block;width:100vw;height:100vh;cursor:pointer}</style>
+</head><body><canvas id="c"></canvas><script>
+const C=document.getElementById('c'),X=C.getContext('2d');let W,H;
+function rz(){const d=devicePixelRatio||1;W=innerWidth;H=innerHeight;C.width=W*d;C.height=H*d;X.setTransform(d,0,0,d,0,0);}
+rz();addEventListener('resize',rz);
+
+// SPRITES
+const S={
+  p:[
+    [0,1,1,0],[1,1,1,1],[1,1,1,1],[0,1,1,0]
+  ],
+  tile:[
+    [1,1,1,1],[1,1,1,1],[1,1,1,1],[1,1,1,1]
+  ],
+  firegolem:[
+    [0,1,1,0],[1,0,0,1],[1,1,1,1],[1,0,0,1]
+  ],
+  stonegolem:[
+    [1,0,0,1],[1,1,1,1],[1,1,1,1],[1,0,0,1]
+  ],
+  sparkle:[
+    [0,1,0],[1,1,1],[0,1,0]
+  ],
+  heart:[
+    [1,0,1],[1,1,1],[1,1,1],[0,1,0]
+  ]
+};
+
+// GAME LOGIC
+let p={x:W/2,y:H-60,w:20,h:20,falling:!1,vel:0,g:.3},
+    tiles=[],
+    enemies=[],
+    particles=[],
+    score=0,
+    lives=3,
+    wave=0,
+    gameOver=!1,
+    gameStarted=!1;
+
+function draw(s,x,y,c='#0f0'){
+  for(let i=0;i<s.length;i++)
+    for(let j=0;j<s[i].length;j++)
+      s[i][j]&&X.fillRect(x+j*5,y+i*5,5,5);
+  X.fillStyle=c;
+  X.fillRect(x,y,s[0].length*5,s.length*5);
+}
+
+function drawSprite(s,x,y,c='#0f0'){
+  X.fillStyle=c;
+  for(let i=0;i<s.length;i++)
+    for(let j=0;j<s[i].length;j++)
+      s[i][j]&&X.fillRect(x+j*5,y+i*5,5,5);
+}
+
+function checkCollision(a,b){
+  return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+}
+
+function spawnTile(){
+  const t={x:Math.random()*(W-20),y:-20,w:20,h:20,falling:!1,fallTimer:0,maxFallTime:3};
+  tiles.push(t);
+}
+
+function spawnEnemy(){
+  const types=['firegolem','stonegolem'];
+  const type=types[Math.floor(Math.random()*types.length)];
+  const e={x:Math.random()*(W-20),y:-20,w:20,h:20,type:type,vel:2+Math.random()*2};
+  enemies.push(e);
+}
+
+function spawnParticle(x,y){
+  for(let i=0;i<5;i++){
+    particles.push({
+      x:x,
+      y:y,
+      vx:(Math.random()-.5)*4,
+      vy:Math.random()*-3,
+      life:1,
+      maxLife:1
+    });
+  }
+}
+
+function update(){
+  if(gameOver||!gameStarted)return;
+
+  // Player movement
+  p.y+=(p.falling?p.vel:0);
+  if(p.falling)p.vel+=p.g;
+
+  // Tiles
+  tiles.forEach((t,i)=>{
+    t.y+=3;
+    if(t.y>H){tiles.splice(i,1);return;}
+    
+    // Check if player is on tile and mark it as falling
+    if(checkCollision(p,t)&&!t.falling&&!p.falling){
+      t.falling=!0;
+      t.fallTimer=0;
+    }
+    
+    // Tile falling logic
+    if(t.falling){
+      t.fallTimer+=1/60;
+      const fallSpeed=6+(t.fallTimer/t.maxFallTime)*8;
+      t.y+=fallSpeed;
+      
+      // Remove tile after it falls off screen
+      if(t.y>H){
+        tiles.splice(i,1);
+      }
+    }
+  });
+
+  // Enemies
+  enemies.forEach((e,i)=>{
+    e.y+=e.vel;
+    if(e.y>H){enemies.splice(i,1);return;}
+    
+    if(checkCollision(p,e)){
+      lives--;
+      spawnParticle(p.x,p.y);
+      p.y=H-60;
+      p.falling=!1;
+      p.vel=0;
+      if(lives<=0)gameOver=!0;
+    }
+  });
+
+  // Particles
+  particles.forEach((p,i)=>{
+    p.vy+=.1;
+    p.x+=p.vx;
+    p.y+=p.vy;
+    p.life-=1/60;
+    if(p.life<=0)particles.splice(i,1);
+  });
+
+  // Scoring and wave management
+  if(tiles.length===0&&enemies.length===0&&score%10===0&&score>0){
+    wave++;
+    for(let j=0;j<3+wave;j++)spawnTile();
+    for(let j=0;j<1+Math.floor(wave/2);j++)spawnEnemy();
+  }
+
+  score++;
+}
+
+function render(){
+  X.fillStyle='#000';
+  X.fillRect(0,0,W,H);
+
+  // Draw tiles
+  tiles.forEach(t=>{
+    X.fillStyle=t.falling?'#f80':'#0f0';
+    X.fillRect(t.x,t.y,t.w,t.h);
+  });
+
+  // Draw enemies
+  enemies.forEach(e=>{
+    X.fillStyle=e.type==='firegolem'?'#f44':'#888';
+    drawSprite(S[e.type],e.x,e.y,X.fillStyle);
+  });
+
+  // Draw player
+  X.fillStyle='#0ff';
+  drawSprite(S.p,p.x,p.y,X.fillStyle);
+
+  // Draw particles
+  particles.forEach(p=>{
+    X.fillStyle=`rgba(255,255,0,${p.life/p.maxLife})`;
+    X.fillRect(p.x,p.y,3,3);
+  });
+
+  // Draw HUD
+  X.fillStyle='#0f0';
+  X.font='20px Courier New';
+  X.fillText(`Score: ${score}`,20,30);
+  X.fillText(`Lives: ${lives}`,20,60);
+  X.fillText(`Wave: ${wave}`,20,90);
+
+  // Draw game over screen
+  if(gameOver){
+    X.fillStyle='rgba(0,0,0,.7)';
+    X.fillRect(0,0,W,H);
+    X.fillStyle='#f00';
+    X.font='60px Courier New';
+    X.textAlign='center';
+    X.fillText('GAME OVER',W/2,H/2);
+    X.fillStyle='#0f0';
+    X.font='30px Courier New';
+    X.fillText(`Final Score: ${score}`,W/2,H/2+50);
+    X.fillText('Click to restart',W/2,H/2+100);
+  }
+
+  // Draw start screen
+  if(!gameStarted){
+    X.fillStyle='rgba(0,0,0,.7)';
+    X.fillRect(0,0,W,H);
+    X.fillStyle='#0ff';
+    X.font='60px Courier New';
+    X.textAlign='center';
+    X.fillText('EVOLRUN',W/2,H/2-50);
+    X.fillStyle='#0f0';
+    X.font='20px Courier New';
+    X.fillText('Click to start',W/2,H/2+50);
+  }
+}
+
+// INPUT
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'&&p.x>0)p.x-=15;
+  if(e.key==='ArrowRight'&&p.x<W-p.w)p.x+=15;
+});
+
+document.addEventListener('click',()=>{
+  if(!gameStarted){
+    gameStarted=!0;
+    gameOver=!1;
+    score=0;
+    lives=3;
+    wave=0;
+    tiles=[];
+    enemies=[];
+    particles=[];
+    for(let i=0;i<5;i++)spawnTile();
+    for(let i=0;i<1;i++)spawnEnemy();
+  }else if(gameOver){
+    gameStarted=!0;
+    gameOver=!1;
+    score=0;
+    lives=3;
+    wave=0;
+    tiles=[];
+    enemies=[];
+    particles=[];
+    for(let i=0;i<5;i++)spawnTile();
+    for(let i=0;i<1;i++)spawnEnemy();
+  }
+});
+
+// ANIMATION LOOP
+(function loop(){
+  update();
+  render();
+  requestAnimationFrame(loop);
+})();
+</script></body></html>
