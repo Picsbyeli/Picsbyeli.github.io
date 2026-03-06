@@ -9,6 +9,7 @@ class GameHub {
         this.searchTerm = '';
         this.currentPage = 1;
         this.gamesPerPage = 15;
+        this.currentSection = 'library';
         
         // Admin-only Pokemon games (Evolmon is NOT in this list - it's open to all)
         this.adminOnlyGames = ['pokemon-veil/VOE', 'pokemon-veil/pokemon-veil-of-eternity'];
@@ -467,7 +468,7 @@ class GameHub {
             searchInput.addEventListener('input', (e) => {
                 this.searchTerm = e.target.value.toLowerCase();
                 this.currentPage = 1;
-                this.renderGames();
+                this.renderCurrentSection();
             });
         }
 
@@ -477,7 +478,7 @@ class GameHub {
             sortSelect.addEventListener('change', (e) => {
                 this.currentSort = e.target.value;
                 this.currentPage = 1;
-                this.renderGames();
+                this.renderCurrentSection();
             });
         }
 
@@ -487,7 +488,7 @@ class GameHub {
             btn.addEventListener('click', (e) => {
                 this.currentView = e.target.dataset.view;
                 this.updateViewButtons();
-                this.renderGames();
+                this.renderCurrentSection();
             });
         });
 
@@ -514,7 +515,11 @@ class GameHub {
         document.querySelectorAll('.steam-nav-item').forEach(item => {
             item.classList.remove('active');
         });
-        document.querySelector(`[data-section="${section}"]`).classList.add('active');
+        const navEl = document.querySelector(`[data-section="${section}"]`);
+        if (navEl) navEl.classList.add('active');
+
+        this.currentSection = section;
+        this.currentPage = 1;
 
         // Update content
         const contentTitle = document.querySelector('.content-title');
@@ -626,6 +631,14 @@ class GameHub {
             if (user && user.email === this.adminEmail) return true;
         }
         return false;
+    }
+
+    renderCurrentSection() {
+        switch (this.currentSection) {
+            case 'favorites': this.renderFavorites(); break;
+            case 'recent': this.renderRecentlyPlayed(); break;
+            default: this.renderGames(); break;
+        }
     }
 
     renderGames() {
@@ -787,25 +800,43 @@ class GameHub {
     }
 
     renderFavorites() {
-        const favoriteGames = this.games.filter(game => this.favorites.includes(game.id));
+        let favoriteGames = this.games.filter(game => this.favorites.includes(game.id));
+        favoriteGames = this.filterAndSortGames(favoriteGames);
+        
+        // Pagination
+        const totalPages = Math.ceil(favoriteGames.length / this.gamesPerPage);
+        if (this.currentPage > totalPages) this.currentPage = totalPages || 1;
+        const start = (this.currentPage - 1) * this.gamesPerPage;
+        const pageGames = favoriteGames.slice(start, start + this.gamesPerPage);
         
         if (this.currentView === 'grid') {
-            this.renderGridView(favoriteGames);
+            this.renderGridView(pageGames);
         } else {
-            this.renderListView(favoriteGames);
+            this.renderListView(pageGames);
         }
+        
+        this.renderPagination(favoriteGames.length, totalPages);
     }
 
     renderRecentlyPlayed() {
-        const recentGames = this.recentlyPlayed
+        let recentGames = this.recentlyPlayed
             .map(recent => this.games.find(game => game.id === recent.id))
-            .filter(game => game); // Remove any null/undefined games
+            .filter(game => game);
+        recentGames = this.filterAndSortGames(recentGames);
+        
+        // Pagination
+        const totalPages = Math.ceil(recentGames.length / this.gamesPerPage);
+        if (this.currentPage > totalPages) this.currentPage = totalPages || 1;
+        const start = (this.currentPage - 1) * this.gamesPerPage;
+        const pageGames = recentGames.slice(start, start + this.gamesPerPage);
         
         if (this.currentView === 'grid') {
-            this.renderGridView(recentGames);
+            this.renderGridView(pageGames);
         } else {
-            this.renderListView(recentGames);
+            this.renderListView(pageGames);
         }
+        
+        this.renderPagination(recentGames.length, totalPages);
     }
 
     updateSidebar() {
