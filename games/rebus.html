@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REBUS — Decode the Visual</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #0c0c14;
+      font-family: 'DM Sans', 'Segoe UI', sans-serif;
+      color: #e8e4dc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px;
+    }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+    @keyframes pop { 0%{transform:scale(.8);opacity:0} 100%{transform:scale(1);opacity:1} }
+    @keyframes slideUp { 0%{transform:translateY(20px);opacity:0} 100%{transform:translateY(0);opacity:1} }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    @keyframes buzzFlash { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+    .shake { animation: shake .4s ease-in-out; }
+    .pop { animation: pop .3s ease-out; }
+    .slide-up { animation: slideUp .4s ease-out; }
+    .pulse-anim { animation: pulse 1s ease-in-out infinite; }
+    .buzz-flash { animation: buzzFlash .3s ease-out; }
+    input:focus { outline: none; }
+    .btn {
+      border: none; cursor: pointer; transition: all .15s ease;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .btn:active { transform: translateY(0); }
+
+    /* Puzzle visual container */
+    .puzzle-box {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .puzzle-box.dk { background: #0a0a1a; }
+    .puzzle-box.lt { background: #f0ece4; }
+    .puzzle-box.md { background: #e8e4dc; }
+
+    /* Font shortcuts */
+    .fw9 { font-weight: 900; }
+    .font-display { font-family: 'Playfair Display', Georgia, serif; }
+    .font-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #12121e; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+    /* Back button */
+    .back-btn {
+      position: fixed; top: 12px; left: 12px; z-index: 100;
+      background: #1a1a2e; border: 1px solid #2a2a3e; color: #888;
+      padding: 6px 14px; border-radius: 8px; font-size: 13px;
+      cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 4px;
+      transition: all .15s;
+    }
+    .back-btn:hover { background: #2a2a3e; color: #e8e4dc; }
+  </style>
+</head>
+<body>
+
+<a href="../index.html" class="back-btn">← Back</a>
+
+<div id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// REBUS GAME — Standalone vanilla JS version
+// ═══════════════════════════════════════════════════
+
+// ═══ PUZZLE DATA ═══
+const PUZZLES = [
+  // ── ORIGINAL PHRASES ──
+  { id:1, cat:"phrase", type:"one-thing-after-another", answer:"one thing after another", alt:["one thing after the other"], hint:"Things happening in sequence" },
+  { id:2, cat:"phrase", type:"big-heart", answer:"big heart", alt:["bigheart","big hearted"], hint:"Someone generous" },
+  { id:3, cat:"phrase", type:"second-thought", answer:"on second thought", alt:["second thought","on 2nd thought"], hint:"Reconsidering" },
+  { id:4, cat:"phrase", type:"one-in-million", answer:"one in a million", alt:["1 in a million","one in million","1 in million"], hint:"Very rare" },
+  { id:5, cat:"phrase", type:"fooling-around", answer:"fooling around", alt:[], hint:"Goofing off" },
+  { id:6, cat:"phrase", type:"history-repeats", answer:"history repeats itself", alt:["history repeats"], hint:"Doomed to repeat" },
+  { id:7, cat:"phrase", type:"musically-inclined", answer:"musically inclined", alt:[], hint:"Natural talent for music" },
+  { id:8, cat:"phrase", type:"scatter-brain", answer:"scatter brain", alt:["scatterbrain","scatterbrained"], hint:"Forgetful" },
+  { id:9, cat:"phrase", type:"backward-glance", answer:"backward glance", alt:["backwards glance"], hint:"Looking behind you" },
+  { id:10, cat:"phrase", type:"love-hate", answer:"thin line between love and hate", alt:["fine line between love and hate"], hint:"Two strong emotions" },
+  { id:11, cat:"phrase", type:"broken-promise", answer:"broken promise", alt:[], hint:"Not keeping your word" },
+  { id:12, cat:"phrase", type:"double-cross", answer:"double cross", alt:["doublecross"], hint:"To betray someone" },
+  { id:13, cat:"phrase", type:"head-over-heels", answer:"head over heels", alt:[], hint:"Deeply in love" },
+  { id:14, cat:"phrase", type:"mind-over-matter", answer:"mind over matter", alt:[], hint:"Willpower beats physical" },
+  { id:15, cat:"phrase", type:"man-overboard", answer:"man overboard", alt:[], hint:"Shout on a ship" },
+  { id:16, cat:"phrase", type:"wonderland", answer:"wonderland", alt:["wonder land","1derland"], hint:"Alice went here" },
+  { id:17, cat:"phrase", type:"understand", answer:"understand", alt:["under stand"], hint:"To comprehend" },
+  { id:18, cat:"phrase", type:"downtown", answer:"downtown", alt:["down town"], hint:"City center" },
+  { id:19, cat:"phrase", type:"crossroads", answer:"crossroads", alt:["cross roads","crossroad"], hint:"A decision point" },
+  { id:20, cat:"phrase", type:"split-second", answer:"split second", alt:["splitsecond"], hint:"Incredibly short time" },
+  { id:21, cat:"phrase", type:"see-eye-to-eye", answer:"see eye to eye", alt:["eye to eye"], hint:"To agree" },
+  { id:22, cat:"phrase", type:"mixed-feelings", answer:"mixed feelings", alt:["mixed emotions"], hint:"Conflicting emotions" },
+  { id:23, cat:"phrase", type:"reading-between-lines", answer:"reading between the lines", alt:["read between the lines","reading between lines"], hint:"Understanding hidden meaning" },
+  { id:24, cat:"phrase", type:"forget-about-it", answer:"forget about it", alt:["forgetaboutit","forget it"], hint:"Nevermind" },
+  { id:25, cat:"phrase", type:"life-after-death", answer:"life after death", alt:["afterlife"], hint:"The afterlife" },
+  { id:26, cat:"phrase", type:"sandbox", answer:"sandbox", alt:["sand box"], hint:"Where kids play" },
+  { id:27, cat:"phrase", type:"forgive-forget", answer:"forgive and forget", alt:["forgive & forget"], hint:"Let go of a grudge" },
+  { id:28, cat:"phrase", type:"paradise", answer:"paradise", alt:["pair a dice","pair of dice"], hint:"A perfect place" },
+  { id:29, cat:"phrase", type:"tricycle", answer:"tricycle", alt:["tri cycle","3 cycle"], hint:"Kid's three-wheeled ride" },
+  { id:30, cat:"phrase", type:"neon-light", answer:"neon light", alt:["neonlight"], hint:"Bright signs in Vegas" },
+  { id:31, cat:"phrase", type:"little-league", answer:"little league", alt:[], hint:"Youth baseball" },
+  { id:32, cat:"phrase", type:"top-notch", answer:"top notch", alt:["topnotch"], hint:"The very best" },
+  { id:33, cat:"phrase", type:"jack-in-the-box", answer:"jack in the box", alt:["jack in box","jack in a box"], hint:"Spring-loaded toy" },
+  { id:34, cat:"phrase", type:"growing-pains", answer:"growing pains", alt:[], hint:"Struggles growing up" },
+  { id:35, cat:"phrase", type:"circles-under-eyes", answer:"circles under eyes", alt:["dark circles"], hint:"No sleep look" },
+  // ── MOVIES ──
+  { id:50, cat:"movie", type:"mov-dark-knight", answer:"the dark knight", alt:["dark knight"], hint:"Batman by Nolan" },
+  { id:51, cat:"movie", type:"mov-inside-out", answer:"inside out", alt:[], hint:"Pixar emotions" },
+  { id:52, cat:"movie", type:"mov-up", answer:"up", alt:[], hint:"Pixar floating house" },
+  { id:53, cat:"movie", type:"mov-split", answer:"split", alt:[], hint:"Shyamalan thriller" },
+  { id:54, cat:"movie", type:"mov-frozen", answer:"frozen", alt:[], hint:"Disney ice powers" },
+  { id:55, cat:"movie", type:"mov-jaws", answer:"jaws", alt:[], hint:"Spielberg shark" },
+  { id:56, cat:"movie", type:"mov-inception", answer:"inception", alt:[], hint:"Dream within dream" },
+  { id:57, cat:"movie", type:"mov-seven", answer:"seven", alt:["se7en","7"], hint:"Pitt & Freeman thriller" },
+  { id:58, cat:"movie", type:"mov-silence-lambs", answer:"silence of the lambs", alt:["silence of lambs"], hint:"Hannibal Lecter" },
+  { id:59, cat:"movie", type:"mov-get-out", answer:"get out", alt:[], hint:"Peele horror debut" },
+  { id:60, cat:"movie", type:"mov-back-future", answer:"back to the future", alt:["back 2 the future"], hint:"McFly time travels" },
+  { id:61, cat:"movie", type:"mov-home-alone", answer:"home alone", alt:[], hint:"Kid vs burglars" },
+  { id:62, cat:"movie", type:"mov-die-hard", answer:"die hard", alt:["diehard"], hint:"Willis in skyscraper" },
+  { id:63, cat:"movie", type:"mov-quiet-place", answer:"a quiet place", alt:["quiet place"], hint:"Silent to survive" },
+  { id:64, cat:"movie", type:"mov-twister", answer:"twister", alt:[], hint:"Storm chasers" },
+  // ── 50 HARDER PHRASES ──
+  { id:101, cat:"phrase", type:"motorcycle", answer:"motorcycle", alt:["four cycle","4 cycle"], hint:"A two-wheeled motor vehicle" },
+  { id:102, cat:"phrase", type:"double-taste", answer:"double taste", alt:[], hint:"Tasting twice" },
+  { id:103, cat:"phrase", type:"around-the-corner", answer:"around the corner", alt:["corner case"], hint:"Something nearby or coming soon" },
+  { id:104, cat:"phrase", type:"ages", answer:"ages", alt:[], hint:"A very long time" },
+  { id:105, cat:"phrase", type:"out-and-out", answer:"out and out", alt:[], hint:"Complete and total" },
+  { id:106, cat:"phrase", type:"four-lines", answer:"four lines", alt:["4 lines","lines up"], hint:"What you see drawn on paper" },
+  { id:107, cat:"phrase", type:"eyes-right", answer:"eyes right", alt:[], hint:"Military command to look sideways" },
+  { id:108, cat:"phrase", type:"make-believe", answer:"make believe", alt:["makebelieve"], hint:"Pretend play" },
+  { id:109, cat:"phrase", type:"big-house", answer:"big house little house", alt:["upper house"], hint:"Two different sized dwellings" },
+  { id:110, cat:"phrase", type:"standing-ovation", answer:"standing ovation", alt:[], hint:"Audience on their feet clapping" },
+  { id:111, cat:"phrase", type:"good-afternoon", answer:"good afternoon", alt:[], hint:"A midday greeting" },
+  { id:112, cat:"phrase", type:"think-outside-box", answer:"think outside the box", alt:["think outside box"], hint:"Be creative" },
+  { id:113, cat:"phrase", type:"safe-and-sound", answer:"safe and sound", alt:[], hint:"Unharmed and healthy" },
+  { id:114, cat:"phrase", type:"chairman", answer:"chairman", alt:["chair man"], hint:"Head of a board" },
+  { id:115, cat:"phrase", type:"fall-between", answer:"fall between summer and winter", alt:["fall between seasons"], hint:"A season's placement" },
+  { id:116, cat:"phrase", type:"rock-bottom", answer:"rock bottom", alt:["rockbottom"], hint:"The lowest point" },
+  { id:117, cat:"phrase", type:"light-at-end", answer:"light at the end", alt:["light at the end of the tunnel"], hint:"Hope in a dark situation" },
+  { id:118, cat:"phrase", type:"man-on-bicycle", answer:"man on a bicycle", alt:["man on bicycle","bicycle man"], hint:"A person riding a two-wheeler" },
+  { id:119, cat:"phrase", type:"rainbow", answer:"rainbow", alt:["rain bow"], hint:"Colorful arc after rain" },
+  { id:120, cat:"phrase", type:"time-after-time", answer:"time after time", alt:[], hint:"Repeatedly, again and again" },
+  { id:121, cat:"phrase", type:"line-up", answer:"line up", alt:["lineup"], hint:"Stand in a row" },
+  { id:122, cat:"phrase", type:"ups-and-downs", answer:"ups and downs", alt:[], hint:"Good and bad times" },
+  { id:123, cat:"phrase", type:"me-in-memory", answer:"me in memory", alt:["memory of me"], hint:"Remembering someone" },
+  { id:124, cat:"phrase", type:"three-heads", answer:"three heads are better than one", alt:["3 heads are better than one","3 heads better than 1"], hint:"More people = better ideas" },
+  { id:125, cat:"phrase", type:"doorbell", answer:"doorbell", alt:["door bell"], hint:"What you press when visiting" },
+  { id:126, cat:"phrase", type:"second-wind", answer:"second wind", alt:["three winds"], hint:"Renewed energy" },
+  { id:127, cat:"phrase", type:"piece-by-piece", answer:"piece by piece", alt:[], hint:"One part at a time" },
+  { id:128, cat:"phrase", type:"step-on-me", answer:"step on me", alt:[], hint:"Walk over someone" },
+  { id:129, cat:"phrase", type:"ever-after", answer:"ever after", alt:["happily ever after"], hint:"How fairy tales end" },
+  { id:130, cat:"phrase", type:"broken-heart", answer:"broken heart", alt:["brokenheart"], hint:"Emotional pain from love" },
+  { id:131, cat:"phrase", type:"four-way", answer:"four way", alt:["4 way","fourway"], hint:"An intersection type" },
+  { id:132, cat:"phrase", type:"highway", answer:"highway", alt:["high way"], hint:"A major road" },
+  { id:133, cat:"phrase", type:"face-to-face", answer:"face to face", alt:["facetoface"], hint:"Meeting in person" },
+  { id:134, cat:"phrase", type:"turn-back", answer:"turn back", alt:["turnback"], hint:"Go back the way you came" },
+  { id:135, cat:"phrase", type:"outer-space", answer:"outer space", alt:["outerspace"], hint:"Beyond Earth's atmosphere" },
+  { id:136, cat:"phrase", type:"someone", answer:"someone", alt:["some one"], hint:"An unspecified person" },
+  { id:137, cat:"phrase", type:"long-time-no-see", answer:"long time no see", alt:[], hint:"Haven't seen you in a while" },
+  { id:138, cat:"phrase", type:"life-after-life", answer:"life after life", alt:[], hint:"Reincarnation concept" },
+  { id:139, cat:"phrase", type:"outside", answer:"outside", alt:["out side"], hint:"Not indoors" },
+  { id:140, cat:"phrase", type:"peace-on-earth", answer:"peace on earth", alt:["piece on earth"], hint:"Global harmony" },
+  // ── BONUS 15 EXTRA-HARD ──
+  { id:201, cat:"phrase", type:"spread-reading", answer:"spread reading", alt:["spread out reading","spread out"], hint:"Letters not close together" },
+  { id:202, cat:"phrase", type:"i-understand", answer:"i understand", alt:[], hint:"Comprehension with self" },
+  { id:203, cat:"phrase", type:"knee-light", answer:"neon light", alt:["kneelight","knee light"], hint:"Bright glowing sign (sounds like body part)" },
+  { id:204, cat:"phrase", type:"two-rights-wrong", answer:"two rights dont make a wrong", alt:["two rights don't make a wrong","2 rights dont make a wrong"], hint:"Moral philosophy" },
+  { id:205, cat:"phrase", type:"backward-word", answer:"backward", alt:["back ward"], hint:"In the reverse direction" },
+  { id:206, cat:"phrase", type:"three-sides", answer:"three sides", alt:["3 sides","beside itself"], hint:"A shape's edges" },
+  { id:207, cat:"phrase", type:"upgrade", answer:"upgrade", alt:["up grade"], hint:"Improve to something better" },
+  { id:208, cat:"phrase", type:"cross-examined", answer:"cross examined", alt:["cross-examined","crossexamined"], hint:"Questioned in court" },
+  { id:209, cat:"phrase", type:"forgive-word", answer:"forgive", alt:[], hint:"To pardon someone" },
+  { id:210, cat:"phrase", type:"times-square", answer:"times square", alt:["timessquare"], hint:"Famous NYC intersection" },
+  { id:211, cat:"phrase", type:"heartbeat", answer:"heartbeat", alt:["heart beat"], hint:"Pulse of life" },
+  { id:212, cat:"phrase", type:"forecast", answer:"forecast", alt:["fore cast"], hint:"Weather prediction" },
+  { id:213, cat:"phrase", type:"outlaw", answer:"outlaw", alt:["out law"], hint:"A criminal or fugitive" },
+];
+
+const phraseCount = PUZZLES.filter(p => p.cat === "phrase").length;
+const movieCount = PUZZLES.filter(p => p.cat === "movie").length;
+
+// ═══ STORAGE ═══
+function loadLeaderboard() {
+  try { return JSON.parse(localStorage.getItem("rebus-lb-v6") || "[]"); } catch { return []; }
+}
+function saveLeaderboard(lb) {
+  try { localStorage.setItem("rebus-lb-v6", JSON.stringify(lb)); } catch {}
+}
+
+// ═══ ANSWER CHECKER ═══
+function checkAnswer(guess, puzzle) {
+  const n = s => s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  const g = n(guess);
+  if (!g) return false;
+  const check = a => {
+    const x = n(a);
+    return g === x || (x.includes(g) && g.length > x.length * 0.6) || g.includes(x);
+  };
+  if (check(puzzle.answer)) return true;
+  for (const alt of (puzzle.alt || [])) if (check(alt)) return true;
+  return false;
+}
+
+// ═══ PUZZLE VISUAL RENDERER ═══
+function renderPuzzleVisual(puzzle) {
+  const t = puzzle.type;
+  // Helper to build inline styled divs
+  const bx = "width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;";
+  const dk = bx + "background:#0a0a1a;";
+  const lt = bx + "background:#f0ece4;";
+  const md = bx + "background:#e8e4dc;";
+  const W = "color:#fff;font-weight:900;";
+  const B = "color:#1a1a1a;font-weight:900;";
+
+  function col(c, sz, extra) {
+    return `color:${c};font-size:${sz}px;font-weight:900;${extra || ""}`;
+  }
+
+  switch(t) {
+    // ── ORIGINAL PHRASES ──
+    case "one-thing-after-another":
+      return `<div style="${dk}flex-direction:column;gap:6px"><span style="${col("#888",20)}">another</span><span style="${col("#fff",24)}">one thing</span></div>`;
+    case "big-heart":
+      return `<div style="${lt}"><span style="${col("#1a1a1a",68,"font-family:'Playfair Display',Georgia;")}">heart</span></div>`;
+    case "second-thought":
+      return `<div style="${lt}flex-direction:column;"><span style="${col("#c44",18)}">2nd</span><span style="${col("#1a1a1a",32)}">THOUGHT</span></div>`;
+    case "one-in-million":
+      return `<div style="${lt}"><span style="${col("#1a1a1a",50,"letter-spacing:3px;")}">MILL<span style="color:#e44;font-size:54px;">1</span>ON</span></div>`;
+    case "fooling-around": {
+      let chars = "FOOLING".split("").map((c, i) => {
+        const a = (i / 7) * 360 - 90;
+        const r = a * Math.PI / 180;
+        return `<span style="position:absolute;left:${70 + 50 * Math.cos(r)}px;top:${70 + 50 * Math.sin(r)}px;${W}font-size:24px;transform:translate(-50%,-50%) rotate(${a + 90}deg);">${c}</span>`;
+      }).join("");
+      return `<div style="${dk}"><div style="position:relative;width:140px;height:140px;">${chars}</div></div>`;
+    }
+    case "history-repeats":
+      return `<div style="${lt}"><span style="color:#333;font-size:15px;font-family:Georgia;letter-spacing:1px;">historyhistoryhistory</span></div>`;
+    case "musically-inclined":
+      return `<div style="${md}"><span style="color:#333;font-size:38px;font-family:Georgia;font-style:italic;transform:rotate(-22deg);display:inline-block;">musically</span></div>`;
+    case "scatter-brain": {
+      const pos = [[0,52],[58,8],[28,28],[62,58],[42,72]];
+      const rot = [-18,22,-10,14,-28];
+      let chars = "BRAIN".split("").map((c, i) =>
+        `<span style="position:absolute;${W}font-size:38px;left:${18 + pos[i][0]}%;top:${12 + pos[i][1]}%;transform:rotate(${rot[i]}deg);">${c}</span>`
+      ).join("");
+      return `<div style="${bx}background:#555;">${chars}</div>`;
+    }
+    case "backward-glance":
+      return `<div style="${lt}"><span style="${col("#1a1a1a",46,"letter-spacing:4px;")}">ECNALG</span></div>`;
+    case "love-hate":
+      return `<div style="${dk}"><div style="display:flex;align-items:center;gap:3px;"><span style="${col("#f44",34)}">LOVE</span><div style="width:1px;height:50px;background:#888;"></div><span style="${col("#fff",34)}">HATE</span></div></div>`;
+    case "broken-promise":
+      return `<div style="${lt}flex-direction:column;"><div style="display:flex;"><span style="${col("#1a1a1a",34)}">PRO</span><span style="${col("#c44",34,"margin-left:20px;transform:translateY(6px);")}">MISE</span></div><div style="position:absolute;width:4px;height:60px;background:#c44;transform:rotate(15deg);left:48%;"></div></div>`;
+    case "double-cross":
+      return `<div style="${lt}"><span style="${col("#1a1a1a",52)}">✝ ✝</span></div>`;
+    case "head-over-heels":
+      return `<div style="${dk}flex-direction:column;"><span style="${col("#fff",44,"line-height:1.15;")}">HEAD</span><span style="${col("#f44",44,"line-height:1.15;")}">HEELS</span></div>`;
+    case "mind-over-matter":
+      return `<div style="${dk}flex-direction:column;"><span style="${col("#60a5fa",38,"line-height:1.15;")}">MIND</span><span style="${col("#888",38,"line-height:1.15;")}">MATTER</span></div>`;
+    case "man-overboard":
+      return `<div style="${dk}flex-direction:column;"><span style="${col("#fff",36,"line-height:1.15;")}">MAN</span><span style="${col("#4488cc",36,"line-height:1.15;")}">BOARD</span></div>`;
+    case "wonderland":
+      return `<div style="${lt}"><span style="${col("#c44",52,"font-family:'Playfair Display';")}">1</span><span style="${col("#1a1a1a",38,"margin-left:8px;")}">LAND</span></div>`;
+    case "understand":
+      return `<div style="${lt}flex-direction:column;"><span style="${col("#1a1a1a",42)}">STAND</span><div style="width:160px;height:4px;background:#333;margin-top:4px;border-radius:2px;"></div></div>`;
+    case "downtown":
+      return `<div style="${dk}"><div style="display:flex;flex-direction:column;align-items:center;">${"TOWN".split("").map(c => `<span style="${W}font-size:36px;line-height:1.1;">${c}</span>`).join("")}</div></div>`;
+    case "crossroads":
+      return `<div style="${dk}"><span style="${W}font-size:30px;position:absolute;">ROAD</span><span style="color:#f44;font-weight:900;font-size:30px;position:absolute;writing-mode:vertical-lr;">ROAD</span></div>`;
+    case "split-second":
+      return `<div style="${lt}"><span style="${col("#1a1a1a",38)}">SEC</span><div style="width:4px;height:60px;background:#f44;margin:0 6px;"></div><span style="${col("#1a1a1a",38)}">OND</span></div>`;
+    case "see-eye-to-eye":
+      return `<div style="${md}"><span style="font-size:44px;">👁</span><span style="color:#333;font-size:18px;margin:0 10px;">2</span><span style="font-size:44px;">👁</span></div>`;
+    case "mixed-feelings": {
+      const colors = ["#f44","#4ade80","#fbbf24","#60a5fa","#f44","#4ade80","#fbbf24","#60a5fa"];
+      const rots = [-15,10,-18,12,-10,16,-12,8];
+      const yOffs = [-8,6,-10,8,-6,10,-8,4];
+      let chars = "FEELINGS".split("").map((c, i) =>
+        `<span style="color:${colors[i]};font-size:30px;font-weight:900;display:inline-block;transform:rotate(${rots[i]}deg) translateY(${yOffs[i]}px);">${c}</span>`
+      ).join("");
+      return `<div style="${dk}"><div style="display:flex;gap:2px;">${chars}</div></div>`;
+    }
+    case "reading-between-lines":
+      return `<div style="${lt}flex-direction:column;"><div style="width:200px;height:3px;background:#333;"></div><span style="${col("#c44",20,"margin:8px 0;")}">reading</span><div style="width:200px;height:3px;background:#333;"></div></div>`;
+    case "forget-about-it":
+      return `<div style="${lt}"><span style="color:#aaa;font-size:34px;font-weight:900;text-decoration:line-through;text-decoration-color:#c44;text-decoration-thickness:4px;">about it</span></div>`;
+    case "life-after-death":
+      return `<div style="${dk}gap:16px;"><span style="${col("#666",28)}">DEATH</span><span style="${col("#4ade80",28)}">LIFE</span></div>`;
+    case "sandbox":
+      return `<div style="${lt}"><div style="border:4px solid #333;padding:16px 28px;border-radius:4px;"><span style="${col("#1a1a1a",30)}">SAND</span></div></div>`;
+    case "forgive-forget":
+      return `<div style="${dk}"><span style="${col("#fff",28)}">4GIVE</span><span style="color:#888;font-size:18px;margin:0 10px;">&amp;</span><span style="${col("#fff",28)}">4GET</span></div>`;
+    case "paradise":
+      return `<div style="${md}"><span style="font-size:44px;">🎲🎲</span><span style="${B}font-size:13px;position:absolute;bottom:16px;opacity:.5;">a pair of...</span></div>`;
+    case "tricycle":
+      return `<div style="${lt}"><span style="${col("#c44",52,"font-family:'Playfair Display';")}">3</span><span style="${col("#1a1a1a",34,"margin-left:6px;")}">CYCLE</span></div>`;
+    case "neon-light":
+      return `<div style="${dk}"><span style="${col("#888",36)}">NE</span><span style="${col("#ff44ff",36,"text-shadow:0 0 10px #ff44ff,0 0 20px #ff44ff,0 0 40px #ff44ff;")}">ON</span></div>`;
+    case "little-league":
+      return `<div style="${lt}"><span style="${col("#1a1a1a",13,"letter-spacing:3px;")}">LEAGUE</span></div>`;
+    case "top-notch":
+      return `<div style="${dk}flex-direction:column;"><span style="${col("#ffd700",16)}">★</span><div style="display:flex;margin-top:-4px;"><div style="width:40px;height:3px;background:#888;transform:rotate(30deg);transform-origin:right;"></div><div style="width:40px;height:3px;background:#888;transform:rotate(-30deg);transform-origin:left;"></div></div><span style="${W}font-size:12px;margin-top:6px;letter-spacing:2px;">▽</span></div>`;
+    case "jack-in-the-box":
+      return `<div style="${md}"><div style="border:4px solid #333;padding:14px 24px;border-radius:4px;background:#f0ece4;"><span style="${col("#1a1a1a",32)}">JACK</span></div></div>`;
+    case "growing-pains": {
+      let chars = "PAINS".split("").map((c, i) =>
+        `<span style="${W}font-size:${18 + i * 10}px;line-height:1;">${c}</span>`
+      ).join("");
+      return `<div style="${dk}"><div style="display:flex;align-items:baseline;gap:2px;">${chars}</div></div>`;
+    }
+    case "circles-under-eyes":
+      return `<div style="${lt}flex-direction:column;gap:2px;"><div style="display:flex;gap:24px;"><span style="font-size:36px;">👁</span><span style="font-size:36px;">👁</span></div><div style="display:flex;gap:24px;margin-top:-2px;"><span style="font-size:28px;color:#666;">◯</span><span style="font-size:28px;color:#666;">◯</span></div></div>`;
+
+    // ── MOVIES ──
+    case "mov-dark-knight":
+      return `<div style="${dk}"><span style="${col("#333348",44,"text-shadow:0 0 6px #222;")}">KNIGHT</span></div>`;
+    case "mov-inside-out":
+      return `<div style="${lt}"><div style="border:3px solid #333;border-radius:10px;padding:14px 28px;"><span style="${col("#1a1a1a",32)}">OUT</span></div></div>`;
+    case "mov-up":
+      return `<div style="${dk}"><span style="${W}font-size:80px;line-height:1;">↑</span></div>`;
+    case "mov-split":
+      return `<div style="${lt}"><span style="${B}font-size:40px;clip-path:inset(0 50% 0 0);">WORD</span><div style="width:4px;height:65px;background:#f44;position:absolute;"></div><span style="${B}font-size:40px;clip-path:inset(0 0 0 50%);margin-left:-4px;">WORD</span></div>`;
+    case "mov-frozen":
+      return `<div style="${bx}background:#c8e6f5;"><span style="${col("#1a6fa8",36,"letter-spacing:6px;text-shadow:0 0 8px #b0d8f0,0 0 16px #88c4e8;opacity:.8;")}">❄ T E X T ❄</span></div>`;
+    case "mov-jaws":
+      return `<div style="${dk}"><div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><span style="${W}font-size:28px;letter-spacing:8px;">▼ ▼ ▼ ▼ ▼</span><span style="${W}font-size:28px;letter-spacing:8px;transform:scaleY(-1);">▼ ▼ ▼ ▼ ▼</span></div></div>`;
+    case "mov-inception":
+      return `<div style="${dk}"><div style="border:2px solid #444;padding:16px;border-radius:6px;"><div style="border:2px solid #888;padding:12px;border-radius:4px;"><div style="border:2px solid #ccc;padding:8px 18px;border-radius:2px;"><span style="${W}font-size:14px;">DREAM</span></div></div></div></div>`;
+    case "mov-seven":
+      return `<div style="${dk}"><span style="${W}font-size:90px;font-family:'Playfair Display',Georgia;">7</span></div>`;
+    case "mov-silence-lambs":
+      return `<div style="${dk}flex-direction:column;gap:6px;"><span style="color:#555;font-size:16px;text-decoration:line-through;">🔊</span><span style="font-size:36px;">🐑 🐑</span></div>`;
+    case "mov-get-out":
+      return `<div style="${bx}background:#1a0a0a;"><span style="${col("#f44",48)}">← 🚪</span></div>`;
+    case "mov-back-future":
+      return `<div style="${dk}"><span style="${col("#f44",28,"margin-right:6px;")}">←</span><span style="${col("#fff",32)}">FUTURE</span></div>`;
+    case "mov-home-alone":
+      return `<div style="${dk}"><span style="${W}font-size:32px;opacity:.9;">HOME</span></div>`;
+    case "mov-die-hard":
+      return `<div style="${lt}"><span style="${col("#1a1a1a",52,"letter-spacing:6px;text-shadow:2px 2px 0 #999,4px 4px 0 #bbb;")}">DIE</span></div>`;
+    case "mov-quiet-place":
+      return `<div style="${dk}"><span style="color:#444;font-size:14px;letter-spacing:6px;font-style:italic;">place</span></div>`;
+    case "mov-twister": {
+      let chars = "LETTERS".split("").map((c, i) =>
+        `<span style="${W}font-size:28px;display:inline-block;transform:rotate(${i * 45}deg);">${c}</span>`
+      ).join("");
+      return `<div style="${dk}"><div style="display:flex;gap:1px;">${chars}</div></div>`;
+    }
+
+    // ── 50 HARDER PHRASES ──
+    case "motorcycle":
+      return `<div style="${lt}"><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:200px;">${"cycle cycle cycle cycle".split(" ").map(w => `<span style="${col("#1a1a1a",24)}">${w}</span>`).join("")}</div></div>`;
+    case "double-taste":
+      return `<div style="${dk}"><div style="display:flex;gap:12px;"><span style="${col("#fff",32)}">TASTE</span><span style="${col("#fff",32)}">TASTE</span></div></div>`;
+    case "around-the-corner":
+      return `<div style="${lt}"><div style="position:relative;width:140px;height:100px;"><span style="${B}font-size:20px;position:absolute;top:0;right:0;">corner</span><span style="${B}font-size:20px;position:absolute;bottom:0;left:0;">corner</span></div></div>`;
+    case "ages":
+      return `<div style="${md}"><span style="${col("#333",22,"letter-spacing:4px;")}">age age age</span></div>`;
+    case "out-and-out":
+      return `<div style="${dk}"><div style="display:flex;gap:10px;"><span style="${col("#fff",30)}">OUT</span><span style="${col("#fff",30)}">OUT</span><span style="${col("#fff",30)}">OUT</span></div></div>`;
+    case "four-lines":
+      return `<div style="${lt}flex-direction:column;gap:3px;">${[1,2,3,4].map(() => `<span style="${col("#333",16)}">line</span>`).join("")}</div>`;
+    case "eyes-right":
+      return `<div style="${md}"><span style="${col("#1a1a1a",36)}">EYES</span><span style="${col("#c44",36,"margin-left:8px;")}">→</span></div>`;
+    case "make-believe":
+      return `<div style="${dk}"><div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="${col("#888",16)}">believe</span><span style="${col("#aaa",18)}">believe</span><span style="${col("#fff",22)}">believe</span></div></div>`;
+    case "big-house":
+      return `<div style="${lt}"><span style="${col("#1a1a1a",44)}">HOUSE</span><span style="${col("#1a1a1a",16,"margin-left:8px;")}">house</span></div>`;
+    case "standing-ovation":
+      return `<div style="${md}flex-direction:column;"><div style="display:flex;gap:6px;"><span style="${col("#333",18)}">standing</span><span style="${col("#333",18)}">standing</span></div><span style="${col("#c44",28,"margin-top:2px;")}">O</span></div>`;
+    case "good-afternoon":
+      return `<div style="${lt}"><span style="${col("#4ade80",22,"margin-right:6px;")}">good</span><span style="${col("#1a1a1a",28)}">NOON</span></div>`;
+    case "think-outside-box":
+      return `<div style="${dk}"><div style="border:3px solid #888;padding:20px 30px;border-radius:4px;"><span style="color:#333;font-size:12px;">. . .</span></div><span style="${W}font-size:20px;position:absolute;top:16px;left:20px;">think</span></div>`;
+    case "safe-and-sound":
+      return `<div style="${md}"><span style="${col("#333",28)}">safe</span><span style="color:#888;font-size:16px;margin:0 8px;">&amp;</span><span style="${col("#333",28)}">sound</span></div>`;
+    case "chairman":
+      return `<div style="${lt}flex-direction:column;"><span style="font-size:36px;">🪑</span><span style="${col("#1a1a1a",28,"margin-top:-4px;")}">MAN</span></div>`;
+    case "fall-between":
+      return `<div style="${dk}"><span style="${col("#888",14)}">summer</span><span style="${col("#ff8844",28,"margin:0 6px;")}">FALL</span><span style="${col("#888",14)}">winter</span></div>`;
+    case "rock-bottom":
+      return `<div style="${dk}flex-direction:column;gap:1px;"><span style="${col("#888",16)}">bottom</span><span style="${col("#aaa",18)}">bottom</span><span style="${col("#fff",22)}">bottom</span></div>`;
+    case "light-at-end":
+      return `<div style="${dk}"><div style="width:80%;height:40px;background:linear-gradient(to right,#111,#111 80%,#ffd700);border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;"><span style="${col("#fff",14)}">💡</span></div></div>`;
+    case "man-on-bicycle":
+      return `<div style="${lt}flex-direction:column;"><span style="${col("#1a1a1a",28)}">MAN</span><div style="display:flex;gap:4px;"><span style="${col("#c44",20)}">cycle</span><span style="${col("#c44",20)}">cycle</span></div></div>`;
+    case "rainbow":
+      return `<div style="${md}flex-direction:column;"><span style="${col("#4488cc",22)}">RAIN</span><span style="font-size:28px;margin-top:-4px;">🏹</span></div>`;
+    case "time-after-time":
+      return `<div style="${dk}"><div style="display:flex;gap:6px;">${"time time time time".split(" ").map(w => `<span style="${col("#fff",22)}">${w}</span>`).join("")}</div></div>`;
+    case "line-up":
+      return `<div style="${lt}flex-direction:column;gap:1px;">${"lineup lineup lineup".split(" ").map(w => `<span style="${col("#333",16)}">${w}</span>`).join("")}</div>`;
+    case "ups-and-downs":
+      return `<div style="${dk}"><div style="display:flex;gap:4px;align-items:center;"><span style="${col("#4ade80",24)}">↓</span><span style="${col("#f44",24)}">↑</span><span style="${col("#4ade80",24)}">↓</span><span style="${col("#f44",24)}">↑</span></div></div>`;
+    case "me-in-memory":
+      return `<div style="${lt}"><span style="${col("#888",28)}">M</span><span style="${col("#888",28)}">E</span><span style="${col("#c44",28,"margin:0 2px;")}">MO</span><span style="${col("#888",28)}">RY</span></div>`;
+    case "three-heads":
+      return `<div style="${md}"><div style="display:flex;gap:8px;"><span style="${col("#333",28)}">HEAD</span><span style="${col("#333",28)}">HEAD</span><span style="${col("#333",28)}">HEAD</span></div></div>`;
+    case "doorbell":
+      return `<div style="${dk}"><span style="${col("#888",32)}">DOOR</span><span style="font-size:32px;margin-left:6px;">🔔</span></div>`;
+    case "second-wind":
+      return `<div style="${lt}"><div style="display:flex;gap:6px;"><span style="${col("#333",22)}">WIND</span><span style="${col("#333",22)}">WIND</span><span style="${col("#333",22)}">WIND</span></div></div>`;
+    case "piece-by-piece":
+      return `<div style="${dk}"><div style="display:flex;gap:8px;"><span style="${col("#fff",22)}">PIECE</span><span style="${col("#fff",22)}">PIECE</span><span style="${col("#fff",22)}">PIECE</span></div></div>`;
+    case "step-on-me":
+      return `<div style="${lt}flex-direction:column;"><span style="${col("#1a1a1a",32)}">STEP</span><span style="${col("#888",20,"margin-top:-2px;")}">me</span></div>`;
+    case "ever-after":
+      return `<div style="${dk}"><div style="display:flex;gap:8px;"><span style="${col("#fff",22)}">AFTER</span><span style="${col("#fff",22)}">AFTER</span><span style="${col("#fff",22)}">AFTER</span></div></div>`;
+    case "broken-heart":
+      return `<div style="${lt}flex-direction:column;"><div style="display:flex;gap:16px;"><span style="${col("#c44",36)}">HE</span><span style="${col("#c44",36,"transform:translateY(6px);")}">ART</span></div><div style="position:absolute;width:3px;height:50px;background:#c44;transform:rotate(10deg);"></div></div>`;
+    case "four-way":
+      return `<div style="${md}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">${"WAY WAY WAY WAY".split(" ").map(w => `<span style="${col("#333",22,"text-align:center;")}">${w}</span>`).join("")}</div></div>`;
+    case "highway":
+      return `<div style="${dk}flex-direction:column;"><span style="${col("#fff",28,"margin-bottom:-6px;")}">WAY</span><span style="${col("#888",10,"letter-spacing:4px;")}">↑ up high ↑</span></div>`;
+    case "face-to-face":
+      return `<div style="${lt}"><div style="display:flex;gap:6px;"><span style="${col("#333",28)}">FACE</span><span style="${col("#333",28)}">FACE</span><span style="${col("#333",28)}">FACE</span></div></div>`;
+    case "turn-back":
+      return `<div style="${dk}"><span style="${col("#fff",40)}">KCAB</span></div>`;
+    case "outer-space":
+      return `<div style="${dk}"><div style="border:2px solid #888;padding:12px 20px;border-radius:4px;"><span style="${col("#888",18)}">SPACE SPACE</span></div><span style="${W}font-size:18px;position:absolute;top:12px;right:20px;">SPACE</span></div>`;
+    case "someone":
+      return `<div style="${lt}"><span style="${col("#333",32)}">SOME</span><span style="${col("#c44",42,"font-family:'Playfair Display';margin-left:6px;")}">1</span></div>`;
+    case "long-time-no-see":
+      return `<div style="${dk}"><span style="${col("#fff",18,"letter-spacing:16px;")}">T&nbsp;I&nbsp;M&nbsp;E</span><span style="color:#555;font-size:12px;position:absolute;bottom:16px;text-decoration:line-through;">👁</span></div>`;
+    case "life-after-life":
+      return `<div style="${md}"><span style="${col("#333",24)}">LIFE</span><span style="${col("#888",14,"margin:0 8px;")}">→</span><span style="${col("#333",24)}">LIFE</span></div>`;
+    case "outside":
+      return `<div style="${dk}"><div style="border:2px solid #888;padding:12px 24px;border-radius:4px;"><span style="${col("#888",22)}">SIDE</span></div><span style="${W}font-size:22px;position:absolute;top:14px;left:16px;">OUT</span></div>`;
+    case "peace-on-earth":
+      return `<div style="${lt}flex-direction:column;"><span style="${col("#333",24)}">PIECE</span><span style="${col("#8B4513",32)}">EARTH</span></div>`;
+
+    // ── BONUS 15 ──
+    case "spread-reading":
+      return `<div style="${lt}"><span style="${col("#333",32,"letter-spacing:28px;")}">r e a d</span></div>`;
+    case "i-understand":
+      return `<div style="${md}flex-direction:column;"><span style="${col("#333",36)}">STAND</span><span style="${col("#c44",22,"margin-top:-2px;")}">I</span></div>`;
+    case "knee-light":
+      return `<div style="${dk}"><span style="${col("#fff",28)}">KNEE</span><span style="${col("#ffd700",28,"margin-left:6px;text-shadow:0 0 8px #ffd700;")}">LIGHT</span></div>`;
+    case "two-rights-wrong":
+      return `<div style="${lt}"><div style="display:flex;gap:6px;align-items:center;"><span style="${col("#333",26)}">RIGHT</span><span style="${col("#333",26)}">RIGHT</span><span style="${col("#c44",14,"margin-left:4px;")}">wrong</span></div></div>`;
+    case "backward-word":
+      return `<div style="${dk}"><span style="${col("#888",22,"margin-right:6px;")}">back</span><span style="${col("#fff",28)}">WARD</span></div>`;
+    case "three-sides":
+      return `<div style="${md}"><div style="display:flex;gap:8px;"><span style="${col("#333",24)}">SIDE</span><span style="${col("#333",24)}">SIDE</span><span style="${col("#333",24)}">SIDE</span></div></div>`;
+    case "upgrade":
+      return `<div style="${dk}flex-direction:column;"><span style="${col("#4ade80",20,"margin-bottom:-4px;")}">UP ↑</span><span style="${col("#fff",30)}">GRADE</span></div>`;
+    case "cross-examined":
+      return `<div style="${lt}"><span style="${col("#c44",32,"margin-right:6px;")}">✝</span><span style="${col("#1a1a1a",24)}">EXAMINED</span></div>`;
+    case "forgive-word":
+      return `<div style="${dk}"><span style="${col("#888",28)}">FOR</span><span style="${col("#4ade80",28,"margin-left:4px;")}">GIVE</span></div>`;
+    case "times-square":
+      return `<div style="${lt}"><div style="border:4px solid #333;padding:12px 18px;border-radius:2px;"><span style="${col("#1a1a1a",24)}">TIMES</span></div></div>`;
+    case "heartbeat":
+      return `<div style="${dk}"><span style="${col("#f44",32)}">HEART</span><span style="${col("#888",22,"margin-left:4px;")}">BEAT</span></div>`;
+    case "forecast":
+      return `<div style="${md}"><span style="${col("#333",28)}">FORE</span><span style="${col("#888",28,"margin-left:6px;")}">CAST</span></div>`;
+    case "outlaw":
+      return `<div style="${dk}"><div style="border:2px solid #888;padding:10px 24px;border-radius:4px;"><span style="${col("#888",24)}">LAW</span></div><span style="${W}font-size:24px;position:absolute;top:10px;left:20px;">OUT</span></div>`;
+
+    default:
+      return `<div style="${dk}color:#fff;font-size:24px;">?</div>`;
+  }
+}
+
+// ═══ GAME STATE ═══
+const state = {
+  screen: "menu",
+  p1Name: "",
+  p2Name: "",
+  category: "all",
+  difficulty: "normal",
+  gameMode: "solo",
+  puzzleOrder: [],
+  currentIndex: 0,
+  timeLeft: 30,
+  feedback: null,
+  showHint: false,
+  results: [],
+  leaderboard: loadLeaderboard(),
+  guess: "",
+  score: 0,
+  streak: 0,
+  hintUsed: false,
+  // Buzzer
+  p1Score: 0,
+  p2Score: 0,
+  buzzerPhase: "waiting",
+  buzzedPlayer: null,
+  otherHadChance: false,
+  buzzerGuess: "",
+  hintGiven: false,
+};
+
+let timerInterval = null;
+const p1c = "#60a5fa", p2c = "#f44";
+
+function getPuzzleCount() {
+  return state.difficulty === "easy" ? 10 : state.difficulty === "normal" ? 20 : PUZZLES.length;
+}
+function getTimePerPuzzle() {
+  return state.difficulty === "easy" ? 45 : state.difficulty === "normal" ? 30 : 18;
+}
+
+// ═══ GAME LOGIC ═══
+function startGame() {
+  if (!state.p1Name.trim()) return;
+  if (state.gameMode === "buzzer" && !state.p2Name.trim()) return;
+  const pool = state.category === "all" ? PUZZLES : PUZZLES.filter(p => p.cat === state.category);
+  const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, Math.min(getPuzzleCount(), pool.length));
+  Object.assign(state, {
+    puzzleOrder: shuffled, currentIndex: 0, guess: "", score: 0, streak: 0,
+    p1Score: 0, p2Score: 0, hintUsed: false, showHint: false,
+    timeLeft: state.gameMode === "buzzer" ? 10 : getTimePerPuzzle(),
+    feedback: null, results: [], buzzerPhase: "waiting", buzzedPlayer: null,
+    otherHadChance: false, buzzerGuess: "", hintGiven: false, screen: "game"
+  });
+  startTimer();
+  render();
+  setTimeout(() => {
+    const inp = document.getElementById("guess-input");
+    if (inp) inp.focus();
+  }, 100);
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  if (state.gameMode === "solo") {
+    timerInterval = setInterval(() => {
+      if (state.feedback) return;
+      state.timeLeft--;
+      if (state.timeLeft <= 0) {
+        clearInterval(timerInterval);
+        soloTimeout();
+      }
+      render();
+    }, 1000);
+  } else {
+    timerInterval = setInterval(() => {
+      if (state.buzzerPhase === "done" || state.buzzerPhase === "buzzed" || state.buzzerPhase === "answering" || state.buzzerPhase === "wrong-other") return;
+      state.timeLeft--;
+      if (state.timeLeft <= 0) {
+        clearInterval(timerInterval);
+        if (!state.hintGiven) {
+          state.hintGiven = true;
+          state.showHint = true;
+          state.timeLeft = 10;
+          startTimer();
+        } else {
+          buzzerSkip();
+        }
+      }
+      render();
+    }, 1000);
+  }
+}
+
+// Solo
+function soloTimeout() {
+  const p = state.puzzleOrder[state.currentIndex];
+  if (!p) return;
+  state.streak = 0;
+  state.feedback = { type: "timeout", answer: p.answer };
+  state.results.push({ correct: false, answer: p.answer, playerAnswer: "⏱ Time's up", cat: p.cat });
+  render();
+}
+
+function soloCheck() {
+  if (!state.guess.trim() || (state.feedback && state.feedback.type !== "wrong")) return;
+  const p = state.puzzleOrder[state.currentIndex];
+  if (checkAnswer(state.guess, p)) {
+    clearInterval(timerInterval);
+    const pts = Math.max(200 + Math.floor(state.timeLeft * 2) + state.streak * 50 + (state.hintUsed ? -100 : 0), 50);
+    state.score += pts;
+    state.streak++;
+    state.feedback = { type: "correct", points: pts };
+    state.results.push({ correct: true, answer: p.answer, playerAnswer: state.guess, cat: p.cat });
+  } else {
+    state.feedback = { type: "wrong" };
+    render();
+    setTimeout(() => {
+      state.feedback = null;
+      render();
+    }, 800);
+    return;
+  }
+  render();
+}
+
+function soloSkip() {
+  if (state.feedback && (state.feedback.type === "correct" || state.feedback.type === "timeout")) return;
+  clearInterval(timerInterval);
+  const p = state.puzzleOrder[state.currentIndex];
+  state.streak = 0;
+  state.feedback = { type: "skip", answer: p.answer };
+  state.results.push({ correct: false, answer: p.answer, playerAnswer: "Skipped", cat: p.cat });
+  render();
+}
+
+// Buzzer
+function buzz(player) {
+  clearInterval(timerInterval);
+  state.buzzedPlayer = player;
+  state.buzzerPhase = "buzzed";
+  state.buzzerGuess = "";
+  render();
+  setTimeout(() => {
+    state.buzzerPhase = "answering";
+    render();
+    setTimeout(() => {
+      const inp = document.getElementById("buzzer-input");
+      if (inp) inp.focus();
+    }, 50);
+  }, 800);
+}
+
+function buzzerSubmit() {
+  if (!state.buzzerGuess.trim()) return;
+  const p = state.puzzleOrder[state.currentIndex];
+  if (checkAnswer(state.buzzerGuess, p)) {
+    if (state.buzzedPlayer === 1) state.p1Score += 200; else state.p2Score += 200;
+    state.buzzerPhase = "done";
+    state.feedback = { type: "correct", player: state.buzzedPlayer };
+    state.results.push({ correct: true, answer: p.answer, playerAnswer: state.buzzerGuess, cat: p.cat, player: state.buzzedPlayer });
+  } else {
+    if (state.otherHadChance) {
+      state.buzzerPhase = "done";
+      state.feedback = { type: "skip", answer: p.answer };
+      state.results.push({ correct: false, answer: p.answer, playerAnswer: "Both wrong", cat: p.cat });
+    } else {
+      state.otherHadChance = true;
+      state.buzzerPhase = "wrong-other";
+    }
+  }
+  render();
+}
+
+function buzzerOtherTry() {
+  state.buzzedPlayer = state.buzzedPlayer === 1 ? 2 : 1;
+  state.buzzerGuess = "";
+  state.buzzerPhase = "answering";
+  render();
+  setTimeout(() => {
+    const inp = document.getElementById("buzzer-input");
+    if (inp) inp.focus();
+  }, 50);
+}
+
+function buzzerSkip() {
+  const p = state.puzzleOrder[state.currentIndex];
+  state.buzzerPhase = "done";
+  state.feedback = { type: "skip", answer: p.answer };
+  state.results.push({ correct: false, answer: p.answer, playerAnswer: "Skipped", cat: p.cat });
+  render();
+}
+
+function nextPuzzle() {
+  if (state.currentIndex + 1 >= state.puzzleOrder.length) {
+    finishGame();
+    return;
+  }
+  state.currentIndex++;
+  state.guess = "";
+  state.hintUsed = false;
+  state.showHint = false;
+  state.timeLeft = state.gameMode === "buzzer" ? 10 : getTimePerPuzzle();
+  state.feedback = null;
+  state.buzzerPhase = "waiting";
+  state.buzzedPlayer = null;
+  state.otherHadChance = false;
+  state.buzzerGuess = "";
+  state.hintGiven = false;
+  startTimer();
+  render();
+  if (state.gameMode === "solo") {
+    setTimeout(() => {
+      const inp = document.getElementById("guess-input");
+      if (inp) inp.focus();
+    }, 100);
+  }
+}
+
+function finishGame() {
+  clearInterval(timerInterval);
+  const entries = [];
+  if (state.gameMode === "solo") {
+    entries.push({ name: state.p1Name, score: state.score, correct: state.results.filter(r => r.correct).length, total: state.puzzleOrder.length, difficulty: state.difficulty, category: state.category, mode: "solo", date: new Date().toLocaleDateString() });
+  } else {
+    entries.push({ name: state.p1Name, score: state.p1Score, correct: state.results.filter(r => r.correct && r.player === 1).length, total: state.puzzleOrder.length, difficulty: state.difficulty, category: state.category, mode: "buzzer", date: new Date().toLocaleDateString() });
+    entries.push({ name: state.p2Name, score: state.p2Score, correct: state.results.filter(r => r.correct && r.player === 2).length, total: state.puzzleOrder.length, difficulty: state.difficulty, category: state.category, mode: "buzzer", date: new Date().toLocaleDateString() });
+  }
+  const newLb = [...state.leaderboard, ...entries].sort((a, b) => b.score - a.score).slice(0, 30);
+  state.leaderboard = newLb;
+  saveLeaderboard(newLb);
+  state.screen = "results";
+  render();
+}
+
+// Keyboard handler for buzzer
+function handleBuzzerKeys(e) {
+  if (state.screen !== "game" || state.gameMode !== "buzzer" || state.buzzerPhase !== "waiting") return;
+  const k = e.key.toLowerCase();
+  if (k === "q" || k === "a") buzz(1);
+  if (k === "p" || k === "l") buzz(2);
+}
+
+document.addEventListener("keydown", handleBuzzerKeys);
+
+// ═══ RENDER ENGINE ═══
+const app = document.getElementById("app");
+const catLabel = { all: "All", phrase: "Phrases", movie: "Movies" };
+const catIcon = { all: "🎲", phrase: "💬", movie: "🎬" };
+
+function render() {
+  let html = "";
+
+  // Header
+  const headerSize = state.screen === "menu" ? 48 : 26;
+  html += `<div style="text-align:center;margin-bottom:${state.screen === "menu" ? 16 : 10}px;">
+    <h1 onclick="state.screen='menu';clearInterval(timerInterval);render();" style="font-family:'Playfair Display',Georgia,serif;font-size:${headerSize}px;font-weight:900;background:linear-gradient(135deg,#f44 0%,#ff8844 50%,#ffd700 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0;letter-spacing:2px;cursor:pointer;">REBUS</h1>
+    ${state.screen === "menu" ? `<p style="color:#888;font-size:13px;margin-top:4px;letter-spacing:4px;text-transform:uppercase;">Decode the Visual · ${PUZZLES.length} Puzzles</p>` : ""}
+  </div>`;
+
+  if (state.screen === "menu") html += renderMenu();
+  else if (state.screen === "game" && state.gameMode === "solo") html += renderSoloGame();
+  else if (state.screen === "game" && state.gameMode === "buzzer") html += renderBuzzerGame();
+  else if (state.screen === "results") html += renderResults();
+  else if (state.screen === "leaderboard") html += renderLeaderboard();
+
+  app.innerHTML = html;
+  bindEvents();
+}
+
+function renderMenu() {
+  const previewPuzzles = [PUZZLES[0], PUZZLES[13], PUZZLES[16], PUZZLES[35], PUZZLES[27], PUZZLES[50]].filter(Boolean);
+  let previews = previewPuzzles.map(p =>
+    `<div style="height:72px;border-radius:8px;overflow:hidden;opacity:.55;">${renderPuzzleVisual(p)}</div>`
+  ).join("");
+
+  return `<div style="width:100%;max-width:440px;animation:slideUp .4s ease-out;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:20px;border-radius:12px;overflow:hidden;">${previews}</div>
+
+    <!-- Mode -->
+    <div style="margin-bottom:14px;">
+      <label style="display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;">Mode</label>
+      <div style="display:flex;gap:8px;">
+        ${[{ val: "solo", icon: "🎯", label: "Solo", desc: "Play alone" }, { val: "buzzer", icon: "⚡", label: "Buzzer 1v1", desc: "Jeopardy style" }].map(m => `
+          <button class="btn" onclick="state.gameMode='${m.val}';render();" style="flex:1;padding:10px 6px;border-radius:10px;background:${state.gameMode === m.val ? "#ffd70018" : "#1a1a2e"};border:2px solid ${state.gameMode === m.val ? "#ffd700" : "#2a2a3e"};color:${state.gameMode === m.val ? "#ffd700" : "#888"};text-align:center;">
+            <div style="font-size:22px;">${m.icon}</div><div style="font-size:14px;font-weight:700;margin-top:2px;">${m.label}</div><div style="font-size:10px;color:#666;">${m.desc}</div>
+          </button>`).join("")}
+      </div>
+    </div>
+
+    <!-- Names -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <div style="flex:1;">
+        <label style="display:block;color:${p1c};font-size:11px;letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;">${state.gameMode === "buzzer" ? "P1 (Q/A)" : "Your Name"}</label>
+        <input id="p1-name" value="${escHtml(state.p1Name)}" placeholder="Name..." style="width:100%;padding:10px 12px;font-size:15px;background:#1a1a2e;border:2px solid ${p1c}30;border-radius:10px;color:#e8e4dc;font-family:'JetBrains Mono','Fira Code',monospace;box-sizing:border-box;">
+      </div>
+      ${state.gameMode === "buzzer" ? `<div style="flex:1;">
+        <label style="display:block;color:${p2c};font-size:11px;letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;">P2 (P/L)</label>
+        <input id="p2-name" value="${escHtml(state.p2Name)}" placeholder="Name..." style="width:100%;padding:10px 12px;font-size:15px;background:#1a1a2e;border:2px solid ${p2c}30;border-radius:10px;color:#e8e4dc;font-family:'JetBrains Mono','Fira Code',monospace;box-sizing:border-box;">
+      </div>` : ""}
+    </div>
+
+    <!-- Category -->
+    <div style="margin-bottom:14px;">
+      <label style="display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;">Category</label>
+      <div style="display:flex;gap:8px;">
+        ${["all", "phrase", "movie"].map(c => `
+          <button class="btn" onclick="state.category='${c}';render();" style="flex:1;padding:8px 4px;border-radius:10px;background:${state.category === c ? "#ff884418" : "#1a1a2e"};border:2px solid ${state.category === c ? "#ff8844" : "#2a2a3e"};color:${state.category === c ? "#ff8844" : "#888"};text-align:center;">
+            <div style="font-size:18px;">${catIcon[c]}</div><div style="font-size:12px;font-weight:700;">${catLabel[c]}</div><div style="font-size:9px;color:#666;">${c === "all" ? PUZZLES.length : c === "phrase" ? phraseCount : movieCount}</div>
+          </button>`).join("")}
+      </div>
+    </div>
+
+    <!-- Difficulty -->
+    <div style="margin-bottom:18px;">
+      <label style="display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;">Difficulty</label>
+      <div style="display:flex;gap:8px;">
+        ${[{ val: "easy", label: "Easy", desc: "10 · 45s", color: "#4ade80" }, { val: "normal", label: "Normal", desc: "20 · 30s", color: "#fbbf24" }, { val: "hard", label: "Hard", desc: `All ${PUZZLES.length} · 18s`, color: "#f44" }].map(d => `
+          <button class="btn" onclick="state.difficulty='${d.val}';render();" style="flex:1;padding:8px 4px;border-radius:10px;background:${state.difficulty === d.val ? d.color + "18" : "#1a1a2e"};border:2px solid ${state.difficulty === d.val ? d.color : "#2a2a3e"};color:${state.difficulty === d.val ? d.color : "#888"};text-align:center;">
+            <div style="font-size:14px;font-weight:700;">${d.label}</div><div style="font-size:10px;opacity:.7;">${d.desc}</div>
+          </button>`).join("")}
+      </div>
+    </div>
+
+    <button class="btn" onclick="startGame();" style="width:100%;padding:14px;font-size:20px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:12px;letter-spacing:2px;">PLAY</button>
+    <button class="btn" onclick="state.screen='leaderboard';render();" style="width:100%;padding:11px;font-size:13px;font-weight:600;background:transparent;color:#888;border-radius:12px;border:1px solid #2a2a3e;margin-top:8px;">Leaderboard</button>
+  </div>`;
+}
+
+function renderSoloGame() {
+  const puzzle = state.puzzleOrder[state.currentIndex];
+  if (!puzzle) return "";
+  const tpp = getTimePerPuzzle();
+  const timerColor = state.timeLeft > 15 ? "#4ade80" : state.timeLeft > 7 ? "#fbbf24" : "#f44";
+  const timerPct = (state.timeLeft / tpp) * 100;
+  const fb = state.feedback;
+
+  let inputSection = "";
+  if (!fb || fb.type === "wrong") {
+    inputSection = `
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input id="guess-input" value="${escHtml(state.guess)}" placeholder="Type your guess..." class="${fb && fb.type === 'wrong' ? 'shake' : ''}" style="flex:1;padding:11px 12px;font-size:15px;background:#1a1a2e;border:2px solid #2a2a3e;border-radius:10px;color:#e8e4dc;font-family:'JetBrains Mono','Fira Code',monospace;">
+        <button class="btn" onclick="soloCheck();" style="padding:11px 16px;background:#4ade80;color:#0c0c14;border-radius:10px;font-weight:700;font-size:16px;">✓</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        ${!state.hintUsed ? `<button class="btn" onclick="state.hintUsed=true;state.showHint=true;render();" style="flex:1;padding:8px;background:#1a1a2e;border:1px solid #fbbf2440;border-radius:8px;color:#fbbf24;font-size:11px;font-weight:600;">Hint (-100)</button>` : ""}
+        <button class="btn" onclick="soloSkip();" style="flex:1;padding:8px;background:#1a1a2e;border:1px solid #f4444040;border-radius:8px;color:#f44;font-size:11px;font-weight:600;">Skip →</button>
+      </div>`;
+  }
+
+  let feedbackSection = "";
+  if (fb && fb.type !== "wrong") {
+    if (fb.type === "correct") {
+      feedbackSection = `<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#4ade8015;border:2px solid #4ade8040;">
+        <div style="font-size:28px;">✨</div>
+        <div style="color:#4ade80;font-size:18px;font-weight:900;font-family:'Playfair Display',Georgia,serif;">Correct!</div>
+        <div style="color:#4ade80;font-size:12px;font-family:'JetBrains Mono',monospace;">+${fb.points} pts</div>
+        <button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">${state.currentIndex + 1 >= state.puzzleOrder.length ? "Results" : "Next →"}</button>
+      </div>`;
+    } else {
+      feedbackSection = `<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#f4444015;border:2px solid #f4440040;">
+        <div style="font-size:28px;">${fb.type === "timeout" ? "⏱" : "⏭"}</div>
+        <div style="color:#f44;font-size:16px;font-weight:700;">${fb.type === "timeout" ? "Time's Up!" : "Skipped"}</div>
+        <div style="color:#888;font-size:13px;margin-top:4px;">Answer: <span style="color:#ffd700;font-weight:700;">${escHtml(fb.answer)}</span></div>
+        <button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">${state.currentIndex + 1 >= state.puzzleOrder.length ? "Results" : "Next →"}</button>
+      </div>`;
+    }
+  }
+
+  return `<div style="width:100%;max-width:440px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div style="display:flex;gap:12px;font-size:14px;align-items:center;">
+        <span style="color:#ffd700;font-family:'JetBrains Mono',monospace;font-weight:700;">${state.score} pts</span>
+        ${state.streak >= 2 ? `<span class="pop" style="color:#f44;font-weight:700;">🔥${state.streak}x</span>` : ""}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="font-size:13px;">${catIcon[puzzle.cat]}</span>
+        <span style="color:#666;font-size:13px;">${state.currentIndex + 1}/${state.puzzleOrder.length}</span>
+      </div>
+    </div>
+    <div style="width:100%;height:4px;background:#1a1a2e;border-radius:2px;margin-bottom:12px;overflow:hidden;">
+      <div style="width:${timerPct}%;height:100%;background:${timerColor};border-radius:2px;transition:width 1s linear;"></div>
+    </div>
+    <div class="pop" style="width:100%;height:190px;border-radius:14px;overflow:hidden;border:2px solid #2a2a3e;margin-bottom:8px;">${renderPuzzleVisual(puzzle)}</div>
+    <div style="text-align:center;margin-bottom:8px;">
+      <span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;background:${puzzle.cat === "movie" ? "#ff884420" : "#4ade8020"};color:${puzzle.cat === "movie" ? "#ff8844" : "#4ade80"};text-transform:uppercase;">${puzzle.cat === "movie" ? "🎬 Movie" : "💬 Phrase"}</span>
+    </div>
+    ${state.showHint ? `<div class="slide-up" style="padding:6px 12px;background:#1a1a2e;border-radius:8px;margin-bottom:8px;border:1px solid #fbbf2440;font-size:12px;color:#fbbf24;">💡 ${escHtml(puzzle.hint)}</div>` : ""}
+    ${inputSection}
+    ${feedbackSection}
+  </div>`;
+}
+
+function renderBuzzerGame() {
+  const puzzle = state.puzzleOrder[state.currentIndex];
+  if (!puzzle) return "";
+  const timerColor = state.timeLeft > 10 ? "#4ade80" : state.timeLeft > 5 ? "#fbbf24" : "#f44";
+  const timerPct = (state.timeLeft / 10) * 100;
+  const fb = state.feedback;
+
+  let phaseHtml = "";
+  if (state.buzzerPhase === "waiting") {
+    phaseHtml = `<div style="text-align:center;padding:16px;">
+      <div class="pulse-anim" style="font-size:18px;font-weight:700;color:#ffd700;margin-bottom:8px;">⚡ BUZZ IN ⚡</div>
+      <div style="display:flex;justify-content:center;gap:30px;">
+        <div style="text-align:center;"><div onclick="buzz(1);" style="width:56px;height:56px;border-radius:50%;background:${p1c}22;border:3px solid ${p1c};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${p1c};cursor:pointer;">Q</div><div style="color:${p1c};font-size:10px;margin-top:3px;">${escHtml(state.p1Name)}</div></div>
+        <div style="text-align:center;"><div onclick="buzz(2);" style="width:56px;height:56px;border-radius:50%;background:${p2c}22;border:3px solid ${p2c};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${p2c};cursor:pointer;">P</div><div style="color:${p2c};font-size:10px;margin-top:3px;">${escHtml(state.p2Name)}</div></div>
+      </div>
+      <div style="color:#555;font-size:9px;margin-top:8px;">Keyboard: Q/A or P/L</div>
+    </div>`;
+  } else if (state.buzzerPhase === "buzzed") {
+    const bc = state.buzzedPlayer === 1 ? p1c : p2c;
+    const bn = state.buzzedPlayer === 1 ? state.p1Name : state.p2Name;
+    phaseHtml = `<div class="buzz-flash" style="text-align:center;padding:24px;"><div style="font-size:44px;">⚡</div><div style="font-size:22px;font-weight:900;color:${bc};font-family:'Playfair Display',Georgia,serif;">${escHtml(bn)}!</div></div>`;
+  } else if (state.buzzerPhase === "answering") {
+    const bc = state.buzzedPlayer === 1 ? p1c : p2c;
+    const bn = state.buzzedPlayer === 1 ? state.p1Name : state.p2Name;
+    phaseHtml = `<div style="padding:8px 0;">
+      <div style="text-align:center;margin-bottom:6px;"><span style="color:${bc};font-weight:900;font-size:15px;">${escHtml(bn)}'s turn</span></div>
+      <div style="display:flex;gap:8px;">
+        <input id="buzzer-input" value="${escHtml(state.buzzerGuess)}" placeholder="Answer..." style="flex:1;padding:11px 12px;font-size:15px;background:#1a1a2e;border:2px solid ${bc}40;border-radius:10px;color:#e8e4dc;font-family:'JetBrains Mono','Fira Code',monospace;">
+        <button class="btn" onclick="buzzerSubmit();" style="padding:11px 16px;background:#4ade80;color:#0c0c14;border-radius:10px;font-weight:700;font-size:16px;">✓</button>
+      </div>
+    </div>`;
+  } else if (state.buzzerPhase === "wrong-other") {
+    const otherName = state.buzzedPlayer === 1 ? state.p2Name : state.p1Name;
+    const otherColor = state.buzzedPlayer === 1 ? p2c : p1c;
+    phaseHtml = `<div class="pop" style="text-align:center;padding:14px;background:#f4444015;border-radius:14px;border:2px solid #f4440040;">
+      <div style="color:#f44;font-size:15px;font-weight:700;margin-bottom:4px;">❌ Wrong!</div>
+      <div style="color:#888;font-size:12px;margin-bottom:10px;">${escHtml(otherName)} gets a chance!</div>
+      <button class="btn" onclick="buzzerOtherTry();" style="padding:9px 20px;font-size:13px;font-weight:700;border-radius:10px;background:${otherColor}22;border:2px solid ${otherColor};color:${otherColor};">${escHtml(otherName)} — Answer</button>
+    </div>`;
+  } else if (state.buzzerPhase === "done" && fb) {
+    if (fb.type === "correct") {
+      const wn = state.buzzedPlayer === 1 ? state.p1Name : state.p2Name;
+      phaseHtml = `<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#4ade8015;border:2px solid #4ade8040;">
+        <div style="font-size:28px;">✨</div>
+        <div style="color:#4ade80;font-size:18px;font-weight:900;font-family:'Playfair Display',Georgia,serif;">${escHtml(wn)} got it!</div>
+        <div style="color:#4ade80;font-size:12px;font-family:'JetBrains Mono',monospace;">+200 pts</div>
+        <button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">${state.currentIndex + 1 >= state.puzzleOrder.length ? "Results" : "Next →"}</button>
+      </div>`;
+    } else {
+      phaseHtml = `<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#f4444015;border:2px solid #f4440040;">
+        <div style="font-size:28px;">⏭</div>
+        <div style="color:#f44;font-size:15px;font-weight:700;">Nobody got it</div>
+        <div style="color:#888;font-size:13px;margin-top:4px;">Answer: <span style="color:#ffd700;font-weight:700;">${escHtml(fb.answer)}</span></div>
+        <button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">${state.currentIndex + 1 >= state.puzzleOrder.length ? "Results" : "Next →"}</button>
+      </div>`;
+    }
+  }
+
+  return `<div style="width:100%;max-width:500px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="text-align:center;"><div style="color:${p1c};font-size:13px;font-weight:700;">${escHtml(state.p1Name)}</div><div style="color:${p1c};font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.p1Score}</div></div>
+      <div style="text-align:center;"><span style="color:#666;font-size:12px;">${state.currentIndex + 1}/${state.puzzleOrder.length}</span><div style="color:${timerColor};font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.timeLeft}</div></div>
+      <div style="text-align:center;"><div style="color:${p2c};font-size:13px;font-weight:700;">${escHtml(state.p2Name)}</div><div style="color:${p2c};font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.p2Score}</div></div>
+    </div>
+    <div style="width:100%;height:4px;background:#1a1a2e;border-radius:2px;margin-bottom:12px;overflow:hidden;">
+      <div style="width:${timerPct}%;height:100%;background:${timerColor};border-radius:2px;transition:width 1s linear;"></div>
+    </div>
+    <div class="pop" style="width:100%;height:180px;border-radius:14px;overflow:hidden;border:2px solid #2a2a3e;margin-bottom:8px;">${renderPuzzleVisual(puzzle)}</div>
+    <div style="text-align:center;margin-bottom:8px;">
+      <span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;background:${puzzle.cat === "movie" ? "#ff884420" : "#4ade8020"};color:${puzzle.cat === "movie" ? "#ff8844" : "#4ade80"};text-transform:uppercase;">${puzzle.cat === "movie" ? "🎬 Movie" : "💬 Phrase"}</span>
+    </div>
+    ${state.showHint ? `<div class="slide-up" style="padding:6px 12px;background:#1a1a2e;border-radius:8px;margin-bottom:8px;border:1px solid #fbbf2440;font-size:12px;color:#fbbf24;text-align:center;">💡 ${escHtml(puzzle.hint)}</div>` : ""}
+    ${phaseHtml}
+  </div>`;
+}
+
+function renderResults() {
+  const res = state.results;
+  let header = "";
+  if (state.gameMode === "buzzer") {
+    const winner = state.p1Score > state.p2Score ? state.p1Name : state.p2Score > state.p1Score ? state.p2Name : null;
+    const wColor = state.p1Score > state.p2Score ? p1c : state.p2Score > state.p1Score ? p2c : "#ffd700";
+    header = `<div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:44px;margin-bottom:6px;">${winner ? "🏆" : "🤝"}</div>
+      <div style="font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:900;color:${wColor};">${winner ? `${escHtml(winner)} Wins!` : "Tie!"}</div>
+      <div style="display:flex;justify-content:center;gap:28px;margin-top:10px;">
+        <div style="text-align:center;"><div style="color:${p1c};font-weight:700;font-size:13px;">${escHtml(state.p1Name)}</div><div style="color:${p1c};font-size:26px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.p1Score}</div></div>
+        <div style="color:#333;font-size:24px;font-weight:900;align-self:center;">vs</div>
+        <div style="text-align:center;"><div style="color:${p2c};font-weight:700;font-size:13px;">${escHtml(state.p2Name)}</div><div style="color:${p2c};font-size:26px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.p2Score}</div></div>
+      </div>
+    </div>`;
+  } else {
+    header = `<div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:44px;margin-bottom:6px;">🏆</div>
+      <div style="font-family:'Playfair Display',Georgia,serif;font-size:36px;font-weight:900;color:#ffd700;">${state.score}</div>
+      <div style="color:#888;font-size:13px;margin-top:2px;">${res.filter(r => r.correct).length}/${res.length} correct</div>
+    </div>`;
+  }
+
+  const rows = res.map((r, i) => `
+    <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:#1a1a2e;border-radius:6px;border-left:3px solid ${r.correct ? "#4ade80" : "#f44"};">
+      <span style="font-size:12px;">${r.cat === "movie" ? "🎬" : "💬"}</span>
+      <span style="font-size:13px;">${r.correct ? "✓" : "✗"}</span>
+      <span style="flex:1;color:#ccc;font-size:11px;">${escHtml(r.answer)}</span>
+      ${r.correct && r.player ? `<span style="font-size:9px;color:${r.player === 1 ? p1c : p2c};font-weight:700;">${escHtml(r.player === 1 ? state.p1Name : state.p2Name)}</span>` : ""}
+    </div>`).join("");
+
+  return `<div style="width:100%;max-width:460px;animation:slideUp .4s ease-out;">
+    ${header}
+    <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:16px;max-height:240px;overflow-y:auto;">${rows}</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" onclick="startGame();" style="flex:1;padding:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">Play Again</button>
+      <button class="btn" onclick="state.screen='leaderboard';render();" style="flex:1;padding:12px;font-size:14px;font-weight:700;background:#1a1a2e;color:#ffd700;border-radius:10px;border:1px solid #ffd70040;">Leaderboard</button>
+    </div>
+    <button class="btn" onclick="state.screen='menu';render();" style="width:100%;padding:9px;font-size:12px;font-weight:600;background:transparent;color:#666;border-radius:10px;border:1px solid #2a2a3e;margin-top:6px;">Menu</button>
+  </div>`;
+}
+
+function renderLeaderboard() {
+  const lb = state.leaderboard;
+  const rows = lb.length === 0 ? `<div style="text-align:center;color:#666;padding:40px;font-size:14px;">No scores yet!</div>` :
+    `<div style="display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto;">
+      ${lb.map((e, i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${i < 3 ? "#1a1a2e" : "#12121e"};border-radius:10px;border:${i === 0 ? "1px solid #ffd70030" : "1px solid transparent"};">
+          <span style="font-size:15px;font-weight:900;width:26px;text-align:center;color:${i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : i === 2 ? "#cd7f32" : "#555"};">${i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "#" + (i + 1)}</span>
+          <div style="flex:1;"><div style="color:#e8e4dc;font-weight:700;font-size:13px;">${escHtml(e.name)}</div><div style="color:#666;font-size:9px;">${e.correct}/${e.total} · ${e.difficulty} · ${catLabel[e.category] || "All"} · ${e.mode || "solo"} · ${e.date}</div></div>
+          <span style="color:#ffd700;font-weight:900;font-family:'JetBrains Mono',monospace;font-size:15px;">${e.score}</span>
+        </div>`).join("")}
+    </div>`;
+
+  return `<div style="width:100%;max-width:440px;animation:slideUp .4s ease-out;">
+    <h2 style="font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:900;color:#ffd700;text-align:center;margin:0 0 14px;">Leaderboard</h2>
+    ${rows}
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn" onclick="state.screen='menu';render();" style="flex:1;padding:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">Back to Menu</button>
+      ${lb.length > 0 ? `<button class="btn" onclick="state.leaderboard=[];saveLeaderboard([]);render();" style="padding:12px 14px;font-size:11px;font-weight:600;background:#1a1a2e;color:#f44;border-radius:10px;border:1px solid #f4444030;">Reset</button>` : ""}
+    </div>
+  </div>`;
+}
+
+// ═══ EVENT BINDING ═══
+function bindEvents() {
+  // Menu inputs
+  const p1Input = document.getElementById("p1-name");
+  if (p1Input) {
+    p1Input.addEventListener("input", e => { state.p1Name = e.target.value; });
+    p1Input.addEventListener("keydown", e => { if (e.key === "Enter") startGame(); });
+  }
+  const p2Input = document.getElementById("p2-name");
+  if (p2Input) {
+    p2Input.addEventListener("input", e => { state.p2Name = e.target.value; });
+    p2Input.addEventListener("keydown", e => { if (e.key === "Enter") startGame(); });
+  }
+
+  // Solo guess input
+  const guessInput = document.getElementById("guess-input");
+  if (guessInput) {
+    guessInput.addEventListener("input", e => { state.guess = e.target.value; });
+    guessInput.addEventListener("keydown", e => { if (e.key === "Enter") soloCheck(); });
+    // Preserve cursor position
+    const pos = guessInput.value.length;
+    guessInput.setSelectionRange(pos, pos);
+  }
+
+  // Buzzer input
+  const buzzerInput = document.getElementById("buzzer-input");
+  if (buzzerInput) {
+    buzzerInput.addEventListener("input", e => { state.buzzerGuess = e.target.value; });
+    buzzerInput.addEventListener("keydown", e => { if (e.key === "Enter") buzzerSubmit(); });
+    const pos = buzzerInput.value.length;
+    buzzerInput.setSelectionRange(pos, pos);
+  }
+}
+
+function escHtml(s) {
+  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// ═══ INIT ═══
+render();
+</script>
+</body>
+</html>

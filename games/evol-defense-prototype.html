@@ -454,6 +454,21 @@
       box-shadow: 0 10px 30px rgba(255, 68, 68, 0.5);
     }
     
+    .rare-card {
+      background: linear-gradient(135deg, #1a1a3a 0%, #2a2a5a 50%, #1a1a3a 100%) !important;
+      border: 3px solid #a855f7 !important;
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.1);
+      animation: rarePulse 2s ease-in-out infinite;
+    }
+    .rare-card:hover {
+      border-color: #c084fc !important;
+      box-shadow: 0 10px 30px rgba(168, 85, 247, 0.6), inset 0 0 30px rgba(168, 85, 247, 0.15);
+    }
+    @keyframes rarePulse {
+      0%, 100% { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.1); }
+      50% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.6), inset 0 0 30px rgba(168, 85, 247, 0.2); }
+    }
+    
     /* Pause Menu */
     #pauseMenu {
       position: absolute;
@@ -2455,6 +2470,7 @@
       
       enemies.forEach(enemy => {
         enemy.frozen = true;
+        enemy.frozenDuration = 5;
       });
     }
 
@@ -4685,6 +4701,34 @@
             player.burnDamage = 100; // Massive burn damage
           }
         }
+      },
+      shieldOnKill: {
+        icon: "🛡️",
+        name: "Shield Harvest",
+        maxLevel: 5,
+        rarity: "rare", // Rare card - lower chance to appear
+        getCurrentLevel: (player) => player.upgradeLevels.shieldOnKill,
+        getDesc: (level) => `Kills grant +${5 * level} shield (max ${50 + level * 25}) (Level ${level}/5)`,
+        apply: (player, level) => {
+          player.shieldOnKill = 5 * level;
+          player.shieldOnKillMax = 50 + level * 25;
+          if (player.maxShield < player.shieldOnKillMax) {
+            player.maxShield = player.shieldOnKillMax;
+          }
+          player.upgradeLevels.shieldOnKill = level;
+        },
+        superUpgrade: {
+          name: "💠 SOUL BARRIER",
+          desc: "Kills grant +25 shield with no cap! Excess shield explodes on enemies!",
+          icon: "💠",
+          apply: (player) => {
+            player.superUpgrades.soulBarrier = true;
+            player.shieldOnKill = 25;
+            player.shieldOnKillMax = 9999;
+            player.maxShield = 9999;
+            player.shieldExplosionOnOverflow = true;
+          }
+        }
       }
     };
 
@@ -6345,7 +6389,33 @@
       vecnaKillCounter++;
       enemiesKilledThisWave++; // Track for progress bar
       
-      // NO SHIELD REGEN ON KILL (removed)
+      // Shield Harvest: Gain shield on kill
+      if (player.shieldOnKill > 0) {
+        const shieldGain = player.shieldOnKill;
+        const maxShield = player.shieldOnKillMax || player.maxShield || 200;
+        const oldShield = player.shield || 0;
+        
+        if (player.shieldExplosionOnOverflow && oldShield >= maxShield) {
+          // Soul Barrier super upgrade: excess shield explodes for AoE damage
+          const explosionDmg = shieldGain * 3;
+          enemies.forEach(nearby => {
+            if (nearby === enemy) return;
+            const dx = nearby.x - enemy.x;
+            const dy = nearby.y - enemy.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 150) {
+              nearby.hp -= explosionDmg;
+              spawnHitParticles(nearby.x + nearby.w / 2, nearby.y + nearby.h / 2, "#a855f7", 4);
+            }
+          });
+          addFloatingText(enemy.x + enemy.w / 2, enemy.y - 30, `💠 SHIELD BURST ${explosionDmg}`, "#a855f7", 1.2);
+          spawnExplosion(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, "#a855f7", 12);
+        } else {
+          player.shield = Math.min((player.shield || 0) + shieldGain, maxShield);
+          if (player.maxShield < maxShield) player.maxShield = maxShield;
+          addFloatingText(player.x + player.w / 2, player.y - 20, `+${shieldGain} 🛡️`, "#a855f7", 0.8);
+        }
+      }
       
       // Illusionist clone gains XP from clone kills
       if (illusionistClone && enemy.killedByClone) {
@@ -6758,16 +6828,11 @@
       timeFreezeActive = true;
       timeFreezeTimer = 5;
       
-      // Freeze all enemies
+      // Freeze all enemies with proper duration
       enemies.forEach(e => {
         e.frozen = true;
+        e.frozenDuration = 5;
       });
-      
-      setTimeout(() => {
-        enemies.forEach(e => {
-          e.frozen = false;
-        });
-      }, 5000);
       
       screenShake = 10;
     }
@@ -7340,14 +7405,19 @@
           multiShot: 0, damage: 0, fireRate: 0, hp: 0, range: 0,
           projectileSpeed: 0, pierce: 0, lifesteal: 0, explosive: 0,
           criticalHit: 0, shield: 0, regeneration: 0, chainLightning: 0,
-          damageAura: 0, freezeBullets: 0, knockback: 0, homingShots: 0
+          damageAura: 0, freezeBullets: 0, knockback: 0, homingShots: 0,
+          shieldOnKill: 0
         },
         // Super upgrades unlocked flags
+        shieldOnKill: 0,
+        shieldOnKillMax: 0,
+        shieldExplosionOnOverflow: false,
         superUpgrades: {
           laserBeam: false, buckshot: false, rapidFire: false, phaseBullets: false,
           titanForm: false, infiniteRange: false, lightSpeed: false, vampireMode: false,
           nukeShots: false, guaranteedCrits: false, invincible: false, immortal: false,
-          storm: false, inferno: false, absoluteZero: false, gravityWell: false, seekingSwarm: false
+          storm: false, inferno: false, absoluteZero: false, gravityWell: false, seekingSwarm: false,
+          soulBarrier: false
         },
         // Legendary upgrades (one-time powerful upgrades from maxed stats)
         legendaryUpgrades: {
@@ -7634,6 +7704,9 @@
     // SPAWNING
     function handleSpawning(dt) {
       if (enemiesToSpawn <= 0) return;
+      
+      // Pause spawning during Time Freeze so enemies don't stack up
+      if (timeFreezeActive) return;
       
       spawnTimer += dt;
       
@@ -8147,10 +8220,8 @@
           if (e.frozenDuration <= 0) {
             e.frozen = false;
             e.freezeStacks = 0; // Reset freeze stacks when thawed
-          } else {
-            // Frozen enemies can't move
-            continue; // Skip this enemy's update
           }
+          // Frozen enemies can't move but can still take damage and die
         }
         
         // Apply slow effect
@@ -10496,8 +10567,16 @@
         }
       }
       
-      // Shuffle and pick 3
-      const shuffled = options.sort(() => Math.random() - 0.5);
+      // Weighted shuffle - rare cards have lower chance to appear
+      const weighted = options.map(opt => {
+        let weight = 1.0;
+        if (opt.type === 'normal' && UPGRADE_TYPES[opt.key]?.rarity === 'rare') {
+          weight = 0.25; // 25% chance to be included vs normal cards
+        }
+        if (opt.type === 'legendary') weight = 1.5; // Slightly boost legendaries
+        return { ...opt, sortKey: Math.random() * weight };
+      });
+      const shuffled = weighted.sort((a, b) => b.sortKey - a.sortKey);
       currentUpgradeOptions = shuffled.slice(0, 3);
       
       upgradeOptions.innerHTML = "";
@@ -10548,11 +10627,15 @@
             card.onclick = () => selectSuperUpgrade(option.key);
           } else {
             // Normal level up
+            const isRare = upgrade.rarity === 'rare';
+            if (isRare) {
+              card.className = "upgrade-card rare-card";
+            }
             card.innerHTML = `
               <div class="upgrade-card-icon">${upgrade.icon}</div>
-              <div class="upgrade-card-title">${upgrade.name}</div>
+              <div class="upgrade-card-title" ${isRare ? 'style="color: #c084fc; text-shadow: 0 0 8px #a855f7;"' : ''}>${upgrade.name}</div>
               <div class="upgrade-card-desc">${upgrade.getDesc(nextLevel)}</div>
-              <div style="color: #888; font-size: 11px; margin-top: 5px;">Level ${nextLevel}/${upgrade.maxLevel}</div>
+              <div style="color: ${isRare ? '#a855f7' : '#888'}; font-size: 11px; margin-top: 5px;">${isRare ? '💎 RARE - ' : ''}Level ${nextLevel}/${upgrade.maxLevel}</div>
             `;
             card.onclick = () => selectUpgrade(option.key);
           }

@@ -370,6 +370,51 @@
             background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
         }
+
+        .hint-progress-bar {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+
+        .hint-progress-bar h4 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+
+        .hint-player-item {
+            display: inline-block;
+            padding: 6px 14px;
+            margin: 4px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .hint-player-item.submitted {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .hint-player-item.waiting {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .all-hints-in {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+            font-size: 1.1em;
+            animation: pulse 1s infinite;
+        }
     </style>
 </head>
 <body>
@@ -395,9 +440,10 @@
                 2. Vote on a category together<br>
                 3. Everyone sees a chart with 20 words<br>
                 4. One word is highlighted (except for the chameleon!)<br>
-                5. Take turns giving clues about the word<br>
-                6. Vote to find the chameleon<br>
-                7. Caught chameleon gets one final guess for bonus points!
+                5. <strong>Everyone</strong> must give one hint about the word<br>
+                6. Once ALL hints are in, voting begins<br>
+                7. Vote to find the chameleon<br>
+                8. Caught chameleon gets one final guess for bonus points!
             </div>
         </div>
 
@@ -465,12 +511,25 @@
             <!-- Turn Indicator -->
             <div id="turn-indicator" class="turn-indicator" style="display: none;"></div>
 
+            <!-- Hint Progress Tracker -->
+            <div id="hint-progress" style="display: none;">
+                <div class="hint-progress-bar">
+                    <h4>📝 Hints Submitted: <span id="hint-count">0</span> / <span id="hint-total">0</span></h4>
+                    <div id="hint-player-status"></div>
+                </div>
+            </div>
+
             <!-- Clue Submission Phase -->
             <div id="clue-phase" style="display: none;">
                 <div class="input-group">
-                    <input type="text" id="clue-input" placeholder="Enter your clue" maxlength="50">
+                    <input type="text" id="clue-input" placeholder="Enter your one-word hint" maxlength="50">
                 </div>
-                <button class="btn" onclick="submitClue()">📝 Submit Clue</button>
+                <button class="btn" onclick="submitClue()">📝 Submit Hint</button>
+            </div>
+
+            <!-- Waiting for others after submitting -->
+            <div id="clue-waiting" style="display: none;">
+                <div class="status">✅ Your hint has been submitted! Waiting for other players...</div>
             </div>
 
             <!-- Clues Display -->
@@ -484,6 +543,7 @@
                 <div class="timer-display voting" id="voting-timer">45</div>
                 <h3>Vote for the Chameleon!</h3>
                 <p>Who do you think doesn't know the secret word?</p>
+                <p id="majority-info" style="font-weight: bold; color: #e17055;"></p>
                 <div class="voting-grid" id="voting-container"></div>
             </div>
 
@@ -719,6 +779,46 @@
                         showScreen('game-screen');
                     }
                     updateGameDisplay();
+
+                    // Host checks if all hints are in and triggers voting transition
+                    if (roomData.gameState.phase === 'clue-submission' && roomData.host === currentPlayer.id) {
+                        const playerCount = Object.keys(roomData.gameState.players || {}).length;
+                        const clueCount = Object.keys(roomData.gameState.clues || {}).length;
+                        if (clueCount >= playerCount && !window._votingTransitionTriggered) {
+                            window._votingTransitionTriggered = true;
+                            (async () => {
+                                const serverTimeOffset = await getServerTimeOffset();
+                                const votingEndTimestamp = Date.now() + serverTimeOffset + 45000;
+                                setTimeout(async () => {
+                                    await database.ref(`rooms/${currentRoom}/gameState`).update({
+                                        phase: 'voting',
+                                        votingEndTime: votingEndTimestamp
+                                    });
+                                    window._votingTransitionTriggered = false;
+                                }, 2000);
+                            })();
+                        }
+                    }
+                    // Reset transition flag when phase changes
+                    if (roomData.gameState.phase !== 'clue-submission') {
+                        window._votingTransitionTriggered = false;
+                    }
+
+                    // Host checks if all votes are in and triggers results calculation
+                    if (roomData.gameState.phase === 'voting' && roomData.host === currentPlayer.id) {
+                        const playerCount = Object.keys(roomData.gameState.players || {}).length;
+                        const voteCount = Object.keys(roomData.gameState.votes || {}).length;
+                        if (voteCount >= playerCount && !window._resultsTransitionTriggered) {
+                            window._resultsTransitionTriggered = true;
+                            setTimeout(() => {
+                                gameState = roomData.gameState;
+                                calculateResults();
+                            }, 2000);
+                        }
+                    }
+                    if (roomData.gameState.phase !== 'voting') {
+                        window._resultsTransitionTriggered = false;
+                    }
                 }
 
                 const startBtn = document.getElementById('start-game-btn');
@@ -939,17 +1039,6 @@
             const words = categories[winningCategory];
             const secretWord = words[Math.floor(Math.random() * words.length)];
 
-            // Create turn order with ALL players
-            const turnOrder = [...players];
-            // Shuffle turn order
-            for (let i = turnOrder.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [turnOrder[i], turnOrder[j]] = [turnOrder[j], turnOrder[i]];
-            }
-
-            const serverTimeOffset = await getServerTimeOffset();
-            const turnEndTime = Date.now() + serverTimeOffset + 25000; // 25 seconds per turn
-
             const newGameState = {
                 phase: 'clue-submission',
                 category: winningCategory,
@@ -959,9 +1048,6 @@
                 secretWord: secretWord,
                 clues: {},
                 votes: {},
-                turnOrder: turnOrder,
-                currentTurn: 0,
-                turnEndTime: turnEndTime,
                 startedAt: firebase.database.ServerValue.TIMESTAMP
             };
 
@@ -992,37 +1078,44 @@
             document.querySelectorAll('#game-screen > div[id*="-phase"]').forEach(el => {
                 el.style.display = 'none';
             });
+            // Reset hint-related displays
+            const hintProgress = document.getElementById('hint-progress');
+            const clueWaiting = document.getElementById('clue-waiting');
+            if (hintProgress) hintProgress.style.display = 'none';
+            if (clueWaiting) clueWaiting.style.display = 'none';
 
             switch (gameState.phase) {
                 case 'clue-submission':
                     phaseEl.textContent = `Category: ${gameState.category}`;
                     
-                    if (gameState.detective === currentPlayer.id) {
-                        roleEl.innerHTML = '<strong>🔍 You are the Detective!</strong> Watch the clues carefully!';
-                        document.getElementById('clue-phase').style.display = 'none';
+                    // Show role info
+                    if (gameState.imposter === currentPlayer.id) {
+                        roleEl.innerHTML = '<strong>🦎 You are the Chameleon!</strong> Try to blend in! Give a hint that won\'t reveal you don\'t know the word.';
                     } else {
-                        if (gameState.imposter === currentPlayer.id) {
-                            roleEl.innerHTML = '<strong>🦎 You are the Chameleon!</strong> Try to blend in!';
-                        } else {
-                            roleEl.innerHTML = '<strong>✅ You know the secret word!</strong> Give helpful clues!';
-                        }
-
-                        const currentTurnPlayer = gameState.turnOrder[gameState.currentTurn];
-                        const turnIndicator = document.getElementById('turn-indicator');
-                        
-                        if (currentTurnPlayer === currentPlayer.id) {
-                            turnIndicator.textContent = "🎯 It's your turn to give a clue!";
-                            turnIndicator.style.display = 'block';
-                            document.getElementById('clue-phase').style.display = 'block';
-                        } else {
-                            const playerName = gameState.players[currentTurnPlayer]?.name || 'Someone';
-                            turnIndicator.textContent = `⏳ Waiting for ${playerName} to give a clue...`;
-                            turnIndicator.style.display = 'block';
-                            document.getElementById('clue-phase').style.display = 'none';
-                        }
+                        roleEl.innerHTML = '<strong>✅ You know the secret word!</strong> Give a hint — but not too obvious!';
                     }
 
-                    if (gameState.clues && Object.keys(gameState.clues).length > 0) {
+                    // Show hint progress tracker
+                    displayHintProgress();
+
+                    // Check if this player already submitted
+                    const hasSubmitted = gameState.clues && gameState.clues[currentPlayer.id];
+                    
+                    if (hasSubmitted) {
+                        document.getElementById('clue-phase').style.display = 'none';
+                        document.getElementById('clue-waiting').style.display = 'block';
+                    } else {
+                        document.getElementById('clue-phase').style.display = 'block';
+                        document.getElementById('clue-waiting').style.display = 'none';
+                        const turnIndicator = document.getElementById('turn-indicator');
+                        turnIndicator.textContent = "📝 Submit your hint! Voting starts when everyone has given their hint.";
+                        turnIndicator.style.display = 'block';
+                    }
+
+                    // Only show clues once ALL players have submitted (keep them secret until then)
+                    const allPlayers = Object.keys(gameState.players || {}).length;
+                    const submittedClues = Object.keys(gameState.clues || {}).length;
+                    if (submittedClues >= allPlayers && gameState.clues) {
                         displayClues();
                     }
                     break;
@@ -1030,14 +1123,19 @@
                 case 'voting':
                     phaseEl.textContent = 'Voting Phase';
                     document.getElementById('voting-phase').style.display = 'block';
+                    document.getElementById('hint-progress').style.display = 'none';
+                    document.getElementById('clue-waiting').style.display = 'none';
+                    document.getElementById('clue-phase').style.display = 'none';
                     displayVoting();
                     displayClues();
                     document.getElementById('turn-indicator').style.display = 'none';
                     break;
 
                 case 'final-guess':
-                    phaseEl.textContent = "Imposter's Last Chance!";
+                    phaseEl.textContent = "Chameleon's Last Chance!";
                     document.getElementById('final-guess-phase').style.display = 'block';
+                    document.getElementById('hint-progress').style.display = 'none';
+                    document.getElementById('clue-waiting').style.display = 'none';
                     displayFinalGuessPhase();
                     displayClues();
                     document.getElementById('turn-indicator').style.display = 'none';
@@ -1046,6 +1144,8 @@
                 case 'results':
                     phaseEl.textContent = 'Game Results';
                     document.getElementById('results-phase').style.display = 'block';
+                    document.getElementById('hint-progress').style.display = 'none';
+                    document.getElementById('clue-waiting').style.display = 'none';
                     displayScoreboard();
                     displayResults();
                     document.getElementById('turn-indicator').style.display = 'none';
@@ -1081,7 +1181,13 @@
                 const clue = clueInput.value.trim();
                 
                 if (!clue) {
-                    showError('Please enter a clue!');
+                    showError('Please enter a hint!');
+                    return;
+                }
+
+                // Prevent double submission
+                if (gameState.clues && gameState.clues[currentPlayer.id]) {
+                    showError('You already submitted your hint!');
                     return;
                 }
 
@@ -1092,23 +1198,24 @@
                     submittedAt: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                // Submit clue to Firebase
+                // Submit hint to Firebase
                 await database.ref(`rooms/${currentRoom}/gameState/clues/${currentPlayer.id}`).set(clueData);
 
                 clueInput.value = '';
-                showStatus('Clue submitted!');
+                document.getElementById('clue-phase').style.display = 'none';
+                document.getElementById('clue-waiting').style.display = 'block';
+                document.getElementById('turn-indicator').style.display = 'none';
+                showStatus('Hint submitted! Waiting for everyone else...');
 
-                // Check if all non-detective players have submitted clues
+                // Check if ALL players have submitted hints
                 const playerCount = Object.keys(gameState.players).length;
                 const currentClues = gameState.clues || {};
                 const clueCount = Object.keys(currentClues).length + 1; // +1 for current submission
                 
-                // All non-detective players have submitted (playerCount - 1 for detective)
-                if (clueCount >= playerCount - 1) {
+                if (clueCount >= playerCount) {
                     // Only host triggers the voting phase
                     const roomSnapshot = await database.ref(`rooms/${currentRoom}/host`).once('value');
                     if (roomSnapshot.val() === currentPlayer.id) {
-                        // Get server timestamp and calculate voting end time (45 seconds from now)
                         const serverTimeOffset = await getServerTimeOffset();
                         const votingEndTimestamp = Date.now() + serverTimeOffset + 45000; // 45 seconds
 
@@ -1117,11 +1224,46 @@
                                 phase: 'voting',
                                 votingEndTime: votingEndTimestamp
                             });
-                        }, 1000);
+                        }, 2000); // Short delay so everyone sees all hints before voting
                     }
                 }
             } catch (error) {
-                showError('Failed to submit clue: ' + error.message);
+                showError('Failed to submit hint: ' + error.message);
+            }
+        }
+
+        function displayHintProgress() {
+            const progressDiv = document.getElementById('hint-progress');
+            const countSpan = document.getElementById('hint-count');
+            const totalSpan = document.getElementById('hint-total');
+            const statusDiv = document.getElementById('hint-player-status');
+            
+            if (!progressDiv || !gameState) return;
+
+            const players = gameState.players || {};
+            const clues = gameState.clues || {};
+            const playerCount = Object.keys(players).length;
+            const clueCount = Object.keys(clues).length;
+
+            progressDiv.style.display = 'block';
+            countSpan.textContent = clueCount;
+            totalSpan.textContent = playerCount;
+
+            statusDiv.innerHTML = '';
+            Object.values(players).forEach(player => {
+                const hasSubmitted = clues[player.id] !== undefined;
+                const badge = document.createElement('span');
+                badge.className = `hint-player-item ${hasSubmitted ? 'submitted' : 'waiting'}`;
+                badge.textContent = `${hasSubmitted ? '✅' : '⏳'} ${player.name}`;
+                statusDiv.appendChild(badge);
+            });
+
+            // Show "all hints in" message if complete
+            if (clueCount >= playerCount) {
+                const allInDiv = document.createElement('div');
+                allInDiv.className = 'all-hints-in';
+                allInDiv.textContent = '🎉 All hints are in! Voting is about to begin...';
+                statusDiv.appendChild(allInDiv);
             }
         }
 
@@ -1155,6 +1297,14 @@
         function displayVoting() {
             const container = document.getElementById('voting-container');
             if (!container || !gameState.players) return;
+
+            // Show majority requirement
+            const totalPlayers = Object.keys(gameState.players).length;
+            const majorityNeeded = Math.floor(totalPlayers / 2) + 1;
+            const majorityInfo = document.getElementById('majority-info');
+            if (majorityInfo) {
+                majorityInfo.textContent = `⚠️ A majority of ${majorityNeeded} out of ${totalPlayers} votes is needed to catch the chameleon!`;
+            }
 
             container.innerHTML = '';
             Object.values(gameState.players).forEach(player => {
@@ -1201,6 +1351,8 @@
             try {
                 const votes = gameState.votes || {};
                 const voteCounts = {};
+                const totalPlayers = Object.keys(gameState.players).length;
+                const majorityNeeded = Math.floor(totalPlayers / 2) + 1;
 
                 Object.values(votes).forEach(vote => {
                     voteCounts[vote.votedFor] = (voteCounts[vote.votedFor] || 0) + 1;
@@ -1215,16 +1367,32 @@
                     }
                 });
 
-                if (mostVotedPlayer === gameState.imposter) {
+                // Chameleon is only caught if they got the most votes AND those votes are a majority
+                const chameleonVotes = voteCounts[gameState.imposter] || 0;
+                const chameleonCaught = mostVotedPlayer === gameState.imposter && chameleonVotes >= majorityNeeded;
+
+                if (chameleonCaught) {
                     await database.ref(`rooms/${currentRoom}/gameState`).update({
                         phase: 'final-guess',
                         votingResults: {
                             mostVotedPlayer,
                             voteCounts,
-                            imposterCaught: true
+                            imposterCaught: true,
+                            majorityNeeded,
+                            chameleonVotes
                         }
                     });
                 } else {
+                    // Chameleon escapes — either they weren't the most voted, or didn't get majority
+                    await database.ref(`rooms/${currentRoom}/gameState`).update({
+                        votingResults: {
+                            mostVotedPlayer,
+                            voteCounts,
+                            imposterCaught: false,
+                            majorityNeeded,
+                            chameleonVotes
+                        }
+                    });
                     await finalizeResults(mostVotedPlayer, voteCounts, false, null);
                 }
             } catch (error) {
@@ -1307,10 +1475,10 @@
                     });
                 }
 
+                const votingResults = gameState.votingResults || {};
                 const results = {
                     mostVotedPlayer,
                     imposter: gameState.imposter,
-                    detective: gameState.detective,
                     secretWord: gameState.secretWord,
                     category: gameState.category,
                     voteCounts,
@@ -1318,7 +1486,9 @@
                     imposterCaught,
                     imposterGuessedCorrect,
                     finalGuess: gameState.finalGuess?.guess || null,
-                    pointsAwarded
+                    pointsAwarded,
+                    majorityNeeded: votingResults.majorityNeeded || null,
+                    chameleonVotes: votingResults.chameleonVotes || 0
                 };
 
                 const currentScores = (await database.ref(`rooms/${currentRoom}/scores`).once('value')).val() || {};
@@ -1392,7 +1562,7 @@
             `;
 
             if (results.imposterCaught) {
-                resultHTML += `<p>✅ <strong>The chameleon was caught!</strong></p>`;
+                resultHTML += `<p>✅ <strong>The chameleon was caught!</strong> (${results.chameleonVotes || '?'}/${results.majorityNeeded || '?'} majority votes needed)</p>`;
                 
                 if (results.imposterGuessedCorrect) {
                     resultHTML += `
@@ -1409,10 +1579,21 @@
                     `;
                 }
             } else {
-                resultHTML += `
-                    <p>❌ <strong>The chameleon was NOT caught!</strong></p>
-                    <p><strong>Winner:</strong> 🦎 ${chameleonName} (Chameleon) (+2 points)</p>
-                `;
+                const chameleonVotes = results.chameleonVotes || 0;
+                const majorityNeeded = results.majorityNeeded || '?';
+                if (mostVotedName !== chameleonName) {
+                    resultHTML += `
+                        <p>❌ <strong>The group voted for the wrong person!</strong></p>
+                        <p>The chameleon blended in successfully.</p>
+                        <p><strong>Winner:</strong> 🦎 ${chameleonName} (Chameleon) (+2 points)</p>
+                    `;
+                } else {
+                    resultHTML += `
+                        <p>❌ <strong>Not enough votes!</strong> The chameleon got ${chameleonVotes} vote(s) but needed ${majorityNeeded} for a majority.</p>
+                        <p>The chameleon escaped without a clear majority!</p>
+                        <p><strong>Winner:</strong> 🦎 ${chameleonName} (Chameleon) (+2 points)</p>
+                    `;
+                }
             }
 
             resultHTML += `
