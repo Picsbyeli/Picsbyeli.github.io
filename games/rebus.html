@@ -34,28 +34,9 @@
     }
     .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
     .btn:active { transform: translateY(0); }
-
-    /* Puzzle visual container */
-    .puzzle-box {
-      width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      position: relative; overflow: hidden;
-    }
-    .puzzle-box.dk { background: #0a0a1a; }
-    .puzzle-box.lt { background: #f0ece4; }
-    .puzzle-box.md { background: #e8e4dc; }
-
-    /* Font shortcuts */
-    .fw9 { font-weight: 900; }
-    .font-display { font-family: 'Playfair Display', Georgia, serif; }
-    .font-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
-
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #12121e; }
     ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-
-    /* Back button */
     .back-btn {
       position: fixed; top: 12px; left: 12px; z-index: 100;
       background: #1a1a2e; border: 1px solid #2a2a3e; color: #888;
@@ -74,12 +55,11 @@
 
 <script>
 // ═══════════════════════════════════════════════════
-// REBUS GAME — Standalone vanilla JS version
+// REBUS GAME — Fixed render: timer only updates DOM
+// elements, not full innerHTML rebuild every second
 // ═══════════════════════════════════════════════════
 
-// ═══ PUZZLE DATA ═══
 const PUZZLES = [
-  // ── ORIGINAL PHRASES ──
   { id:1, cat:"phrase", type:"one-thing-after-another", answer:"one thing after another", alt:["one thing after the other"], hint:"Things happening in sequence" },
   { id:2, cat:"phrase", type:"big-heart", answer:"big heart", alt:["bigheart","big hearted"], hint:"Someone generous" },
   { id:3, cat:"phrase", type:"second-thought", answer:"on second thought", alt:["second thought","on 2nd thought"], hint:"Reconsidering" },
@@ -115,7 +95,6 @@ const PUZZLES = [
   { id:33, cat:"phrase", type:"jack-in-the-box", answer:"jack in the box", alt:["jack in box","jack in a box"], hint:"Spring-loaded toy" },
   { id:34, cat:"phrase", type:"growing-pains", answer:"growing pains", alt:[], hint:"Struggles growing up" },
   { id:35, cat:"phrase", type:"circles-under-eyes", answer:"circles under eyes", alt:["dark circles"], hint:"No sleep look" },
-  // ── MOVIES ──
   { id:50, cat:"movie", type:"mov-dark-knight", answer:"the dark knight", alt:["dark knight"], hint:"Batman by Nolan" },
   { id:51, cat:"movie", type:"mov-inside-out", answer:"inside out", alt:[], hint:"Pixar emotions" },
   { id:52, cat:"movie", type:"mov-up", answer:"up", alt:[], hint:"Pixar floating house" },
@@ -131,7 +110,6 @@ const PUZZLES = [
   { id:62, cat:"movie", type:"mov-die-hard", answer:"die hard", alt:["diehard"], hint:"Willis in skyscraper" },
   { id:63, cat:"movie", type:"mov-quiet-place", answer:"a quiet place", alt:["quiet place"], hint:"Silent to survive" },
   { id:64, cat:"movie", type:"mov-twister", answer:"twister", alt:[], hint:"Storm chasers" },
-  // ── 50 HARDER PHRASES ──
   { id:101, cat:"phrase", type:"motorcycle", answer:"motorcycle", alt:["four cycle","4 cycle"], hint:"A two-wheeled motor vehicle" },
   { id:102, cat:"phrase", type:"double-taste", answer:"double taste", alt:[], hint:"Tasting twice" },
   { id:103, cat:"phrase", type:"around-the-corner", answer:"around the corner", alt:["corner case"], hint:"Something nearby or coming soon" },
@@ -172,7 +150,6 @@ const PUZZLES = [
   { id:138, cat:"phrase", type:"life-after-life", answer:"life after life", alt:[], hint:"Reincarnation concept" },
   { id:139, cat:"phrase", type:"outside", answer:"outside", alt:["out side"], hint:"Not indoors" },
   { id:140, cat:"phrase", type:"peace-on-earth", answer:"peace on earth", alt:["piece on earth"], hint:"Global harmony" },
-  // ── BONUS 15 EXTRA-HARD ──
   { id:201, cat:"phrase", type:"spread-reading", answer:"spread reading", alt:["spread out reading","spread out"], hint:"Letters not close together" },
   { id:202, cat:"phrase", type:"i-understand", answer:"i understand", alt:[], hint:"Comprehension with self" },
   { id:203, cat:"phrase", type:"knee-light", answer:"neon light", alt:["kneelight","knee light"], hint:"Bright glowing sign (sounds like body part)" },
@@ -216,832 +193,592 @@ function checkAnswer(guess, puzzle) {
 // ═══ PUZZLE VISUAL RENDERER ═══
 function renderPuzzleVisual(puzzle) {
   const t = puzzle.type;
-  // Helper to build inline styled divs
   const bx = "width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;";
   const dk = bx + "background:#0a0a1a;";
   const lt = bx + "background:#f0ece4;";
   const md = bx + "background:#e8e4dc;";
   const W = "color:#fff;font-weight:900;";
   const B = "color:#1a1a1a;font-weight:900;";
-
-  function col(c, sz, extra) {
-    return `color:${c};font-size:${sz}px;font-weight:900;${extra || ""}`;
-  }
+  function col(c, sz, extra) { return "color:"+c+";font-size:"+sz+"px;font-weight:900;"+(extra || ""); }
 
   switch(t) {
-    // ── ORIGINAL PHRASES ──
-    case "one-thing-after-another":
-      return `<div style="${dk}flex-direction:column;gap:6px"><span style="${col("#888",20)}">another</span><span style="${col("#fff",24)}">one thing</span></div>`;
-    case "big-heart":
-      return `<div style="${lt}"><span style="${col("#1a1a1a",68,"font-family:'Playfair Display',Georgia;")}">heart</span></div>`;
-    case "second-thought":
-      return `<div style="${lt}flex-direction:column;"><span style="${col("#c44",18)}">2nd</span><span style="${col("#1a1a1a",32)}">THOUGHT</span></div>`;
-    case "one-in-million":
-      return `<div style="${lt}"><span style="${col("#1a1a1a",50,"letter-spacing:3px;")}">MILL<span style="color:#e44;font-size:54px;">1</span>ON</span></div>`;
-    case "fooling-around": {
-      let chars = "FOOLING".split("").map((c, i) => {
-        const a = (i / 7) * 360 - 90;
-        const r = a * Math.PI / 180;
-        return `<span style="position:absolute;left:${70 + 50 * Math.cos(r)}px;top:${70 + 50 * Math.sin(r)}px;${W}font-size:24px;transform:translate(-50%,-50%) rotate(${a + 90}deg);">${c}</span>`;
-      }).join("");
-      return `<div style="${dk}"><div style="position:relative;width:140px;height:140px;">${chars}</div></div>`;
-    }
-    case "history-repeats":
-      return `<div style="${lt}"><span style="color:#333;font-size:15px;font-family:Georgia;letter-spacing:1px;">historyhistoryhistory</span></div>`;
-    case "musically-inclined":
-      return `<div style="${md}"><span style="color:#333;font-size:38px;font-family:Georgia;font-style:italic;transform:rotate(-22deg);display:inline-block;">musically</span></div>`;
-    case "scatter-brain": {
-      const pos = [[0,52],[58,8],[28,28],[62,58],[42,72]];
-      const rot = [-18,22,-10,14,-28];
-      let chars = "BRAIN".split("").map((c, i) =>
-        `<span style="position:absolute;${W}font-size:38px;left:${18 + pos[i][0]}%;top:${12 + pos[i][1]}%;transform:rotate(${rot[i]}deg);">${c}</span>`
-      ).join("");
-      return `<div style="${bx}background:#555;">${chars}</div>`;
-    }
-    case "backward-glance":
-      return `<div style="${lt}"><span style="${col("#1a1a1a",46,"letter-spacing:4px;")}">ECNALG</span></div>`;
-    case "love-hate":
-      return `<div style="${dk}"><div style="display:flex;align-items:center;gap:3px;"><span style="${col("#f44",34)}">LOVE</span><div style="width:1px;height:50px;background:#888;"></div><span style="${col("#fff",34)}">HATE</span></div></div>`;
-    case "broken-promise":
-      return `<div style="${lt}flex-direction:column;"><div style="display:flex;"><span style="${col("#1a1a1a",34)}">PRO</span><span style="${col("#c44",34,"margin-left:20px;transform:translateY(6px);")}">MISE</span></div><div style="position:absolute;width:4px;height:60px;background:#c44;transform:rotate(15deg);left:48%;"></div></div>`;
-    case "double-cross":
-      return `<div style="${lt}"><span style="${col("#1a1a1a",52)}">✝ ✝</span></div>`;
-    case "head-over-heels":
-      return `<div style="${dk}flex-direction:column;"><span style="${col("#fff",44,"line-height:1.15;")}">HEAD</span><span style="${col("#f44",44,"line-height:1.15;")}">HEELS</span></div>`;
-    case "mind-over-matter":
-      return `<div style="${dk}flex-direction:column;"><span style="${col("#60a5fa",38,"line-height:1.15;")}">MIND</span><span style="${col("#888",38,"line-height:1.15;")}">MATTER</span></div>`;
-    case "man-overboard":
-      return `<div style="${dk}flex-direction:column;"><span style="${col("#fff",36,"line-height:1.15;")}">MAN</span><span style="${col("#4488cc",36,"line-height:1.15;")}">BOARD</span></div>`;
-    case "wonderland":
-      return `<div style="${lt}"><span style="${col("#c44",52,"font-family:'Playfair Display';")}">1</span><span style="${col("#1a1a1a",38,"margin-left:8px;")}">LAND</span></div>`;
-    case "understand":
-      return `<div style="${lt}flex-direction:column;"><span style="${col("#1a1a1a",42)}">STAND</span><div style="width:160px;height:4px;background:#333;margin-top:4px;border-radius:2px;"></div></div>`;
-    case "downtown":
-      return `<div style="${dk}"><div style="display:flex;flex-direction:column;align-items:center;">${"TOWN".split("").map(c => `<span style="${W}font-size:36px;line-height:1.1;">${c}</span>`).join("")}</div></div>`;
-    case "crossroads":
-      return `<div style="${dk}"><span style="${W}font-size:30px;position:absolute;">ROAD</span><span style="color:#f44;font-weight:900;font-size:30px;position:absolute;writing-mode:vertical-lr;">ROAD</span></div>`;
-    case "split-second":
-      return `<div style="${lt}"><span style="${col("#1a1a1a",38)}">SEC</span><div style="width:4px;height:60px;background:#f44;margin:0 6px;"></div><span style="${col("#1a1a1a",38)}">OND</span></div>`;
-    case "see-eye-to-eye":
-      return `<div style="${md}"><span style="font-size:44px;">👁</span><span style="color:#333;font-size:18px;margin:0 10px;">2</span><span style="font-size:44px;">👁</span></div>`;
-    case "mixed-feelings": {
-      const colors = ["#f44","#4ade80","#fbbf24","#60a5fa","#f44","#4ade80","#fbbf24","#60a5fa"];
-      const rots = [-15,10,-18,12,-10,16,-12,8];
-      const yOffs = [-8,6,-10,8,-6,10,-8,4];
-      let chars = "FEELINGS".split("").map((c, i) =>
-        `<span style="color:${colors[i]};font-size:30px;font-weight:900;display:inline-block;transform:rotate(${rots[i]}deg) translateY(${yOffs[i]}px);">${c}</span>`
-      ).join("");
-      return `<div style="${dk}"><div style="display:flex;gap:2px;">${chars}</div></div>`;
-    }
-    case "reading-between-lines":
-      return `<div style="${lt}flex-direction:column;"><div style="width:200px;height:3px;background:#333;"></div><span style="${col("#c44",20,"margin:8px 0;")}">reading</span><div style="width:200px;height:3px;background:#333;"></div></div>`;
-    case "forget-about-it":
-      return `<div style="${lt}"><span style="color:#aaa;font-size:34px;font-weight:900;text-decoration:line-through;text-decoration-color:#c44;text-decoration-thickness:4px;">about it</span></div>`;
-    case "life-after-death":
-      return `<div style="${dk}gap:16px;"><span style="${col("#666",28)}">DEATH</span><span style="${col("#4ade80",28)}">LIFE</span></div>`;
-    case "sandbox":
-      return `<div style="${lt}"><div style="border:4px solid #333;padding:16px 28px;border-radius:4px;"><span style="${col("#1a1a1a",30)}">SAND</span></div></div>`;
-    case "forgive-forget":
-      return `<div style="${dk}"><span style="${col("#fff",28)}">4GIVE</span><span style="color:#888;font-size:18px;margin:0 10px;">&amp;</span><span style="${col("#fff",28)}">4GET</span></div>`;
-    case "paradise":
-      return `<div style="${md}"><span style="font-size:44px;">🎲🎲</span><span style="${B}font-size:13px;position:absolute;bottom:16px;opacity:.5;">a pair of...</span></div>`;
-    case "tricycle":
-      return `<div style="${lt}"><span style="${col("#c44",52,"font-family:'Playfair Display';")}">3</span><span style="${col("#1a1a1a",34,"margin-left:6px;")}">CYCLE</span></div>`;
-    case "neon-light":
-      return `<div style="${dk}"><span style="${col("#888",36)}">NE</span><span style="${col("#ff44ff",36,"text-shadow:0 0 10px #ff44ff,0 0 20px #ff44ff,0 0 40px #ff44ff;")}">ON</span></div>`;
-    case "little-league":
-      return `<div style="${lt}"><span style="${col("#1a1a1a",13,"letter-spacing:3px;")}">LEAGUE</span></div>`;
-    case "top-notch":
-      return `<div style="${dk}flex-direction:column;"><span style="${col("#ffd700",16)}">★</span><div style="display:flex;margin-top:-4px;"><div style="width:40px;height:3px;background:#888;transform:rotate(30deg);transform-origin:right;"></div><div style="width:40px;height:3px;background:#888;transform:rotate(-30deg);transform-origin:left;"></div></div><span style="${W}font-size:12px;margin-top:6px;letter-spacing:2px;">▽</span></div>`;
-    case "jack-in-the-box":
-      return `<div style="${md}"><div style="border:4px solid #333;padding:14px 24px;border-radius:4px;background:#f0ece4;"><span style="${col("#1a1a1a",32)}">JACK</span></div></div>`;
-    case "growing-pains": {
-      let chars = "PAINS".split("").map((c, i) =>
-        `<span style="${W}font-size:${18 + i * 10}px;line-height:1;">${c}</span>`
-      ).join("");
-      return `<div style="${dk}"><div style="display:flex;align-items:baseline;gap:2px;">${chars}</div></div>`;
-    }
-    case "circles-under-eyes":
-      return `<div style="${lt}flex-direction:column;gap:2px;"><div style="display:flex;gap:24px;"><span style="font-size:36px;">👁</span><span style="font-size:36px;">👁</span></div><div style="display:flex;gap:24px;margin-top:-2px;"><span style="font-size:28px;color:#666;">◯</span><span style="font-size:28px;color:#666;">◯</span></div></div>`;
-
-    // ── MOVIES ──
-    case "mov-dark-knight":
-      return `<div style="${dk}"><span style="${col("#333348",44,"text-shadow:0 0 6px #222;")}">KNIGHT</span></div>`;
-    case "mov-inside-out":
-      return `<div style="${lt}"><div style="border:3px solid #333;border-radius:10px;padding:14px 28px;"><span style="${col("#1a1a1a",32)}">OUT</span></div></div>`;
-    case "mov-up":
-      return `<div style="${dk}"><span style="${W}font-size:80px;line-height:1;">↑</span></div>`;
-    case "mov-split":
-      return `<div style="${lt}"><span style="${B}font-size:40px;clip-path:inset(0 50% 0 0);">WORD</span><div style="width:4px;height:65px;background:#f44;position:absolute;"></div><span style="${B}font-size:40px;clip-path:inset(0 0 0 50%);margin-left:-4px;">WORD</span></div>`;
-    case "mov-frozen":
-      return `<div style="${bx}background:#c8e6f5;"><span style="${col("#1a6fa8",36,"letter-spacing:6px;text-shadow:0 0 8px #b0d8f0,0 0 16px #88c4e8;opacity:.8;")}">❄ T E X T ❄</span></div>`;
-    case "mov-jaws":
-      return `<div style="${dk}"><div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><span style="${W}font-size:28px;letter-spacing:8px;">▼ ▼ ▼ ▼ ▼</span><span style="${W}font-size:28px;letter-spacing:8px;transform:scaleY(-1);">▼ ▼ ▼ ▼ ▼</span></div></div>`;
-    case "mov-inception":
-      return `<div style="${dk}"><div style="border:2px solid #444;padding:16px;border-radius:6px;"><div style="border:2px solid #888;padding:12px;border-radius:4px;"><div style="border:2px solid #ccc;padding:8px 18px;border-radius:2px;"><span style="${W}font-size:14px;">DREAM</span></div></div></div></div>`;
-    case "mov-seven":
-      return `<div style="${dk}"><span style="${W}font-size:90px;font-family:'Playfair Display',Georgia;">7</span></div>`;
-    case "mov-silence-lambs":
-      return `<div style="${dk}flex-direction:column;gap:6px;"><span style="color:#555;font-size:16px;text-decoration:line-through;">🔊</span><span style="font-size:36px;">🐑 🐑</span></div>`;
-    case "mov-get-out":
-      return `<div style="${bx}background:#1a0a0a;"><span style="${col("#f44",48)}">← 🚪</span></div>`;
-    case "mov-back-future":
-      return `<div style="${dk}"><span style="${col("#f44",28,"margin-right:6px;")}">←</span><span style="${col("#fff",32)}">FUTURE</span></div>`;
-    case "mov-home-alone":
-      return `<div style="${dk}"><span style="${W}font-size:32px;opacity:.9;">HOME</span></div>`;
-    case "mov-die-hard":
-      return `<div style="${lt}"><span style="${col("#1a1a1a",52,"letter-spacing:6px;text-shadow:2px 2px 0 #999,4px 4px 0 #bbb;")}">DIE</span></div>`;
-    case "mov-quiet-place":
-      return `<div style="${dk}"><span style="color:#444;font-size:14px;letter-spacing:6px;font-style:italic;">place</span></div>`;
-    case "mov-twister": {
-      let chars = "LETTERS".split("").map((c, i) =>
-        `<span style="${W}font-size:28px;display:inline-block;transform:rotate(${i * 45}deg);">${c}</span>`
-      ).join("");
-      return `<div style="${dk}"><div style="display:flex;gap:1px;">${chars}</div></div>`;
-    }
-
-    // ── 50 HARDER PHRASES ──
-    case "motorcycle":
-      return `<div style="${lt}"><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:200px;">${"cycle cycle cycle cycle".split(" ").map(w => `<span style="${col("#1a1a1a",24)}">${w}</span>`).join("")}</div></div>`;
-    case "double-taste":
-      return `<div style="${dk}"><div style="display:flex;gap:12px;"><span style="${col("#fff",32)}">TASTE</span><span style="${col("#fff",32)}">TASTE</span></div></div>`;
-    case "around-the-corner":
-      return `<div style="${lt}"><div style="position:relative;width:140px;height:100px;"><span style="${B}font-size:20px;position:absolute;top:0;right:0;">corner</span><span style="${B}font-size:20px;position:absolute;bottom:0;left:0;">corner</span></div></div>`;
-    case "ages":
-      return `<div style="${md}"><span style="${col("#333",22,"letter-spacing:4px;")}">age age age</span></div>`;
-    case "out-and-out":
-      return `<div style="${dk}"><div style="display:flex;gap:10px;"><span style="${col("#fff",30)}">OUT</span><span style="${col("#fff",30)}">OUT</span><span style="${col("#fff",30)}">OUT</span></div></div>`;
-    case "four-lines":
-      return `<div style="${lt}flex-direction:column;gap:3px;">${[1,2,3,4].map(() => `<span style="${col("#333",16)}">line</span>`).join("")}</div>`;
-    case "eyes-right":
-      return `<div style="${md}"><span style="${col("#1a1a1a",36)}">EYES</span><span style="${col("#c44",36,"margin-left:8px;")}">→</span></div>`;
-    case "make-believe":
-      return `<div style="${dk}"><div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="${col("#888",16)}">believe</span><span style="${col("#aaa",18)}">believe</span><span style="${col("#fff",22)}">believe</span></div></div>`;
-    case "big-house":
-      return `<div style="${lt}"><span style="${col("#1a1a1a",44)}">HOUSE</span><span style="${col("#1a1a1a",16,"margin-left:8px;")}">house</span></div>`;
-    case "standing-ovation":
-      return `<div style="${md}flex-direction:column;"><div style="display:flex;gap:6px;"><span style="${col("#333",18)}">standing</span><span style="${col("#333",18)}">standing</span></div><span style="${col("#c44",28,"margin-top:2px;")}">O</span></div>`;
-    case "good-afternoon":
-      return `<div style="${lt}"><span style="${col("#4ade80",22,"margin-right:6px;")}">good</span><span style="${col("#1a1a1a",28)}">NOON</span></div>`;
-    case "think-outside-box":
-      return `<div style="${dk}"><div style="border:3px solid #888;padding:20px 30px;border-radius:4px;"><span style="color:#333;font-size:12px;">. . .</span></div><span style="${W}font-size:20px;position:absolute;top:16px;left:20px;">think</span></div>`;
-    case "safe-and-sound":
-      return `<div style="${md}"><span style="${col("#333",28)}">safe</span><span style="color:#888;font-size:16px;margin:0 8px;">&amp;</span><span style="${col("#333",28)}">sound</span></div>`;
-    case "chairman":
-      return `<div style="${lt}flex-direction:column;"><span style="font-size:36px;">🪑</span><span style="${col("#1a1a1a",28,"margin-top:-4px;")}">MAN</span></div>`;
-    case "fall-between":
-      return `<div style="${dk}"><span style="${col("#888",14)}">summer</span><span style="${col("#ff8844",28,"margin:0 6px;")}">FALL</span><span style="${col("#888",14)}">winter</span></div>`;
-    case "rock-bottom":
-      return `<div style="${dk}flex-direction:column;gap:1px;"><span style="${col("#888",16)}">bottom</span><span style="${col("#aaa",18)}">bottom</span><span style="${col("#fff",22)}">bottom</span></div>`;
-    case "light-at-end":
-      return `<div style="${dk}"><div style="width:80%;height:40px;background:linear-gradient(to right,#111,#111 80%,#ffd700);border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;"><span style="${col("#fff",14)}">💡</span></div></div>`;
-    case "man-on-bicycle":
-      return `<div style="${lt}flex-direction:column;"><span style="${col("#1a1a1a",28)}">MAN</span><div style="display:flex;gap:4px;"><span style="${col("#c44",20)}">cycle</span><span style="${col("#c44",20)}">cycle</span></div></div>`;
-    case "rainbow":
-      return `<div style="${md}flex-direction:column;"><span style="${col("#4488cc",22)}">RAIN</span><span style="font-size:28px;margin-top:-4px;">🏹</span></div>`;
-    case "time-after-time":
-      return `<div style="${dk}"><div style="display:flex;gap:6px;">${"time time time time".split(" ").map(w => `<span style="${col("#fff",22)}">${w}</span>`).join("")}</div></div>`;
-    case "line-up":
-      return `<div style="${lt}flex-direction:column;gap:1px;">${"lineup lineup lineup".split(" ").map(w => `<span style="${col("#333",16)}">${w}</span>`).join("")}</div>`;
-    case "ups-and-downs":
-      return `<div style="${dk}"><div style="display:flex;gap:4px;align-items:center;"><span style="${col("#4ade80",24)}">↓</span><span style="${col("#f44",24)}">↑</span><span style="${col("#4ade80",24)}">↓</span><span style="${col("#f44",24)}">↑</span></div></div>`;
-    case "me-in-memory":
-      return `<div style="${lt}"><span style="${col("#888",28)}">M</span><span style="${col("#888",28)}">E</span><span style="${col("#c44",28,"margin:0 2px;")}">MO</span><span style="${col("#888",28)}">RY</span></div>`;
-    case "three-heads":
-      return `<div style="${md}"><div style="display:flex;gap:8px;"><span style="${col("#333",28)}">HEAD</span><span style="${col("#333",28)}">HEAD</span><span style="${col("#333",28)}">HEAD</span></div></div>`;
-    case "doorbell":
-      return `<div style="${dk}"><span style="${col("#888",32)}">DOOR</span><span style="font-size:32px;margin-left:6px;">🔔</span></div>`;
-    case "second-wind":
-      return `<div style="${lt}"><div style="display:flex;gap:6px;"><span style="${col("#333",22)}">WIND</span><span style="${col("#333",22)}">WIND</span><span style="${col("#333",22)}">WIND</span></div></div>`;
-    case "piece-by-piece":
-      return `<div style="${dk}"><div style="display:flex;gap:8px;"><span style="${col("#fff",22)}">PIECE</span><span style="${col("#fff",22)}">PIECE</span><span style="${col("#fff",22)}">PIECE</span></div></div>`;
-    case "step-on-me":
-      return `<div style="${lt}flex-direction:column;"><span style="${col("#1a1a1a",32)}">STEP</span><span style="${col("#888",20,"margin-top:-2px;")}">me</span></div>`;
-    case "ever-after":
-      return `<div style="${dk}"><div style="display:flex;gap:8px;"><span style="${col("#fff",22)}">AFTER</span><span style="${col("#fff",22)}">AFTER</span><span style="${col("#fff",22)}">AFTER</span></div></div>`;
-    case "broken-heart":
-      return `<div style="${lt}flex-direction:column;"><div style="display:flex;gap:16px;"><span style="${col("#c44",36)}">HE</span><span style="${col("#c44",36,"transform:translateY(6px);")}">ART</span></div><div style="position:absolute;width:3px;height:50px;background:#c44;transform:rotate(10deg);"></div></div>`;
-    case "four-way":
-      return `<div style="${md}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">${"WAY WAY WAY WAY".split(" ").map(w => `<span style="${col("#333",22,"text-align:center;")}">${w}</span>`).join("")}</div></div>`;
-    case "highway":
-      return `<div style="${dk}flex-direction:column;"><span style="${col("#fff",28,"margin-bottom:-6px;")}">WAY</span><span style="${col("#888",10,"letter-spacing:4px;")}">↑ up high ↑</span></div>`;
-    case "face-to-face":
-      return `<div style="${lt}"><div style="display:flex;gap:6px;"><span style="${col("#333",28)}">FACE</span><span style="${col("#333",28)}">FACE</span><span style="${col("#333",28)}">FACE</span></div></div>`;
-    case "turn-back":
-      return `<div style="${dk}"><span style="${col("#fff",40)}">KCAB</span></div>`;
-    case "outer-space":
-      return `<div style="${dk}"><div style="border:2px solid #888;padding:12px 20px;border-radius:4px;"><span style="${col("#888",18)}">SPACE SPACE</span></div><span style="${W}font-size:18px;position:absolute;top:12px;right:20px;">SPACE</span></div>`;
-    case "someone":
-      return `<div style="${lt}"><span style="${col("#333",32)}">SOME</span><span style="${col("#c44",42,"font-family:'Playfair Display';margin-left:6px;")}">1</span></div>`;
-    case "long-time-no-see":
-      return `<div style="${dk}"><span style="${col("#fff",18,"letter-spacing:16px;")}">T&nbsp;I&nbsp;M&nbsp;E</span><span style="color:#555;font-size:12px;position:absolute;bottom:16px;text-decoration:line-through;">👁</span></div>`;
-    case "life-after-life":
-      return `<div style="${md}"><span style="${col("#333",24)}">LIFE</span><span style="${col("#888",14,"margin:0 8px;")}">→</span><span style="${col("#333",24)}">LIFE</span></div>`;
-    case "outside":
-      return `<div style="${dk}"><div style="border:2px solid #888;padding:12px 24px;border-radius:4px;"><span style="${col("#888",22)}">SIDE</span></div><span style="${W}font-size:22px;position:absolute;top:14px;left:16px;">OUT</span></div>`;
-    case "peace-on-earth":
-      return `<div style="${lt}flex-direction:column;"><span style="${col("#333",24)}">PIECE</span><span style="${col("#8B4513",32)}">EARTH</span></div>`;
-
-    // ── BONUS 15 ──
-    case "spread-reading":
-      return `<div style="${lt}"><span style="${col("#333",32,"letter-spacing:28px;")}">r e a d</span></div>`;
-    case "i-understand":
-      return `<div style="${md}flex-direction:column;"><span style="${col("#333",36)}">STAND</span><span style="${col("#c44",22,"margin-top:-2px;")}">I</span></div>`;
-    case "knee-light":
-      return `<div style="${dk}"><span style="${col("#fff",28)}">KNEE</span><span style="${col("#ffd700",28,"margin-left:6px;text-shadow:0 0 8px #ffd700;")}">LIGHT</span></div>`;
-    case "two-rights-wrong":
-      return `<div style="${lt}"><div style="display:flex;gap:6px;align-items:center;"><span style="${col("#333",26)}">RIGHT</span><span style="${col("#333",26)}">RIGHT</span><span style="${col("#c44",14,"margin-left:4px;")}">wrong</span></div></div>`;
-    case "backward-word":
-      return `<div style="${dk}"><span style="${col("#888",22,"margin-right:6px;")}">back</span><span style="${col("#fff",28)}">WARD</span></div>`;
-    case "three-sides":
-      return `<div style="${md}"><div style="display:flex;gap:8px;"><span style="${col("#333",24)}">SIDE</span><span style="${col("#333",24)}">SIDE</span><span style="${col("#333",24)}">SIDE</span></div></div>`;
-    case "upgrade":
-      return `<div style="${dk}flex-direction:column;"><span style="${col("#4ade80",20,"margin-bottom:-4px;")}">UP ↑</span><span style="${col("#fff",30)}">GRADE</span></div>`;
-    case "cross-examined":
-      return `<div style="${lt}"><span style="${col("#c44",32,"margin-right:6px;")}">✝</span><span style="${col("#1a1a1a",24)}">EXAMINED</span></div>`;
-    case "forgive-word":
-      return `<div style="${dk}"><span style="${col("#888",28)}">FOR</span><span style="${col("#4ade80",28,"margin-left:4px;")}">GIVE</span></div>`;
-    case "times-square":
-      return `<div style="${lt}"><div style="border:4px solid #333;padding:12px 18px;border-radius:2px;"><span style="${col("#1a1a1a",24)}">TIMES</span></div></div>`;
-    case "heartbeat":
-      return `<div style="${dk}"><span style="${col("#f44",32)}">HEART</span><span style="${col("#888",22,"margin-left:4px;")}">BEAT</span></div>`;
-    case "forecast":
-      return `<div style="${md}"><span style="${col("#333",28)}">FORE</span><span style="${col("#888",28,"margin-left:6px;")}">CAST</span></div>`;
-    case "outlaw":
-      return `<div style="${dk}"><div style="border:2px solid #888;padding:10px 24px;border-radius:4px;"><span style="${col("#888",24)}">LAW</span></div><span style="${W}font-size:24px;position:absolute;top:10px;left:20px;">OUT</span></div>`;
-
-    default:
-      return `<div style="${dk}color:#fff;font-size:24px;">?</div>`;
+    case "one-thing-after-another": return '<div style="'+dk+'flex-direction:column;gap:6px"><span style="'+col("#888",20)+'">another</span><span style="'+col("#fff",24)+'">one thing</span></div>';
+    case "big-heart": return '<div style="'+lt+'"><span style="'+col("#1a1a1a",68,"font-family:\'Playfair Display\',Georgia;")+'">heart</span></div>';
+    case "second-thought": return '<div style="'+lt+'flex-direction:column;"><span style="'+col("#c44",18)+'">2nd</span><span style="'+col("#1a1a1a",32)+'">THOUGHT</span></div>';
+    case "one-in-million": return '<div style="'+lt+'"><span style="'+col("#1a1a1a",50,"letter-spacing:3px;")+'">MILL<span style="color:#e44;font-size:54px;">1</span>ON</span></div>';
+    case "fooling-around": { var chars="FOOLING".split("").map(function(c,i){var a=(i/7)*360-90,r=a*Math.PI/180;return '<span style="position:absolute;left:'+(70+50*Math.cos(r))+'px;top:'+(70+50*Math.sin(r))+'px;'+W+'font-size:24px;transform:translate(-50%,-50%) rotate('+(a+90)+'deg);">'+c+'</span>';}).join(""); return '<div style="'+dk+'"><div style="position:relative;width:140px;height:140px;">'+chars+'</div></div>'; }
+    case "history-repeats": return '<div style="'+lt+'"><span style="color:#333;font-size:15px;font-family:Georgia;letter-spacing:1px;">historyhistoryhistory</span></div>';
+    case "musically-inclined": return '<div style="'+md+'"><span style="color:#333;font-size:38px;font-family:Georgia;font-style:italic;transform:rotate(-22deg);display:inline-block;">musically</span></div>';
+    case "scatter-brain": { var pos=[[0,52],[58,8],[28,28],[62,58],[42,72]],rot=[-18,22,-10,14,-28]; var chars="BRAIN".split("").map(function(c,i){return '<span style="position:absolute;'+W+'font-size:38px;left:'+(18+pos[i][0])+'%;top:'+(12+pos[i][1])+'%;transform:rotate('+rot[i]+'deg);">'+c+'</span>';}).join(""); return '<div style="'+bx+'background:#555;">'+chars+'</div>'; }
+    case "backward-glance": return '<div style="'+lt+'"><span style="'+col("#1a1a1a",46,"letter-spacing:4px;")+'">ECNALG</span></div>';
+    case "love-hate": return '<div style="'+dk+'"><div style="display:flex;align-items:center;gap:3px;"><span style="'+col("#f44",34)+'">LOVE</span><div style="width:1px;height:50px;background:#888;"></div><span style="'+col("#fff",34)+'">HATE</span></div></div>';
+    case "broken-promise": return '<div style="'+lt+'flex-direction:column;"><div style="display:flex;"><span style="'+col("#1a1a1a",34)+'">PRO</span><span style="'+col("#c44",34,"margin-left:20px;transform:translateY(6px);")+'">MISE</span></div><div style="position:absolute;width:4px;height:60px;background:#c44;transform:rotate(15deg);left:48%;"></div></div>';
+    case "double-cross": return '<div style="'+lt+'"><span style="'+col("#1a1a1a",52)+'">&#10013; &#10013;</span></div>';
+    case "head-over-heels": return '<div style="'+dk+'flex-direction:column;"><span style="'+col("#fff",44,"line-height:1.15;")+'">HEAD</span><span style="'+col("#f44",44,"line-height:1.15;")+'">HEELS</span></div>';
+    case "mind-over-matter": return '<div style="'+dk+'flex-direction:column;"><span style="'+col("#60a5fa",38,"line-height:1.15;")+'">MIND</span><span style="'+col("#888",38,"line-height:1.15;")+'">MATTER</span></div>';
+    case "man-overboard": return '<div style="'+dk+'flex-direction:column;"><span style="'+col("#fff",36,"line-height:1.15;")+'">MAN</span><span style="'+col("#4488cc",36,"line-height:1.15;")+'">BOARD</span></div>';
+    case "wonderland": return '<div style="'+lt+'"><span style="'+col("#c44",52,"font-family:\'Playfair Display\';")+'">1</span><span style="'+col("#1a1a1a",38,"margin-left:8px;")+'">LAND</span></div>';
+    case "understand": return '<div style="'+lt+'flex-direction:column;"><span style="'+col("#1a1a1a",42)+'">STAND</span><div style="width:160px;height:4px;background:#333;margin-top:4px;border-radius:2px;"></div></div>';
+    case "downtown": return '<div style="'+dk+'"><div style="display:flex;flex-direction:column;align-items:center;">'+"TOWN".split("").map(function(c){return '<span style="'+W+'font-size:36px;line-height:1.1;">'+c+'</span>';}).join("")+'</div></div>';
+    case "crossroads": return '<div style="'+dk+'"><span style="'+W+'font-size:30px;position:absolute;">ROAD</span><span style="color:#f44;font-weight:900;font-size:30px;position:absolute;writing-mode:vertical-lr;">ROAD</span></div>';
+    case "split-second": return '<div style="'+lt+'"><span style="'+col("#1a1a1a",38)+'">SEC</span><div style="width:4px;height:60px;background:#f44;margin:0 6px;"></div><span style="'+col("#1a1a1a",38)+'">OND</span></div>';
+    case "see-eye-to-eye": return '<div style="'+md+'"><span style="font-size:44px;">&#128065;</span><span style="color:#333;font-size:18px;margin:0 10px;">2</span><span style="font-size:44px;">&#128065;</span></div>';
+    case "mixed-feelings": { var colors=["#f44","#4ade80","#fbbf24","#60a5fa","#f44","#4ade80","#fbbf24","#60a5fa"],rots=[-15,10,-18,12,-10,16,-12,8],yOffs=[-8,6,-10,8,-6,10,-8,4]; var chars="FEELINGS".split("").map(function(c,i){return '<span style="color:'+colors[i]+';font-size:30px;font-weight:900;display:inline-block;transform:rotate('+rots[i]+'deg) translateY('+yOffs[i]+'px);">'+c+'</span>';}).join(""); return '<div style="'+dk+'"><div style="display:flex;gap:2px;">'+chars+'</div></div>'; }
+    case "reading-between-lines": return '<div style="'+lt+'flex-direction:column;"><div style="width:200px;height:3px;background:#333;"></div><span style="'+col("#c44",20,"margin:8px 0;")+'">reading</span><div style="width:200px;height:3px;background:#333;"></div></div>';
+    case "forget-about-it": return '<div style="'+lt+'"><span style="color:#aaa;font-size:34px;font-weight:900;text-decoration:line-through;text-decoration-color:#c44;text-decoration-thickness:4px;">about it</span></div>';
+    case "life-after-death": return '<div style="'+dk+'gap:16px;"><span style="'+col("#666",28)+'">DEATH</span><span style="'+col("#4ade80",28)+'">LIFE</span></div>';
+    case "sandbox": return '<div style="'+lt+'"><div style="border:4px solid #333;padding:16px 28px;border-radius:4px;"><span style="'+col("#1a1a1a",30)+'">SAND</span></div></div>';
+    case "forgive-forget": return '<div style="'+dk+'"><span style="'+col("#fff",28)+'">4GIVE</span><span style="color:#888;font-size:18px;margin:0 10px;">&amp;</span><span style="'+col("#fff",28)+'">4GET</span></div>';
+    case "paradise": return '<div style="'+md+'"><span style="font-size:44px;">&#127922;&#127922;</span><span style="'+B+'font-size:13px;position:absolute;bottom:16px;opacity:.5;">a pair of...</span></div>';
+    case "tricycle": return '<div style="'+lt+'"><span style="'+col("#c44",52,"font-family:\'Playfair Display\';")+'">3</span><span style="'+col("#1a1a1a",34,"margin-left:6px;")+'">CYCLE</span></div>';
+    case "neon-light": return '<div style="'+dk+'"><span style="'+col("#888",36)+'">NE</span><span style="'+col("#ff44ff",36,"text-shadow:0 0 10px #ff44ff,0 0 20px #ff44ff,0 0 40px #ff44ff;")+'">ON</span></div>';
+    case "little-league": return '<div style="'+lt+'"><span style="'+col("#1a1a1a",13,"letter-spacing:3px;")+'">LEAGUE</span></div>';
+    case "top-notch": return '<div style="'+dk+'flex-direction:column;"><span style="'+col("#ffd700",16)+'">&#9733;</span><div style="display:flex;margin-top:-4px;"><div style="width:40px;height:3px;background:#888;transform:rotate(30deg);transform-origin:right;"></div><div style="width:40px;height:3px;background:#888;transform:rotate(-30deg);transform-origin:left;"></div></div><span style="'+W+'font-size:12px;margin-top:6px;letter-spacing:2px;">&#9661;</span></div>';
+    case "jack-in-the-box": return '<div style="'+md+'"><div style="border:4px solid #333;padding:14px 24px;border-radius:4px;background:#f0ece4;"><span style="'+col("#1a1a1a",32)+'">JACK</span></div></div>';
+    case "growing-pains": { var chars="PAINS".split("").map(function(c,i){return '<span style="'+W+'font-size:'+(18+i*10)+'px;line-height:1;">'+c+'</span>';}).join(""); return '<div style="'+dk+'"><div style="display:flex;align-items:baseline;gap:2px;">'+chars+'</div></div>'; }
+    case "circles-under-eyes": return '<div style="'+lt+'flex-direction:column;gap:2px;"><div style="display:flex;gap:24px;"><span style="font-size:36px;">&#128065;</span><span style="font-size:36px;">&#128065;</span></div><div style="display:flex;gap:24px;margin-top:-2px;"><span style="font-size:28px;color:#666;">&#9675;</span><span style="font-size:28px;color:#666;">&#9675;</span></div></div>';
+    case "mov-dark-knight": return '<div style="'+dk+'"><span style="'+col("#333348",44,"text-shadow:0 0 6px #222;")+'">KNIGHT</span></div>';
+    case "mov-inside-out": return '<div style="'+lt+'"><div style="border:3px solid #333;border-radius:10px;padding:14px 28px;"><span style="'+col("#1a1a1a",32)+'">OUT</span></div></div>';
+    case "mov-up": return '<div style="'+dk+'"><span style="'+W+'font-size:80px;line-height:1;">&#8593;</span></div>';
+    case "mov-split": return '<div style="'+lt+'"><span style="'+B+'font-size:40px;clip-path:inset(0 50% 0 0);">WORD</span><div style="width:4px;height:65px;background:#f44;position:absolute;"></div><span style="'+B+'font-size:40px;clip-path:inset(0 0 0 50%);margin-left:-4px;">WORD</span></div>';
+    case "mov-frozen": return '<div style="'+bx+'background:#c8e6f5;"><span style="'+col("#1a6fa8",36,"letter-spacing:6px;text-shadow:0 0 8px #b0d8f0,0 0 16px #88c4e8;opacity:.8;")+'">&#10052; T E X T &#10052;</span></div>';
+    case "mov-jaws": return '<div style="'+dk+'"><div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><span style="'+W+'font-size:28px;letter-spacing:8px;">&#9660; &#9660; &#9660; &#9660; &#9660;</span><span style="'+W+'font-size:28px;letter-spacing:8px;transform:scaleY(-1);">&#9660; &#9660; &#9660; &#9660; &#9660;</span></div></div>';
+    case "mov-inception": return '<div style="'+dk+'"><div style="border:2px solid #444;padding:16px;border-radius:6px;"><div style="border:2px solid #888;padding:12px;border-radius:4px;"><div style="border:2px solid #ccc;padding:8px 18px;border-radius:2px;"><span style="'+W+'font-size:14px;">DREAM</span></div></div></div></div>';
+    case "mov-seven": return '<div style="'+dk+'"><span style="'+W+'font-size:90px;font-family:\'Playfair Display\',Georgia;">7</span></div>';
+    case "mov-silence-lambs": return '<div style="'+dk+'flex-direction:column;gap:6px;"><span style="color:#555;font-size:16px;text-decoration:line-through;">&#128266;</span><span style="font-size:36px;">&#128017; &#128017;</span></div>';
+    case "mov-get-out": return '<div style="'+bx+'background:#1a0a0a;"><span style="'+col("#f44",48)+'">&#8592; &#128682;</span></div>';
+    case "mov-back-future": return '<div style="'+dk+'"><span style="'+col("#f44",28,"margin-right:6px;")+'">&#8592;</span><span style="'+col("#fff",32)+'">FUTURE</span></div>';
+    case "mov-home-alone": return '<div style="'+dk+'"><span style="'+W+'font-size:32px;opacity:.9;">HOME</span></div>';
+    case "mov-die-hard": return '<div style="'+lt+'"><span style="'+col("#1a1a1a",52,"letter-spacing:6px;text-shadow:2px 2px 0 #999,4px 4px 0 #bbb;")+'">DIE</span></div>';
+    case "mov-quiet-place": return '<div style="'+dk+'"><span style="color:#444;font-size:14px;letter-spacing:6px;font-style:italic;">place</span></div>';
+    case "mov-twister": { var chars="LETTERS".split("").map(function(c,i){return '<span style="'+W+'font-size:28px;display:inline-block;transform:rotate('+(i*45)+'deg);">'+c+'</span>';}).join(""); return '<div style="'+dk+'"><div style="display:flex;gap:1px;">'+chars+'</div></div>'; }
+    case "motorcycle": return '<div style="'+lt+'"><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:200px;">'+"cycle cycle cycle cycle".split(" ").map(function(w){return '<span style="'+col("#1a1a1a",24)+'">'+w+'</span>';}).join("")+'</div></div>';
+    case "double-taste": return '<div style="'+dk+'"><div style="display:flex;gap:12px;"><span style="'+col("#fff",32)+'">TASTE</span><span style="'+col("#fff",32)+'">TASTE</span></div></div>';
+    case "around-the-corner": return '<div style="'+lt+'"><div style="position:relative;width:140px;height:100px;"><span style="'+B+'font-size:20px;position:absolute;top:0;right:0;">corner</span><span style="'+B+'font-size:20px;position:absolute;bottom:0;left:0;">corner</span></div></div>';
+    case "ages": return '<div style="'+md+'"><span style="'+col("#333",22,"letter-spacing:4px;")+'">age age age</span></div>';
+    case "out-and-out": return '<div style="'+dk+'"><div style="display:flex;gap:10px;"><span style="'+col("#fff",30)+'">OUT</span><span style="'+col("#fff",30)+'">OUT</span><span style="'+col("#fff",30)+'">OUT</span></div></div>';
+    case "four-lines": return '<div style="'+lt+'flex-direction:column;gap:3px;">'+"1234".split("").map(function(){return '<span style="'+col("#333",16)+'">line</span>';}).join("")+'</div>';
+    case "eyes-right": return '<div style="'+md+'"><span style="'+col("#1a1a1a",36)+'">EYES</span><span style="'+col("#c44",36,"margin-left:8px;")+'">&#8594;</span></div>';
+    case "make-believe": return '<div style="'+dk+'"><div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="'+col("#888",16)+'">believe</span><span style="'+col("#aaa",18)+'">believe</span><span style="'+col("#fff",22)+'">believe</span></div></div>';
+    case "big-house": return '<div style="'+lt+'"><span style="'+col("#1a1a1a",44)+'">HOUSE</span><span style="'+col("#1a1a1a",16,"margin-left:8px;")+'">house</span></div>';
+    case "standing-ovation": return '<div style="'+md+'flex-direction:column;"><div style="display:flex;gap:6px;"><span style="'+col("#333",18)+'">standing</span><span style="'+col("#333",18)+'">standing</span></div><span style="'+col("#c44",28,"margin-top:2px;")+'">O</span></div>';
+    case "good-afternoon": return '<div style="'+lt+'"><span style="'+col("#4ade80",22,"margin-right:6px;")+'">good</span><span style="'+col("#1a1a1a",28)+'">NOON</span></div>';
+    case "think-outside-box": return '<div style="'+dk+'"><div style="border:3px solid #888;padding:20px 30px;border-radius:4px;"><span style="color:#333;font-size:12px;">. . .</span></div><span style="'+W+'font-size:20px;position:absolute;top:16px;left:20px;">think</span></div>';
+    case "safe-and-sound": return '<div style="'+md+'"><span style="'+col("#333",28)+'">safe</span><span style="color:#888;font-size:16px;margin:0 8px;">&amp;</span><span style="'+col("#333",28)+'">sound</span></div>';
+    case "chairman": return '<div style="'+lt+'flex-direction:column;"><span style="font-size:36px;">&#129681;</span><span style="'+col("#1a1a1a",28,"margin-top:-4px;")+'">MAN</span></div>';
+    case "fall-between": return '<div style="'+dk+'"><span style="'+col("#888",14)+'">summer</span><span style="'+col("#ff8844",28,"margin:0 6px;")+'">FALL</span><span style="'+col("#888",14)+'">winter</span></div>';
+    case "rock-bottom": return '<div style="'+dk+'flex-direction:column;gap:1px;"><span style="'+col("#888",16)+'">bottom</span><span style="'+col("#aaa",18)+'">bottom</span><span style="'+col("#fff",22)+'">bottom</span></div>';
+    case "light-at-end": return '<div style="'+dk+'"><div style="width:80%;height:40px;background:linear-gradient(to right,#111,#111 80%,#ffd700);border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;"><span style="'+col("#fff",14)+'">&#128161;</span></div></div>';
+    case "man-on-bicycle": return '<div style="'+lt+'flex-direction:column;"><span style="'+col("#1a1a1a",28)+'">MAN</span><div style="display:flex;gap:4px;"><span style="'+col("#c44",20)+'">cycle</span><span style="'+col("#c44",20)+'">cycle</span></div></div>';
+    case "rainbow": return '<div style="'+md+'flex-direction:column;"><span style="'+col("#4488cc",22)+'">RAIN</span><span style="font-size:28px;margin-top:-4px;">&#127993;</span></div>';
+    case "time-after-time": return '<div style="'+dk+'"><div style="display:flex;gap:6px;">'+"time time time time".split(" ").map(function(w){return '<span style="'+col("#fff",22)+'">'+w+'</span>';}).join("")+'</div></div>';
+    case "line-up": return '<div style="'+lt+'flex-direction:column;gap:1px;">'+"lineup lineup lineup".split(" ").map(function(w){return '<span style="'+col("#333",16)+'">'+w+'</span>';}).join("")+'</div>';
+    case "ups-and-downs": return '<div style="'+dk+'"><div style="display:flex;gap:4px;align-items:center;"><span style="'+col("#4ade80",24)+'">&#8595;</span><span style="'+col("#f44",24)+'">&#8593;</span><span style="'+col("#4ade80",24)+'">&#8595;</span><span style="'+col("#f44",24)+'">&#8593;</span></div></div>';
+    case "me-in-memory": return '<div style="'+lt+'"><span style="'+col("#888",28)+'">M</span><span style="'+col("#888",28)+'">E</span><span style="'+col("#c44",28,"margin:0 2px;")+'">MO</span><span style="'+col("#888",28)+'">RY</span></div>';
+    case "three-heads": return '<div style="'+md+'"><div style="display:flex;gap:8px;"><span style="'+col("#333",28)+'">HEAD</span><span style="'+col("#333",28)+'">HEAD</span><span style="'+col("#333",28)+'">HEAD</span></div></div>';
+    case "doorbell": return '<div style="'+dk+'"><span style="'+col("#888",32)+'">DOOR</span><span style="font-size:32px;margin-left:6px;">&#128276;</span></div>';
+    case "second-wind": return '<div style="'+lt+'"><div style="display:flex;gap:6px;"><span style="'+col("#333",22)+'">WIND</span><span style="'+col("#333",22)+'">WIND</span><span style="'+col("#333",22)+'">WIND</span></div></div>';
+    case "piece-by-piece": return '<div style="'+dk+'"><div style="display:flex;gap:8px;"><span style="'+col("#fff",22)+'">PIECE</span><span style="'+col("#fff",22)+'">PIECE</span><span style="'+col("#fff",22)+'">PIECE</span></div></div>';
+    case "step-on-me": return '<div style="'+lt+'flex-direction:column;"><span style="'+col("#1a1a1a",32)+'">STEP</span><span style="'+col("#888",20,"margin-top:-2px;")+'">me</span></div>';
+    case "ever-after": return '<div style="'+dk+'"><div style="display:flex;gap:8px;"><span style="'+col("#fff",22)+'">AFTER</span><span style="'+col("#fff",22)+'">AFTER</span><span style="'+col("#fff",22)+'">AFTER</span></div></div>';
+    case "broken-heart": return '<div style="'+lt+'flex-direction:column;"><div style="display:flex;gap:16px;"><span style="'+col("#c44",36)+'">HE</span><span style="'+col("#c44",36,"transform:translateY(6px);")+'">ART</span></div><div style="position:absolute;width:3px;height:50px;background:#c44;transform:rotate(10deg);"></div></div>';
+    case "four-way": return '<div style="'+md+'"><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">'+"WAY WAY WAY WAY".split(" ").map(function(w){return '<span style="'+col("#333",22,"text-align:center;")+'">'+w+'</span>';}).join("")+'</div></div>';
+    case "highway": return '<div style="'+dk+'flex-direction:column;"><span style="'+col("#fff",28,"margin-bottom:-6px;")+'">WAY</span><span style="'+col("#888",10,"letter-spacing:4px;")+'">&#8593; up high &#8593;</span></div>';
+    case "face-to-face": return '<div style="'+lt+'"><div style="display:flex;gap:6px;"><span style="'+col("#333",28)+'">FACE</span><span style="'+col("#333",28)+'">FACE</span><span style="'+col("#333",28)+'">FACE</span></div></div>';
+    case "turn-back": return '<div style="'+dk+'"><span style="'+col("#fff",40)+'">KCAB</span></div>';
+    case "outer-space": return '<div style="'+dk+'"><div style="border:2px solid #888;padding:12px 20px;border-radius:4px;"><span style="'+col("#888",18)+'">SPACE SPACE</span></div><span style="'+W+'font-size:18px;position:absolute;top:12px;right:20px;">SPACE</span></div>';
+    case "someone": return '<div style="'+lt+'"><span style="'+col("#333",32)+'">SOME</span><span style="'+col("#c44",42,"font-family:\'Playfair Display\';margin-left:6px;")+'">1</span></div>';
+    case "long-time-no-see": return '<div style="'+dk+'"><span style="'+col("#fff",18,"letter-spacing:16px;")+'">T&nbsp;I&nbsp;M&nbsp;E</span><span style="color:#555;font-size:12px;position:absolute;bottom:16px;text-decoration:line-through;">&#128065;</span></div>';
+    case "life-after-life": return '<div style="'+md+'"><span style="'+col("#333",24)+'">LIFE</span><span style="'+col("#888",14,"margin:0 8px;")+'">&#8594;</span><span style="'+col("#333",24)+'">LIFE</span></div>';
+    case "outside": return '<div style="'+dk+'"><div style="border:2px solid #888;padding:12px 24px;border-radius:4px;"><span style="'+col("#888",22)+'">SIDE</span></div><span style="'+W+'font-size:22px;position:absolute;top:14px;left:16px;">OUT</span></div>';
+    case "peace-on-earth": return '<div style="'+lt+'flex-direction:column;"><span style="'+col("#333",24)+'">PIECE</span><span style="'+col("#8B4513",32)+'">EARTH</span></div>';
+    case "spread-reading": return '<div style="'+lt+'"><span style="'+col("#333",32,"letter-spacing:28px;")+'">r e a d</span></div>';
+    case "i-understand": return '<div style="'+md+'flex-direction:column;"><span style="'+col("#333",36)+'">STAND</span><span style="'+col("#c44",22,"margin-top:-2px;")+'">I</span></div>';
+    case "knee-light": return '<div style="'+dk+'"><span style="'+col("#fff",28)+'">KNEE</span><span style="'+col("#ffd700",28,"margin-left:6px;text-shadow:0 0 8px #ffd700;")+'">LIGHT</span></div>';
+    case "two-rights-wrong": return '<div style="'+lt+'"><div style="display:flex;gap:6px;align-items:center;"><span style="'+col("#333",26)+'">RIGHT</span><span style="'+col("#333",26)+'">RIGHT</span><span style="'+col("#c44",14,"margin-left:4px;")+'">wrong</span></div></div>';
+    case "backward-word": return '<div style="'+dk+'"><span style="'+col("#888",22,"margin-right:6px;")+'">back</span><span style="'+col("#fff",28)+'">WARD</span></div>';
+    case "three-sides": return '<div style="'+md+'"><div style="display:flex;gap:8px;"><span style="'+col("#333",24)+'">SIDE</span><span style="'+col("#333",24)+'">SIDE</span><span style="'+col("#333",24)+'">SIDE</span></div></div>';
+    case "upgrade": return '<div style="'+dk+'flex-direction:column;"><span style="'+col("#4ade80",20,"margin-bottom:-4px;")+'">UP &#8593;</span><span style="'+col("#fff",30)+'">GRADE</span></div>';
+    case "cross-examined": return '<div style="'+lt+'"><span style="'+col("#c44",32,"margin-right:6px;")+'">&#10013;</span><span style="'+col("#1a1a1a",24)+'">EXAMINED</span></div>';
+    case "forgive-word": return '<div style="'+dk+'"><span style="'+col("#888",28)+'">FOR</span><span style="'+col("#4ade80",28,"margin-left:4px;")+'">GIVE</span></div>';
+    case "times-square": return '<div style="'+lt+'"><div style="border:4px solid #333;padding:12px 18px;border-radius:2px;"><span style="'+col("#1a1a1a",24)+'">TIMES</span></div></div>';
+    case "heartbeat": return '<div style="'+dk+'"><span style="'+col("#f44",32)+'">HEART</span><span style="'+col("#888",22,"margin-left:4px;")+'">BEAT</span></div>';
+    case "forecast": return '<div style="'+md+'"><span style="'+col("#333",28)+'">FORE</span><span style="'+col("#888",28,"margin-left:6px;")+'">CAST</span></div>';
+    case "outlaw": return '<div style="'+dk+'"><div style="border:2px solid #888;padding:10px 24px;border-radius:4px;"><span style="'+col("#888",24)+'">LAW</span></div><span style="'+W+'font-size:24px;position:absolute;top:10px;left:20px;">OUT</span></div>';
+    default: return '<div style="'+dk+'color:#fff;font-size:24px;">?</div>';
   }
 }
 
 // ═══ GAME STATE ═══
-const state = {
-  screen: "menu",
-  p1Name: "",
-  p2Name: "",
-  category: "all",
-  difficulty: "normal",
-  gameMode: "solo",
-  puzzleOrder: [],
-  currentIndex: 0,
-  timeLeft: 30,
-  feedback: null,
-  showHint: false,
-  results: [],
-  leaderboard: loadLeaderboard(),
-  guess: "",
-  score: 0,
-  streak: 0,
-  hintUsed: false,
-  // Buzzer
-  p1Score: 0,
-  p2Score: 0,
-  buzzerPhase: "waiting",
-  buzzedPlayer: null,
-  otherHadChance: false,
-  buzzerGuess: "",
-  hintGiven: false,
+const S = {
+  screen: "menu", p1Name: "", p2Name: "", category: "all", difficulty: "normal",
+  gameMode: "solo", puzzleOrder: [], currentIndex: 0, timeLeft: 30,
+  feedback: null, showHint: false, results: [], leaderboard: loadLeaderboard(),
+  guess: "", score: 0, streak: 0, hintUsed: false,
+  p1Score: 0, p2Score: 0, buzzerPhase: "waiting", buzzedPlayer: null,
+  otherHadChance: false, buzzerGuess: "", hintGiven: false,
 };
 
 let timerInterval = null;
 const p1c = "#60a5fa", p2c = "#f44";
 
-function getPuzzleCount() {
-  return state.difficulty === "easy" ? 10 : state.difficulty === "normal" ? 20 : PUZZLES.length;
-}
-function getTimePerPuzzle() {
-  return state.difficulty === "easy" ? 45 : state.difficulty === "normal" ? 30 : 18;
-}
+function getPuzzleCount() { return S.difficulty==="easy"?10:S.difficulty==="normal"?20:PUZZLES.length; }
+function getTimePerPuzzle() { return S.difficulty==="easy"?45:S.difficulty==="normal"?30:18; }
+function escHtml(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
-// ═══ GAME LOGIC ═══
-function startGame() {
-  if (!state.p1Name.trim()) return;
-  if (state.gameMode === "buzzer" && !state.p2Name.trim()) return;
-  const pool = state.category === "all" ? PUZZLES : PUZZLES.filter(p => p.cat === state.category);
-  const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, Math.min(getPuzzleCount(), pool.length));
-  Object.assign(state, {
-    puzzleOrder: shuffled, currentIndex: 0, guess: "", score: 0, streak: 0,
-    p1Score: 0, p2Score: 0, hintUsed: false, showHint: false,
-    timeLeft: state.gameMode === "buzzer" ? 10 : getTimePerPuzzle(),
-    feedback: null, results: [], buzzerPhase: "waiting", buzzedPlayer: null,
-    otherHadChance: false, buzzerGuess: "", hintGiven: false, screen: "game"
-  });
-  startTimer();
-  render();
-  setTimeout(() => {
-    const inp = document.getElementById("guess-input");
-    if (inp) inp.focus();
-  }, 100);
+// ═══ TIMER — ONLY updates timer bar + text, never calls render() ═══
+function updateTimerDisplay() {
+  var tpp = S.gameMode === "buzzer" ? 10 : getTimePerPuzzle();
+  var pct = Math.max(0, (S.timeLeft / tpp) * 100);
+  var color = S.gameMode === "solo"
+    ? (S.timeLeft > 15 ? "#4ade80" : S.timeLeft > 7 ? "#fbbf24" : "#f44")
+    : (S.timeLeft > 10 ? "#4ade80" : S.timeLeft > 5 ? "#fbbf24" : "#f44");
+
+  var bar = document.getElementById("timer-bar");
+  if (bar) { bar.style.width = pct + "%"; bar.style.background = color; }
+  var txt = document.getElementById("timer-text");
+  if (txt) { txt.textContent = S.timeLeft; txt.style.color = color; }
 }
 
 function startTimer() {
   clearInterval(timerInterval);
-  if (state.gameMode === "solo") {
-    timerInterval = setInterval(() => {
-      if (state.feedback) return;
-      state.timeLeft--;
-      if (state.timeLeft <= 0) {
-        clearInterval(timerInterval);
-        soloTimeout();
-      }
-      render();
+  if (S.gameMode === "solo") {
+    timerInterval = setInterval(function() {
+      if (S.feedback) return;
+      S.timeLeft--;
+      if (S.timeLeft <= 0) { clearInterval(timerInterval); soloTimeout(); return; }
+      updateTimerDisplay();
     }, 1000);
   } else {
-    timerInterval = setInterval(() => {
-      if (state.buzzerPhase === "done" || state.buzzerPhase === "buzzed" || state.buzzerPhase === "answering" || state.buzzerPhase === "wrong-other") return;
-      state.timeLeft--;
-      if (state.timeLeft <= 0) {
+    timerInterval = setInterval(function() {
+      if (S.buzzerPhase==="done"||S.buzzerPhase==="buzzed"||S.buzzerPhase==="answering"||S.buzzerPhase==="wrong-other") return;
+      S.timeLeft--;
+      if (S.timeLeft <= 0) {
         clearInterval(timerInterval);
-        if (!state.hintGiven) {
-          state.hintGiven = true;
-          state.showHint = true;
-          state.timeLeft = 10;
-          startTimer();
-        } else {
-          buzzerSkip();
-        }
+        if (!S.hintGiven) { S.hintGiven=true; S.showHint=true; S.timeLeft=10; render(); startTimer(); return; }
+        else { buzzerSkip(); return; }
       }
-      render();
+      updateTimerDisplay();
     }, 1000);
   }
 }
 
-// Solo
+// ═══ GAME LOGIC ═══
+function startGame() {
+  if (!S.p1Name.trim()) return;
+  if (S.gameMode==="buzzer" && !S.p2Name.trim()) return;
+  var pool = S.category==="all" ? PUZZLES : PUZZLES.filter(function(p){return p.cat===S.category;});
+  var shuffled = pool.slice().sort(function(){return Math.random()-0.5;}).slice(0, Math.min(getPuzzleCount(), pool.length));
+  S.puzzleOrder=shuffled; S.currentIndex=0; S.guess=""; S.score=0; S.streak=0;
+  S.p1Score=0; S.p2Score=0; S.hintUsed=false; S.showHint=false;
+  S.timeLeft = S.gameMode==="buzzer"?10:getTimePerPuzzle();
+  S.feedback=null; S.results=[]; S.buzzerPhase="waiting"; S.buzzedPlayer=null;
+  S.otherHadChance=false; S.buzzerGuess=""; S.hintGiven=false; S.screen="game";
+  render();
+  startTimer();
+  setTimeout(function(){ var inp=document.getElementById("guess-input"); if(inp) inp.focus(); }, 50);
+}
+
 function soloTimeout() {
-  const p = state.puzzleOrder[state.currentIndex];
-  if (!p) return;
-  state.streak = 0;
-  state.feedback = { type: "timeout", answer: p.answer };
-  state.results.push({ correct: false, answer: p.answer, playerAnswer: "⏱ Time's up", cat: p.cat });
+  var p=S.puzzleOrder[S.currentIndex]; if(!p) return;
+  S.streak=0; S.feedback={type:"timeout",answer:p.answer};
+  S.results.push({correct:false,answer:p.answer,playerAnswer:"Time's up",cat:p.cat});
   render();
 }
 
 function soloCheck() {
-  if (!state.guess.trim() || (state.feedback && state.feedback.type !== "wrong")) return;
-  const p = state.puzzleOrder[state.currentIndex];
-  if (checkAnswer(state.guess, p)) {
+  if (!S.guess.trim() || (S.feedback && S.feedback.type!=="wrong")) return;
+  var p=S.puzzleOrder[S.currentIndex];
+  if (checkAnswer(S.guess,p)) {
     clearInterval(timerInterval);
-    const pts = Math.max(200 + Math.floor(state.timeLeft * 2) + state.streak * 50 + (state.hintUsed ? -100 : 0), 50);
-    state.score += pts;
-    state.streak++;
-    state.feedback = { type: "correct", points: pts };
-    state.results.push({ correct: true, answer: p.answer, playerAnswer: state.guess, cat: p.cat });
-  } else {
-    state.feedback = { type: "wrong" };
+    var pts=Math.max(200+Math.floor(S.timeLeft*2)+S.streak*50+(S.hintUsed?-100:0),50);
+    S.score+=pts; S.streak++;
+    S.feedback={type:"correct",points:pts};
+    S.results.push({correct:true,answer:p.answer,playerAnswer:S.guess,cat:p.cat});
     render();
-    setTimeout(() => {
-      state.feedback = null;
-      render();
-    }, 800);
-    return;
+  } else {
+    // Just shake the input — no re-render needed
+    var inp = document.getElementById("guess-input");
+    if (inp) { inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); }
   }
-  render();
 }
 
 function soloSkip() {
-  if (state.feedback && (state.feedback.type === "correct" || state.feedback.type === "timeout")) return;
+  if (S.feedback && (S.feedback.type==="correct"||S.feedback.type==="timeout")) return;
   clearInterval(timerInterval);
-  const p = state.puzzleOrder[state.currentIndex];
-  state.streak = 0;
-  state.feedback = { type: "skip", answer: p.answer };
-  state.results.push({ correct: false, answer: p.answer, playerAnswer: "Skipped", cat: p.cat });
+  var p=S.puzzleOrder[S.currentIndex];
+  S.streak=0; S.feedback={type:"skip",answer:p.answer};
+  S.results.push({correct:false,answer:p.answer,playerAnswer:"Skipped",cat:p.cat});
   render();
 }
 
-// Buzzer
+function soloHint() {
+  S.hintUsed=true; S.showHint=true; render();
+  setTimeout(function(){ var inp=document.getElementById("guess-input"); if(inp) inp.focus(); }, 50);
+}
+
 function buzz(player) {
+  if (S.buzzerPhase !== "waiting") return;
   clearInterval(timerInterval);
-  state.buzzedPlayer = player;
-  state.buzzerPhase = "buzzed";
-  state.buzzerGuess = "";
+  S.buzzedPlayer=player; S.buzzerPhase="buzzed"; S.buzzerGuess="";
   render();
-  setTimeout(() => {
-    state.buzzerPhase = "answering";
-    render();
-    setTimeout(() => {
-      const inp = document.getElementById("buzzer-input");
-      if (inp) inp.focus();
-    }, 50);
-  }, 800);
+  setTimeout(function(){
+    S.buzzerPhase="answering"; render();
+    setTimeout(function(){ var inp=document.getElementById("buzzer-input"); if(inp) inp.focus(); },50);
+  },800);
 }
 
 function buzzerSubmit() {
-  if (!state.buzzerGuess.trim()) return;
-  const p = state.puzzleOrder[state.currentIndex];
-  if (checkAnswer(state.buzzerGuess, p)) {
-    if (state.buzzedPlayer === 1) state.p1Score += 200; else state.p2Score += 200;
-    state.buzzerPhase = "done";
-    state.feedback = { type: "correct", player: state.buzzedPlayer };
-    state.results.push({ correct: true, answer: p.answer, playerAnswer: state.buzzerGuess, cat: p.cat, player: state.buzzedPlayer });
+  if (!S.buzzerGuess.trim()) return;
+  var p=S.puzzleOrder[S.currentIndex];
+  if (checkAnswer(S.buzzerGuess,p)) {
+    if(S.buzzedPlayer===1) S.p1Score+=200; else S.p2Score+=200;
+    S.buzzerPhase="done"; S.feedback={type:"correct",player:S.buzzedPlayer};
+    S.results.push({correct:true,answer:p.answer,playerAnswer:S.buzzerGuess,cat:p.cat,player:S.buzzedPlayer});
   } else {
-    if (state.otherHadChance) {
-      state.buzzerPhase = "done";
-      state.feedback = { type: "skip", answer: p.answer };
-      state.results.push({ correct: false, answer: p.answer, playerAnswer: "Both wrong", cat: p.cat });
+    if (S.otherHadChance) {
+      S.buzzerPhase="done"; S.feedback={type:"skip",answer:p.answer};
+      S.results.push({correct:false,answer:p.answer,playerAnswer:"Both wrong",cat:p.cat});
     } else {
-      state.otherHadChance = true;
-      state.buzzerPhase = "wrong-other";
+      S.otherHadChance=true; S.buzzerPhase="wrong-other";
     }
   }
   render();
 }
 
 function buzzerOtherTry() {
-  state.buzzedPlayer = state.buzzedPlayer === 1 ? 2 : 1;
-  state.buzzerGuess = "";
-  state.buzzerPhase = "answering";
+  S.buzzedPlayer = S.buzzedPlayer===1?2:1;
+  S.buzzerGuess=""; S.buzzerPhase="answering";
   render();
-  setTimeout(() => {
-    const inp = document.getElementById("buzzer-input");
-    if (inp) inp.focus();
-  }, 50);
+  setTimeout(function(){ var inp=document.getElementById("buzzer-input"); if(inp) inp.focus(); },50);
 }
 
 function buzzerSkip() {
-  const p = state.puzzleOrder[state.currentIndex];
-  state.buzzerPhase = "done";
-  state.feedback = { type: "skip", answer: p.answer };
-  state.results.push({ correct: false, answer: p.answer, playerAnswer: "Skipped", cat: p.cat });
+  var p=S.puzzleOrder[S.currentIndex];
+  S.buzzerPhase="done"; S.feedback={type:"skip",answer:p.answer};
+  S.results.push({correct:false,answer:p.answer,playerAnswer:"Skipped",cat:p.cat});
   render();
 }
 
 function nextPuzzle() {
-  if (state.currentIndex + 1 >= state.puzzleOrder.length) {
-    finishGame();
-    return;
-  }
-  state.currentIndex++;
-  state.guess = "";
-  state.hintUsed = false;
-  state.showHint = false;
-  state.timeLeft = state.gameMode === "buzzer" ? 10 : getTimePerPuzzle();
-  state.feedback = null;
-  state.buzzerPhase = "waiting";
-  state.buzzedPlayer = null;
-  state.otherHadChance = false;
-  state.buzzerGuess = "";
-  state.hintGiven = false;
-  startTimer();
+  if (S.currentIndex+1 >= S.puzzleOrder.length) { finishGame(); return; }
+  S.currentIndex++; S.guess=""; S.hintUsed=false; S.showHint=false;
+  S.timeLeft = S.gameMode==="buzzer"?10:getTimePerPuzzle();
+  S.feedback=null; S.buzzerPhase="waiting"; S.buzzedPlayer=null;
+  S.otherHadChance=false; S.buzzerGuess=""; S.hintGiven=false;
   render();
-  if (state.gameMode === "solo") {
-    setTimeout(() => {
-      const inp = document.getElementById("guess-input");
-      if (inp) inp.focus();
-    }, 100);
-  }
+  startTimer();
+  if (S.gameMode==="solo") setTimeout(function(){ var inp=document.getElementById("guess-input"); if(inp) inp.focus(); },50);
 }
 
 function finishGame() {
   clearInterval(timerInterval);
-  const entries = [];
-  if (state.gameMode === "solo") {
-    entries.push({ name: state.p1Name, score: state.score, correct: state.results.filter(r => r.correct).length, total: state.puzzleOrder.length, difficulty: state.difficulty, category: state.category, mode: "solo", date: new Date().toLocaleDateString() });
+  var entries=[];
+  if (S.gameMode==="solo") {
+    entries.push({name:S.p1Name,score:S.score,correct:S.results.filter(function(r){return r.correct;}).length,total:S.puzzleOrder.length,difficulty:S.difficulty,category:S.category,mode:"solo",date:new Date().toLocaleDateString()});
   } else {
-    entries.push({ name: state.p1Name, score: state.p1Score, correct: state.results.filter(r => r.correct && r.player === 1).length, total: state.puzzleOrder.length, difficulty: state.difficulty, category: state.category, mode: "buzzer", date: new Date().toLocaleDateString() });
-    entries.push({ name: state.p2Name, score: state.p2Score, correct: state.results.filter(r => r.correct && r.player === 2).length, total: state.puzzleOrder.length, difficulty: state.difficulty, category: state.category, mode: "buzzer", date: new Date().toLocaleDateString() });
+    entries.push({name:S.p1Name,score:S.p1Score,correct:S.results.filter(function(r){return r.correct&&r.player===1;}).length,total:S.puzzleOrder.length,difficulty:S.difficulty,category:S.category,mode:"buzzer",date:new Date().toLocaleDateString()});
+    entries.push({name:S.p2Name,score:S.p2Score,correct:S.results.filter(function(r){return r.correct&&r.player===2;}).length,total:S.puzzleOrder.length,difficulty:S.difficulty,category:S.category,mode:"buzzer",date:new Date().toLocaleDateString()});
   }
-  const newLb = [...state.leaderboard, ...entries].sort((a, b) => b.score - a.score).slice(0, 30);
-  state.leaderboard = newLb;
-  saveLeaderboard(newLb);
-  state.screen = "results";
-  render();
+  var newLb=S.leaderboard.concat(entries).sort(function(a,b){return b.score-a.score;}).slice(0,30);
+  S.leaderboard=newLb; saveLeaderboard(newLb);
+  S.screen="results"; render();
 }
 
-// Keyboard handler for buzzer
-function handleBuzzerKeys(e) {
-  if (state.screen !== "game" || state.gameMode !== "buzzer" || state.buzzerPhase !== "waiting") return;
-  const k = e.key.toLowerCase();
-  if (k === "q" || k === "a") buzz(1);
-  if (k === "p" || k === "l") buzz(2);
-}
+// Buzzer keyboard shortcuts
+document.addEventListener("keydown", function(e) {
+  if (S.screen!=="game"||S.gameMode!=="buzzer"||S.buzzerPhase!=="waiting") return;
+  var k=e.key.toLowerCase();
+  if (k==="q"||k==="a") buzz(1);
+  if (k==="p"||k==="l") buzz(2);
+});
 
-document.addEventListener("keydown", handleBuzzerKeys);
-
-// ═══ RENDER ENGINE ═══
-const app = document.getElementById("app");
-const catLabel = { all: "All", phrase: "Phrases", movie: "Movies" };
-const catIcon = { all: "🎲", phrase: "💬", movie: "🎬" };
+// ═══ RENDER — rebuilds DOM only on state changes, NOT on timer ticks ═══
+var app = document.getElementById("app");
+var catLabel = {all:"All",phrase:"Phrases",movie:"Movies"};
+var catIcon = {all:"&#127922;",phrase:"&#128172;",movie:"&#127916;"};
 
 function render() {
-  let html = "";
+  // Save input value and cursor position before rebuild
+  var guessInput = document.getElementById("guess-input");
+  var buzzerInput = document.getElementById("buzzer-input");
+  var savedGuess = guessInput ? guessInput.value : S.guess;
+  var savedBuzzerGuess = buzzerInput ? buzzerInput.value : S.buzzerGuess;
+  // Sync state with live input values
+  if (guessInput) S.guess = savedGuess;
+  if (buzzerInput) S.buzzerGuess = savedBuzzerGuess;
 
-  // Header
-  const headerSize = state.screen === "menu" ? 48 : 26;
-  html += `<div style="text-align:center;margin-bottom:${state.screen === "menu" ? 16 : 10}px;">
-    <h1 onclick="state.screen='menu';clearInterval(timerInterval);render();" style="font-family:'Playfair Display',Georgia,serif;font-size:${headerSize}px;font-weight:900;background:linear-gradient(135deg,#f44 0%,#ff8844 50%,#ffd700 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0;letter-spacing:2px;cursor:pointer;">REBUS</h1>
-    ${state.screen === "menu" ? `<p style="color:#888;font-size:13px;margin-top:4px;letter-spacing:4px;text-transform:uppercase;">Decode the Visual · ${PUZZLES.length} Puzzles</p>` : ""}
-  </div>`;
+  var html = "";
+  var headerSize = S.screen==="menu"?48:26;
+  html += '<div style="text-align:center;margin-bottom:'+(S.screen==="menu"?16:10)+'px;">' +
+    '<h1 onclick="S.screen=\'menu\';clearInterval(timerInterval);render();" style="font-family:\'Playfair Display\',Georgia,serif;font-size:'+headerSize+'px;font-weight:900;background:linear-gradient(135deg,#f44 0%,#ff8844 50%,#ffd700 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0;letter-spacing:2px;cursor:pointer;">REBUS</h1>' +
+    (S.screen==="menu"?'<p style="color:#888;font-size:13px;margin-top:4px;letter-spacing:4px;text-transform:uppercase;">Decode the Visual &middot; '+PUZZLES.length+' Puzzles</p>':"") +
+  '</div>';
 
-  if (state.screen === "menu") html += renderMenu();
-  else if (state.screen === "game" && state.gameMode === "solo") html += renderSoloGame();
-  else if (state.screen === "game" && state.gameMode === "buzzer") html += renderBuzzerGame();
-  else if (state.screen === "results") html += renderResults();
-  else if (state.screen === "leaderboard") html += renderLeaderboard();
+  if (S.screen==="menu") html += renderMenu();
+  else if (S.screen==="game"&&S.gameMode==="solo") html += renderSoloGame();
+  else if (S.screen==="game"&&S.gameMode==="buzzer") html += renderBuzzerGame();
+  else if (S.screen==="results") html += renderResults();
+  else if (S.screen==="leaderboard") html += renderLeaderboard();
 
   app.innerHTML = html;
-  bindEvents();
+
+  // Restore focus to inputs after DOM rebuild
+  if (S.screen === "game") {
+    var gi = document.getElementById("guess-input");
+    if (gi && document.activeElement !== gi) {
+      gi.focus();
+      try { gi.setSelectionRange(gi.value.length, gi.value.length); } catch(e) {}
+    }
+    var bi = document.getElementById("buzzer-input");
+    if (bi && document.activeElement !== bi) {
+      bi.focus();
+      try { bi.setSelectionRange(bi.value.length, bi.value.length); } catch(e) {}
+    }
+  }
 }
 
 function renderMenu() {
-  const previewPuzzles = [PUZZLES[0], PUZZLES[13], PUZZLES[16], PUZZLES[35], PUZZLES[27], PUZZLES[50]].filter(Boolean);
-  let previews = previewPuzzles.map(p =>
-    `<div style="height:72px;border-radius:8px;overflow:hidden;opacity:.55;">${renderPuzzleVisual(p)}</div>`
-  ).join("");
+  var previewPuzzles = [PUZZLES[0],PUZZLES[13],PUZZLES[16],PUZZLES[35],PUZZLES[27],PUZZLES[50]].filter(Boolean);
+  var previews = previewPuzzles.map(function(p){return '<div style="height:72px;border-radius:8px;overflow:hidden;opacity:.55;">'+renderPuzzleVisual(p)+'</div>';}).join("");
 
-  return `<div style="width:100%;max-width:440px;animation:slideUp .4s ease-out;">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:20px;border-radius:12px;overflow:hidden;">${previews}</div>
-
-    <!-- Mode -->
-    <div style="margin-bottom:14px;">
-      <label style="display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;">Mode</label>
-      <div style="display:flex;gap:8px;">
-        ${[{ val: "solo", icon: "🎯", label: "Solo", desc: "Play alone" }, { val: "buzzer", icon: "⚡", label: "Buzzer 1v1", desc: "Jeopardy style" }].map(m => `
-          <button class="btn" onclick="state.gameMode='${m.val}';render();" style="flex:1;padding:10px 6px;border-radius:10px;background:${state.gameMode === m.val ? "#ffd70018" : "#1a1a2e"};border:2px solid ${state.gameMode === m.val ? "#ffd700" : "#2a2a3e"};color:${state.gameMode === m.val ? "#ffd700" : "#888"};text-align:center;">
-            <div style="font-size:22px;">${m.icon}</div><div style="font-size:14px;font-weight:700;margin-top:2px;">${m.label}</div><div style="font-size:10px;color:#666;">${m.desc}</div>
-          </button>`).join("")}
-      </div>
-    </div>
-
-    <!-- Names -->
-    <div style="display:flex;gap:8px;margin-bottom:14px;">
-      <div style="flex:1;">
-        <label style="display:block;color:${p1c};font-size:11px;letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;">${state.gameMode === "buzzer" ? "P1 (Q/A)" : "Your Name"}</label>
-        <input id="p1-name" value="${escHtml(state.p1Name)}" placeholder="Name..." style="width:100%;padding:10px 12px;font-size:15px;background:#1a1a2e;border:2px solid ${p1c}30;border-radius:10px;color:#e8e4dc;font-family:'JetBrains Mono','Fira Code',monospace;box-sizing:border-box;">
-      </div>
-      ${state.gameMode === "buzzer" ? `<div style="flex:1;">
-        <label style="display:block;color:${p2c};font-size:11px;letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;">P2 (P/L)</label>
-        <input id="p2-name" value="${escHtml(state.p2Name)}" placeholder="Name..." style="width:100%;padding:10px 12px;font-size:15px;background:#1a1a2e;border:2px solid ${p2c}30;border-radius:10px;color:#e8e4dc;font-family:'JetBrains Mono','Fira Code',monospace;box-sizing:border-box;">
-      </div>` : ""}
-    </div>
-
-    <!-- Category -->
-    <div style="margin-bottom:14px;">
-      <label style="display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;">Category</label>
-      <div style="display:flex;gap:8px;">
-        ${["all", "phrase", "movie"].map(c => `
-          <button class="btn" onclick="state.category='${c}';render();" style="flex:1;padding:8px 4px;border-radius:10px;background:${state.category === c ? "#ff884418" : "#1a1a2e"};border:2px solid ${state.category === c ? "#ff8844" : "#2a2a3e"};color:${state.category === c ? "#ff8844" : "#888"};text-align:center;">
-            <div style="font-size:18px;">${catIcon[c]}</div><div style="font-size:12px;font-weight:700;">${catLabel[c]}</div><div style="font-size:9px;color:#666;">${c === "all" ? PUZZLES.length : c === "phrase" ? phraseCount : movieCount}</div>
-          </button>`).join("")}
-      </div>
-    </div>
-
-    <!-- Difficulty -->
-    <div style="margin-bottom:18px;">
-      <label style="display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;">Difficulty</label>
-      <div style="display:flex;gap:8px;">
-        ${[{ val: "easy", label: "Easy", desc: "10 · 45s", color: "#4ade80" }, { val: "normal", label: "Normal", desc: "20 · 30s", color: "#fbbf24" }, { val: "hard", label: "Hard", desc: `All ${PUZZLES.length} · 18s`, color: "#f44" }].map(d => `
-          <button class="btn" onclick="state.difficulty='${d.val}';render();" style="flex:1;padding:8px 4px;border-radius:10px;background:${state.difficulty === d.val ? d.color + "18" : "#1a1a2e"};border:2px solid ${state.difficulty === d.val ? d.color : "#2a2a3e"};color:${state.difficulty === d.val ? d.color : "#888"};text-align:center;">
-            <div style="font-size:14px;font-weight:700;">${d.label}</div><div style="font-size:10px;opacity:.7;">${d.desc}</div>
-          </button>`).join("")}
-      </div>
-    </div>
-
-    <button class="btn" onclick="startGame();" style="width:100%;padding:14px;font-size:20px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:12px;letter-spacing:2px;">PLAY</button>
-    <button class="btn" onclick="state.screen='leaderboard';render();" style="width:100%;padding:11px;font-size:13px;font-weight:600;background:transparent;color:#888;border-radius:12px;border:1px solid #2a2a3e;margin-top:8px;">Leaderboard</button>
-  </div>`;
+  return '<div style="width:100%;max-width:440px;animation:slideUp .4s ease-out;">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:20px;border-radius:12px;overflow:hidden;">'+previews+'</div>' +
+    '<div style="margin-bottom:14px;">' +
+      '<label style="display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;">Mode</label>' +
+      '<div style="display:flex;gap:8px;">' +
+        [{val:"solo",icon:"&#127919;",label:"Solo",desc:"Play alone"},{val:"buzzer",icon:"&#9889;",label:"Buzzer 1v1",desc:"Jeopardy style"}].map(function(m){return '<button class="btn" onclick="S.gameMode=\''+m.val+'\';render();" style="flex:1;padding:10px 6px;border-radius:10px;background:'+(S.gameMode===m.val?"#ffd70018":"#1a1a2e")+';border:2px solid '+(S.gameMode===m.val?"#ffd700":"#2a2a3e")+';color:'+(S.gameMode===m.val?"#ffd700":"#888")+';text-align:center;">' +
+          '<div style="font-size:22px;">'+m.icon+'</div><div style="font-size:14px;font-weight:700;margin-top:2px;">'+m.label+'</div><div style="font-size:10px;color:#666;">'+m.desc+'</div>' +
+        '</button>';}).join("") +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;margin-bottom:14px;">' +
+      '<div style="flex:1;">' +
+        '<label style="display:block;color:'+p1c+';font-size:11px;letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;">'+(S.gameMode==="buzzer"?"P1 (Q/A)":"Your Name")+'</label>' +
+        '<input id="p1-name" value="'+escHtml(S.p1Name)+'" oninput="S.p1Name=this.value" onkeydown="if(event.key===\'Enter\')startGame();" placeholder="Name..." style="width:100%;padding:10px 12px;font-size:15px;background:#1a1a2e;border:2px solid '+p1c+'30;border-radius:10px;color:#e8e4dc;font-family:\'JetBrains Mono\',\'Fira Code\',monospace;box-sizing:border-box;">' +
+      '</div>' +
+      (S.gameMode==="buzzer"?'<div style="flex:1;">' +
+        '<label style="display:block;color:'+p2c+';font-size:11px;letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;">P2 (P/L)</label>' +
+        '<input id="p2-name" value="'+escHtml(S.p2Name)+'" oninput="S.p2Name=this.value" onkeydown="if(event.key===\'Enter\')startGame();" placeholder="Name..." style="width:100%;padding:10px 12px;font-size:15px;background:#1a1a2e;border:2px solid '+p2c+'30;border-radius:10px;color:#e8e4dc;font-family:\'JetBrains Mono\',\'Fira Code\',monospace;box-sizing:border-box;">' +
+      '</div>':"") +
+    '</div>' +
+    '<div style="margin-bottom:14px;">' +
+      '<label style="display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;">Category</label>' +
+      '<div style="display:flex;gap:8px;">' +
+        ["all","phrase","movie"].map(function(c){return '<button class="btn" onclick="S.category=\''+c+'\';render();" style="flex:1;padding:8px 4px;border-radius:10px;background:'+(S.category===c?"#ff884418":"#1a1a2e")+';border:2px solid '+(S.category===c?"#ff8844":"#2a2a3e")+';color:'+(S.category===c?"#ff8844":"#888")+';text-align:center;">' +
+          '<div style="font-size:18px;">'+catIcon[c]+'</div><div style="font-size:12px;font-weight:700;">'+catLabel[c]+'</div><div style="font-size:9px;color:#666;">'+(c==="all"?PUZZLES.length:c==="phrase"?phraseCount:movieCount)+'</div>' +
+        '</button>';}).join("") +
+      '</div>' +
+    '</div>' +
+    '<div style="margin-bottom:18px;">' +
+      '<label style="display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;">Difficulty</label>' +
+      '<div style="display:flex;gap:8px;">' +
+        [{val:"easy",label:"Easy",desc:"10 &middot; 45s",color:"#4ade80"},{val:"normal",label:"Normal",desc:"20 &middot; 30s",color:"#fbbf24"},{val:"hard",label:"Hard",desc:"All "+PUZZLES.length+" &middot; 18s",color:"#f44"}].map(function(d){return '<button class="btn" onclick="S.difficulty=\''+d.val+'\';render();" style="flex:1;padding:8px 4px;border-radius:10px;background:'+(S.difficulty===d.val?d.color+"18":"#1a1a2e")+';border:2px solid '+(S.difficulty===d.val?d.color:"#2a2a3e")+';color:'+(S.difficulty===d.val?d.color:"#888")+';text-align:center;">' +
+          '<div style="font-size:14px;font-weight:700;">'+d.label+'</div><div style="font-size:10px;opacity:.7;">'+d.desc+'</div>' +
+        '</button>';}).join("") +
+      '</div>' +
+    '</div>' +
+    '<button class="btn" onclick="startGame();" style="width:100%;padding:14px;font-size:20px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:12px;letter-spacing:2px;">PLAY</button>' +
+    '<button class="btn" onclick="S.screen=\'leaderboard\';render();" style="width:100%;padding:11px;font-size:13px;font-weight:600;background:transparent;color:#888;border-radius:12px;border:1px solid #2a2a3e;margin-top:8px;">Leaderboard</button>' +
+  '</div>';
 }
 
 function renderSoloGame() {
-  const puzzle = state.puzzleOrder[state.currentIndex];
-  if (!puzzle) return "";
-  const tpp = getTimePerPuzzle();
-  const timerColor = state.timeLeft > 15 ? "#4ade80" : state.timeLeft > 7 ? "#fbbf24" : "#f44";
-  const timerPct = (state.timeLeft / tpp) * 100;
-  const fb = state.feedback;
+  var puzzle=S.puzzleOrder[S.currentIndex]; if(!puzzle) return "";
+  var tpp=getTimePerPuzzle();
+  var timerColor=S.timeLeft>15?"#4ade80":S.timeLeft>7?"#fbbf24":"#f44";
+  var timerPct=(S.timeLeft/tpp)*100;
+  var fb=S.feedback;
 
-  let inputSection = "";
-  if (!fb || fb.type === "wrong") {
-    inputSection = `
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input id="guess-input" value="${escHtml(state.guess)}" placeholder="Type your guess..." class="${fb && fb.type === 'wrong' ? 'shake' : ''}" style="flex:1;padding:11px 12px;font-size:15px;background:#1a1a2e;border:2px solid #2a2a3e;border-radius:10px;color:#e8e4dc;font-family:'JetBrains Mono','Fira Code',monospace;">
-        <button class="btn" onclick="soloCheck();" style="padding:11px 16px;background:#4ade80;color:#0c0c14;border-radius:10px;font-weight:700;font-size:16px;">✓</button>
-      </div>
-      <div style="display:flex;gap:8px;">
-        ${!state.hintUsed ? `<button class="btn" onclick="state.hintUsed=true;state.showHint=true;render();" style="flex:1;padding:8px;background:#1a1a2e;border:1px solid #fbbf2440;border-radius:8px;color:#fbbf24;font-size:11px;font-weight:600;">Hint (-100)</button>` : ""}
-        <button class="btn" onclick="soloSkip();" style="flex:1;padding:8px;background:#1a1a2e;border:1px solid #f4444040;border-radius:8px;color:#f44;font-size:11px;font-weight:600;">Skip →</button>
-      </div>`;
+  var inputSection="";
+  if (!fb || fb.type==="wrong") {
+    inputSection =
+      '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
+        '<input id="guess-input" value="'+escHtml(S.guess)+'" oninput="S.guess=this.value" onkeydown="if(event.key===\'Enter\')soloCheck();" placeholder="Type your guess..." style="flex:1;padding:11px 12px;font-size:15px;background:#1a1a2e;border:2px solid #2a2a3e;border-radius:10px;color:#e8e4dc;font-family:\'JetBrains Mono\',\'Fira Code\',monospace;">' +
+        '<button class="btn" onclick="soloCheck();" style="padding:11px 16px;background:#4ade80;color:#0c0c14;border-radius:10px;font-weight:700;font-size:16px;">&#10003;</button>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;">' +
+        (!S.hintUsed?'<button class="btn" onclick="soloHint();" style="flex:1;padding:8px;background:#1a1a2e;border:1px solid #fbbf2440;border-radius:8px;color:#fbbf24;font-size:11px;font-weight:600;">Hint (-100)</button>':"") +
+        '<button class="btn" onclick="soloSkip();" style="flex:1;padding:8px;background:#1a1a2e;border:1px solid #f4444040;border-radius:8px;color:#f44;font-size:11px;font-weight:600;">Skip &#8594;</button>' +
+      '</div>';
   }
 
-  let feedbackSection = "";
-  if (fb && fb.type !== "wrong") {
-    if (fb.type === "correct") {
-      feedbackSection = `<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#4ade8015;border:2px solid #4ade8040;">
-        <div style="font-size:28px;">✨</div>
-        <div style="color:#4ade80;font-size:18px;font-weight:900;font-family:'Playfair Display',Georgia,serif;">Correct!</div>
-        <div style="color:#4ade80;font-size:12px;font-family:'JetBrains Mono',monospace;">+${fb.points} pts</div>
-        <button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">${state.currentIndex + 1 >= state.puzzleOrder.length ? "Results" : "Next →"}</button>
-      </div>`;
+  var feedbackSection="";
+  if (fb && fb.type!=="wrong") {
+    var isLast = S.currentIndex+1>=S.puzzleOrder.length;
+    if (fb.type==="correct") {
+      feedbackSection='<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#4ade8015;border:2px solid #4ade8040;">' +
+        '<div style="font-size:28px;">&#10024;</div>' +
+        '<div style="color:#4ade80;font-size:18px;font-weight:900;font-family:\'Playfair Display\',Georgia,serif;">Correct!</div>' +
+        '<div style="color:#4ade80;font-size:12px;font-family:\'JetBrains Mono\',monospace;">+'+fb.points+' pts</div>' +
+        '<button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">'+(isLast?"Results":"Next &#8594;")+'</button>' +
+      '</div>';
     } else {
-      feedbackSection = `<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#f4444015;border:2px solid #f4440040;">
-        <div style="font-size:28px;">${fb.type === "timeout" ? "⏱" : "⏭"}</div>
-        <div style="color:#f44;font-size:16px;font-weight:700;">${fb.type === "timeout" ? "Time's Up!" : "Skipped"}</div>
-        <div style="color:#888;font-size:13px;margin-top:4px;">Answer: <span style="color:#ffd700;font-weight:700;">${escHtml(fb.answer)}</span></div>
-        <button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">${state.currentIndex + 1 >= state.puzzleOrder.length ? "Results" : "Next →"}</button>
-      </div>`;
+      feedbackSection='<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#f4444015;border:2px solid #f4440040;">' +
+        '<div style="font-size:28px;">'+(fb.type==="timeout"?"&#9201;":"&#9197;")+'</div>' +
+        '<div style="color:#f44;font-size:16px;font-weight:700;">'+(fb.type==="timeout"?"Time\'s Up!":"Skipped")+'</div>' +
+        '<div style="color:#888;font-size:13px;margin-top:4px;">Answer: <span style="color:#ffd700;font-weight:700;">'+escHtml(fb.answer)+'</span></div>' +
+        '<button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">'+(isLast?"Results":"Next &#8594;")+'</button>' +
+      '</div>';
     }
   }
 
-  return `<div style="width:100%;max-width:440px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <div style="display:flex;gap:12px;font-size:14px;align-items:center;">
-        <span style="color:#ffd700;font-family:'JetBrains Mono',monospace;font-weight:700;">${state.score} pts</span>
-        ${state.streak >= 2 ? `<span class="pop" style="color:#f44;font-weight:700;">🔥${state.streak}x</span>` : ""}
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <span style="font-size:13px;">${catIcon[puzzle.cat]}</span>
-        <span style="color:#666;font-size:13px;">${state.currentIndex + 1}/${state.puzzleOrder.length}</span>
-      </div>
-    </div>
-    <div style="width:100%;height:4px;background:#1a1a2e;border-radius:2px;margin-bottom:12px;overflow:hidden;">
-      <div style="width:${timerPct}%;height:100%;background:${timerColor};border-radius:2px;transition:width 1s linear;"></div>
-    </div>
-    <div class="pop" style="width:100%;height:190px;border-radius:14px;overflow:hidden;border:2px solid #2a2a3e;margin-bottom:8px;">${renderPuzzleVisual(puzzle)}</div>
-    <div style="text-align:center;margin-bottom:8px;">
-      <span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;background:${puzzle.cat === "movie" ? "#ff884420" : "#4ade8020"};color:${puzzle.cat === "movie" ? "#ff8844" : "#4ade80"};text-transform:uppercase;">${puzzle.cat === "movie" ? "🎬 Movie" : "💬 Phrase"}</span>
-    </div>
-    ${state.showHint ? `<div class="slide-up" style="padding:6px 12px;background:#1a1a2e;border-radius:8px;margin-bottom:8px;border:1px solid #fbbf2440;font-size:12px;color:#fbbf24;">💡 ${escHtml(puzzle.hint)}</div>` : ""}
-    ${inputSection}
-    ${feedbackSection}
-  </div>`;
+  return '<div style="width:100%;max-width:440px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+      '<div style="display:flex;gap:12px;font-size:14px;align-items:center;">' +
+        '<span style="color:#ffd700;font-family:\'JetBrains Mono\',monospace;font-weight:700;">'+S.score+' pts</span>' +
+        (S.streak>=2?'<span class="pop" style="color:#f44;font-weight:700;">&#128293;'+S.streak+'x</span>':"") +
+      '</div>' +
+      '<div style="display:flex;gap:6px;align-items:center;">' +
+        '<span style="font-size:13px;">'+(puzzle.cat==="movie"?"&#127916;":"&#128172;")+'</span>' +
+        '<span style="color:#666;font-size:13px;">'+(S.currentIndex+1)+'/'+S.puzzleOrder.length+'</span>' +
+      '</div>' +
+    '</div>' +
+    '<div style="width:100%;height:4px;background:#1a1a2e;border-radius:2px;margin-bottom:12px;overflow:hidden;">' +
+      '<div id="timer-bar" style="width:'+timerPct+'%;height:100%;background:'+timerColor+';border-radius:2px;transition:width 1s linear;"></div>' +
+    '</div>' +
+    '<div class="pop" style="width:100%;height:190px;border-radius:14px;overflow:hidden;border:2px solid #2a2a3e;margin-bottom:8px;">'+renderPuzzleVisual(puzzle)+'</div>' +
+    '<div style="text-align:center;margin-bottom:8px;">' +
+      '<span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;background:'+(puzzle.cat==="movie"?"#ff884420":"#4ade8020")+';color:'+(puzzle.cat==="movie"?"#ff8844":"#4ade80")+';text-transform:uppercase;">'+(puzzle.cat==="movie"?"&#127916; Movie":"&#128172; Phrase")+'</span>' +
+    '</div>' +
+    (S.showHint?'<div class="slide-up" style="padding:6px 12px;background:#1a1a2e;border-radius:8px;margin-bottom:8px;border:1px solid #fbbf2440;font-size:12px;color:#fbbf24;">&#128161; '+escHtml(puzzle.hint)+'</div>':"") +
+    inputSection +
+    feedbackSection +
+  '</div>';
 }
 
 function renderBuzzerGame() {
-  const puzzle = state.puzzleOrder[state.currentIndex];
-  if (!puzzle) return "";
-  const timerColor = state.timeLeft > 10 ? "#4ade80" : state.timeLeft > 5 ? "#fbbf24" : "#f44";
-  const timerPct = (state.timeLeft / 10) * 100;
-  const fb = state.feedback;
+  var puzzle=S.puzzleOrder[S.currentIndex]; if(!puzzle) return "";
+  var timerColor=S.timeLeft>10?"#4ade80":S.timeLeft>5?"#fbbf24":"#f44";
+  var timerPct=(S.timeLeft/10)*100;
+  var fb=S.feedback;
 
-  let phaseHtml = "";
-  if (state.buzzerPhase === "waiting") {
-    phaseHtml = `<div style="text-align:center;padding:16px;">
-      <div class="pulse-anim" style="font-size:18px;font-weight:700;color:#ffd700;margin-bottom:8px;">⚡ BUZZ IN ⚡</div>
-      <div style="display:flex;justify-content:center;gap:30px;">
-        <div style="text-align:center;"><div onclick="buzz(1);" style="width:56px;height:56px;border-radius:50%;background:${p1c}22;border:3px solid ${p1c};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${p1c};cursor:pointer;">Q</div><div style="color:${p1c};font-size:10px;margin-top:3px;">${escHtml(state.p1Name)}</div></div>
-        <div style="text-align:center;"><div onclick="buzz(2);" style="width:56px;height:56px;border-radius:50%;background:${p2c}22;border:3px solid ${p2c};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${p2c};cursor:pointer;">P</div><div style="color:${p2c};font-size:10px;margin-top:3px;">${escHtml(state.p2Name)}</div></div>
-      </div>
-      <div style="color:#555;font-size:9px;margin-top:8px;">Keyboard: Q/A or P/L</div>
-    </div>`;
-  } else if (state.buzzerPhase === "buzzed") {
-    const bc = state.buzzedPlayer === 1 ? p1c : p2c;
-    const bn = state.buzzedPlayer === 1 ? state.p1Name : state.p2Name;
-    phaseHtml = `<div class="buzz-flash" style="text-align:center;padding:24px;"><div style="font-size:44px;">⚡</div><div style="font-size:22px;font-weight:900;color:${bc};font-family:'Playfair Display',Georgia,serif;">${escHtml(bn)}!</div></div>`;
-  } else if (state.buzzerPhase === "answering") {
-    const bc = state.buzzedPlayer === 1 ? p1c : p2c;
-    const bn = state.buzzedPlayer === 1 ? state.p1Name : state.p2Name;
-    phaseHtml = `<div style="padding:8px 0;">
-      <div style="text-align:center;margin-bottom:6px;"><span style="color:${bc};font-weight:900;font-size:15px;">${escHtml(bn)}'s turn</span></div>
-      <div style="display:flex;gap:8px;">
-        <input id="buzzer-input" value="${escHtml(state.buzzerGuess)}" placeholder="Answer..." style="flex:1;padding:11px 12px;font-size:15px;background:#1a1a2e;border:2px solid ${bc}40;border-radius:10px;color:#e8e4dc;font-family:'JetBrains Mono','Fira Code',monospace;">
-        <button class="btn" onclick="buzzerSubmit();" style="padding:11px 16px;background:#4ade80;color:#0c0c14;border-radius:10px;font-weight:700;font-size:16px;">✓</button>
-      </div>
-    </div>`;
-  } else if (state.buzzerPhase === "wrong-other") {
-    const otherName = state.buzzedPlayer === 1 ? state.p2Name : state.p1Name;
-    const otherColor = state.buzzedPlayer === 1 ? p2c : p1c;
-    phaseHtml = `<div class="pop" style="text-align:center;padding:14px;background:#f4444015;border-radius:14px;border:2px solid #f4440040;">
-      <div style="color:#f44;font-size:15px;font-weight:700;margin-bottom:4px;">❌ Wrong!</div>
-      <div style="color:#888;font-size:12px;margin-bottom:10px;">${escHtml(otherName)} gets a chance!</div>
-      <button class="btn" onclick="buzzerOtherTry();" style="padding:9px 20px;font-size:13px;font-weight:700;border-radius:10px;background:${otherColor}22;border:2px solid ${otherColor};color:${otherColor};">${escHtml(otherName)} — Answer</button>
-    </div>`;
-  } else if (state.buzzerPhase === "done" && fb) {
-    if (fb.type === "correct") {
-      const wn = state.buzzedPlayer === 1 ? state.p1Name : state.p2Name;
-      phaseHtml = `<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#4ade8015;border:2px solid #4ade8040;">
-        <div style="font-size:28px;">✨</div>
-        <div style="color:#4ade80;font-size:18px;font-weight:900;font-family:'Playfair Display',Georgia,serif;">${escHtml(wn)} got it!</div>
-        <div style="color:#4ade80;font-size:12px;font-family:'JetBrains Mono',monospace;">+200 pts</div>
-        <button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">${state.currentIndex + 1 >= state.puzzleOrder.length ? "Results" : "Next →"}</button>
-      </div>`;
+  var phaseHtml="";
+  if (S.buzzerPhase==="waiting") {
+    phaseHtml='<div style="text-align:center;padding:16px;">' +
+      '<div class="pulse-anim" style="font-size:18px;font-weight:700;color:#ffd700;margin-bottom:8px;">&#9889; BUZZ IN &#9889;</div>' +
+      '<div style="display:flex;justify-content:center;gap:30px;">' +
+        '<div style="text-align:center;"><div onclick="buzz(1);" style="width:56px;height:56px;border-radius:50%;background:'+p1c+'22;border:3px solid '+p1c+';display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:'+p1c+';cursor:pointer;">Q</div><div style="color:'+p1c+';font-size:10px;margin-top:3px;">'+escHtml(S.p1Name)+'</div></div>' +
+        '<div style="text-align:center;"><div onclick="buzz(2);" style="width:56px;height:56px;border-radius:50%;background:'+p2c+'22;border:3px solid '+p2c+';display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:'+p2c+';cursor:pointer;">P</div><div style="color:'+p2c+';font-size:10px;margin-top:3px;">'+escHtml(S.p2Name)+'</div></div>' +
+      '</div>' +
+      '<div style="color:#555;font-size:9px;margin-top:8px;">Keyboard: Q/A or P/L</div>' +
+    '</div>';
+  } else if (S.buzzerPhase==="buzzed") {
+    var bc=S.buzzedPlayer===1?p1c:p2c, bn=S.buzzedPlayer===1?S.p1Name:S.p2Name;
+    phaseHtml='<div class="buzz-flash" style="text-align:center;padding:24px;"><div style="font-size:44px;">&#9889;</div><div style="font-size:22px;font-weight:900;color:'+bc+';font-family:\'Playfair Display\',Georgia,serif;">'+escHtml(bn)+'!</div></div>';
+  } else if (S.buzzerPhase==="answering") {
+    var bc=S.buzzedPlayer===1?p1c:p2c, bn=S.buzzedPlayer===1?S.p1Name:S.p2Name;
+    phaseHtml='<div style="padding:8px 0;">' +
+      '<div style="text-align:center;margin-bottom:6px;"><span style="color:'+bc+';font-weight:900;font-size:15px;">'+escHtml(bn)+'\'s turn</span></div>' +
+      '<div style="display:flex;gap:8px;">' +
+        '<input id="buzzer-input" value="'+escHtml(S.buzzerGuess)+'" oninput="S.buzzerGuess=this.value" onkeydown="if(event.key===\'Enter\')buzzerSubmit();" placeholder="Answer..." style="flex:1;padding:11px 12px;font-size:15px;background:#1a1a2e;border:2px solid '+bc+'40;border-radius:10px;color:#e8e4dc;font-family:\'JetBrains Mono\',\'Fira Code\',monospace;">' +
+        '<button class="btn" onclick="buzzerSubmit();" style="padding:11px 16px;background:#4ade80;color:#0c0c14;border-radius:10px;font-weight:700;font-size:16px;">&#10003;</button>' +
+      '</div>' +
+    '</div>';
+  } else if (S.buzzerPhase==="wrong-other") {
+    var on=S.buzzedPlayer===1?S.p2Name:S.p1Name, oc=S.buzzedPlayer===1?p2c:p1c;
+    phaseHtml='<div class="pop" style="text-align:center;padding:14px;background:#f4444015;border-radius:14px;border:2px solid #f4440040;">' +
+      '<div style="color:#f44;font-size:15px;font-weight:700;margin-bottom:4px;">&#10060; Wrong!</div>' +
+      '<div style="color:#888;font-size:12px;margin-bottom:10px;">'+escHtml(on)+' gets a chance!</div>' +
+      '<button class="btn" onclick="buzzerOtherTry();" style="padding:9px 20px;font-size:13px;font-weight:700;border-radius:10px;background:'+oc+'22;border:2px solid '+oc+';color:'+oc+';">'+escHtml(on)+' — Answer</button>' +
+    '</div>';
+  } else if (S.buzzerPhase==="done" && fb) {
+    var isLast = S.currentIndex+1>=S.puzzleOrder.length;
+    if (fb.type==="correct") {
+      var wn=S.buzzedPlayer===1?S.p1Name:S.p2Name;
+      phaseHtml='<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#4ade8015;border:2px solid #4ade8040;">' +
+        '<div style="font-size:28px;">&#10024;</div>' +
+        '<div style="color:#4ade80;font-size:18px;font-weight:900;font-family:\'Playfair Display\',Georgia,serif;">'+escHtml(wn)+' got it!</div>' +
+        '<div style="color:#4ade80;font-size:12px;font-family:\'JetBrains Mono\',monospace;">+200 pts</div>' +
+        '<button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">'+(isLast?"Results":"Next &#8594;")+'</button>' +
+      '</div>';
     } else {
-      phaseHtml = `<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#f4444015;border:2px solid #f4440040;">
-        <div style="font-size:28px;">⏭</div>
-        <div style="color:#f44;font-size:15px;font-weight:700;">Nobody got it</div>
-        <div style="color:#888;font-size:13px;margin-top:4px;">Answer: <span style="color:#ffd700;font-weight:700;">${escHtml(fb.answer)}</span></div>
-        <button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">${state.currentIndex + 1 >= state.puzzleOrder.length ? "Results" : "Next →"}</button>
-      </div>`;
+      phaseHtml='<div class="pop" style="padding:16px;border-radius:14px;text-align:center;background:#f4444015;border:2px solid #f4440040;">' +
+        '<div style="font-size:28px;">&#9197;</div>' +
+        '<div style="color:#f44;font-size:15px;font-weight:700;">Nobody got it</div>' +
+        '<div style="color:#888;font-size:13px;margin-top:4px;">Answer: <span style="color:#ffd700;font-weight:700;">'+escHtml(fb.answer)+'</span></div>' +
+        '<button class="btn" onclick="nextPuzzle();" style="margin-top:12px;padding:10px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">'+(isLast?"Results":"Next &#8594;")+'</button>' +
+      '</div>';
     }
   }
 
-  return `<div style="width:100%;max-width:500px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <div style="text-align:center;"><div style="color:${p1c};font-size:13px;font-weight:700;">${escHtml(state.p1Name)}</div><div style="color:${p1c};font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.p1Score}</div></div>
-      <div style="text-align:center;"><span style="color:#666;font-size:12px;">${state.currentIndex + 1}/${state.puzzleOrder.length}</span><div style="color:${timerColor};font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.timeLeft}</div></div>
-      <div style="text-align:center;"><div style="color:${p2c};font-size:13px;font-weight:700;">${escHtml(state.p2Name)}</div><div style="color:${p2c};font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.p2Score}</div></div>
-    </div>
-    <div style="width:100%;height:4px;background:#1a1a2e;border-radius:2px;margin-bottom:12px;overflow:hidden;">
-      <div style="width:${timerPct}%;height:100%;background:${timerColor};border-radius:2px;transition:width 1s linear;"></div>
-    </div>
-    <div class="pop" style="width:100%;height:180px;border-radius:14px;overflow:hidden;border:2px solid #2a2a3e;margin-bottom:8px;">${renderPuzzleVisual(puzzle)}</div>
-    <div style="text-align:center;margin-bottom:8px;">
-      <span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;background:${puzzle.cat === "movie" ? "#ff884420" : "#4ade8020"};color:${puzzle.cat === "movie" ? "#ff8844" : "#4ade80"};text-transform:uppercase;">${puzzle.cat === "movie" ? "🎬 Movie" : "💬 Phrase"}</span>
-    </div>
-    ${state.showHint ? `<div class="slide-up" style="padding:6px 12px;background:#1a1a2e;border-radius:8px;margin-bottom:8px;border:1px solid #fbbf2440;font-size:12px;color:#fbbf24;text-align:center;">💡 ${escHtml(puzzle.hint)}</div>` : ""}
-    ${phaseHtml}
-  </div>`;
+  return '<div style="width:100%;max-width:500px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+      '<div style="text-align:center;"><div style="color:'+p1c+';font-size:13px;font-weight:700;">'+escHtml(S.p1Name)+'</div><div style="color:'+p1c+';font-size:22px;font-weight:900;font-family:\'JetBrains Mono\',monospace;">'+S.p1Score+'</div></div>' +
+      '<div style="text-align:center;"><span style="color:#666;font-size:12px;">'+(S.currentIndex+1)+'/'+S.puzzleOrder.length+'</span><div id="timer-text" style="color:'+timerColor+';font-size:28px;font-weight:900;font-family:\'JetBrains Mono\',monospace;">'+S.timeLeft+'</div></div>' +
+      '<div style="text-align:center;"><div style="color:'+p2c+';font-size:13px;font-weight:700;">'+escHtml(S.p2Name)+'</div><div style="color:'+p2c+';font-size:22px;font-weight:900;font-family:\'JetBrains Mono\',monospace;">'+S.p2Score+'</div></div>' +
+    '</div>' +
+    '<div style="width:100%;height:4px;background:#1a1a2e;border-radius:2px;margin-bottom:12px;overflow:hidden;">' +
+      '<div id="timer-bar" style="width:'+timerPct+'%;height:100%;background:'+timerColor+';border-radius:2px;transition:width 1s linear;"></div>' +
+    '</div>' +
+    '<div class="pop" style="width:100%;height:180px;border-radius:14px;overflow:hidden;border:2px solid #2a2a3e;margin-bottom:8px;">'+renderPuzzleVisual(puzzle)+'</div>' +
+    '<div style="text-align:center;margin-bottom:8px;">' +
+      '<span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;background:'+(puzzle.cat==="movie"?"#ff884420":"#4ade8020")+';color:'+(puzzle.cat==="movie"?"#ff8844":"#4ade80")+';text-transform:uppercase;">'+(puzzle.cat==="movie"?"&#127916; Movie":"&#128172; Phrase")+'</span>' +
+    '</div>' +
+    (S.showHint?'<div class="slide-up" style="padding:6px 12px;background:#1a1a2e;border-radius:8px;margin-bottom:8px;border:1px solid #fbbf2440;font-size:12px;color:#fbbf24;text-align:center;">&#128161; '+escHtml(puzzle.hint)+'</div>':"") +
+    phaseHtml +
+  '</div>';
 }
 
 function renderResults() {
-  const res = state.results;
-  let header = "";
-  if (state.gameMode === "buzzer") {
-    const winner = state.p1Score > state.p2Score ? state.p1Name : state.p2Score > state.p1Score ? state.p2Name : null;
-    const wColor = state.p1Score > state.p2Score ? p1c : state.p2Score > state.p1Score ? p2c : "#ffd700";
-    header = `<div style="text-align:center;margin-bottom:20px;">
-      <div style="font-size:44px;margin-bottom:6px;">${winner ? "🏆" : "🤝"}</div>
-      <div style="font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:900;color:${wColor};">${winner ? `${escHtml(winner)} Wins!` : "Tie!"}</div>
-      <div style="display:flex;justify-content:center;gap:28px;margin-top:10px;">
-        <div style="text-align:center;"><div style="color:${p1c};font-weight:700;font-size:13px;">${escHtml(state.p1Name)}</div><div style="color:${p1c};font-size:26px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.p1Score}</div></div>
-        <div style="color:#333;font-size:24px;font-weight:900;align-self:center;">vs</div>
-        <div style="text-align:center;"><div style="color:${p2c};font-weight:700;font-size:13px;">${escHtml(state.p2Name)}</div><div style="color:${p2c};font-size:26px;font-weight:900;font-family:'JetBrains Mono',monospace;">${state.p2Score}</div></div>
-      </div>
-    </div>`;
+  var res=S.results;
+  var header="";
+  if (S.gameMode==="buzzer") {
+    var winner=S.p1Score>S.p2Score?S.p1Name:S.p2Score>S.p1Score?S.p2Name:null;
+    var wColor=S.p1Score>S.p2Score?p1c:S.p2Score>S.p1Score?p2c:"#ffd700";
+    header='<div style="text-align:center;margin-bottom:20px;">' +
+      '<div style="font-size:44px;margin-bottom:6px;">'+(winner?"&#127942;":"&#129309;")+'</div>' +
+      '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:26px;font-weight:900;color:'+wColor+';">'+(winner?escHtml(winner)+' Wins!':'Tie!')+'</div>' +
+      '<div style="display:flex;justify-content:center;gap:28px;margin-top:10px;">' +
+        '<div style="text-align:center;"><div style="color:'+p1c+';font-weight:700;font-size:13px;">'+escHtml(S.p1Name)+'</div><div style="color:'+p1c+';font-size:26px;font-weight:900;font-family:\'JetBrains Mono\',monospace;">'+S.p1Score+'</div></div>' +
+        '<div style="color:#333;font-size:24px;font-weight:900;align-self:center;">vs</div>' +
+        '<div style="text-align:center;"><div style="color:'+p2c+';font-weight:700;font-size:13px;">'+escHtml(S.p2Name)+'</div><div style="color:'+p2c+';font-size:26px;font-weight:900;font-family:\'JetBrains Mono\',monospace;">'+S.p2Score+'</div></div>' +
+      '</div>' +
+    '</div>';
   } else {
-    header = `<div style="text-align:center;margin-bottom:20px;">
-      <div style="font-size:44px;margin-bottom:6px;">🏆</div>
-      <div style="font-family:'Playfair Display',Georgia,serif;font-size:36px;font-weight:900;color:#ffd700;">${state.score}</div>
-      <div style="color:#888;font-size:13px;margin-top:2px;">${res.filter(r => r.correct).length}/${res.length} correct</div>
-    </div>`;
+    header='<div style="text-align:center;margin-bottom:20px;">' +
+      '<div style="font-size:44px;margin-bottom:6px;">&#127942;</div>' +
+      '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:36px;font-weight:900;color:#ffd700;">'+S.score+'</div>' +
+      '<div style="color:#888;font-size:13px;margin-top:2px;">'+res.filter(function(r){return r.correct;}).length+'/'+res.length+' correct</div>' +
+    '</div>';
   }
+  var rows=res.map(function(r){return '<div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:#1a1a2e;border-radius:6px;border-left:3px solid '+(r.correct?"#4ade80":"#f44")+';">' +
+    '<span style="font-size:12px;">'+(r.cat==="movie"?"&#127916;":"&#128172;")+'</span>' +
+    '<span style="font-size:13px;">'+(r.correct?"&#10003;":"&#10007;")+'</span>' +
+    '<span style="flex:1;color:#ccc;font-size:11px;">'+escHtml(r.answer)+'</span>' +
+    (r.correct&&r.player?'<span style="font-size:9px;color:'+(r.player===1?p1c:p2c)+';font-weight:700;">'+escHtml(r.player===1?S.p1Name:S.p2Name)+'</span>':"") +
+  '</div>';}).join("");
 
-  const rows = res.map((r, i) => `
-    <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:#1a1a2e;border-radius:6px;border-left:3px solid ${r.correct ? "#4ade80" : "#f44"};">
-      <span style="font-size:12px;">${r.cat === "movie" ? "🎬" : "💬"}</span>
-      <span style="font-size:13px;">${r.correct ? "✓" : "✗"}</span>
-      <span style="flex:1;color:#ccc;font-size:11px;">${escHtml(r.answer)}</span>
-      ${r.correct && r.player ? `<span style="font-size:9px;color:${r.player === 1 ? p1c : p2c};font-weight:700;">${escHtml(r.player === 1 ? state.p1Name : state.p2Name)}</span>` : ""}
-    </div>`).join("");
-
-  return `<div style="width:100%;max-width:460px;animation:slideUp .4s ease-out;">
-    ${header}
-    <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:16px;max-height:240px;overflow-y:auto;">${rows}</div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn" onclick="startGame();" style="flex:1;padding:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">Play Again</button>
-      <button class="btn" onclick="state.screen='leaderboard';render();" style="flex:1;padding:12px;font-size:14px;font-weight:700;background:#1a1a2e;color:#ffd700;border-radius:10px;border:1px solid #ffd70040;">Leaderboard</button>
-    </div>
-    <button class="btn" onclick="state.screen='menu';render();" style="width:100%;padding:9px;font-size:12px;font-weight:600;background:transparent;color:#666;border-radius:10px;border:1px solid #2a2a3e;margin-top:6px;">Menu</button>
-  </div>`;
+  return '<div style="width:100%;max-width:460px;animation:slideUp .4s ease-out;">' +
+    header +
+    '<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:16px;max-height:240px;overflow-y:auto;">'+rows+'</div>' +
+    '<div style="display:flex;gap:8px;">' +
+      '<button class="btn" onclick="startGame();" style="flex:1;padding:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">Play Again</button>' +
+      '<button class="btn" onclick="S.screen=\'leaderboard\';render();" style="flex:1;padding:12px;font-size:14px;font-weight:700;background:#1a1a2e;color:#ffd700;border-radius:10px;border:1px solid #ffd70040;">Leaderboard</button>' +
+    '</div>' +
+    '<button class="btn" onclick="S.screen=\'menu\';render();" style="width:100%;padding:9px;font-size:12px;font-weight:600;background:transparent;color:#666;border-radius:10px;border:1px solid #2a2a3e;margin-top:6px;">Menu</button>' +
+  '</div>';
 }
 
 function renderLeaderboard() {
-  const lb = state.leaderboard;
-  const rows = lb.length === 0 ? `<div style="text-align:center;color:#666;padding:40px;font-size:14px;">No scores yet!</div>` :
-    `<div style="display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto;">
-      ${lb.map((e, i) => `
-        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${i < 3 ? "#1a1a2e" : "#12121e"};border-radius:10px;border:${i === 0 ? "1px solid #ffd70030" : "1px solid transparent"};">
-          <span style="font-size:15px;font-weight:900;width:26px;text-align:center;color:${i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : i === 2 ? "#cd7f32" : "#555"};">${i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "#" + (i + 1)}</span>
-          <div style="flex:1;"><div style="color:#e8e4dc;font-weight:700;font-size:13px;">${escHtml(e.name)}</div><div style="color:#666;font-size:9px;">${e.correct}/${e.total} · ${e.difficulty} · ${catLabel[e.category] || "All"} · ${e.mode || "solo"} · ${e.date}</div></div>
-          <span style="color:#ffd700;font-weight:900;font-family:'JetBrains Mono',monospace;font-size:15px;">${e.score}</span>
-        </div>`).join("")}
-    </div>`;
+  var lb=S.leaderboard;
+  var rows=lb.length===0?'<div style="text-align:center;color:#666;padding:40px;font-size:14px;">No scores yet!</div>':
+    '<div style="display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto;">' +
+      lb.map(function(e,i){return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:'+(i<3?"#1a1a2e":"#12121e")+';border-radius:10px;border:'+(i===0?"1px solid #ffd70030":"1px solid transparent")+';">' +
+        '<span style="font-size:15px;font-weight:900;width:26px;text-align:center;color:'+(i===0?"#ffd700":i===1?"#c0c0c0":i===2?"#cd7f32":"#555")+';">'+(i===0?"&#129351;":i===1?"&#129352;":i===2?"&#129353;":"#"+(i+1))+'</span>' +
+        '<div style="flex:1;"><div style="color:#e8e4dc;font-weight:700;font-size:13px;">'+escHtml(e.name)+'</div><div style="color:#666;font-size:9px;">'+e.correct+'/'+e.total+' &middot; '+e.difficulty+' &middot; '+(catLabel[e.category]||"All")+' &middot; '+(e.mode||"solo")+' &middot; '+e.date+'</div></div>' +
+        '<span style="color:#ffd700;font-weight:900;font-family:\'JetBrains Mono\',monospace;font-size:15px;">'+e.score+'</span>' +
+      '</div>';}).join("") +
+    '</div>';
 
-  return `<div style="width:100%;max-width:440px;animation:slideUp .4s ease-out;">
-    <h2 style="font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:900;color:#ffd700;text-align:center;margin:0 0 14px;">Leaderboard</h2>
-    ${rows}
-    <div style="display:flex;gap:8px;margin-top:14px;">
-      <button class="btn" onclick="state.screen='menu';render();" style="flex:1;padding:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">Back to Menu</button>
-      ${lb.length > 0 ? `<button class="btn" onclick="state.leaderboard=[];saveLeaderboard([]);render();" style="padding:12px 14px;font-size:11px;font-weight:600;background:#1a1a2e;color:#f44;border-radius:10px;border:1px solid #f4444030;">Reset</button>` : ""}
-    </div>
-  </div>`;
-}
-
-// ═══ EVENT BINDING ═══
-function bindEvents() {
-  // Menu inputs
-  const p1Input = document.getElementById("p1-name");
-  if (p1Input) {
-    p1Input.addEventListener("input", e => { state.p1Name = e.target.value; });
-    p1Input.addEventListener("keydown", e => { if (e.key === "Enter") startGame(); });
-  }
-  const p2Input = document.getElementById("p2-name");
-  if (p2Input) {
-    p2Input.addEventListener("input", e => { state.p2Name = e.target.value; });
-    p2Input.addEventListener("keydown", e => { if (e.key === "Enter") startGame(); });
-  }
-
-  // Solo guess input
-  const guessInput = document.getElementById("guess-input");
-  if (guessInput) {
-    guessInput.addEventListener("input", e => { state.guess = e.target.value; });
-    guessInput.addEventListener("keydown", e => { if (e.key === "Enter") soloCheck(); });
-    // Preserve cursor position
-    const pos = guessInput.value.length;
-    guessInput.setSelectionRange(pos, pos);
-  }
-
-  // Buzzer input
-  const buzzerInput = document.getElementById("buzzer-input");
-  if (buzzerInput) {
-    buzzerInput.addEventListener("input", e => { state.buzzerGuess = e.target.value; });
-    buzzerInput.addEventListener("keydown", e => { if (e.key === "Enter") buzzerSubmit(); });
-    const pos = buzzerInput.value.length;
-    buzzerInput.setSelectionRange(pos, pos);
-  }
-}
-
-function escHtml(s) {
-  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return '<div style="width:100%;max-width:440px;animation:slideUp .4s ease-out;">' +
+    '<h2 style="font-family:\'Playfair Display\',Georgia,serif;font-size:28px;font-weight:900;color:#ffd700;text-align:center;margin:0 0 14px;">Leaderboard</h2>' +
+    rows +
+    '<div style="display:flex;gap:8px;margin-top:14px;">' +
+      '<button class="btn" onclick="S.screen=\'menu\';render();" style="flex:1;padding:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#f44,#ff8844);color:#fff;border-radius:10px;">Back to Menu</button>' +
+      (lb.length>0?'<button class="btn" onclick="S.leaderboard=[];saveLeaderboard([]);render();" style="padding:12px 14px;font-size:11px;font-weight:600;background:#1a1a2e;color:#f44;border-radius:10px;border:1px solid #f4444030;">Reset</button>':"") +
+    '</div>' +
+  '</div>';
 }
 
 // ═══ INIT ═══
