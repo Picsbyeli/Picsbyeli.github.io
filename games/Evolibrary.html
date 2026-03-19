@@ -354,9 +354,8 @@ textarea.finput{min-height:80px;resize:vertical}
       </div>
     </div>
   </div>
-</div>
 
-<!-- ═══ WEB VIEWER ═══ -->
+  <!-- ═══ WEB VIEWER ═══ -->
   <div class="web-view" id="webView">
     <div class="web-bar">
       <button class="web-nav-btn" id="wBtnBack" onclick="webBack()" title="Back" disabled>←</button>
@@ -386,6 +385,7 @@ textarea.finput{min-height:80px;resize:vertical}
       </div>
     </div>
   </div>
+</div>
 
 <!-- ADD LIBRARY ITEM -->
 <div class="overlay" id="addModal">
@@ -638,8 +638,9 @@ function renderBookmarks(){
 }
 
 function openInWebView(url){
+  close2('prevModal');
   switchView('web');
-  webNavigate(url);
+  setTimeout(()=>webNavigate(url),100);
 }
 
 // ══ FITNESS STREAK ══
@@ -839,7 +840,13 @@ async function openPrev(id){
   body.innerHTML=`<p style="color:var(--text3);text-align:center;padding:20px;font-size:13px">Loading...</p>`;acts.innerHTML='';
   document.getElementById('prevModal').classList.add('open');
   const meta=`<div class="prev-meta">${item.category?`<span>📂 <span style="color:${cc}">${esc(item.category)}</span></span>`:''}<span>📅 ${fmtDate(item.date)}</span>${item.fileSize?`<span>💾 ${fmtSize(item.fileSize)}</span>`:''}</div>`;
-  if(item.type==='link'){body.innerHTML=`<div class="link-box"><p style="font-size:11px;color:var(--text3);margin-bottom:6px">URL</p><a href="${esc(item.url)}" target="_blank" class="link-url">${esc(item.url)}</a></div>${meta}`;acts.innerHTML=`<button class="btn btn-primary" onclick="close2('prevModal');openInWebView('${esc(item.url)}')">🌐 Open In App</button><a href="${esc(item.url)}" target="_blank" class="btn btn-ghost" style="text-decoration:none">Open Tab ↗</a><button class="btn btn-ghost" onclick="navigator.clipboard.writeText('${esc(item.url)}');toast('Copied!','ok')">Copy</button>`;}
+  if(item.type==='link'){
+    body.innerHTML=`<div class="link-box"><p style="font-size:11px;color:var(--text3);margin-bottom:6px">URL</p><a href="${esc(item.url)}" target="_blank" class="link-url">${esc(item.url)}</a></div>${meta}`;
+    const openBtn=document.createElement('button');openBtn.className='btn btn-primary';openBtn.textContent='🌐 Open In App';openBtn.onclick=()=>openInWebView(item.url);
+    const tabLink=document.createElement('a');tabLink.href=item.url;tabLink.target='_blank';tabLink.className='btn btn-ghost';tabLink.style.textDecoration='none';tabLink.textContent='Open Tab ↗';
+    const copyBtn=document.createElement('button');copyBtn.className='btn btn-ghost';copyBtn.textContent='Copy';copyBtn.onclick=()=>{navigator.clipboard.writeText(item.url);toast('Copied!','ok');};
+    acts.innerHTML='';acts.appendChild(openBtn);acts.appendChild(tabLink);acts.appendChild(copyBtn);
+  }
   else if(item.type==='note'){body.innerHTML=`<div class="note-pre">${esc(item.content||'(empty)')}</div>${meta}`;acts.innerHTML=`<button class="btn btn-primary" onclick="navigator.clipboard.writeText(${JSON.stringify(item.content||'')});toast('Copied!','ok')">Copy Text</button>`;}
   else{
     const data=await getFile(id);if(!data){body.innerHTML=`<p style="color:var(--red);text-align:center;padding:20px">File data not found.</p>`;return;}
