@@ -1105,9 +1105,41 @@ async function submitCat(){const n=document.getElementById('catNameIn').value.tr
 function close2(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
+// ══ MIGRATE OLD DATA (unprefixed → user-prefixed keys) ══
+function migrateOldData(){
+  const MIGRATED_KEY=userKey('evl-migrated');
+  if(localStorage.getItem(MIGRATED_KEY))return; // already migrated
+  const oldKeys=['evl-items','evl-cats','evl-fit','evl-webmarks'];
+  let found=false;
+  oldKeys.forEach(key=>{
+    const val=localStorage.getItem(key);
+    if(val!==null){
+      // Only copy if no new-prefixed data exists yet
+      if(!localStorage.getItem(userKey(key))){
+        localStorage.setItem(userKey(key),val);
+      }
+      found=true;
+    }
+  });
+  // Migrate file blobs (evf-{id} keys)
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(key&&key.startsWith('evf-')&&!key.startsWith(USER_ID+'_')){
+      const newKey=userKey(key);
+      if(!localStorage.getItem(newKey)){
+        localStorage.setItem(newKey,localStorage.getItem(key));
+      }
+      found=true;
+    }
+  }
+  if(found)console.log('[Evolibrary] Migrated old data to user-prefixed keys for user:',USER_ID);
+  localStorage.setItem(MIGRATED_KEY,'1');
+}
+
 // ══ INIT ══
 async function init(){
   const bar=document.getElementById('loadingBar');bar.style.width='30%';
+  migrateOldData();
   loadBgTheme();
   loadProfileName();
   bar.style.width='50%';
