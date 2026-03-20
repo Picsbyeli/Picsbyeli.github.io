@@ -130,6 +130,17 @@ aside{width:240px;background:linear-gradient(180deg,#1e2328 0%,#171a21 100%);bor
 .act-btn:hover{background:var(--red);color:#fff}
 .act-btn.open:hover{background:var(--steam-blue);color:#fff}
 
+/* ═══ COVER IMAGE ═══ */
+.icard-banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.irow-thumb{width:36px;height:36px;border-radius:4px;object-fit:cover;flex-shrink:0;border:1px solid var(--border)}
+.cover-upload-area{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cover-preview-box{position:relative;display:inline-block}
+.cover-preview-box img{width:120px;height:70px;object-fit:cover;border-radius:6px;border:1px solid var(--border)}
+.cover-preview-box .clear-cover{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.cover-upload-btn{padding:8px 14px;background:rgba(102,192,244,.1);border:1px dashed var(--steam-blue);border-radius:6px;color:var(--steam-blue);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px}
+.cover-upload-btn:hover{background:rgba(102,192,244,.2);border-style:solid}
+.prev-cover{width:100%;max-height:260px;object-fit:cover;border-radius:6px;margin-bottom:12px;border:1px solid var(--border)}
+
 /* ═══ LIST VIEW ═══ */
 .items-list{display:flex;flex-direction:column;gap:4px}
 .irow{display:flex;align-items:center;gap:14px;padding:10px 16px;background:linear-gradient(90deg,rgba(42,71,94,.5),transparent);border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all .2s}
@@ -502,6 +513,17 @@ textarea.finput{min-height:80px;resize:vertical}
       <div class="fg"><label class="flbl">Title</label><input type="text" class="finput" id="aNoteTitle" placeholder="Note title..."></div>
       <div class="fg"><label class="flbl">Content</label><textarea class="finput" id="aNoteBody" placeholder="Write your note..."></textarea></div>
     </div>
+    <div class="fg">
+      <label class="flbl">Cover Image (optional)</label>
+      <div class="cover-upload-area">
+        <div id="coverPreviewBox" class="cover-preview-box" style="display:none">
+          <img id="coverPreviewImg" src="" alt="Cover">
+          <button class="clear-cover" onclick="clearCover()">✕</button>
+        </div>
+        <button class="cover-upload-btn" id="coverUploadBtn" onclick="document.getElementById('coverInp').click()">🖼️ Add Cover Image</button>
+        <input type="file" id="coverInp" accept="image/*" style="display:none" onchange="pickCover(this.files[0])">
+      </div>
+    </div>
     <div class="fg"><label class="flbl">Category</label><div class="cat-grid" id="addCatGrid"></div></div>
     <div style="display:flex;gap:8px;margin-top:20px">
       <button class="btn btn-ghost" style="flex:1" onclick="close2('addModal')">Cancel</button>
@@ -745,7 +767,7 @@ function getBannerGradient(str){
 // ══ STATE ══
 let items=[], cats=[], fitLogs=[];
 let activeCat='__all__', activeType='all', query='', sortMode='alpha', viewMode='grid';
-let addType='file', selCat='', selColor='#66c0f4', selFile=null;
+let addType='file', selCat='', selColor='#66c0f4', selFile=null, selCoverData=null;
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
 let selWtype='run', selIntensity=3, openDayDate='';
 const IKEY='evl-items', CKEY='evl-cats', FKEY='evl-fit';
@@ -1016,11 +1038,15 @@ function cardHTML(item){
   const badge=item.category?`<span class="cat-badge" style="background:${cc}22;color:${cc}">${esc(item.category)}</span>`:'';
   const acts=`<div class="icard-acts"><button class="act-btn open" onclick="event.stopPropagation();openPrev('${item.id}')">👁</button><button class="act-btn" onclick="event.stopPropagation();delItem('${item.id}')">🗑</button></div>`;
   const gradient=getBannerGradient(item.id+item.title);
+  const coverId='cover-'+item.id;
+  
+  // Async load cover image onto card
+  if(item.hasCover)setTimeout(()=>loadCardCover(item.id),0);
   
   if(viewMode==='grid'){
     return`<div class="icard" onclick="openPrev('${item.id}')">
       ${acts}
-      <div class="icard-banner">
+      <div class="icard-banner" id="banner-${item.id}">
         <div class="icard-banner-bg" style="background:${gradient}"></div>
         <div class="icard-banner-overlay"></div>
         <span class="icard-banner-icon">${ico}</span>
@@ -1036,7 +1062,14 @@ function cardHTML(item){
       </div>
     </div>`;
   }
-  return`<div class="irow" onclick="openPrev('${item.id}')"><span class="icard-icon" style="font-size:20px">${ico}</span><span class="irow-title">${esc(item.title)}</span><span class="icard-type-badge ${typeCls}">${typeLabel}</span>${badge}<span class="idate">${fmtDate(item.date)}</span><div class="icard-acts" style="position:static;display:flex;gap:4px"><button class="act-btn open" onclick="event.stopPropagation();openPrev('${item.id}')">👁</button><button class="act-btn" onclick="event.stopPropagation();delItem('${item.id}')">🗑</button></div></div>`;
+  return`<div class="irow" onclick="openPrev('${item.id}')">${item.hasCover?`<img class="irow-thumb" id="rowthumb-${item.id}" src="" alt="">`:`<span class="icard-icon" style="font-size:20px">${ico}</span>`}<span class="irow-title">${esc(item.title)}</span><span class="icard-type-badge ${typeCls}">${typeLabel}</span>${badge}<span class="idate">${fmtDate(item.date)}</span><div class="icard-acts" style="position:static;display:flex;gap:4px"><button class="act-btn open" onclick="event.stopPropagation();openPrev('${item.id}')">👁</button><button class="act-btn" onclick="event.stopPropagation();delItem('${item.id}')">🗑</button></div></div>`;
+}
+async function loadCardCover(id){
+  const data=await getCover(id);if(!data)return;
+  const banner=document.getElementById('banner-'+id);
+  if(banner){const img=document.createElement('img');img.className='icard-banner-img';img.src=data;img.alt='';banner.insertBefore(img,banner.firstChild);}
+  const thumb=document.getElementById('rowthumb-'+id);
+  if(thumb)thumb.src=data;
 }
 function setCat(c){activeCat=c;renderAll();}
 function setType(t){activeType=t;document.querySelectorAll('.tfbtn').forEach(b=>b.classList.remove('active'));document.getElementById('tf-'+t).classList.add('active');renderItems();}
@@ -1044,8 +1077,11 @@ function onSearch(v){query=v.trim();renderItems();}
 function setSort(v){sortMode=v;renderItems();}
 function setView(v){viewMode=v;document.getElementById('vGrid').classList.toggle('active',v==='grid');document.getElementById('vList').classList.toggle('active',v==='list');renderItems();}
 function openAddModal(){
-  selFile=null;selCat='';['aFileTitle','aLinkUrl','aLinkTitle','aNoteTitle','aNoteBody'].forEach(id=>document.getElementById(id).value='');
+  selFile=null;selCat='';selCoverData=null;
+  ['aFileTitle','aLinkUrl','aLinkTitle','aNoteTitle','aNoteBody'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fileSelBox').style.display='none';document.getElementById('dropZone').style.display='block';
+  document.getElementById('coverPreviewBox').style.display='none';document.getElementById('coverUploadBtn').style.display='flex';
+  document.getElementById('coverInp').value='';
   setAddType('file');renderAddCatGrid();document.getElementById('addModal').classList.add('open');
 }
 function setAddType(t){addType=t;['file','link','note'].forEach(x=>{document.getElementById('topt-'+x).classList.toggle('sel',x===t);document.getElementById('af-'+x).style.display=x===t?'block':'none';});}
@@ -1064,14 +1100,20 @@ async function submitAdd(){
   }else if(addType==='link'){
     const url=document.getElementById('aLinkUrl').value.trim();if(!url){toast('Enter a URL','err');return;}item.url=url;item.title=document.getElementById('aLinkTitle').value.trim()||url;
   }else{const t=document.getElementById('aNoteTitle').value.trim();if(!t){toast('Enter a title','err');return;}item.title=t;item.content=document.getElementById('aNoteBody').value.trim();}
+  if(selCoverData){item.hasCover=true;await saveCover(item.id,selCoverData);}
   items.push(item);await saveItems();close2('addModal');renderAll();toast('Added ✓','ok');
 }
 function pickFile(file){if(!file)return;if(file.size>4194304){toast('Max 4MB','err');return;}selFile=file;document.getElementById('dropZone').style.display='none';document.getElementById('fileSelBox').style.display='flex';document.getElementById('fSelIco').textContent=fileIco(file.type,file.name);document.getElementById('fSelName').textContent=file.name;document.getElementById('fSelSize').textContent=fmtSize(file.size);}
 function clearFile(){selFile=null;document.getElementById('fileInp').value='';document.getElementById('dropZone').style.display='block';document.getElementById('fileSelBox').style.display='none';}
+function pickCover(file){if(!file)return;if(!file.type.startsWith('image/')){toast('Must be an image','err');return;}if(file.size>3145728){toast('Max 3MB for cover','err');return;}const r=new FileReader();r.onload=e=>{selCoverData=e.target.result;document.getElementById('coverPreviewImg').src=selCoverData;document.getElementById('coverPreviewBox').style.display='inline-block';document.getElementById('coverUploadBtn').style.display='none';};r.readAsDataURL(file);}
+function clearCover(){selCoverData=null;document.getElementById('coverInp').value='';document.getElementById('coverPreviewBox').style.display='none';document.getElementById('coverUploadBtn').style.display='flex';}
+async function saveCover(id,data){await window.storage.set('evc-'+id,data);}
+async function getCover(id){try{const r=await window.storage.get('evc-'+id);return r?r.value:null;}catch{return null;}}
+async function delCover(id){try{await window.storage.delete('evc-'+id);}catch{}}
 function dOver(e){e.preventDefault();document.getElementById('dropZone').classList.add('over');}
 function dLeave(){document.getElementById('dropZone').classList.remove('over');}
 function dDrop(e){e.preventDefault();dLeave();if(e.dataTransfer.files[0])pickFile(e.dataTransfer.files[0]);}
-async function delItem(id){if(!confirm('Delete?'))return;const it=items.find(i=>i.id===id);if(it?.type==='file')await delFile(id);items=items.filter(i=>i.id!==id);await saveItems();toast('Deleted','inf');renderAll();}
+async function delItem(id){if(!confirm('Delete?'))return;const it=items.find(i=>i.id===id);if(it?.type==='file')await delFile(id);if(it?.hasCover)await delCover(id);items=items.filter(i=>i.id!==id);await saveItems();toast('Deleted','inf');renderAll();}
 async function delCat(e,name){e.stopPropagation();if(!confirm(`Delete "${name}"? Items stay but become uncategorized.`))return;cats=cats.filter(c=>c.name!==name);items.forEach(i=>{if(i.category===name)i.category='';});if(activeCat===name)activeCat='__all__';await Promise.all([saveCats(),saveItems()]);toast('Deleted','inf');renderAll();}
 async function openPrev(id){
   const item=items.find(i=>i.id===id);if(!item)return;const cc=catColor(item.category);
@@ -1079,22 +1121,24 @@ async function openPrev(id){
   const body=document.getElementById('prevBody'),acts=document.getElementById('prevActs');
   body.innerHTML=`<p style="color:var(--text3);text-align:center;padding:20px;font-size:13px">Loading...</p>`;acts.innerHTML='';
   document.getElementById('prevModal').classList.add('open');
+  let coverHtml='';
+  if(item.hasCover){const coverData=await getCover(id);if(coverData)coverHtml=`<img class="prev-cover" src="${coverData}" alt="${esc(item.title)}">`;;}
   const meta=`<div class="prev-meta">${item.category?`<span>📂 <span style="color:${cc}">${esc(item.category)}</span></span>`:''}<span>📅 ${fmtDate(item.date)}</span>${item.fileSize?`<span>💾 ${fmtSize(item.fileSize)}</span>`:''}</div>`;
   if(item.type==='link'){
-    body.innerHTML=`<div class="link-box"><p style="font-size:11px;color:var(--text3);margin-bottom:6px">URL</p><a href="${esc(item.url)}" target="_blank" class="link-url">${esc(item.url)}</a></div>${meta}`;
+    body.innerHTML=`${coverHtml}<div class="link-box"><p style="font-size:11px;color:var(--text3);margin-bottom:6px">URL</p><a href="${esc(item.url)}" target="_blank" class="link-url">${esc(item.url)}</a></div>${meta}`;
     const openBtn=document.createElement('button');openBtn.className='btn btn-blue';openBtn.textContent='🌐 Open In App';openBtn.onclick=()=>openInWebView(item.url);
     const tabLink=document.createElement('a');tabLink.href=item.url;tabLink.target='_blank';tabLink.className='btn btn-ghost';tabLink.style.textDecoration='none';tabLink.textContent='Open Tab ↗';
     const copyBtn=document.createElement('button');copyBtn.className='btn btn-ghost';copyBtn.textContent='Copy';copyBtn.onclick=()=>{navigator.clipboard.writeText(item.url);toast('Copied!','ok');};
     acts.innerHTML='';acts.appendChild(openBtn);acts.appendChild(tabLink);acts.appendChild(copyBtn);
   }
-  else if(item.type==='note'){body.innerHTML=`<div class="note-pre">${esc(item.content||'(empty)')}</div>${meta}`;acts.innerHTML=`<button class="btn btn-blue" onclick="navigator.clipboard.writeText(${JSON.stringify(item.content||'')});toast('Copied!','ok')">Copy Text</button>`;}
+  else if(item.type==='note'){body.innerHTML=`${coverHtml}<div class="note-pre">${esc(item.content||'(empty)')}</div>${meta}`;acts.innerHTML=`<button class="btn btn-blue" onclick="navigator.clipboard.writeText(${JSON.stringify(item.content||'')});toast('Copied!','ok')">Copy Text</button>`;}
   else{
     const data=await getFile(id);if(!data){body.innerHTML=`<p style="color:var(--red);text-align:center;padding:20px">File data not found.</p>`;return;}
     const mime=item.fileType||'',fname=item.fileName||'';let preview='';
     if(mime.startsWith('image/'))preview=`<img src="${data}" alt="${esc(item.title)}">`;
     else if(mime.startsWith('text/')||/\.(txt|md|js|ts|jsx|tsx|html|css|json|py|java|c|cpp|sh|yml|yaml)$/i.test(fname)){const txt=b64toText(data);preview=txt!=null?`<pre class="code-pre">${esc(txt.slice(0,4000))}${txt.length>4000?'\n...(truncated)':''}</pre>`:`<div class="file-thumb-box"><div class="ftico">${fileIco(mime,fname)}</div><div class="ftname">${esc(fname)}</div></div>`;}
     else{preview=`<div class="file-thumb-box"><div class="ftico">${fileIco(mime,fname)}</div><div class="ftname">${esc(fname)}</div><div class="ftmeta">${fmtSize(item.fileSize||0)} · ${esc(mime||'?')}</div></div>`;}
-    body.innerHTML=preview+meta;acts.innerHTML=`<button class="btn btn-steam" onclick="dlFile('${id}')">⬇ Download</button>`;
+    body.innerHTML=coverHtml+preview+meta;acts.innerHTML=`<button class="btn btn-steam" onclick="dlFile('${id}')">⬇ Download</button>`;
   }
 }
 async function dlFile(id){const it=items.find(i=>i.id===id);if(!it)return;const d=await getFile(id);if(!d){toast('File not found','err');return;}const a=document.createElement('a');a.href=d;a.download=it.fileName||it.title;a.click();}
@@ -1121,10 +1165,10 @@ function migrateOldData(){
       found=true;
     }
   });
-  // Migrate file blobs (evf-{id} keys)
+  // Migrate file blobs (evf-{id}) and cover images (evc-{id})
   for(let i=0;i<localStorage.length;i++){
     const key=localStorage.key(i);
-    if(key&&key.startsWith('evf-')&&!key.startsWith(USER_ID+'_')){
+    if(key&&(key.startsWith('evf-')||key.startsWith('evc-'))&&!key.startsWith(USER_ID+'_')){
       const newKey=userKey(key);
       if(!localStorage.getItem(newKey)){
         localStorage.setItem(newKey,localStorage.getItem(key));
