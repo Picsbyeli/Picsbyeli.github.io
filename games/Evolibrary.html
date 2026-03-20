@@ -129,6 +129,7 @@ aside{width:240px;background:linear-gradient(180deg,#1e2328 0%,#171a21 100%);bor
 .act-btn{width:26px;height:26px;border-radius:4px;border:none;background:rgba(0,0,0,.7);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;backdrop-filter:blur(4px)}
 .act-btn:hover{background:var(--red);color:#fff}
 .act-btn.open:hover{background:var(--steam-blue);color:#fff}
+.act-btn.edit:hover{background:var(--steam-green);color:#fff}
 
 /* ═══ COVER IMAGE ═══ */
 .icard-banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
@@ -767,7 +768,7 @@ function getBannerGradient(str){
 // ══ STATE ══
 let items=[], cats=[], fitLogs=[];
 let activeCat='__all__', activeType='all', query='', sortMode='alpha', viewMode='grid';
-let addType='file', selCat='', selColor='#66c0f4', selFile=null, selCoverData=null;
+let addType='file', selCat='', selColor='#66c0f4', selFile=null, selCoverData=null, editingId=null;
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
 let selWtype='run', selIntensity=3, openDayDate='';
 const IKEY='evl-items', CKEY='evl-cats', FKEY='evl-fit';
@@ -1036,7 +1037,7 @@ function cardHTML(item){
   const typeCls=item.type==='file'?'icard-type-file':item.type==='link'?'icard-type-link':'icard-type-note';
   const typeLabel=item.type.charAt(0).toUpperCase()+item.type.slice(1);
   const badge=item.category?`<span class="cat-badge" style="background:${cc}22;color:${cc}">${esc(item.category)}</span>`:'';
-  const acts=`<div class="icard-acts"><button class="act-btn open" onclick="event.stopPropagation();openPrev('${item.id}')">👁</button><button class="act-btn" onclick="event.stopPropagation();delItem('${item.id}')">🗑</button></div>`;
+  const acts=`<div class="icard-acts"><button class="act-btn open" onclick="event.stopPropagation();openPrev('${item.id}')">👁</button><button class="act-btn edit" onclick="event.stopPropagation();openEditModal('${item.id}')">✏️</button><button class="act-btn" onclick="event.stopPropagation();delItem('${item.id}')">🗑</button></div>`;
   const gradient=getBannerGradient(item.id+item.title);
   const coverId='cover-'+item.id;
   
@@ -1062,7 +1063,7 @@ function cardHTML(item){
       </div>
     </div>`;
   }
-  return`<div class="irow" onclick="openPrev('${item.id}')">${item.hasCover?`<img class="irow-thumb" id="rowthumb-${item.id}" src="" alt="">`:`<span class="icard-icon" style="font-size:20px">${ico}</span>`}<span class="irow-title">${esc(item.title)}</span><span class="icard-type-badge ${typeCls}">${typeLabel}</span>${badge}<span class="idate">${fmtDate(item.date)}</span><div class="icard-acts" style="position:static;display:flex;gap:4px"><button class="act-btn open" onclick="event.stopPropagation();openPrev('${item.id}')">👁</button><button class="act-btn" onclick="event.stopPropagation();delItem('${item.id}')">🗑</button></div></div>`;
+  return`<div class="irow" onclick="openPrev('${item.id}')">${item.hasCover?`<img class="irow-thumb" id="rowthumb-${item.id}" src="" alt="">`:`<span class="icard-icon" style="font-size:20px">${ico}</span>`}<span class="irow-title">${esc(item.title)}</span><span class="icard-type-badge ${typeCls}">${typeLabel}</span>${badge}<span class="idate">${fmtDate(item.date)}</span><div class="icard-acts" style="position:static;display:flex;gap:4px"><button class="act-btn open" onclick="event.stopPropagation();openPrev('${item.id}')">👁</button><button class="act-btn edit" onclick="event.stopPropagation();openEditModal('${item.id}')">✏️</button><button class="act-btn" onclick="event.stopPropagation();delItem('${item.id}')">🗑</button></div></div>`;
 }
 async function loadCardCover(id){
   const data=await getCover(id);if(!data)return;
@@ -1077,12 +1078,95 @@ function onSearch(v){query=v.trim();renderItems();}
 function setSort(v){sortMode=v;renderItems();}
 function setView(v){viewMode=v;document.getElementById('vGrid').classList.toggle('active',v==='grid');document.getElementById('vList').classList.toggle('active',v==='list');renderItems();}
 function openAddModal(){
-  selFile=null;selCat='';selCoverData=null;
+  editingId=null;selFile=null;selCat='';selCoverData=null;
   ['aFileTitle','aLinkUrl','aLinkTitle','aNoteTitle','aNoteBody'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fileSelBox').style.display='none';document.getElementById('dropZone').style.display='block';
   document.getElementById('coverPreviewBox').style.display='none';document.getElementById('coverUploadBtn').style.display='flex';
   document.getElementById('coverInp').value='';
+  document.querySelector('#addModal .mtitle').textContent='Add to Library';
+  document.getElementById('addSubmitBtn').textContent='Add to Library';
+  document.getElementById('addSubmitBtn').setAttribute('onclick','submitAdd()');
+  document.querySelector('#addModal .type-sel').style.display='grid';
   setAddType('file');renderAddCatGrid();document.getElementById('addModal').classList.add('open');
+}
+async function openEditModal(id){
+  const item=items.find(i=>i.id===id);if(!item)return;
+  editingId=id;selFile=null;selCat=item.category||'';selCoverData=null;
+  document.querySelector('#addModal .mtitle').textContent='Edit Item';
+  document.getElementById('addSubmitBtn').textContent='Save Changes';
+  document.getElementById('addSubmitBtn').setAttribute('onclick','submitEdit()');
+  // Hide type selector during edit (can't change type)
+  document.querySelector('#addModal .type-sel').style.display='none';
+  // Set fields based on type
+  setAddType(item.type);
+  if(item.type==='file'){
+    document.getElementById('aFileTitle').value=item.title||'';
+    // Show current file info (can't change the actual file, but can replace)
+    document.getElementById('dropZone').style.display='block';
+    document.getElementById('fileSelBox').style.display='none';
+    if(item.fileName){
+      document.getElementById('dropZone').style.display='none';
+      document.getElementById('fileSelBox').style.display='flex';
+      document.getElementById('fSelIco').textContent=fileIco(item.fileType,item.fileName);
+      document.getElementById('fSelName').textContent=item.fileName;
+      document.getElementById('fSelSize').textContent=fmtSize(item.fileSize||0);
+    }
+  }else if(item.type==='link'){
+    document.getElementById('aLinkUrl').value=item.url||'';
+    document.getElementById('aLinkTitle').value=item.title||'';
+  }else{
+    document.getElementById('aNoteTitle').value=item.title||'';
+    document.getElementById('aNoteBody').value=item.content||'';
+  }
+  // Load existing cover
+  document.getElementById('coverInp').value='';
+  if(item.hasCover){
+    const coverData=await getCover(id);
+    if(coverData){
+      selCoverData=coverData;
+      document.getElementById('coverPreviewImg').src=coverData;
+      document.getElementById('coverPreviewBox').style.display='inline-block';
+      document.getElementById('coverUploadBtn').style.display='none';
+    }else{
+      document.getElementById('coverPreviewBox').style.display='none';
+      document.getElementById('coverUploadBtn').style.display='flex';
+    }
+  }else{
+    document.getElementById('coverPreviewBox').style.display='none';
+    document.getElementById('coverUploadBtn').style.display='flex';
+  }
+  renderAddCatGrid();
+  document.getElementById('addModal').classList.add('open');
+}
+async function submitEdit(){
+  const item=items.find(i=>i.id===editingId);if(!item){toast('Item not found','err');return;}
+  const btn=document.getElementById('addSubmitBtn');
+  item.category=selCat;
+  if(item.type==='file'){
+    item.title=document.getElementById('aFileTitle').value.trim()||item.fileName||item.title;
+    // If user selected a new file, replace it
+    if(selFile){
+      item.fileName=selFile.name;item.fileType=selFile.type;item.fileSize=selFile.size;
+      item.title=document.getElementById('aFileTitle').value.trim()||selFile.name;
+      btn.textContent='Saving...';btn.disabled=true;
+      try{await saveFile(item.id,await readAsDataURL(selFile));}catch(e){toast('Failed: '+e.message,'err');btn.textContent='Save Changes';btn.disabled=false;return;}
+      btn.textContent='Save Changes';btn.disabled=false;
+    }
+  }else if(item.type==='link'){
+    const url=document.getElementById('aLinkUrl').value.trim();if(!url){toast('Enter a URL','err');return;}
+    item.url=url;item.title=document.getElementById('aLinkTitle').value.trim()||url;
+  }else{
+    const t=document.getElementById('aNoteTitle').value.trim();if(!t){toast('Enter a title','err');return;}
+    item.title=t;item.content=document.getElementById('aNoteBody').value.trim();
+  }
+  // Handle cover image changes
+  if(selCoverData){
+    item.hasCover=true;await saveCover(item.id,selCoverData);
+  }else if(!selCoverData&&item.hasCover&&!document.getElementById('coverPreviewBox').style.display.includes('inline')){
+    // Cover was cleared
+    item.hasCover=false;await delCover(item.id);
+  }
+  await saveItems();close2('addModal');editingId=null;renderAll();toast('Updated ✓','ok');
 }
 function setAddType(t){addType=t;['file','link','note'].forEach(x=>{document.getElementById('topt-'+x).classList.toggle('sel',x===t);document.getElementById('af-'+x).style.display=x===t?'block':'none';});}
 function renderAddCatGrid(){
@@ -1129,16 +1213,17 @@ async function openPrev(id){
     const openBtn=document.createElement('button');openBtn.className='btn btn-blue';openBtn.textContent='🌐 Open In App';openBtn.onclick=()=>openInWebView(item.url);
     const tabLink=document.createElement('a');tabLink.href=item.url;tabLink.target='_blank';tabLink.className='btn btn-ghost';tabLink.style.textDecoration='none';tabLink.textContent='Open Tab ↗';
     const copyBtn=document.createElement('button');copyBtn.className='btn btn-ghost';copyBtn.textContent='Copy';copyBtn.onclick=()=>{navigator.clipboard.writeText(item.url);toast('Copied!','ok');};
-    acts.innerHTML='';acts.appendChild(openBtn);acts.appendChild(tabLink);acts.appendChild(copyBtn);
+    const editBtn=document.createElement('button');editBtn.className='btn btn-ghost';editBtn.innerHTML='✏️ Edit';editBtn.onclick=()=>{close2('prevModal');openEditModal(id);};
+    acts.innerHTML='';acts.appendChild(openBtn);acts.appendChild(tabLink);acts.appendChild(copyBtn);acts.appendChild(editBtn);
   }
-  else if(item.type==='note'){body.innerHTML=`${coverHtml}<div class="note-pre">${esc(item.content||'(empty)')}</div>${meta}`;acts.innerHTML=`<button class="btn btn-blue" onclick="navigator.clipboard.writeText(${JSON.stringify(item.content||'')});toast('Copied!','ok')">Copy Text</button>`;}
+  else if(item.type==='note'){body.innerHTML=`${coverHtml}<div class="note-pre">${esc(item.content||'(empty)')}</div>${meta}`;acts.innerHTML=`<button class="btn btn-blue" onclick="navigator.clipboard.writeText(${JSON.stringify(item.content||'')});toast('Copied!','ok')">Copy Text</button><button class="btn btn-ghost" onclick="close2('prevModal');openEditModal('${id}')">✏️ Edit</button>`;}
   else{
     const data=await getFile(id);if(!data){body.innerHTML=`<p style="color:var(--red);text-align:center;padding:20px">File data not found.</p>`;return;}
     const mime=item.fileType||'',fname=item.fileName||'';let preview='';
     if(mime.startsWith('image/'))preview=`<img src="${data}" alt="${esc(item.title)}">`;
     else if(mime.startsWith('text/')||/\.(txt|md|js|ts|jsx|tsx|html|css|json|py|java|c|cpp|sh|yml|yaml)$/i.test(fname)){const txt=b64toText(data);preview=txt!=null?`<pre class="code-pre">${esc(txt.slice(0,4000))}${txt.length>4000?'\n...(truncated)':''}</pre>`:`<div class="file-thumb-box"><div class="ftico">${fileIco(mime,fname)}</div><div class="ftname">${esc(fname)}</div></div>`;}
     else{preview=`<div class="file-thumb-box"><div class="ftico">${fileIco(mime,fname)}</div><div class="ftname">${esc(fname)}</div><div class="ftmeta">${fmtSize(item.fileSize||0)} · ${esc(mime||'?')}</div></div>`;}
-    body.innerHTML=coverHtml+preview+meta;acts.innerHTML=`<button class="btn btn-steam" onclick="dlFile('${id}')">⬇ Download</button>`;
+    body.innerHTML=coverHtml+preview+meta;acts.innerHTML=`<button class="btn btn-steam" onclick="dlFile('${id}')">⬇ Download</button><button class="btn btn-ghost" onclick="close2('prevModal');openEditModal('${id}')">✏️ Edit</button>`;
   }
 }
 async function dlFile(id){const it=items.find(i=>i.id===id);if(!it)return;const d=await getFile(id);if(!d){toast('File not found','err');return;}const a=document.createElement('a');a.href=d;a.download=it.fileName||it.title;a.click();}
