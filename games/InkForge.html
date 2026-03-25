@@ -1,871 +1,885 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InkForge — Story Workshop</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body,#root{height:100%;background:#09080a;overflow:hidden}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideIn{from{opacity:0;transform:translateX(13px)}to{opacity:1;transform:translateX(0)}}
-@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
-.fade-in{animation:fadeIn .28s ease}
-.slide-in{animation:slideIn .22s ease}
-::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#272333;border-radius:2px}
-.ink-editor{font-family:'Crimson Pro',Georgia,serif;font-size:19px;line-height:1.9;color:#f2ecdf;background:transparent;border:none;outline:none;resize:none;width:100%;min-height:68vh;letter-spacing:.01em}
-.ink-editor::placeholder{color:#5c5870;font-style:italic}
-.gold-btn{background:linear-gradient(135deg,#8a6a28,#c9a84c);color:#080605;border:none;border-radius:7px;padding:9px 18px;font-family:'Playfair Display',serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;letter-spacing:.4px;display:flex;align-items:center;gap:6px;white-space:nowrap}
-.gold-btn:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 4px 16px rgba(201,168,76,.28)}
-.gold-btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
-.ghost-btn{background:transparent;color:#9c96a8;border:1px solid #272333;border-radius:7px;padding:8px 14px;font-family:'Crimson Pro',serif;font-size:14px;cursor:pointer;transition:all .18s;white-space:nowrap}
-.ghost-btn:hover{border-color:rgba(201,168,76,.55);color:#c9a84c;background:rgba(201,168,76,.04)}
-.tab-btn{width:52px;height:52px;border-radius:12px;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .18s;background:transparent;position:relative}
-.story-card:hover{border-color:#3a3550 !important;transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
-input::placeholder,textarea::placeholder{color:#5c5870}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>InkForge — AI Writing Studio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body,#root{height:100%;background:#07060a;overflow:hidden;}
+    body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 20% 80%,rgba(138,106,40,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 20%,rgba(100,80,180,.04) 0%,transparent 50%),radial-gradient(ellipse 90% 60% at 50% 50%,rgba(61,158,136,.03) 0%,transparent 70%);}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes slideIn{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:translateX(0);}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes pulse{0%,100%{opacity:.35;}50%{opacity:1;}}
+    @keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+    @keyframes glow{0%,100%{box-shadow:0 0 12px rgba(201,168,76,.15);}50%{box-shadow:0 0 28px rgba(201,168,76,.3);}}
+    @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+    .fade-in{animation:fadeIn .32s cubic-bezier(.22,.68,0,1);}
+    .slide-in{animation:slideIn .26s cubic-bezier(.22,.68,0,1);}
+    .slide-up{animation:slideUp .4s cubic-bezier(.22,.68,0,1);}
+    ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#272333;border-radius:3px;}::-webkit-scrollbar-thumb:hover{background:#3a3550;}
+    .ink-editor{font-family:'Crimson Pro',Georgia,serif;font-size:19px;line-height:1.95;color:#f2ecdf;background:transparent;border:none;outline:none;resize:none;width:100%;min-height:68vh;letter-spacing:.015em;}
+    .ink-editor::placeholder{color:#4a4660;font-style:italic;}
+    .gold-btn{background:linear-gradient(135deg,#8a6a28,#c9a84c,#a88430);color:#080605;border:none;border-radius:8px;padding:10px 20px;font-family:'Playfair Display',serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .22s;letter-spacing:.5px;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 2px 12px rgba(201,168,76,.18);position:relative;overflow:hidden;}
+    .gold-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);background-size:200% 100%;animation:shimmer 3s ease infinite;}
+    .gold-btn:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-2px);box-shadow:0 6px 24px rgba(201,168,76,.32);}
+    .gold-btn:active:not(:disabled){transform:translateY(0);}
+    .gold-btn:disabled{opacity:.38;cursor:not-allowed;transform:none;box-shadow:none;}
+    .ghost-btn{background:rgba(255,255,255,.02);color:#9c96a8;border:1px solid #252240;border-radius:8px;padding:8px 15px;font-family:'Crimson Pro',serif;font-size:14px;cursor:pointer;transition:all .2s;white-space:nowrap;backdrop-filter:blur(4px);}
+    .ghost-btn:hover{border-color:rgba(201,168,76,.5);color:#c9a84c;background:rgba(201,168,76,.06);}
+    .tab-btn{width:54px;height:54px;border-radius:12px;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .2s;background:transparent;position:relative;}
+    .tab-btn:hover{background:rgba(255,255,255,.04);}
+    .story-card{transition:all .28s cubic-bezier(.22,.68,0,1)!important;}
+    .story-card:hover{border-color:#3a3550!important;transform:translateY(-4px)!important;box-shadow:0 12px 40px rgba(0,0,0,.5)!important;}
+    input::placeholder,textarea::placeholder{color:#4a4660;}
+    input:focus,textarea:focus{border-color:rgba(201,168,76,.5)!important;}
+    input[type=range]{-webkit-appearance:none;appearance:none;}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#c9a84c;cursor:pointer;border:2px solid #141220;box-shadow:0 0 8px rgba(201,168,76,.3);}
+    input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#c9a84c;cursor:pointer;border:2px solid #141220;}
+  </style>
 </head>
 <body>
-<div id="root"></div>
+  <div id="root"></div>
 <script type="text/babel">
-const {useState, useRef, useEffect} = React;
+const{useState,useRef,useEffect,useCallback}=React;
+const C={bg:'#07060a',surface:'#0f0e16',panel:'#141220',card:'#1a1728',border:'#252240',borderLight:'#3a3550',gold:'#c9a84c',goldDark:'#8a6a28',ink:'#f2ecdf',inkSoft:'#d8cfc0',inkMuted:'#9c96a8',inkDim:'#5c5870',teal:'#3d9e88',purple:'#7c5fb5',green:'#4caf7a',red:'#c94c4c',blue:'#4c8fc9',orange:'#c97c4c'};
+const ACCENTS=['#c9a84c','#3d9e88','#7c5fb5','#c94c4c','#4c8fc9','#c97c4c','#4caf7a','#9e3d7c'];
 
-/* ─── Palette ─────────────────────────────────────────────────────────────── */
-const C = {
-  bg:'#09080a', surface:'#111018', panel:'#16141e', card:'#1c1926',
-  border:'#272333', borderLight:'#3a3550',
-  gold:'#c9a84c', goldDark:'#8a6a28',
-  ink:'#f2ecdf', inkMuted:'#9c96a8', inkDim:'#5c5870',
-  teal:'#3d9e88', purple:'#7c5fb5', green:'#4caf7a', red:'#c94c4c',
-};
-
-const STORY_ACCENTS = [
-  '#c9a84c','#3d9e88','#7c5fb5','#c94c4c','#4c8fc9','#c97c4c','#4caf7a','#9e3d7c',
-];
-
-/* ─── Claude API ──────────────────────────────────────────────────────────── */
-const CLAUDE_KEY_STORAGE = 'inkforge-claude-key';
-function getApiKey(){ return localStorage.getItem(CLAUDE_KEY_STORAGE)||''; }
-function setApiKey(k){ localStorage.setItem(CLAUDE_KEY_STORAGE,k); }
-
-async function callClaude(system, userMessage, history=null, maxTokens=1000) {
-  const key = getApiKey();
-  if(!key) throw new Error('No API key set. Go to Settings to add your Claude API key.');
-  const messages = history
-    ? [...history, {role:'user',content:userMessage}]
-    : [{role:'user',content:userMessage}];
-  const res = await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,system,messages}),
-  });
-  const data = await res.json();
-  if(data.error) throw new Error(data.error.message);
+async function callClaude(system,userMessage,history=null,maxTokens=1200){
+  const apiKey=localStorage.getItem('inkforge_api_key')||'';
+  if(!apiKey)throw new Error('No API key set.');
+  const messages=history?[...history,{role:'user',content:userMessage}]:[{role:'user',content:userMessage}];
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,system,messages})});
+  const data=await res.json();
+  if(data.error)throw new Error(data.error.message);
   return data.content[0].text;
 }
+function withLore(base,loreTxt){if(!loreTxt)return base;return`${base}\n\n${'━'.repeat(40)}\nSTORY WORLD CONTEXT — treat as gospel:\n${loreTxt}\nNever contradict these established facts.\n${'━'.repeat(40)}`;}
 
-function withLore(base, loreTxt) {
-  if(!loreTxt) return base;
-  return base+'\n\n'+'━'.repeat(40)+'\nSTORY WORLD CONTEXT — treat as gospel:\n'+loreTxt+'\nNever contradict these established facts.\n'+'━'.repeat(40);
+const BASE_WRITER=`You are an award-winning fiction author specializing in manga, light novels, and literary fiction.\n\nBANNED clichés — never write these:\n• "couldn't help but", "a small smile played", "nodded slowly", "let out a breath they didn't know they were holding"\n• "heart pounding/racing/hammering", "eyes widened", "jaw dropped", "stomach churned"\n• Over-explaining emotions; generic words: "beautiful","amazing","incredible","stunning"\n• Weak transitions: "Meanwhile...","Suddenly...","Just then..."\n\nINSTEAD: specific sensory details · action over emotion-labels · distinct character voices · varied sentence rhythm · subtext and irony`;
+const BASE_COACH=`${BASE_WRITER}\n\nYou are also a sharp practical writing coach. Give specific actionable feedback — not generic advice. Identify exact patterns to fix. Be direct like a good editor, not a cheerleader. Format your responses clearly with line breaks between points.`;
+
+const lbl={fontSize:11,color:C.inkDim,letterSpacing:2,textTransform:'uppercase',fontFamily:"'JetBrains Mono',monospace",marginBottom:7,fontWeight:500};
+const chip=(color)=>({display:'inline-block',padding:'4px 11px',borderRadius:20,fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:1,textTransform:'uppercase',background:`${color}15`,color,border:`1px solid ${color}30`});
+
+function Spinner({color=C.gold,size=20}){return<div style={{width:size,height:size,border:`2px solid ${color}25`,borderTop:`2px solid ${color}`,borderRadius:'50%',animation:'spin .7s linear infinite',flexShrink:0}}/>;}
+function Input({value,onChange,placeholder,style={},type='text',autoFocus=false}){return<input value={value} onChange={onChange} placeholder={placeholder} type={type} autoFocus={autoFocus} style={{width:'100%',padding:'12px 15px',background:C.card,border:`1px solid ${C.border}`,borderRadius:9,color:C.ink,fontFamily:"'Crimson Pro',serif",fontSize:16,outline:'none',transition:'border-color .25s',...style}}/>;}
+function Modal({children,onClose}){return(<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.7)',backdropFilter:'blur(6px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200}} onClick={onClose}><div className="slide-up" style={{background:C.panel,border:`1px solid ${C.borderLight}`,borderRadius:18,maxWidth:'94vw',position:'relative',boxShadow:'0 24px 80px rgba(0,0,0,.6)'}} onClick={e=>e.stopPropagation()}>{children}</div></div>);}
+function EmptyState({icon,title,desc,children}){return(<div className="fade-in" style={{textAlign:'center',paddingTop:72}}><div style={{fontSize:56,marginBottom:18,animation:'float 3s ease-in-out infinite'}}>{icon}</div><p style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:C.inkMuted,fontStyle:'italic',marginBottom:10}}>{title}</p>{desc&&<p style={{color:C.inkDim,fontSize:16,fontFamily:"'Crimson Pro',serif",maxWidth:360,margin:'0 auto',lineHeight:1.7}}>{desc}</p>}{children}</div>);}
+function Toast({msg,type='info',onDone}){useEffect(()=>{const t=setTimeout(onDone,3000);return()=>clearTimeout(t);},[]);const colors={info:C.gold,success:C.green,error:C.red};return(<div className="slide-up" style={{position:'fixed',bottom:28,left:'50%',transform:'translateX(-50%)',zIndex:300,background:C.panel,border:`1px solid ${colors[type]}40`,borderRadius:10,padding:'12px 22px',display:'flex',alignItems:'center',gap:10,boxShadow:`0 8px 32px rgba(0,0,0,.5),0 0 20px ${colors[type]}15`}}><div style={{width:8,height:8,borderRadius:'50%',background:colors[type]}}/><span style={{color:C.ink,fontSize:14,fontFamily:"'Crimson Pro',serif"}}>{msg}</span></div>);}
+
+function ApiKeyScreen({onSave}){
+  const[key,setKey]=useState('');const[show,setShow]=useState(false);const[testing,setTesting]=useState(false);const[err,setErr]=useState('');
+  const test=async()=>{if(!key.trim())return;setTesting(true);setErr('');try{localStorage.setItem('inkforge_api_key',key.trim());await callClaude('Reply with exactly: OK','Test connection',null,10);onSave(key.trim());}catch(e){setErr(e.message||'Invalid key or connection error.');localStorage.removeItem('inkforge_api_key');}setTesting(false);};
+  return(<div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:C.bg,position:'relative'}}><div className="slide-up" style={{background:C.panel,border:`1px solid ${C.borderLight}`,borderRadius:22,padding:'56px 48px',width:500,maxWidth:'92vw',textAlign:'center',boxShadow:`0 32px 100px rgba(0,0,0,.5),0 0 60px ${C.gold}08`}}>
+    <div style={{width:64,height:64,borderRadius:16,background:`linear-gradient(135deg,${C.goldDark},${C.gold})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32,margin:'0 auto 24px',boxShadow:`0 0 40px ${C.gold}30`,animation:'glow 3s ease infinite'}}>🖋</div>
+    <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:40,fontWeight:700,color:C.ink,fontStyle:'italic',marginBottom:6}}>InkForge</h1>
+    <p style={{color:C.goldDark,fontFamily:"'JetBrains Mono',monospace",fontSize:11,letterSpacing:3,textTransform:'uppercase',marginBottom:28}}>AI Writing Studio</p>
+    <p style={{color:C.inkMuted,fontSize:17,fontFamily:"'Crimson Pro',serif",marginBottom:36,lineHeight:1.8}}>Your personal manga &amp; novel workshop, powered by Claude.<br/><span style={{color:C.inkDim,fontSize:15}}>Enter your Anthropic API key to begin.</span></p>
+    <div style={{textAlign:'left',marginBottom:14}}><div style={lbl}>Anthropic API Key</div><div style={{position:'relative'}}><input value={key} onChange={e=>setKey(e.target.value)} type={show?'text':'password'} placeholder="sk-ant-..." onKeyDown={e=>e.key==='Enter'&&key.trim()&&test()} style={{width:'100%',padding:'13px 48px 13px 16px',background:C.card,border:`1px solid ${err?C.red:C.border}`,borderRadius:10,color:C.ink,fontFamily:"'JetBrains Mono',monospace",fontSize:14,outline:'none',transition:'border-color .25s'}}/><button onClick={()=>setShow(p=>!p)} style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:C.inkDim,cursor:'pointer',fontSize:16,padding:0}}>{show?'🙈':'👁'}</button></div></div>
+    {err&&<p style={{color:C.red,fontSize:13,fontFamily:"'JetBrains Mono',monospace",marginBottom:12,textAlign:'left'}}>{err}</p>}
+    <p style={{color:C.inkDim,fontSize:12,fontFamily:"'JetBrains Mono',monospace",marginBottom:24,textAlign:'left'}}>Stored only in this browser. Never shared except with Anthropic's API.</p>
+    <button className="gold-btn" onClick={test} disabled={!key.trim()||testing} style={{width:'100%',justifyContent:'center',fontSize:16,padding:'14px'}}>{testing?<><Spinner color="#080605" size={16}/>Connecting…</>:'Enter InkForge →'}</button>
+    <p style={{marginTop:20,color:C.inkDim,fontSize:13,fontFamily:"'Crimson Pro',serif"}}>Get a key at <a href="https://console.anthropic.com" target="_blank" style={{color:C.gold,textDecoration:'none',borderBottom:`1px solid ${C.goldDark}`}}>console.anthropic.com</a></p>
+  </div></div>);
 }
 
-/* ─── System Prompts ─────────────────────────────────────────────────────── */
-const BASE_WRITER = `You are an award-winning fiction author specializing in manga, light novels, and literary fiction.
+function newStory(title='Untitled Story',accent=ACCENTS[0]){return{id:Date.now(),title,accent,genre:'Manga',description:'',updatedAt:Date.now(),chapters:[{id:1,title:'Chapter 1',content:''}],characters:[],loreRaw:'',loreSummary:null,ideas:[]};}
 
-BANNED clichés — never write these:
-• "couldn't help but", "a small smile played", "nodded slowly", "let out a breath they didn't know they were holding"
-• "heart pounding/racing/hammering", "eyes widened", "jaw dropped", "stomach churned"
-• Over-explaining emotions; generic words: "beautiful","amazing","incredible","stunning"
-• Weak transitions: "Meanwhile...","Suddenly...","Just then..."
-
-INSTEAD: specific sensory details · action over emotion-labels · distinct character voices · varied sentence rhythm · subtext and irony`;
-
-const BASE_COACH = BASE_WRITER+'\n\nYou are also a sharp practical writing coach. Give specific actionable feedback — not generic advice. Identify exact patterns to fix. Be direct like a good editor, not a cheerleader.';
-
-/* ─── Shared UI ──────────────────────────────────────────────────────────── */
-const lbl = {fontSize:11,color:C.inkDim,letterSpacing:2,textTransform:'uppercase',fontFamily:"'JetBrains Mono',monospace",marginBottom:6};
-const chip = (color)=>({display:'inline-block',padding:'3px 10px',borderRadius:20,fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:1,textTransform:'uppercase',background:color+'18',color,border:'1px solid '+color+'40'});
-
-function Spinner({color=C.gold,size=20}){
-  return React.createElement('div',{style:{width:size,height:size,border:'2px solid '+color+'30',borderTop:'2px solid '+color,borderRadius:'50%',animation:'spin .8s linear infinite',flexShrink:0}});
-}
-
-function Input({value,onChange,placeholder,multiline=false,rows=4,style={}}){
-  const base={width:'100%',padding:'11px 14px',background:C.card,border:'1px solid '+C.border,borderRadius:8,color:C.ink,fontFamily:"'Crimson Pro',serif",fontSize:16,outline:'none',transition:'border-color .2s',...style};
-  const focus=e=>e.target.style.borderColor=C.gold+'70';
-  const blur=e=>e.target.style.borderColor=C.border;
-  return multiline
-    ? React.createElement('textarea',{value,onChange,placeholder,rows,style:{...base,resize:'vertical'},onFocus:focus,onBlur:blur})
-    : React.createElement('input',{value,onChange,placeholder,style:base,onFocus:focus,onBlur:blur});
-}
-
-/* ─── Default story shape ────────────────────────────────────────────────── */
-function newStory(title='Untitled Story', accent=STORY_ACCENTS[0]) {
-  return {
-    id: Date.now(), title, accent,
-    genre:'Manga', description:'',
-    updatedAt: Date.now(),
-    chapters:[{id:1,title:'Chapter 1',content:''}],
-    characters:[],
-    loreRaw:'', loreSummary:null,
-    ideas:[],
-  };
-}
-
-/* ─── localStorage persistence ───────────────────────────────────────────── */
-const STORAGE_KEY = 'inkforge-stories';
-function loadStories(){
-  try{ const d=localStorage.getItem(STORAGE_KEY); return d?JSON.parse(d):[]; }
-  catch{ return []; }
-}
-function saveStories(stories){
-  try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(stories)); } catch{}
-}
-
-/* ─── Stories Dashboard ──────────────────────────────────────────────────── */
-function Dashboard({stories, onOpen, onCreate, onDelete, onRename}){
-  const [creating, setCreating]=useState(false);
-  const [newTitle, setNewTitle]=useState('');
-  const [newAccent, setNewAccent]=useState(STORY_ACCENTS[0]);
-  const [newGenre, setNewGenre]=useState('Manga');
-  const [renaming, setRenaming]=useState(null);
-  const [renameVal, setRenameVal]=useState('');
-  const [confirmDel, setConfirmDel]=useState(null);
-
+function Dashboard({stories,onOpen,onCreate,onDelete,onRename,onKeyChange}){
+  const[creating,setCreating]=useState(false);const[newTitle,setNewTitle]=useState('');const[newAccent,setNewAccent]=useState(ACCENTS[0]);const[newGenre,setNewGenre]=useState('Manga');const[renaming,setRenaming]=useState(null);const[renameVal,setRenameVal]=useState('');const[confirmDel,setConfirmDel]=useState(null);
   const GENRES=['Manga','Novel','Light Novel','Webtoon','Short Story','Screenplay'];
-  const totalWords = s => s.chapters.reduce((a,c)=>(a+(c.content||'').split(/\s+/).filter(Boolean).length),0);
-  const fmt = n => n>=1000?(n/1000).toFixed(1)+'k':n.toString();
-  const timeAgo = t => {
-    const d=(Date.now()-t)/1000;
-    if(d<60) return 'just now';
-    if(d<3600) return Math.floor(d/60)+'m ago';
-    if(d<86400) return Math.floor(d/3600)+'h ago';
-    return Math.floor(d/86400)+'d ago';
-  };
+  const totalWords=s=>s.chapters.reduce((a,c)=>a+(c.content||'').split(/\s+/).filter(Boolean).length,0);
+  const fmt=n=>n>=1000?`${(n/1000).toFixed(1)}k`:String(n);
+  const timeAgo=t=>{const d=(Date.now()-t)/1000;if(d<60)return'just now';if(d<3600)return`${Math.floor(d/60)}m ago`;if(d<86400)return`${Math.floor(d/3600)}h ago`;return`${Math.floor(d/86400)}d ago`;};
+  const submit=()=>{if(!newTitle.trim())return;onCreate(newTitle.trim(),newAccent,newGenre);setCreating(false);setNewTitle('');setNewAccent(ACCENTS[0]);setNewGenre('Manga');};
 
-  const submit=()=>{
-    if(!newTitle.trim()) return;
-    onCreate(newTitle.trim(), newAccent, newGenre);
-    setCreating(false); setNewTitle(''); setNewAccent(STORY_ACCENTS[0]); setNewGenre('Manga');
-  };
-
-  return (
-    <div style={{flex:1,overflow:'auto',padding:'52px 60px',maxWidth:1100,margin:'0 auto',width:'100%'}}>
-      {/* Header */}
-      <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:48,flexWrap:'wrap',gap:16}}>
-        <div>
-          <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:10}}>
-            <div style={{width:42,height:42,borderRadius:12,background:'linear-gradient(135deg,'+C.goldDark+','+C.gold+')',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,boxShadow:'0 0 24px '+C.gold+'35'}}>🖋</div>
-            <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:42,fontWeight:700,color:C.ink,fontStyle:'italic'}}>InkForge</h1>
-          </div>
-          <p style={{color:C.inkMuted,fontSize:17,fontFamily:"'Crimson Pro',serif"}}>Your stories. All in one place.</p>
-        </div>
-        <button className="gold-btn" onClick={()=>setCreating(true)} style={{fontSize:15,padding:'12px 26px'}}>+ New Story</button>
-      </div>
-
-      {/* Create modal */}
-      {creating && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.7)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100}} onClick={()=>setCreating(false)}>
-          <div className="fade-in" style={{background:C.panel,border:'1px solid '+C.borderLight,borderRadius:16,padding:36,width:520,maxWidth:'92vw'}} onClick={e=>e.stopPropagation()}>
-            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:C.ink,marginBottom:24,fontStyle:'italic'}}>New Story</h2>
-            <div style={{marginBottom:16}}>
-              <div style={lbl}>Title</div>
-              <Input value={newTitle} onChange={e=>setNewTitle(e.target.value)} placeholder="Give your story a name…"/>
-            </div>
-            <div style={{marginBottom:16}}>
-              <div style={lbl}>Format</div>
-              <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
-                {GENRES.map(g=>(
-                  <button key={g} onClick={()=>setNewGenre(g)} style={{padding:'6px 16px',borderRadius:20,cursor:'pointer',fontFamily:"'Playfair Display',serif",fontWeight:600,fontSize:13,transition:'all .18s',border:'1px solid '+(newGenre===g?C.gold:C.border),background:newGenre===g?C.gold:'transparent',color:newGenre===g?'#080605':C.inkMuted}}>{g}</button>
-                ))}
-              </div>
-            </div>
-            <div style={{marginBottom:28}}>
-              <div style={lbl}>Color</div>
-              <div style={{display:'flex',gap:8}}>
-                {STORY_ACCENTS.map(a=>(
-                  <div key={a} onClick={()=>setNewAccent(a)} style={{width:28,height:28,borderRadius:'50%',background:a,cursor:'pointer',boxSizing:'border-box',border:newAccent===a?'3px solid '+C.ink:'3px solid transparent',transition:'all .15s'}}/>
-                ))}
-              </div>
-            </div>
-            <div style={{display:'flex',gap:10}}>
-              <button className="gold-btn" onClick={submit} disabled={!newTitle.trim()} style={{flex:1,justifyContent:'center',fontSize:15,padding:'12px'}}>Create Story</button>
-              <button className="ghost-btn" onClick={()=>setCreating(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirm delete modal */}
-      {confirmDel && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.7)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100}} onClick={()=>setConfirmDel(null)}>
-          <div className="fade-in" style={{background:C.panel,border:'1px solid '+C.red+'40',borderRadius:14,padding:32,width:400,maxWidth:'92vw',textAlign:'center'}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:36,marginBottom:12}}>🗑</div>
-            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:C.ink,marginBottom:8}}>Delete "{confirmDel.title}"?</h3>
-            <p style={{color:C.inkMuted,fontSize:15,marginBottom:24,fontFamily:"'Crimson Pro',serif"}}>This will permanently remove all chapters, characters, and world data. This cannot be undone.</p>
-            <div style={{display:'flex',gap:10,justifyContent:'center'}}>
-              <button onClick={()=>{onDelete(confirmDel.id);setConfirmDel(null);}} style={{background:C.red,color:'#fff',border:'none',borderRadius:7,padding:'10px 24px',cursor:'pointer',fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:14}}>Delete</button>
-              <button className="ghost-btn" onClick={()=>setConfirmDel(null)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Story grid */}
-      {stories.length===0 ? (
-        <div style={{textAlign:'center',paddingTop:80}}>
-          <div style={{fontSize:64,marginBottom:20}}>📖</div>
-          <p style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:C.inkMuted,fontStyle:'italic',marginBottom:10}}>No stories yet</p>
-          <p style={{color:C.inkDim,fontSize:16,fontFamily:"'Crimson Pro',serif"}}>Create your first story to get started.</p>
-        </div>
-      ) : (
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:20}}>
-          {stories.map(s=>(
-            <div key={s.id} className="story-card" style={{background:C.card,border:'1px solid '+C.border,borderRadius:14,overflow:'hidden',cursor:'pointer',transition:'all .2s',position:'relative'}} onClick={()=>onOpen(s.id)}>
-              <div style={{height:5,background:'linear-gradient(90deg,'+s.accent+','+s.accent+'88)'}}/>
-              <div style={{padding:'20px 22px 18px'}}>
-                <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:6,gap:8}}>
-                  {renaming===s.id ? (
-                    <input autoFocus value={renameVal}
-                      onChange={e=>setRenameVal(e.target.value)}
-                      onBlur={()=>{if(renameVal.trim())onRename(s.id,renameVal.trim());setRenaming(null);}}
-                      onKeyDown={e=>{if(e.key==='Enter')e.target.blur();if(e.key==='Escape')setRenaming(null);}}
-                      onClick={e=>e.stopPropagation()}
-                      style={{flex:1,background:'transparent',border:'1px solid '+s.accent,borderRadius:5,color:C.ink,fontFamily:"'Playfair Display',serif",fontSize:18,fontStyle:'italic',fontWeight:700,padding:'2px 7px',outline:'none'}}
-                    />
-                  ) : (
-                    <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:19,color:C.ink,fontStyle:'italic',fontWeight:700,lineHeight:1.3,flex:1}}>{s.title}</h3>
-                  )}
-                  <div style={{display:'flex',gap:4,flexShrink:0}} onClick={e=>e.stopPropagation()}>
-                    <button title="Rename" onClick={()=>{setRenaming(s.id);setRenameVal(s.title);}} style={{background:'transparent',border:'none',color:C.inkDim,cursor:'pointer',fontSize:15,padding:'2px 5px',borderRadius:4,transition:'color .15s'}} onMouseEnter={e=>e.target.style.color=C.gold} onMouseLeave={e=>e.target.style.color=C.inkDim}>✎</button>
-                    <button title="Delete" onClick={()=>setConfirmDel(s)} style={{background:'transparent',border:'none',color:C.inkDim,cursor:'pointer',fontSize:15,padding:'2px 5px',borderRadius:4,transition:'color .15s'}} onMouseEnter={e=>e.target.style.color=C.red} onMouseLeave={e=>e.target.style.color=C.inkDim}>✕</button>
-                  </div>
-                </div>
-                <div style={{display:'flex',gap:8,marginBottom:14,flexWrap:'wrap'}}>
-                  <span style={chip(s.accent)}>{s.genre}</span>
-                  {s.loreSummary && <span style={chip(C.green)}>✦ world</span>}
-                  {s.characters.length>0 && <span style={chip(C.purple)}>{s.characters.length} chars</span>}
-                </div>
-                <div style={{display:'flex',gap:20}}>
-                  <div>
-                    <div style={{...lbl,marginBottom:2}}>Words</div>
-                    <div style={{color:C.ink,fontFamily:"'JetBrains Mono',monospace",fontSize:18,fontWeight:500}}>{fmt(totalWords(s))}</div>
-                  </div>
-                  <div>
-                    <div style={{...lbl,marginBottom:2}}>Chapters</div>
-                    <div style={{color:C.ink,fontFamily:"'JetBrains Mono',monospace",fontSize:18,fontWeight:500}}>{s.chapters.length}</div>
-                  </div>
-                  <div style={{marginLeft:'auto',textAlign:'right'}}>
-                    <div style={{...lbl,marginBottom:2}}>Edited</div>
-                    <div style={{color:C.inkDim,fontFamily:"'JetBrains Mono',monospace",fontSize:13}}>{timeAgo(s.updatedAt)}</div>
-                  </div>
-                </div>
-              </div>
-              <div style={{padding:'10px 22px',borderTop:'1px solid '+C.border,background:C.surface+'80',display:'flex',alignItems:'center',gap:8}}>
-                <span style={{color:s.accent,fontSize:13,fontFamily:"'JetBrains Mono',monospace",letterSpacing:.5}}>→ Open Story</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+  return(<div style={{flex:1,overflow:'auto',padding:'48px 56px',maxWidth:1100,margin:'0 auto',width:'100%',position:'relative',zIndex:1}}>
+    <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:52}}>
+      <div><div style={{display:'flex',alignItems:'center',gap:16,marginBottom:12}}><div style={{width:48,height:48,borderRadius:14,background:`linear-gradient(135deg,${C.goldDark},${C.gold})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,boxShadow:`0 0 32px ${C.gold}30`}}>🖋</div><h1 style={{fontFamily:"'Playfair Display',serif",fontSize:44,fontWeight:700,color:C.ink,fontStyle:'italic'}}>InkForge</h1></div><p style={{color:C.inkMuted,fontSize:18,fontFamily:"'Crimson Pro',serif"}}>Your stories, your worlds, your voice.</p></div>
+      <div style={{display:'flex',gap:10,alignItems:'center'}}><button className="ghost-btn" onClick={onKeyChange} style={{fontSize:12,padding:'8px 15px',color:C.inkDim}}>🔑 API Key</button><button className="gold-btn" onClick={()=>setCreating(true)} style={{fontSize:15,padding:'13px 28px'}}>+ New Story</button></div>
     </div>
-  );
+
+    {creating&&<Modal onClose={()=>setCreating(false)}><div style={{padding:'40px 42px',width:540}}>
+      <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:C.ink,marginBottom:28,fontStyle:'italic'}}>New Story</h2>
+      <div style={{marginBottom:18}}><div style={lbl}>Title</div><Input value={newTitle} onChange={e=>setNewTitle(e.target.value)} placeholder="Give your story a name…" autoFocus/></div>
+      <div style={{marginBottom:18}}><div style={lbl}>Format</div><div style={{display:'flex',flexWrap:'wrap',gap:8}}>{GENRES.map(g=><button key={g} onClick={()=>setNewGenre(g)} style={{padding:'7px 18px',borderRadius:22,cursor:'pointer',fontFamily:"'Playfair Display',serif",fontWeight:600,fontSize:13,transition:'all .2s',border:`1px solid ${newGenre===g?C.gold:C.border}`,background:newGenre===g?C.gold:'transparent',color:newGenre===g?'#080605':C.inkMuted}}>{g}</button>)}</div></div>
+      <div style={{marginBottom:32}}><div style={lbl}>Color</div><div style={{display:'flex',gap:10}}>{ACCENTS.map(a=><div key={a} onClick={()=>setNewAccent(a)} style={{width:30,height:30,borderRadius:'50%',background:a,cursor:'pointer',border:newAccent===a?`3px solid ${C.ink}`:'3px solid transparent',transition:'all .18s',boxShadow:newAccent===a?`0 0 16px ${a}50`:'none'}}/>)}</div></div>
+      <div style={{display:'flex',gap:10}}><button className="gold-btn" onClick={submit} disabled={!newTitle.trim()} style={{flex:1,justifyContent:'center',fontSize:15,padding:'13px'}}>Create Story</button><button className="ghost-btn" onClick={()=>setCreating(false)}>Cancel</button></div>
+    </div></Modal>}
+
+    {confirmDel&&<Modal onClose={()=>setConfirmDel(null)}><div style={{padding:'36px 38px',width:420,textAlign:'center'}}><div style={{fontSize:40,marginBottom:14}}>🗑</div><h3 style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:C.ink,marginBottom:10}}>Delete "{confirmDel.title}"?</h3><p style={{color:C.inkMuted,fontSize:15,marginBottom:28,fontFamily:"'Crimson Pro',serif",lineHeight:1.7}}>All chapters, characters, and world data will be gone forever.</p><div style={{display:'flex',gap:10,justifyContent:'center'}}><button onClick={()=>{onDelete(confirmDel.id);setConfirmDel(null);}} style={{background:C.red,color:'#fff',border:'none',borderRadius:8,padding:'11px 26px',cursor:'pointer',fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:14}}>Delete Forever</button><button className="ghost-btn" onClick={()=>setConfirmDel(null)}>Keep It</button></div></div></Modal>}
+
+    {stories.length===0?<EmptyState icon="📖" title="No stories yet" desc="Create your first story and let the ink flow."><button className="gold-btn" onClick={()=>setCreating(true)} style={{margin:'28px auto 0',fontSize:15,padding:'13px 32px'}}>+ Create Your First Story</button></EmptyState>:(
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(310px,1fr))',gap:22}}>
+        {stories.map((s,idx)=>{const wc=totalWords(s);return(
+          <div key={s.id} className="story-card fade-in" style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,overflow:'hidden',cursor:'pointer',position:'relative',animationDelay:`${idx*60}ms`,animationFillMode:'both'}} onClick={()=>onOpen(s.id)}>
+            <div style={{height:4,background:`linear-gradient(90deg,${s.accent},${s.accent}60,transparent)`}}/>
+            <div style={{padding:'22px 24px 18px'}}>
+              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:8,gap:8}}>
+                {renaming===s.id?(<input autoFocus value={renameVal} onChange={e=>setRenameVal(e.target.value)} onBlur={()=>{if(renameVal.trim())onRename(s.id,renameVal.trim());setRenaming(null);}} onKeyDown={e=>{if(e.key==='Enter')e.target.blur();if(e.key==='Escape')setRenaming(null);}} onClick={e=>e.stopPropagation()} style={{flex:1,background:'transparent',border:`1px solid ${s.accent}`,borderRadius:6,color:C.ink,fontFamily:"'Playfair Display',serif",fontSize:18,fontStyle:'italic',fontWeight:700,padding:'3px 8px',outline:'none'}}/>):(<h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:C.ink,fontStyle:'italic',fontWeight:700,lineHeight:1.3,flex:1}}>{s.title}</h3>)}
+                <div style={{display:'flex',gap:5,flexShrink:0}} onClick={e=>e.stopPropagation()}><button title="Rename" onClick={()=>{setRenaming(s.id);setRenameVal(s.title);}} style={{background:'transparent',border:'none',color:C.inkDim,cursor:'pointer',fontSize:14,padding:'3px 6px',borderRadius:5,transition:'all .15s'}} onMouseEnter={e=>e.target.style.color=C.gold} onMouseLeave={e=>e.target.style.color=C.inkDim}>✎</button><button title="Delete" onClick={()=>setConfirmDel(s)} style={{background:'transparent',border:'none',color:C.inkDim,cursor:'pointer',fontSize:14,padding:'3px 6px',borderRadius:5,transition:'all .15s'}} onMouseEnter={e=>e.target.style.color=C.red} onMouseLeave={e=>e.target.style.color=C.inkDim}>✕</button></div>
+              </div>
+              <div style={{display:'flex',gap:7,marginBottom:16,flexWrap:'wrap'}}><span style={chip(s.accent)}>{s.genre}</span>{s.loreSummary&&<span style={chip(C.green)}>✦ world</span>}{s.characters.length>0&&<span style={chip(C.purple)}>{s.characters.length} chars</span>}</div>
+              <div style={{display:'flex',gap:22,alignItems:'flex-end'}}><div><div style={{...lbl,marginBottom:3}}>Words</div><div style={{color:C.ink,fontFamily:"'JetBrains Mono',monospace",fontSize:20,fontWeight:500}}>{fmt(wc)}</div></div><div><div style={{...lbl,marginBottom:3}}>Chapters</div><div style={{color:C.ink,fontFamily:"'JetBrains Mono',monospace",fontSize:20,fontWeight:500}}>{s.chapters.length}</div></div><div style={{marginLeft:'auto',textAlign:'right'}}><div style={{...lbl,marginBottom:3}}>Edited</div><div style={{color:C.inkDim,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>{timeAgo(s.updatedAt)}</div></div></div>
+            </div>
+            <div style={{padding:'11px 24px',borderTop:`1px solid ${C.border}`,background:`${C.surface}60`}}><span style={{color:s.accent,fontSize:13,fontFamily:"'JetBrains Mono',monospace",letterSpacing:.5}}>→ Open Story</span></div>
+          </div>
+        );})}
+      </div>
+    )}
+  </div>);
 }
 
-/* ─── Characters Panel ────────────────────────────────────────────────────── */
 function CharactersPanel({characters,setCharacters,loreTxt,accent}){
-  const [creating,setCreating]=useState(false);
-  const [selected,setSelected]=useState(null);
-  const [form,setForm]=useState({name:'',role:'Protagonist',age:'',personality:'',backstory:'',speech:''});
-  const [voiceSample,setVoiceSample]=useState('');
-  const [loading,setLoading]=useState(false);
-  const [err,setErr]=useState('');
+  const[creating,setCreating]=useState(false);const[selected,setSelected]=useState(null);const[form,setForm]=useState({name:'',role:'Protagonist',age:'',personality:'',backstory:'',speech:''});const[voiceSample,setVoiceSample]=useState('');const[loading,setLoading]=useState(false);
   const ROLES=['Protagonist','Antagonist','Mentor','Love Interest','Rival','Supporting'];
+  const generate=async()=>{setLoading(true);try{const txt=await callClaude(withLore(BASE_WRITER,loreTxt),`Generate a compelling ${form.role} character.\nName hint: ${form.name||'create a unique name'}\nPersonality hint: ${form.personality||'any — make it interesting'}\n${loreTxt?'Fit naturally into the established world.':''}\n\nReturn ONLY valid JSON (no markdown):\n{"name":"...","age":"...","role":"${form.role}","personality":"3-4 specific contrasting traits","backstory":"2 vivid sentences","speech":"their exact way of talking — tics, vocabulary, what they avoid","voice_sample":"3-4 lines of dialogue that captures them perfectly"}`);const c=JSON.parse(txt.replace(/```json|```/g,'').trim());setForm({name:c.name,role:c.role,age:c.age,personality:c.personality,backstory:c.backstory,speech:c.speech});setVoiceSample(c.voice_sample);}catch(e){console.error(e);}setLoading(false);};
+  const save=()=>{if(!form.name.trim())return;if(selected){setCharacters(p=>p.map(c=>c.id===selected.id?{...form,id:selected.id,voiceSample}:c));setSelected({...form,id:selected.id,voiceSample});}else{const ch={...form,id:Date.now(),voiceSample};setCharacters(p=>[...p,ch]);setSelected(ch);}setCreating(false);setForm({name:'',role:'Protagonist',age:'',personality:'',backstory:'',speech:''});setVoiceSample('');};
 
-  const generate=async()=>{
-    setLoading(true); setErr('');
-    try{
-      const txt=await callClaude(withLore(BASE_WRITER,loreTxt),
-        'Generate a compelling '+form.role+' character.\nName hint: '+(form.name||'create a unique name')+'\nPersonality hint: '+(form.personality||'any — make it interesting')+'\n'+(loreTxt?'Fit naturally into the established world.':'')+'\n\nReturn ONLY valid JSON (no markdown):\n{"name":"...","age":"...","role":"'+form.role+'","personality":"3-4 specific contrasting traits","backstory":"2 vivid sentences","speech":"their exact way of talking — tics, vocabulary, what they avoid","voice_sample":"3-4 lines of dialogue that captures them perfectly"}');
-      const c=JSON.parse(txt.replace(/```json|```/g,'').trim());
-      setForm({name:c.name,role:c.role,age:c.age,personality:c.personality,backstory:c.backstory,speech:c.speech});
-      setVoiceSample(c.voice_sample);
-    }catch(e){setErr(e.message);console.error(e);}
-    setLoading(false);
-  };
-
-  const save=()=>{
-    if(!form.name.trim()) return;
-    const ch={...form,id:Date.now(),voiceSample};
-    setCharacters(p=>[...p,ch]);
-    setSelected(ch); setCreating(false);
-    setForm({name:'',role:'Protagonist',age:'',personality:'',backstory:'',speech:''}); setVoiceSample('');
-  };
-
-  return(
-    <div style={{flex:1,display:'flex',overflow:'hidden'}}>
-      <div style={{width:210,background:C.surface,borderRight:'1px solid '+C.border,padding:'14px 8px',overflowY:'auto',display:'flex',flexDirection:'column',gap:6}}>
-        <div style={lbl}>Cast</div>
-        {characters.map(c=>(
-          <div key={c.id} onClick={()=>{setSelected(c);setCreating(false);}} style={{padding:'10px 12px',borderRadius:8,cursor:'pointer',transition:'all .15s',background:selected?.id===c.id?accent+'15':C.card,border:'1px solid '+(selected?.id===c.id?accent+'55':C.border)}}>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:C.ink}}>{c.name}</div>
-            <div style={{fontSize:12,color:accent,marginTop:3}}>{c.role}</div>
-          </div>
-        ))}
-        <button className="ghost-btn" onClick={()=>{setCreating(true);setSelected(null);setVoiceSample('');setForm({name:'',role:'Protagonist',age:'',personality:'',backstory:'',speech:''});setErr('');}} style={{marginTop:8}}>+ New Character</button>
-      </div>
-      <div style={{flex:1,overflow:'auto',padding:'32px 44px'}}>
-        {!creating&&!selected&&(
-          <div style={{textAlign:'center',paddingTop:80,color:C.inkMuted}}>
-            <div style={{fontSize:52,marginBottom:16}}>👤</div>
-            <p style={{fontStyle:'italic',fontSize:18,fontFamily:"'Playfair Display',serif"}}>Your cast will appear here</p>
-          </div>
-        )}
-        {selected&&!creating&&(
-          <div className="fade-in" style={{maxWidth:580}}>
-            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:6}}>
-              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:30,color:C.ink,fontStyle:'italic'}}>{selected.name}</h2>
-              <button className="ghost-btn" style={{fontSize:12,padding:'5px 12px'}} onClick={()=>{setForm({name:selected.name,role:selected.role,age:selected.age,personality:selected.personality,backstory:selected.backstory,speech:selected.speech});setVoiceSample(selected.voiceSample||'');setCreating(true);setSelected(null);}}>Edit</button>
-              <button className="ghost-btn" style={{fontSize:12,padding:'5px 12px',color:C.red,borderColor:C.red+'40'}} onClick={()=>{setCharacters(p=>p.filter(c=>c.id!==selected.id));setSelected(null);}}>Remove</button>
-            </div>
-            <div style={{display:'flex',gap:8,marginBottom:24}}>
-              <span style={chip(accent)}>{selected.role}</span>
-              {selected.age&&<span style={chip(C.inkDim)}>Age {selected.age}</span>}
-            </div>
-            {[['Personality',selected.personality],['Backstory',selected.backstory],['Speech Style',selected.speech]].map(([label,val])=>(
-              <div key={label} style={{marginBottom:18}}>
-                <div style={lbl}>{label}</div>
-                <p style={{color:C.ink,fontSize:16,lineHeight:1.8,fontFamily:"'Crimson Pro',serif"}}>{val}</p>
-              </div>
-            ))}
-            {selected.voiceSample&&(
-              <div style={{background:C.card,border:'1px solid '+C.border,borderRadius:10,padding:18,marginTop:4}}>
-                <div style={{...lbl,color:accent,marginBottom:10}}>Voice Sample</div>
-                <p style={{color:C.ink,fontStyle:'italic',fontSize:16,lineHeight:1.9,whiteSpace:'pre-wrap',fontFamily:"'Crimson Pro',serif"}}>{selected.voiceSample}</p>
-              </div>
-            )}
-          </div>
-        )}
-        {creating&&(
-          <div className="fade-in" style={{maxWidth:580}}>
-            <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:24,flexWrap:'wrap'}}>
-              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:C.ink}}>Character</h2>
-              <button className="gold-btn" onClick={generate} disabled={loading}>
-                {loading?<React.Fragment><Spinner color="#0a0808" size={15}/>Generating</React.Fragment>:'✨ Auto-Generate'}
-              </button>
-              {loreTxt&&<span style={{fontSize:11,color:C.green,fontFamily:"'JetBrains Mono',monospace"}}>✦ world aware</span>}
-            </div>
-            {err&&<p style={{color:C.red,fontSize:13,marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>{err}</p>}
-            <div style={{marginBottom:14}}>
-              <div style={lbl}>Role</div>
-              <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:16}}>
-                {ROLES.map(r=><button key={r} onClick={()=>setForm(p=>({...p,role:r}))} style={{padding:'6px 14px',borderRadius:20,cursor:'pointer',fontSize:13,fontFamily:"'Playfair Display',serif",fontWeight:600,transition:'all .15s',border:'1px solid '+C.border,background:form.role===r?accent:'transparent',color:form.role===r?'#0a0808':C.inkMuted}}>{r}</button>)}
-              </div>
-            </div>
-            {[{k:'name',ph:'Name…'},{k:'age',ph:'Age or range…'},{k:'personality',ph:'Key traits and internal conflicts…'},{k:'backstory',ph:'Their history…'},{k:'speech',ph:'How they talk, verbal tics…'}].map(f=>(
-              <div key={f.k} style={{marginBottom:12}}>
-                <div style={lbl}>{f.k}</div>
-                <Input value={form[f.k]} onChange={e=>setForm(p=>({...p,[f.k]:e.target.value}))} placeholder={f.ph}/>
-              </div>
-            ))}
-            {voiceSample&&(
-              <div style={{background:C.card,border:'1px solid '+accent+'40',borderRadius:10,padding:16,marginBottom:18}}>
-                <div style={{...lbl,color:accent,marginBottom:8}}>Generated Voice Sample</div>
-                <p style={{color:C.ink,fontStyle:'italic',fontSize:16,lineHeight:1.9,whiteSpace:'pre-wrap',fontFamily:"'Crimson Pro',serif"}}>{voiceSample}</p>
-              </div>
-            )}
-            <div style={{display:'flex',gap:10}}>
-              <button className="gold-btn" onClick={save} style={{fontSize:15,padding:'11px 24px'}}>Save Character</button>
-              <button className="ghost-btn" onClick={()=>{setCreating(false);setVoiceSample('');setErr('');}}>Cancel</button>
-            </div>
-          </div>
-        )}
-      </div>
+  return(<div style={{flex:1,display:'flex',overflow:'hidden'}}>
+    <div style={{width:220,background:C.surface,borderRight:`1px solid ${C.border}`,padding:'16px 10px',overflowY:'auto',display:'flex',flexDirection:'column',gap:6}}>
+      <div style={lbl}>Cast ({characters.length})</div>
+      {characters.map(c=>(<div key={c.id} onClick={()=>{setSelected(c);setCreating(false);}} style={{padding:'11px 14px',borderRadius:9,cursor:'pointer',transition:'all .18s',background:selected?.id===c.id?`${accent}12`:C.card,border:`1px solid ${selected?.id===c.id?`${accent}45`:C.border}`}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:C.ink,fontWeight:600}}>{c.name}</div><div style={{fontSize:12,color:accent,marginTop:4}}>{c.role}</div></div>))}
+      <button className="ghost-btn" onClick={()=>{setCreating(true);setSelected(null);setVoiceSample('');setForm({name:'',role:'Protagonist',age:'',personality:'',backstory:'',speech:''});}} style={{marginTop:8}}>+ New Character</button>
     </div>
-  );
+    <div style={{flex:1,overflow:'auto',padding:'36px 48px'}}>
+      {!creating&&!selected&&<EmptyState icon="🎭" title="Your cast awaits" desc="Create characters with AI-generated personalities, backstories, and voice samples."/>}
+      {selected&&!creating&&(<div className="fade-in" style={{maxWidth:600}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:8}}><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:32,color:C.ink,fontStyle:'italic'}}>{selected.name}</h2><button className="ghost-btn" style={{fontSize:12,padding:'6px 13px'}} onClick={()=>{setForm({name:selected.name,role:selected.role,age:selected.age,personality:selected.personality,backstory:selected.backstory,speech:selected.speech});setVoiceSample(selected.voiceSample||'');setCreating(true);}}>Edit</button><button className="ghost-btn" style={{fontSize:12,padding:'6px 13px',color:C.red,borderColor:`${C.red}35`}} onClick={()=>{setCharacters(p=>p.filter(c=>c.id!==selected.id));setSelected(null);}}>Remove</button></div>
+        <div style={{display:'flex',gap:8,marginBottom:28}}><span style={chip(accent)}>{selected.role}</span>{selected.age&&<span style={chip(C.inkDim)}>Age {selected.age}</span>}</div>
+        {[['Personality',selected.personality],['Backstory',selected.backstory],['Speech Style',selected.speech]].map(([label,val])=>(<div key={label} style={{marginBottom:20}}><div style={lbl}>{label}</div><p style={{color:C.ink,fontSize:16,lineHeight:1.85,fontFamily:"'Crimson Pro',serif"}}>{val}</p></div>))}
+        {selected.voiceSample&&(<div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:11,padding:20,marginTop:8}}><div style={{...lbl,color:accent,marginBottom:12}}>Voice Sample</div><p style={{color:C.ink,fontStyle:'italic',fontSize:16,lineHeight:1.95,whiteSpace:'pre-wrap',fontFamily:"'Crimson Pro',serif"}}>{selected.voiceSample}</p></div>)}
+      </div>)}
+      {creating&&(<div className="fade-in" style={{maxWidth:600}}>
+        <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:26}}><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:C.ink}}>{selected?'Edit Character':'New Character'}</h2><button className="gold-btn" onClick={generate} disabled={loading}>{loading?<><Spinner color="#0a0808" size={15}/>Generating</>:'✨ Auto-Generate'}</button>{loreTxt&&<span style={{fontSize:11,color:C.green,fontFamily:"'JetBrains Mono',monospace"}}>✦ world aware</span>}</div>
+        <div style={{marginBottom:16}}><div style={lbl}>Role</div><div style={{display:'flex',flexWrap:'wrap',gap:7}}>{ROLES.map(r=><button key={r} onClick={()=>setForm(p=>({...p,role:r}))} style={{padding:'7px 16px',borderRadius:22,cursor:'pointer',fontSize:13,fontFamily:"'Playfair Display',serif",fontWeight:600,transition:'all .18s',border:`1px solid ${C.border}`,background:form.role===r?accent:'transparent',color:form.role===r?'#0a0808':C.inkMuted}}>{r}</button>)}</div></div>
+        {[{k:'name',ph:'Name…'},{k:'age',ph:'Age or range…'},{k:'personality',ph:'Key traits and internal conflicts…'},{k:'backstory',ph:'Their history…'},{k:'speech',ph:'How they talk, verbal tics…'}].map(f=>(<div key={f.k} style={{marginBottom:14}}><div style={lbl}>{f.k}</div><Input value={form[f.k]} onChange={e=>setForm(p=>({...p,[f.k]:e.target.value}))} placeholder={f.ph}/></div>))}
+        {voiceSample&&(<div style={{background:C.card,border:`1px solid ${accent}35`,borderRadius:11,padding:18,marginBottom:20}}><div style={{...lbl,color:accent,marginBottom:10}}>Generated Voice Sample</div><p style={{color:C.ink,fontStyle:'italic',fontSize:16,lineHeight:1.95,whiteSpace:'pre-wrap',fontFamily:"'Crimson Pro',serif"}}>{voiceSample}</p></div>)}
+        <div style={{display:'flex',gap:10}}><button className="gold-btn" onClick={save} style={{fontSize:15,padding:'12px 26px'}}>Save Character</button><button className="ghost-btn" onClick={()=>{setCreating(false);setVoiceSample('');}}>Cancel</button></div>
+      </div>)}
+    </div>
+  </div>);
 }
 
-/* ─── World Tab ──────────────────────────────────────────────────────────── */
-function WorldTab({loreRaw,setLoreRaw,loreSummary,setLoreSummary,accent}){
-  const [scanning,setScanning]=useState(false);
-  const [draft,setDraft]=useState(loreRaw);
-  const [err,setErr]=useState('');
+function WorldTab({loreRaw,setLoreRaw,loreSummary,setLoreSummary,accent,story,onRoute,onSetTab}){
+  const[scanning,setScanning]=useState(false);const[draft,setDraft]=useState(loreRaw);const[err,setErr]=useState('');
+  const[scanResult,setScanResult]=useState(null); // holds categorized scan results
+  const[routed,setRouted]=useState({}); // tracks which categories have been routed
 
+  // The smart categorizing scan
   const scan=async()=>{
-    if(!draft.trim()) return;
-    setScanning(true); setErr('');
+    if(!draft.trim())return;setScanning(true);setErr('');setScanResult(null);setRouted({});
     try{
       const r=await callClaude(
-        'You are a story analyst. Extract a complete structured understanding of the story world from any raw notes.',
-        'Read this reference material and extract everything relevant. Be thorough — names, rules, relationships, tone, plot.\n\nReturn ONLY valid JSON (no markdown):\n{"title":"...","genre":"...","tone":"...","setting":"...","characters":[{"name":"...","role":"...","key_traits":"...","relationships":"..."}],"world_rules":["..."],"themes":["..."],"plot_known":"...","tone_notes":"...","raw_digest":"3-4 sentence plain-English brief for an AI writing assistant"}\n\nMATERIAL:\n'+draft,
-        null,1500
+        'You are a story content analyst. Your job is to read raw pasted material and categorize EVERY piece of it into the correct bucket. Be thorough — do not skip any content. If the material is primarily story prose (narrative text, dialogue, scenes), it MUST go into chapters. If it describes characters, it goes into characters. World-building info goes into world. Plot structure goes into outline.',
+        `Carefully read this material and categorize ALL of it. Determine what type(s) of content are present.
+
+CATEGORIES:
+1. "chapters" — Any actual story prose, narrative writing, scenes, dialogue, or draft chapter text. This is WRITTEN STORY CONTENT that should go in the editor. Include the full original text exactly as-is.
+2. "characters" — Character profiles, descriptions, bios, personality notes, speech patterns. Extract structured info.
+3. "world" — World-building: settings, magic systems, rules, lore, locations, history, factions, tone/style notes, themes.
+4. "outline" — Plot outlines, story beats, chapter plans, story structure, synopsis, arc breakdowns.
+
+IMPORTANT RULES:
+- If the text is mainly narrative/story prose (paragraphs of a scene, dialogue between characters, descriptive writing), categorize it as chapters — even if it also contains world details.
+- One paste can contain MULTIPLE categories. Separate them all.
+- For chapters: preserve the EXACT original text. If you can detect chapter breaks or titles, split them. Otherwise put it all as one chapter.
+- For characters: extract name, role, personality, backstory, speech style.
+- For world: extract the structured lore data.
+- Mark which categories you found content for.
+
+Return ONLY valid JSON (no markdown fences):
+{
+  "summary": "1 sentence describing what you found",
+  "detected": ["chapters","characters","world","outline"],
+  "chapters": [{"title":"Chapter title or 'Untitled Chapter'","content":"the exact original story text..."}],
+  "characters": [{"name":"...","role":"Protagonist/Antagonist/Supporting/etc","personality":"...","backstory":"...","speech":"...","age":"..."}],
+  "world": {"title":"...","genre":"...","tone":"...","setting":"...","characters":[{"name":"...","role":"...","key_traits":"...","relationships":"..."}],"world_rules":["..."],"themes":["..."],"plot_known":"...","tone_notes":"...","raw_digest":"3-4 sentence brief"},
+  "outline": "the plot outline or story structure text..."
+}
+
+Only include categories that actually have content. If no chapters were found, omit the "chapters" key entirely. Same for others.
+
+MATERIAL TO ANALYZE:
+${draft}`,
+        null, 3000
       );
-      setLoreSummary(JSON.parse(r.replace(/```json|```/g,'').trim()));
-      setLoreRaw(draft);
-    }catch(e){setErr('Parse failed — try again. '+e.message);console.error(e);}
+      const parsed=JSON.parse(r.replace(/```json|```/g,'').trim());
+      setScanResult(parsed);
+      // If there's world data, auto-apply it to lore
+      if(parsed.world && parsed.detected?.includes('world')){
+        setLoreSummary(parsed.world);
+        setLoreRaw(draft);
+      }
+    }catch(e){setErr('Scan failed — try again or simplify your paste.');console.error(e);}
     setScanning(false);
   };
 
-  return(
-    <div style={{flex:1,overflow:'auto',padding:'40px 48px'}}>
-      <div style={{maxWidth:760,margin:'0 auto'}}>
-        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:6,gap:12,flexWrap:'wrap'}}>
-          <div>
-            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:32,fontWeight:700,color:C.ink}}>Story World</h2>
-            <p style={{color:C.inkMuted,fontSize:16,marginTop:5,lineHeight:1.7,fontFamily:"'Crimson Pro',serif"}}>Paste any reference material — lore, outlines, character sheets, research, inspiration. The AI reads it and uses it in <em style={{color:C.ink}}>every</em> feature of this story.</p>
-          </div>
-          {loreSummary&&<span style={{...chip(C.green),padding:'5px 14px',fontSize:11,flexShrink:0,marginTop:6}}>✦ active</span>}
-        </div>
-        <div style={{marginTop:24}}>
-          <div style={{display:'flex',alignItems:'center',marginBottom:6}}>
-            <div style={lbl}>Reference Material</div>
-            <span style={{fontSize:11,color:C.inkDim,marginLeft:'auto',fontFamily:"'JetBrains Mono',monospace"}}>{draft.length.toLocaleString()} chars</span>
-          </div>
-          <textarea value={draft} onChange={e=>setDraft(e.target.value)}
-            placeholder={"Paste anything:\n• Character notes — \"Kael is a 19-year-old disgraced fire mage…\"\n• World rules — \"Magic requires a blood cost…\"\n• Plot outline — \"Chapter 1 — Kael wakes in ruins…\"\n• Tone reference — \"Should feel like Chainsaw Man meets Berserk…\"\n• Research, lore dumps, anything"}
-            style={{width:'100%',minHeight:260,padding:'18px 20px',background:C.card,border:'1px solid '+C.border,borderRadius:10,color:C.ink,fontSize:16,lineHeight:1.85,outline:'none',resize:'vertical',fontFamily:"'Crimson Pro',serif",transition:'border-color .2s'}}
-            onFocus={e=>e.target.style.borderColor=accent+'70'}
-            onBlur={e=>e.target.style.borderColor=C.border}/>
-        </div>
-        {err&&<p style={{color:C.red,fontSize:13,marginTop:8,fontFamily:"'JetBrains Mono',monospace"}}>{err}</p>}
-        <div style={{display:'flex',gap:10,marginTop:16,flexWrap:'wrap'}}>
-          <button className="gold-btn" onClick={scan} disabled={scanning||!draft.trim()} style={{fontSize:15,padding:'12px 28px'}}>
-            {scanning?<React.Fragment><Spinner color="#080605" size={15}/>Scanning…</React.Fragment>:'🔍 Scan & Understand'}
-          </button>
-          {loreSummary&&<button className="ghost-btn" onClick={scan} disabled={scanning}>↻ Re-scan</button>}
-          {loreSummary&&<button className="ghost-btn" onClick={()=>{setLoreSummary(null);setLoreRaw('');setDraft('');}} style={{color:C.red,borderColor:C.red+'40'}}>✕ Clear</button>}
-        </div>
+  const routeChapters=()=>{
+    if(!scanResult?.chapters?.length)return;
+    onRoute('chapters',scanResult.chapters);
+    setRouted(p=>({...p,chapters:true}));
+  };
+  const routeCharacters=()=>{
+    if(!scanResult?.characters?.length)return;
+    onRoute('characters',scanResult.characters);
+    setRouted(p=>({...p,characters:true}));
+  };
+  const routeOutline=()=>{
+    if(!scanResult?.outline)return;
+    onRoute('outline',scanResult.outline);
+    setRouted(p=>({...p,outline:true}));
+  };
 
-        {loreSummary&&(
-          <div className="fade-in" style={{marginTop:36,display:'flex',flexDirection:'column',gap:14}}>
-            <div style={{borderBottom:'1px solid '+C.border,paddingBottom:14}}>
-              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',marginBottom:6}}>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:accent,fontStyle:'italic'}}>{loreSummary.title||'Your World'}</h3>
-                <span style={chip(C.purple)}>{loreSummary.genre}</span>
-                <span style={chip(C.teal)}>{loreSummary.tone}</span>
-              </div>
+  const CATEGORY_META={
+    chapters:{icon:'✍️',label:'Story Content',color:C.gold,desc:'Narrative prose, scenes, dialogue → goes to Write tab'},
+    characters:{icon:'🎭',label:'Characters',color:C.purple,desc:'Character profiles & personalities → goes to Cast tab'},
+    world:{icon:'🌍',label:'World Lore',color:C.teal,desc:'Setting, rules, magic systems → stays here in World'},
+    outline:{icon:'🗺',label:'Plot Outline',color:C.blue,desc:'Story structure & beats → added as a chapter with notes'},
+  };
+
+  return(<div style={{flex:1,overflow:'auto',padding:'42px 52px'}}><div style={{maxWidth:780,margin:'0 auto'}}>
+    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:8,gap:12}}><div><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:34,fontWeight:700,color:C.ink}}>Story World</h2><p style={{color:C.inkMuted,fontSize:16,marginTop:6,lineHeight:1.75,fontFamily:"'Crimson Pro',serif"}}>Paste <em style={{color:C.ink}}>anything</em> — chapters, character sheets, lore, outlines. The AI reads it, categorizes it, and routes each piece to the right section.</p></div>{loreSummary&&<span style={{...chip(C.green),padding:'6px 15px',fontSize:11,flexShrink:0,marginTop:8}}>✦ active</span>}</div>
+
+    <div style={{marginTop:26}}><div style={{display:'flex',alignItems:'center',marginBottom:7}}><div style={lbl}>Paste Your Content</div><span style={{fontSize:11,color:C.inkDim,marginLeft:'auto',fontFamily:"'JetBrains Mono',monospace"}}>{draft.length.toLocaleString()} chars</span></div>
+    <textarea value={draft} onChange={e=>setDraft(e.target.value)} placeholder={"Paste anything here — the AI will figure out what it is:\n\n• Story chapters or scenes → routed to Write\n• Character profiles → routed to Cast\n• World rules & magic systems → stays in World\n• Plot outlines → added as chapter notes\n• Mixed content → split and routed to each section"} style={{width:'100%',minHeight:270,padding:'20px 22px',background:C.card,border:`1px solid ${C.border}`,borderRadius:11,color:C.ink,fontSize:16,lineHeight:1.9,outline:'none',resize:'vertical',fontFamily:"'Crimson Pro',serif",transition:'border-color .25s'}}/></div>
+    {err&&<p style={{color:C.red,fontSize:13,marginTop:8,fontFamily:"'JetBrains Mono',monospace"}}>{err}</p>}
+    <div style={{display:'flex',gap:10,marginTop:18,flexWrap:'wrap'}}>
+      <button className="gold-btn" onClick={scan} disabled={scanning||!draft.trim()} style={{fontSize:15,padding:'13px 30px'}}>{scanning?<><Spinner color="#080605" size={15}/>Scanning &amp; Categorizing…</>:'🔍 Scan & Understand'}</button>
+      {loreSummary&&<button className="ghost-btn" onClick={scan} disabled={scanning}>↻ Re-scan</button>}
+      {loreSummary&&<button className="ghost-btn" onClick={()=>{setLoreSummary(null);setLoreRaw('');setDraft('');setScanResult(null);setRouted({});}} style={{color:C.red,borderColor:`${C.red}35`}}>✕ Clear All</button>}
+    </div>
+
+    {/* ── SCAN RESULTS: Category Cards ── */}
+    {scanResult&&(<div className="fade-in" style={{marginTop:32}}>
+      <div style={{background:`${C.gold}0a`,border:`1px solid ${C.gold}25`,borderRadius:11,padding:'14px 20px',marginBottom:20}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span style={{fontSize:18}}>🔎</span><span style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:C.ink,fontWeight:700}}>Scan Complete</span></div>
+        <p style={{color:C.inkSoft,fontSize:15,lineHeight:1.7,fontFamily:"'Crimson Pro',serif"}}>{scanResult.summary}</p>
+        <div style={{display:'flex',gap:7,marginTop:10,flexWrap:'wrap'}}>
+          {(scanResult.detected||[]).map(cat=>{const m=CATEGORY_META[cat];return m?<span key={cat} style={chip(m.color)}>{m.icon} {m.label}</span>:null;})}
+        </div>
+      </div>
+
+      <div style={{display:'flex',flexDirection:'column',gap:14}}>
+        {/* CHAPTERS detected */}
+        {scanResult.chapters?.length>0&&(<div style={{background:C.card,border:`1px solid ${routed.chapters?C.green:C.gold}30`,borderRadius:12,overflow:'hidden',transition:'all .25s'}}>
+          <div style={{padding:'16px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:22}}>✍️</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:C.ink,fontWeight:700}}>Story Content — {scanResult.chapters.length} chapter{scanResult.chapters.length>1?'s':''} detected</div>
+              <div style={{fontSize:12,color:C.inkMuted,fontFamily:"'Crimson Pro',serif",marginTop:2}}>Narrative prose, scenes, and dialogue found in your paste</div>
             </div>
-            <div style={{background:accent+'0c',border:'1px solid '+accent+'25',borderRadius:10,padding:'14px 18px'}}>
-              <div style={{...lbl,color:accent,marginBottom:8}}>AI Understanding</div>
-              <p style={{color:C.ink,fontSize:16,lineHeight:1.9,fontFamily:"'Crimson Pro',serif"}}>{loreSummary.raw_digest}</p>
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-              {loreSummary.setting&&<div style={{background:C.card,border:'1px solid '+C.border,borderRadius:8,padding:'12px 15px'}}><div style={lbl}>Setting</div><p style={{color:C.inkMuted,fontSize:14,lineHeight:1.7,fontFamily:"'Crimson Pro',serif"}}>{loreSummary.setting}</p></div>}
-              {loreSummary.tone_notes&&<div style={{background:C.card,border:'1px solid '+C.border,borderRadius:8,padding:'12px 15px'}}><div style={lbl}>Tone Notes</div><p style={{color:C.inkMuted,fontSize:14,lineHeight:1.7,fontFamily:"'Crimson Pro',serif"}}>{loreSummary.tone_notes}</p></div>}
-            </div>
-            {loreSummary.characters?.length>0&&(
-              <div>
-                <div style={lbl}>Characters Detected ({loreSummary.characters.length})</div>
-                <div style={{display:'flex',flexDirection:'column',gap:7}}>
-                  {loreSummary.characters.map((c,i)=>(
-                    <div key={i} style={{background:C.card,border:'1px solid '+C.border,borderRadius:8,padding:'10px 14px',display:'flex',gap:10,alignItems:'flex-start',flexWrap:'wrap'}}>
-                      <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:C.ink,fontWeight:700,minWidth:100}}>{c.name}</span>
-                      <span style={{...chip(accent),alignSelf:'flex-start'}}>{c.role}</span>
-                      <span style={{color:C.inkMuted,fontSize:14,lineHeight:1.6,flex:1,fontFamily:"'Crimson Pro',serif"}}>{c.key_traits}{c.relationships?' — '+c.relationships:''}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {loreSummary.world_rules?.length>0&&(
-              <div>
-                <div style={lbl}>World Rules</div>
-                {loreSummary.world_rules.map((r,i)=>(
-                  <div key={i} style={{display:'flex',gap:10,marginBottom:6}}><span style={{color:accent,marginTop:4,fontSize:10,flexShrink:0}}>◆</span><span style={{color:C.inkMuted,fontSize:15,lineHeight:1.7,fontFamily:"'Crimson Pro',serif"}}>{r}</span></div>
-                ))}
-              </div>
-            )}
-            {loreSummary.themes?.length>0&&(
-              <div><div style={lbl}>Themes</div><div style={{display:'flex',flexWrap:'wrap',gap:8}}>{loreSummary.themes.map((t,i)=><span key={i} style={chip(C.purple)}>{t}</span>)}</div></div>
-            )}
-            {loreSummary.plot_known&&<div style={{background:C.card,border:'1px solid '+C.border,borderRadius:8,padding:'12px 15px'}}><div style={lbl}>Established Plot</div><p style={{color:C.inkMuted,fontSize:15,lineHeight:1.75,fontFamily:"'Crimson Pro',serif"}}>{loreSummary.plot_known}</p></div>}
-            <div style={{background:C.green+'0c',border:'1px solid '+C.green+'30',borderRadius:8,padding:'11px 16px'}}>
-              <p style={{color:C.green,fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>✦ Active — Write, Ideas, Cast, and Coach all know this world.</p>
-            </div>
+            {routed.chapters
+              ?<span style={chip(C.green)}>✓ Routed to Write</span>
+              :<button className="gold-btn" onClick={routeChapters} style={{fontSize:13,padding:'8px 18px'}}>→ Add to Write</button>}
           </div>
+          <div style={{padding:'14px 20px',maxHeight:200,overflow:'auto'}}>
+            {scanResult.chapters.map((ch,i)=>(<div key={i} style={{marginBottom:i<scanResult.chapters.length-1?14:0}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:C.gold,fontStyle:'italic',marginBottom:4}}>{ch.title}</div>
+              <p style={{color:C.inkMuted,fontSize:14,lineHeight:1.7,fontFamily:"'Crimson Pro',serif",display:'-webkit-box',WebkitLineClamp:4,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{ch.content?.slice(0,400)}{ch.content?.length>400?'…':''}</p>
+              <span style={{fontSize:11,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>{(ch.content||'').split(/\s+/).filter(Boolean).length} words</span>
+            </div>))}
+          </div>
+        </div>)}
+
+        {/* CHARACTERS detected */}
+        {scanResult.characters?.length>0&&(<div style={{background:C.card,border:`1px solid ${routed.characters?C.green:C.purple}30`,borderRadius:12,overflow:'hidden'}}>
+          <div style={{padding:'16px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:22}}>🎭</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:C.ink,fontWeight:700}}>{scanResult.characters.length} Character{scanResult.characters.length>1?'s':''} Detected</div>
+              <div style={{fontSize:12,color:C.inkMuted,fontFamily:"'Crimson Pro',serif",marginTop:2}}>Profiles with personality, backstory, and speech patterns</div>
+            </div>
+            {routed.characters
+              ?<span style={chip(C.green)}>✓ Routed to Cast</span>
+              :<button className="ghost-btn" onClick={routeCharacters} style={{borderColor:`${C.purple}40`,color:C.purple,fontSize:13,padding:'8px 18px'}}>→ Add to Cast</button>}
+          </div>
+          <div style={{padding:'14px 20px',display:'flex',flexDirection:'column',gap:8}}>
+            {scanResult.characters.map((c,i)=>(<div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',flexWrap:'wrap'}}>
+              <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:C.ink,fontWeight:700,minWidth:90}}>{c.name}</span>
+              <span style={chip(C.purple)}>{c.role}</span>
+              <span style={{color:C.inkMuted,fontSize:13,lineHeight:1.5,flex:1,fontFamily:"'Crimson Pro',serif"}}>{c.personality?.slice(0,120)}{c.personality?.length>120?'…':''}</span>
+            </div>))}
+          </div>
+        </div>)}
+
+        {/* OUTLINE detected */}
+        {scanResult.outline&&(<div style={{background:C.card,border:`1px solid ${routed.outline?C.green:C.blue}30`,borderRadius:12,overflow:'hidden'}}>
+          <div style={{padding:'16px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:22}}>🗺</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:C.ink,fontWeight:700}}>Plot Outline Detected</div>
+              <div style={{fontSize:12,color:C.inkMuted,fontFamily:"'Crimson Pro',serif",marginTop:2}}>Story structure, beats, or chapter plans</div>
+            </div>
+            {routed.outline
+              ?<span style={chip(C.green)}>✓ Added as Chapter Notes</span>
+              :<button className="ghost-btn" onClick={routeOutline} style={{borderColor:`${C.blue}40`,color:C.blue,fontSize:13,padding:'8px 18px'}}>→ Add to Write</button>}
+          </div>
+          <div style={{padding:'14px 20px'}}><p style={{color:C.inkMuted,fontSize:14,lineHeight:1.75,fontFamily:"'Crimson Pro',serif",whiteSpace:'pre-wrap',maxHeight:160,overflow:'auto'}}>{scanResult.outline?.slice(0,600)}{scanResult.outline?.length>600?'…':''}</p></div>
+        </div>)}
+
+        {/* WORLD LORE — auto-applied */}
+        {scanResult.world&&scanResult.detected?.includes('world')&&(<div style={{background:C.card,border:`1px solid ${C.green}30`,borderRadius:12,overflow:'hidden'}}>
+          <div style={{padding:'16px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:22}}>🌍</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:C.ink,fontWeight:700}}>World Lore</div>
+              <div style={{fontSize:12,color:C.inkMuted,fontFamily:"'Crimson Pro',serif",marginTop:2}}>Setting, rules, themes — auto-applied to all AI features</div>
+            </div>
+            <span style={chip(C.green)}>✓ Auto-Applied</span>
+          </div>
+          <div style={{padding:'14px 20px'}}><p style={{color:C.inkMuted,fontSize:14,lineHeight:1.75,fontFamily:"'Crimson Pro',serif"}}>{scanResult.world.raw_digest}</p></div>
+        </div>)}
+      </div>
+    </div>)}
+
+    {/* ── EXISTING LORE SUMMARY (shown when no fresh scan result, but lore exists) ── */}
+    {loreSummary&&!scanResult&&(<div className="fade-in" style={{marginTop:38,display:'flex',flexDirection:'column',gap:16}}>
+      <div style={{borderBottom:`1px solid ${C.border}`,paddingBottom:16}}><div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',marginBottom:6}}><h3 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:accent,fontStyle:'italic'}}>{loreSummary.title||'Your World'}</h3><span style={chip(C.purple)}>{loreSummary.genre}</span><span style={chip(C.teal)}>{loreSummary.tone}</span></div></div>
+      <div style={{background:`${accent}0a`,border:`1px solid ${accent}20`,borderRadius:11,padding:'16px 20px'}}><div style={{...lbl,color:accent,marginBottom:10}}>AI Understanding</div><p style={{color:C.ink,fontSize:16,lineHeight:1.95,fontFamily:"'Crimson Pro',serif"}}>{loreSummary.raw_digest}</p></div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>{loreSummary.setting&&<div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:9,padding:'14px 17px'}}><div style={lbl}>Setting</div><p style={{color:C.inkMuted,fontSize:14,lineHeight:1.75,fontFamily:"'Crimson Pro',serif"}}>{loreSummary.setting}</p></div>}{loreSummary.tone_notes&&<div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:9,padding:'14px 17px'}}><div style={lbl}>Tone Notes</div><p style={{color:C.inkMuted,fontSize:14,lineHeight:1.75,fontFamily:"'Crimson Pro',serif"}}>{loreSummary.tone_notes}</p></div>}</div>
+      {loreSummary.characters?.length>0&&(<div><div style={lbl}>Characters Detected ({loreSummary.characters.length})</div><div style={{display:'flex',flexDirection:'column',gap:8}}>{loreSummary.characters.map((c,i)=>(<div key={i} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:9,padding:'12px 16px',display:'flex',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}><span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:C.ink,fontWeight:700,minWidth:100}}>{c.name}</span><span style={{...chip(accent),alignSelf:'flex-start'}}>{c.role}</span><span style={{color:C.inkMuted,fontSize:14,lineHeight:1.65,flex:1,fontFamily:"'Crimson Pro',serif"}}>{c.key_traits}{c.relationships?` — ${c.relationships}`:''}</span></div>))}</div></div>)}
+      {loreSummary.world_rules?.length>0&&(<div><div style={lbl}>World Rules</div>{loreSummary.world_rules.map((r,i)=>(<div key={i} style={{display:'flex',gap:12,marginBottom:7}}><span style={{color:accent,marginTop:5,fontSize:10,flexShrink:0}}>◆</span><span style={{color:C.inkMuted,fontSize:15,lineHeight:1.75,fontFamily:"'Crimson Pro',serif"}}>{r}</span></div>))}</div>)}
+      {loreSummary.themes?.length>0&&(<div><div style={lbl}>Themes</div><div style={{display:'flex',flexWrap:'wrap',gap:8}}>{loreSummary.themes.map((t,i)=><span key={i} style={chip(C.purple)}>{t}</span>)}</div></div>)}
+      {loreSummary.plot_known&&<div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:9,padding:'14px 17px'}}><div style={lbl}>Established Plot</div><p style={{color:C.inkMuted,fontSize:15,lineHeight:1.8,fontFamily:"'Crimson Pro',serif"}}>{loreSummary.plot_known}</p></div>}
+      <div style={{background:`${C.green}0a`,border:`1px solid ${C.green}25`,borderRadius:9,padding:'12px 18px'}}><p style={{color:C.green,fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>✦ Active — Write, Ideas, Cast, and Coach all know this world.</p></div>
+    </div>)}
+  </div></div>);
+}
+
+/* ── Read Aloud Panel — ElevenLabs Neural TTS ────────────────────────────── */
+function ReadAloudPanel({text,accent,onClose}){
+  const[hasKey,setHasKey]=useState(!!localStorage.getItem('inkforge_11labs_key'));
+  const[keyInput,setKeyInput]=useState('');
+  const[voices,setVoices]=useState([]);
+  const[voiceId,setVoiceId]=useState(localStorage.getItem('inkforge_11labs_voice')||'');
+  const[speed,setSpeed]=useState(1.0);
+  const[stability,setStability]=useState(0.50);
+  const[playing,setPlaying]=useState(false);
+  const[paused,setPaused]=useState(false);
+  const[sentIdx,setSentIdx]=useState(-1);
+  const[loading,setLoading]=useState(false);
+  const[err,setErr]=useState('');
+  const[mode,setMode]=useState('narration'); // narration or podcast
+  const audioRef=useRef(null);
+  const cancelledRef=useRef(false);
+  const cacheRef=useRef({}); // audio blob cache by sentence index
+  const prefetchRef=useRef(null);
+
+  // Split text into sentences
+  const sentences=React.useMemo(()=>{
+    if(!text)return[];
+    // Split on sentence-ending punctuation followed by space, or double newlines
+    const raw=text.split(/(?<=[.!?…"」』\n])\s+/).map(s=>s.trim()).filter(s=>s.length>0);
+    // Merge very short fragments with the previous sentence
+    const merged=[];
+    for(const s of raw){
+      if(merged.length>0&&s.length<12&&!s.match(/[.!?…]/)){
+        merged[merged.length-1]+=' '+s;
+      }else{merged.push(s);}
+    }
+    return merged;
+  },[text]);
+
+  // Fetch voices on key entry
+  useEffect(()=>{
+    if(!hasKey)return;
+    const k=localStorage.getItem('inkforge_11labs_key');
+    if(!k)return;
+    fetch('https://api.elevenlabs.io/v1/voices',{headers:{'xi-api-key':k}})
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.voices){
+          // Sort: premade first, then cloned, alphabetically
+          const sorted=[...data.voices].sort((a,b)=>{
+            if(a.category==='premade'&&b.category!=='premade')return-1;
+            if(b.category==='premade'&&a.category!=='premade')return 1;
+            return a.name.localeCompare(b.name);
+          });
+          setVoices(sorted);
+          // Auto-select saved voice or first good one
+          const saved=localStorage.getItem('inkforge_11labs_voice');
+          if(saved&&sorted.find(v=>v.voice_id===saved)){
+            setVoiceId(saved);
+          }else if(sorted.length>0){
+            // Try to find a good narrative voice
+            const preferred=sorted.find(v=>/rachel|drew|adam|bella|elli|josh|arnold|sam|charlie/i.test(v.name));
+            setVoiceId((preferred||sorted[0]).voice_id);
+          }
+        }else{setErr('Could not load voices. Check your API key.');}
+      })
+      .catch(()=>setErr('Failed to connect to ElevenLabs.'));
+  },[hasKey]);
+
+  const saveKey=()=>{
+    if(!keyInput.trim())return;
+    localStorage.setItem('inkforge_11labs_key',keyInput.trim());
+    setHasKey(true);setErr('');
+  };
+
+  // Generate speech for a sentence
+  const genAudio=async(sentText,idx)=>{
+    // Check cache
+    if(cacheRef.current[idx])return cacheRef.current[idx];
+    const k=localStorage.getItem('inkforge_11labs_key');
+    const vid=voiceId;
+    if(!k||!vid)throw new Error('No key/voice');
+
+    // Voice settings vary by mode
+    const isDialogue=sentText.includes('"')||sentText.includes('\u201c')||sentText.includes('\u201d');
+    const stab=mode==='podcast'?0.35:isDialogue?0.4:stability;
+    const simBoost=mode==='podcast'?0.82:0.76;
+    const styleExag=mode==='podcast'?0.35:0.15;
+
+    const res=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${vid}`,{
+      method:'POST',
+      headers:{'xi-api-key':k,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        text:sentText,
+        model_id:'eleven_multilingual_v2',
+        voice_settings:{stability:stab,similarity_boost:simBoost,style:styleExag,use_speaker_boost:true}
+      })
+    });
+    if(!res.ok){
+      const e=await res.json().catch(()=>({}));
+      throw new Error(e?.detail?.message||`ElevenLabs error ${res.status}`);
+    }
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    cacheRef.current[idx]=url;
+    return url;
+  };
+
+  // Prefetch next sentence while current plays
+  const prefetch=(idx)=>{
+    if(idx>=sentences.length||cacheRef.current[idx])return;
+    prefetchRef.current=genAudio(sentences[idx],idx).catch(()=>{});
+  };
+
+  const stopReading=()=>{
+    cancelledRef.current=true;
+    if(audioRef.current){audioRef.current.pause();audioRef.current=null;}
+    setPlaying(false);setPaused(false);setSentIdx(-1);
+  };
+
+  const pauseReading=()=>{
+    if(audioRef.current)audioRef.current.pause();
+    setPaused(true);
+  };
+
+  const resumeReading=()=>{
+    if(audioRef.current)audioRef.current.play();
+    setPaused(false);
+  };
+
+  // Main playback loop
+  const startReading=async(fromIdx=0)=>{
+    if(!sentences.length||!voiceId)return;
+    stopReading();
+    cancelledRef.current=false;
+    setPlaying(true);setPaused(false);setErr('');setLoading(true);
+
+    const playNext=async(idx)=>{
+      if(cancelledRef.current||idx>=sentences.length){
+        if(!cancelledRef.current){setPlaying(false);setSentIdx(-1);setLoading(false);}
+        return;
+      }
+      setSentIdx(idx);
+      setLoading(true);
+
+      try{
+        const url=await genAudio(sentences[idx],idx);
+        if(cancelledRef.current)return;
+        setLoading(false);
+
+        // Start prefetching next
+        prefetch(idx+1);
+
+        // Play audio
+        const audio=new Audio(url);
+        audioRef.current=audio;
+        audio.playbackRate=speed;
+
+        await new Promise((resolve,reject)=>{
+          audio.onended=resolve;
+          audio.onerror=reject;
+          audio.play().catch(reject);
+        });
+
+        if(cancelledRef.current)return;
+
+        // Natural pause between sentences
+        const sent=sentences[idx];
+        const next=sentences[idx+1]||'';
+        const isParaBreak=sent.endsWith('\n')||next.startsWith('\n');
+        const isDramatic=sent.endsWith('…')||sent.endsWith('—');
+        const pauseMs=isParaBreak?400:isDramatic?300:sent.endsWith('?')?200:sent.endsWith('!')?180:80;
+
+        await new Promise(r=>setTimeout(r,pauseMs));
+        if(!cancelledRef.current)playNext(idx+1);
+      }catch(e){
+        if(!cancelledRef.current){
+          setErr(e.message||'Playback error');
+          setPlaying(false);setLoading(false);
+        }
+      }
+    };
+
+    playNext(fromIdx);
+  };
+
+  // Auto-scroll current sentence into view
+  useEffect(()=>{
+    if(sentIdx>=0){
+      const el=document.getElementById(`read-sent-${sentIdx}`);
+      if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  },[sentIdx]);
+
+  // Cleanup on unmount
+  useEffect(()=>()=>{stopReading();Object.values(cacheRef.current).forEach(u=>URL.revokeObjectURL(u));},[]);
+
+  // Save voice preference
+  useEffect(()=>{if(voiceId)localStorage.setItem('inkforge_11labs_voice',voiceId);},[voiceId]);
+
+  const progress=sentences.length>0&&sentIdx>=0?((sentIdx+1)/sentences.length)*100:0;
+  const timeEst=Math.ceil((text||'').split(/\s+/).filter(Boolean).length/(speed*155));
+
+  // ── No key yet: setup screen ──
+  if(!hasKey){
+    return(<div className="slide-in" style={{width:380,background:C.panel,borderLeft:`1px solid ${C.border}`,display:'flex',flexDirection:'column',overflow:'hidden',flexShrink:0}}>
+      <div style={{padding:'16px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:8}}>
+        <span style={{fontSize:20}}>🔊</span>
+        <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:C.ink,fontWeight:700,flex:1}}>Read Aloud</span>
+        <button onClick={onClose} style={{background:'none',border:'none',color:C.inkDim,cursor:'pointer',fontSize:22,lineHeight:1}}>×</button>
+      </div>
+      <div style={{padding:'32px 24px',flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+        <div style={{fontSize:48,marginBottom:16,animation:'float 3s ease-in-out infinite'}}>🎙</div>
+        <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:C.ink,fontStyle:'italic',marginBottom:8,textAlign:'center'}}>Neural Voice Reading</h3>
+        <p style={{color:C.inkMuted,fontSize:15,fontFamily:"'Crimson Pro',serif",textAlign:'center',lineHeight:1.75,marginBottom:24}}>
+          Powered by ElevenLabs — the same tech behind NotebookLM-quality voices. Natural, expressive, and human.
+        </p>
+        <div style={{width:'100%',marginBottom:14}}>
+          <div style={{...lbl,fontSize:10}}>ElevenLabs API Key</div>
+          <input value={keyInput} onChange={e=>setKeyInput(e.target.value)} type="password" placeholder="Enter your ElevenLabs API key…"
+            onKeyDown={e=>e.key==='Enter'&&saveKey()}
+            style={{width:'100%',padding:'11px 14px',background:C.card,border:`1px solid ${C.border}`,borderRadius:8,color:C.ink,fontFamily:"'JetBrains Mono',monospace",fontSize:13,outline:'none',transition:'border-color .25s'}}/>
+        </div>
+        {err&&<p style={{color:C.red,fontSize:12,fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{err}</p>}
+        <button className="gold-btn" onClick={saveKey} disabled={!keyInput.trim()} style={{width:'100%',justifyContent:'center',fontSize:14,padding:'11px'}}>Connect ElevenLabs</button>
+        <p style={{color:C.inkDim,fontSize:12,fontFamily:"'Crimson Pro',serif",marginTop:16,textAlign:'center',lineHeight:1.6}}>
+          Free tier: ~10,000 characters/month<br/>
+          <a href="https://elevenlabs.io" target="_blank" style={{color:C.gold,textDecoration:'none',borderBottom:`1px solid ${C.goldDark}`}}>Get a free key at elevenlabs.io</a>
+        </p>
+      </div>
+    </div>);
+  }
+
+  // ── Main player UI ──
+  return(<div className="slide-in" style={{width:380,background:C.panel,borderLeft:`1px solid ${C.border}`,display:'flex',flexDirection:'column',overflow:'hidden',flexShrink:0}}>
+    {/* Header */}
+    <div style={{padding:'16px 20px',borderBottom:`1px solid ${C.border}`}}>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+        <span style={{fontSize:20}}>🔊</span>
+        <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:C.ink,fontWeight:700}}>Read Aloud</span>
+        <span style={{fontSize:10,color:C.teal,fontFamily:"'JetBrains Mono',monospace",background:`${C.teal}15`,padding:'2px 8px',borderRadius:10}}>ElevenLabs</span>
+        <button onClick={()=>{stopReading();onClose();}} style={{marginLeft:'auto',background:'none',border:'none',color:C.inkDim,cursor:'pointer',fontSize:22,lineHeight:1,transition:'color .15s'}} onMouseEnter={e=>e.target.style.color=C.red} onMouseLeave={e=>e.target.style.color=C.inkDim}>×</button>
+      </div>
+
+      {/* Mode toggle */}
+      <div style={{display:'flex',gap:6,marginBottom:12}}>
+        {[{id:'narration',label:'📖 Narration',desc:'Calm, clear reading'},{id:'podcast',label:'🎙 Podcast',desc:'Expressive & dynamic'}].map(m=>(
+          <button key={m.id} onClick={()=>{setMode(m.id);cacheRef.current={};if(playing)stopReading();}} style={{flex:1,padding:'8px 10px',borderRadius:8,cursor:'pointer',border:`1px solid ${mode===m.id?accent:C.border}`,background:mode===m.id?`${accent}12`:'transparent',transition:'all .18s',textAlign:'center'}}>
+            <div style={{fontSize:13,color:mode===m.id?accent:C.inkMuted,fontFamily:"'Playfair Display',serif",fontWeight:600}}>{m.label}</div>
+            <div style={{fontSize:10,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace",marginTop:2}}>{m.desc}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Voice selector */}
+      <div style={{marginBottom:10}}>
+        <div style={{...lbl,marginBottom:4,fontSize:10}}>Voice {voices.length>0?`(${voices.length})`:''}</div>
+        <select value={voiceId} onChange={e=>{setVoiceId(e.target.value);cacheRef.current={};if(playing)stopReading();}} style={{width:'100%',padding:'8px 10px',background:C.card,border:`1px solid ${C.border}`,borderRadius:7,color:C.ink,fontSize:13,fontFamily:"'Crimson Pro',serif",outline:'none',cursor:'pointer'}}>
+          {voices.length===0&&<option value="">Loading voices…</option>}
+          {voices.map(v=><option key={v.voice_id} value={v.voice_id}>{v.name}{v.labels?.accent?' · '+v.labels.accent:''}{v.labels?.description?' · '+v.labels.description:''}{v.labels?.age?' · '+v.labels.age:''}</option>)}
+        </select>
+      </div>
+
+      {/* Speed control */}
+      <div style={{marginBottom:6}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+          <span style={{...lbl,marginBottom:0,fontSize:10}}>Speed</span>
+          <span style={{fontSize:12,color:accent,fontFamily:"'JetBrains Mono',monospace",fontWeight:500}}>{speed.toFixed(1)}×</span>
+        </div>
+        <input type="range" min="0.7" max="1.5" step="0.05" value={speed} onChange={e=>setSpeed(Number(e.target.value))}
+          style={{width:'100%',height:4,appearance:'none',background:`linear-gradient(to right,${accent} ${((speed-0.7)/0.8)*100}%,${C.border} ${((speed-0.7)/0.8)*100}%)`,borderRadius:2,outline:'none',cursor:'pointer'}}/>
+        <div style={{display:'flex',justifyContent:'space-between',marginTop:2}}>
+          <span style={{fontSize:9,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>0.7×</span>
+          <span style={{fontSize:9,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>1.5×</span>
+        </div>
+      </div>
+
+      {/* Expression control (stability) */}
+      <div style={{marginBottom:8}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+          <span style={{...lbl,marginBottom:0,fontSize:10}}>Expression</span>
+          <span style={{fontSize:11,color:C.inkMuted,fontFamily:"'JetBrains Mono',monospace"}}>{stability<0.35?'Very Expressive':stability<0.5?'Expressive':stability<0.65?'Balanced':'Stable'}</span>
+        </div>
+        <input type="range" min="0.2" max="0.8" step="0.05" value={stability} onChange={e=>{setStability(Number(e.target.value));cacheRef.current={};}} 
+          style={{width:'100%',height:4,appearance:'none',background:`linear-gradient(to right,${C.purple} ${((stability-0.2)/0.6)*100}%,${C.border} ${((stability-0.2)/0.6)*100}%)`,borderRadius:2,outline:'none',cursor:'pointer'}}/>
+        <div style={{display:'flex',justifyContent:'space-between',marginTop:2}}>
+          <span style={{fontSize:9,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>Dynamic</span>
+          <span style={{fontSize:9,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>Consistent</span>
+        </div>
+      </div>
+
+      {err&&<p style={{color:C.red,fontSize:11,fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>{err}</p>}
+
+      {/* Playback controls */}
+      <div style={{display:'flex',gap:8,alignItems:'center',marginTop:4}}>
+        {!playing?(
+          <button className="gold-btn" onClick={()=>startReading(Math.max(0,sentIdx>=0?sentIdx:0))} disabled={!sentences.length||!voiceId||!voices.length} style={{flex:1,justifyContent:'center',fontSize:14,padding:'10px'}}>
+            ▶ {sentIdx>0?'Resume':'Play Chapter'}
+          </button>
+        ):(
+          <>
+            <button className="gold-btn" onClick={paused?resumeReading:pauseReading} style={{flex:1,justifyContent:'center',fontSize:14,padding:'10px'}}>
+              {paused?'▶ Resume':'⏸ Pause'}
+            </button>
+            <button className="ghost-btn" onClick={stopReading} style={{padding:'10px 16px'}}>⏹</button>
+          </>
         )}
       </div>
-    </div>
-  );
-}
 
-/* ─── Settings Panel ──────────────────────────────────────────────────────── */
-function SettingsPanel({onClose}){
-  const [key, setKey]=useState(getApiKey());
-  const [saved, setSaved]=useState(false);
-  const doSave=()=>{setApiKey(key.trim());setSaved(true);setTimeout(()=>setSaved(false),2000);};
-  return(
-    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.7)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100}} onClick={onClose}>
-      <div className="fade-in" style={{background:C.panel,border:'1px solid '+C.borderLight,borderRadius:16,padding:36,width:520,maxWidth:'92vw'}} onClick={e=>e.stopPropagation()}>
-        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:C.ink,marginBottom:8,fontStyle:'italic'}}>⚙ Settings</h2>
-        <p style={{color:C.inkMuted,fontSize:14,marginBottom:24,fontFamily:"'Crimson Pro',serif",lineHeight:1.6}}>AI features (Continue, Humanize, Coach, Ideas, Characters, World Scan) require a Claude API key from <a href="https://console.anthropic.com/" target="_blank" style={{color:C.gold}}>console.anthropic.com</a>. Your key is stored only in this browser.</p>
-        <div style={{marginBottom:20}}>
-          <div style={lbl}>Claude API Key</div>
-          <Input value={key} onChange={e=>setKey(e.target.value)} placeholder="sk-ant-…" style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13}}/>
+      {/* Progress */}
+      <div style={{marginTop:10}}>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
+          <span style={{fontSize:10,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>{sentIdx>=0?`${sentIdx+1}/${sentences.length}`:''}{loading&&sentIdx>=0?' · generating…':''}</span>
+          <span style={{fontSize:10,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>~{timeEst} min</span>
         </div>
-        <div style={{display:'flex',gap:10,alignItems:'center'}}>
-          <button className="gold-btn" onClick={doSave} style={{fontSize:15,padding:'11px 22px'}}>Save Key</button>
-          <button className="ghost-btn" onClick={onClose}>Close</button>
-          {saved&&<span style={{color:C.green,fontSize:13,fontFamily:"'JetBrains Mono',monospace"}}>✓ Saved</span>}
+        <div style={{height:3,borderRadius:2,background:C.card,overflow:'hidden'}}>
+          <div style={{height:'100%',borderRadius:2,background:`linear-gradient(90deg,${accent},${accent}88)`,width:`${progress}%`,transition:'width .4s ease'}}/>
         </div>
-        {!key.trim()&&<p style={{color:C.gold+'aa',fontSize:12,marginTop:14,fontFamily:"'JetBrains Mono',monospace"}}>⚠ Without an API key, you can still write — AI features just won't work.</p>}
       </div>
     </div>
-  );
+
+    {/* Scrolling text with sentence highlighting */}
+    <div style={{flex:1,overflow:'auto',padding:'20px 22px'}}>
+      {sentences.length===0?(
+        <div style={{textAlign:'center',paddingTop:40,color:C.inkMuted}}>
+          <p style={{fontStyle:'italic',fontSize:16,fontFamily:"'Playfair Display',serif"}}>Nothing to read yet</p>
+          <p style={{fontSize:13,marginTop:6,fontFamily:"'Crimson Pro',serif"}}>Write some story content first</p>
+        </div>
+      ):(
+        <div style={{fontFamily:"'Crimson Pro',serif",fontSize:16,lineHeight:2.1,color:C.inkMuted}}>
+          {sentences.map((s,i)=>{
+            const isCurrent=i===sentIdx;
+            const isPast=sentIdx>=0&&i<sentIdx;
+            return(
+              <span key={i} id={`read-sent-${i}`}
+                onClick={()=>{stopReading();setTimeout(()=>startReading(i),100);}}
+                style={{
+                  cursor:'pointer',transition:'all .3s',borderRadius:3,
+                  padding:isCurrent?'2px 4px':'0 1px',margin:isCurrent?'0 -4px':'0 -1px',
+                  color:isCurrent?C.ink:isPast?C.inkDim:C.inkMuted,
+                  background:isCurrent?`${accent}18`:'transparent',
+                  boxShadow:isCurrent?`inset 3px 0 0 ${accent}`:'none',
+                  fontWeight:isCurrent?500:400,
+                  display:'inline',
+                }}
+                onMouseEnter={e=>{if(!isCurrent)e.target.style.color=C.inkSoft;e.target.style.background=isCurrent?`${accent}18`:`${accent}08`;}}
+                onMouseLeave={e=>{if(!isCurrent)e.target.style.color=isPast?C.inkDim:C.inkMuted;e.target.style.background=isCurrent?`${accent}18`:'transparent';}}
+              >{s} </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
+
+    {/* Footer */}
+    <div style={{padding:'10px 20px',borderTop:`1px solid ${C.border}`,background:C.surface,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+      <p style={{fontSize:10,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>
+        Click any sentence to start there
+      </p>
+      <button onClick={()=>{localStorage.removeItem('inkforge_11labs_key');localStorage.removeItem('inkforge_11labs_voice');setHasKey(false);setVoices([]);setKeyInput('');stopReading();}} style={{background:'none',border:'none',color:C.inkDim,cursor:'pointer',fontSize:10,fontFamily:"'JetBrains Mono',monospace",textDecoration:'underline',transition:'color .15s'}} onMouseEnter={e=>e.target.style.color=C.red} onMouseLeave={e=>e.target.style.color=C.inkDim}>Change key</button>
+    </div>
+  </div>);
 }
 
-/* ─── Story Workspace ─────────────────────────────────────────────────────── */
-function StoryWorkspace({story, onUpdate, onBack}){
-  const [tab,setTab]=useState('write');
-  const [aiMode,setAiMode]=useState(null);
-  const [aiOut,setAiOut]=useState('');
-  const [aiLoading,setAiLoading]=useState(false);
-  const [aiErr,setAiErr]=useState('');
-  const [selTxt,setSelTxt]=useState('');
-  const [themeInput,setThemeInput]=useState('');
-  const [ideasLoading,setIdeasLoading]=useState(false);
-  const [chatMsgs,setChatMsgs]=useState([]);
-  const [chatIn,setChatIn]=useState('');
-  const [chatLoading,setChatLoading]=useState(false);
-  const [activeChap,setActiveChap]=useState(story.chapters[0]?.id||1);
-  const [editingTitle,setEditingTitle]=useState(null);
-  const chatEndRef=useRef(null);
-
-  const accent=story.accent||C.gold;
-
-  const upd=(patch)=>onUpdate(story.id,{...story,...patch,updatedAt:Date.now()});
-
-  const loreTxt=story.loreSummary
-    ? 'TITLE:'+story.loreSummary.title+'\nGENRE:'+story.loreSummary.genre+'\nTONE:'+story.loreSummary.tone+'\nSETTING:'+story.loreSummary.setting+'\nCHARACTERS:\n'+(story.loreSummary.characters||[]).map(c=>'- '+c.name+'('+c.role+'):'+c.key_traits+(c.relationships?'. '+c.relationships:'')).join('\n')+'\nWORLD RULES:\n'+(story.loreSummary.world_rules||[]).map(r=>'- '+r).join('\n')+'\nTHEMES:'+(story.loreSummary.themes||[]).join(',')+'\nPLOT:'+(story.loreSummary.plot_known||'N/A')+'\nTONE NOTES:'+(story.loreSummary.tone_notes||'N/A')
-    : null;
-
+function StoryWorkspace({story,onUpdate,onBack}){
+  const[tab,setTab]=useState('write');const[aiMode,setAiMode]=useState(null);const[aiOut,setAiOut]=useState('');const[aiLoading,setAiLoading]=useState(false);const[selTxt,setSelTxt]=useState('');const[themeInput,setThemeInput]=useState('');const[ideasLoading,setIdeasLoading]=useState(false);const[chatMsgs,setChatMsgs]=useState([]);const[chatIn,setChatIn]=useState('');const[chatLoading,setChatLoading]=useState(false);const[activeChap,setActiveChap]=useState(story.chapters[0]?.id||1);const[editingTitle,setEditingTitle]=useState(null);const[toast,setToast]=useState(null);const[confirmDelChap,setConfirmDelChap]=useState(null);const[readerOpen,setReaderOpen]=useState(false);const chatEndRef=useRef(null);const accent=story.accent||C.gold;
+  const upd=(patch)=>onUpdate(story.id,{...patch,updatedAt:Date.now()});
+  const loreTxt=story.loreSummary?`TITLE:${story.loreSummary.title}\nGENRE:${story.loreSummary.genre}\nTONE:${story.loreSummary.tone}\nSETTING:${story.loreSummary.setting}\nCHARACTERS:\n${(story.loreSummary.characters||[]).map(c=>`- ${c.name}(${c.role}):${c.key_traits}${c.relationships?`. ${c.relationships}`:''}`).join('\n')}\nWORLD RULES:\n${(story.loreSummary.world_rules||[]).map(r=>`- ${r}`).join('\n')}\nTHEMES:${(story.loreSummary.themes||[]).join(',')}\nPLOT:${story.loreSummary.plot_known||'N/A'}\nTONE NOTES:${story.loreSummary.tone_notes||'N/A'}`:null;
+  const charContext=story.characters.length>0?'\n\nESTABLISHED CHARACTERS:\n'+story.characters.map(c=>`- ${c.name} (${c.role}): ${c.personality}. Speech: ${c.speech}`).join('\n'):'';
   const curChap=story.chapters.find(c=>c.id===activeChap)||story.chapters[0];
   const setContent=val=>upd({chapters:story.chapters.map(c=>c.id===activeChap?{...c,content:val}:c)});
   const wc=txt=>(txt||'').split(/\s+/).filter(Boolean).length;
   const totalWC=story.chapters.reduce((a,c)=>a+wc(c.content),0);
-
-  const addChap=()=>{
-    const newId=Math.max(...story.chapters.map(c=>c.id))+1;
-    const chapters=[...story.chapters,{id:newId,title:'Chapter '+newId,content:''}];
-    upd({chapters}); setActiveChap(newId);
-  };
-
-  const deleteChap=(chapId)=>{
-    if(story.chapters.length<=1) return;
-    const chapters=story.chapters.filter(c=>c.id!==chapId);
-    upd({chapters});
-    if(activeChap===chapId) setActiveChap(chapters[0].id);
-  };
+  const addChap=()=>{const newId=Math.max(0,...story.chapters.map(c=>c.id))+1;upd({chapters:[...story.chapters,{id:newId,title:`Chapter ${story.chapters.length+1}`,content:''}]});setActiveChap(newId);};
+  const deleteChap=(chapId)=>{if(story.chapters.length<=1){setToast({msg:"Can't delete the last chapter",type:'error'});return;}const updated=story.chapters.filter(c=>c.id!==chapId);upd({chapters:updated});if(activeChap===chapId)setActiveChap(updated[0].id);setConfirmDelChap(null);setToast({msg:'Chapter deleted',type:'info'});};
+  const exportStory=()=>{let text=`# ${story.title}\n\n`;if(story.genre)text+=`Genre: ${story.genre}\n\n`;story.chapters.forEach(ch=>{text+=`## ${ch.title}\n\n${ch.content||'(empty)'}\n\n---\n\n`;});if(story.characters.length>0){text+=`## Characters\n\n`;story.characters.forEach(c=>{text+=`### ${c.name} (${c.role})\nPersonality: ${c.personality}\nBackstory: ${c.backstory}\nSpeech: ${c.speech}\n\n`;});}const blob=new Blob([text],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${story.title.replace(/[^a-zA-Z0-9]/g,'_')}.md`;a.click();URL.revokeObjectURL(a.href);setToast({msg:'Exported as Markdown!',type:'success'});};
 
   const runAI=async(mode)=>{
-    setAiMode(mode); setAiOut(''); setAiLoading(true); setAiErr('');
-    const sys=withLore(BASE_WRITER,loreTxt);
-    try{
-      let p='';
-      if(mode==='continue') p='Continue this story for 150-250 words. Match tone exactly.'+(loreTxt?' Stay consistent with the world.':'')+' Return ONLY the continuation:\n\n'+curChap.content;
-      else if(mode==='humanize'){
-        const t=selTxt||curChap.content;
-        if(!t.trim()){setAiOut('Write something first.');setAiLoading(false);return;}
-        p='Rewrite to sound like a skilled human author. Remove AI patterns, add specific details, vary rhythm.'+(loreTxt?' Keep consistent with world.':'')+' Return ONLY rewritten text:\n\n'+t;
-      } else if(mode==='next'){
-        p='Give 3 specific compelling options for what happens next. Each dramatically distinct.'+(loreTxt?' Must fit the world.':'')+'\n\nOPTION 1: [Title]\n[2-3 sentences]\n\nOPTION 2: [Title]\n[description]\n\nOPTION 3: [Title]\n[description]\n\nStory:\n'+curChap.content;
-      }
-      setAiOut(await callClaude(sys,p,null,1200));
-    }catch(e){setAiErr(e.message);setAiOut('');}
-    setAiLoading(false);
+    setAiMode(mode);setAiOut('');setAiLoading(true);const sys=withLore(BASE_WRITER+charContext,loreTxt);
+    try{let p='';
+      if(mode==='continue'){if(!curChap.content?.trim()){setAiOut('Write something first — even a sentence — so I know where to go.');setAiLoading(false);return;}p=`Continue this story naturally for 150-250 words. Match the existing tone, POV, and voice exactly.${loreTxt?' Stay consistent with the world.':''} Return ONLY the continuation:\n\n${curChap.content.slice(-3000)}`;}
+      else if(mode==='humanize'){const t=selTxt||curChap.content;if(!t?.trim()){setAiOut('Write or select text first.');setAiLoading(false);return;}p=`Rewrite this to sound like a skilled human author wrote it. Remove AI-sounding patterns. Add specific sensory details. Vary sentence rhythm.${loreTxt?' Keep consistent with world.':''} Return ONLY rewritten text:\n\n${t}`;}
+      else if(mode==='next'){if(!curChap.content?.trim()){setAiOut('Write some story first so I can suggest what comes next.');setAiLoading(false);return;}p=`Based on this story so far, give 3 specific compelling options for what happens next. Make each dramatically different.\n\nOPTION 1: [Bold Title]\n[2-3 vivid sentences]\n\nOPTION 2: [Title]\n[description]\n\nOPTION 3: [Title]\n[description]\n\nStory so far:\n${curChap.content.slice(-3000)}`;}
+      else if(mode==='synopsis'){const allText=story.chapters.map(c=>`[${c.title}]\n${c.content}`).join('\n\n---\n\n');if(wc(allText)<20){setAiOut('Write more before generating a synopsis.');setAiLoading(false);return;}p=`Write a compelling back-of-book synopsis (150-200 words) for this ${story.genre}. Hook readers without spoiling the ending.\n\nFull story so far:\n${allText.slice(-6000)}`;}
+      else if(mode==='outline'){const allText=story.chapters.map(c=>`[${c.title}]\n${c.content}`).join('\n\n---\n\n');p=`Based on what's written so far, create a detailed chapter-by-chapter plot outline for the rest of this ${story.genre}. For each future chapter:\n\nCHAPTER [number]: [Title]\nPurpose: [what this chapter accomplishes]\nEvents: [2-3 key plot points]\nCharacter arcs: [what shifts]\n\nBe specific, not generic.\n\nStory so far:\n${allText.slice(-4000)||'(empty — build from world context)'}`;}
+      setAiOut(await callClaude(sys,p,null,mode==='outline'?2000:1200));
+    }catch(e){setAiOut('Error: '+e.message);}setAiLoading(false);
   };
 
-  const generateIdeas=async()=>{
-    setIdeasLoading(true);
-    upd({ideas:[]});
-    try{
-      const r=await callClaude(
-        withLore('You are a creative editor at a top manga/fiction publisher. Generate fresh specific concepts — not generic tropes.',loreTxt),
-        'Generate 3 original '+story.genre+' story concepts.\nTheme/mood: '+(themeInput||'open')+'\n'+(loreTxt?'Ideas must fit the established world.':'')+'\n\nReturn ONLY a valid JSON array:\n[{"title":"...","hook":"one irresistible sentence","premise":"2-3 sentences","protagonist":"name + one defining trait","twist":"what makes it unique","tone":"genre tone"}]'
-      );
-      upd({ideas:JSON.parse(r.replace(/```json|```/g,'').trim())});
-    }catch(e){console.error(e);}
-    setIdeasLoading(false);
-  };
+  const generateIdeas=async()=>{setIdeasLoading(true);upd({ideas:[]});try{const r=await callClaude(withLore('You are a creative editor at a top manga/fiction publisher. Generate fresh specific concepts — not generic tropes.',loreTxt),`Generate 3 original ${story.genre} story concepts.\nTheme/mood: ${themeInput||'open — surprise me'}\n${loreTxt?'Ideas must fit the established world.':''}\nReturn ONLY a valid JSON array (no markdown fences):\n[{"title":"...","hook":"one irresistible sentence","premise":"2-3 vivid sentences","protagonist":"name + defining trait + internal conflict","twist":"what makes this unique","tone":"genre tone"}]`);upd({ideas:JSON.parse(r.replace(/```json|```/g,'').trim())});}catch(e){console.error(e);setToast({msg:'Idea generation failed',type:'error'});}setIdeasLoading(false);};
+  const useIdea=(idea)=>{const newId=Math.max(0,...story.chapters.map(c=>c.id))+1;upd({chapters:[...story.chapters,{id:newId,title:idea.title,content:`── STORY NOTES ──\n\nPREMISE\n${idea.premise}\n\nPROTAGONIST\n${idea.protagonist}\n\nHOOK\n${idea.hook}\n\nTWIST\n${idea.twist}\n\n──────────────\n\n`}]});setActiveChap(newId);setTab('write');};
+  const sendChat=async()=>{if(!chatIn.trim())return;const msgs=[...chatMsgs,{role:'user',content:chatIn}];setChatMsgs(msgs);setChatIn('');setChatLoading(true);try{const contextNote=curChap?.content?.trim()?`\n\n[The writer's current chapter "${curChap.title}" has ${wc(curChap.content)} words written.]`:'';const r=await callClaude(withLore(BASE_COACH+charContext+contextNote,loreTxt),chatIn,chatMsgs.map(m=>({role:m.role,content:m.content})));setChatMsgs(p=>[...p,{role:'assistant',content:r}]);setTimeout(()=>chatEndRef.current?.scrollIntoView({behavior:'smooth'}),100);}catch(e){setChatMsgs(p=>[...p,{role:'assistant',content:'Connection error — check your API key.'}]);}setChatLoading(false);};
 
-  const useIdea=(idea)=>{
-    const newId=Math.max(...story.chapters.map(c=>c.id))+1;
-    const chapters=[...story.chapters,{id:newId,title:idea.title,content:'── STORY NOTES ──\n\nPREMISE\n'+idea.premise+'\n\nPROTAGONIST\n'+idea.protagonist+'\n\nHOOK\n'+idea.hook+'\n\nTWIST\n'+idea.twist+'\n\n──────────────\n\n'}];
-    upd({chapters}); setActiveChap(newId); setTab('write');
-  };
-
-  const sendChat=async()=>{
-    if(!chatIn.trim()) return;
-    const msgs=[...chatMsgs,{role:'user',content:chatIn}];
-    setChatMsgs(msgs); setChatIn(''); setChatLoading(true);
-    try{
-      const r=await callClaude(withLore(BASE_COACH,loreTxt),chatIn,chatMsgs.map(m=>({role:m.role,content:m.content})));
-      setChatMsgs(p=>[...p,{role:'assistant',content:r}]);
-      setTimeout(()=>chatEndRef.current?.scrollIntoView({behavior:'smooth'}),100);
-    }catch(e){setChatMsgs(p=>[...p,{role:'assistant',content:'Error: '+e.message}]);}
-    setChatLoading(false);
-  };
-
-  const TABS=[
-    {id:'write',icon:'✍️',label:'Write'},
-    {id:'ideas',icon:'💡',label:'Ideas'},
-    {id:'characters',icon:'🎭',label:'Cast'},
-    {id:'world',icon:'🌍',label:'World'},
-    {id:'chat',icon:'📖',label:'Coach'},
-  ];
-
-  const PROMPTS=["How do I write a villain who feels genuinely threatening?","My pacing feels slow — what do I fix?","How do I write natural dialogue?","Give me a plot twist for a betrayal arc","How do I write a fight scene with emotional weight?"];
+  const TABS=[{id:'write',icon:'✍️',label:'Write'},{id:'ideas',icon:'💡',label:'Ideas'},{id:'characters',icon:'🎭',label:'Cast'},{id:'world',icon:'🌍',label:'World'},{id:'chat',icon:'📖',label:'Coach'}];
   const GENRES=['Manga','Novel','Light Novel','Webtoon','Short Story','Screenplay'];
+  const PROMPTS=["How do I write a villain who feels genuinely threatening?","My pacing feels slow — what do I fix?","How do I write natural dialogue?","Give me a plot twist for a betrayal arc","How do I write a fight scene with emotional weight?","Help me outline the next 3 chapters","How do I show character growth without being heavy-handed?"];
 
-  return(
-    <div style={{flex:1,display:'flex',overflow:'hidden'}}>
-      {/* Sidebar */}
-      <div style={{width:68,background:C.surface,borderRight:'1px solid '+C.border,display:'flex',flexDirection:'column',alignItems:'center',paddingTop:12,gap:2,flexShrink:0}}>
-        <button onClick={onBack} title="All Stories" style={{width:38,height:38,borderRadius:9,border:'1px solid '+C.border,background:'transparent',color:C.inkMuted,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,marginBottom:10,transition:'all .15s'}} onMouseEnter={e=>{e.currentTarget.style.borderColor=accent;e.currentTarget.style.color=accent;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.inkMuted;}}>←</button>
-        <div style={{width:8,height:8,borderRadius:'50%',background:accent,marginBottom:10,boxShadow:'0 0 8px '+accent+'80'}}/>
-        {TABS.map(t=>(
-          <button key={t.id} className="tab-btn" onClick={()=>setTab(t.id)} title={t.label} style={{background:tab===t.id?accent+'18':'transparent',outline:tab===t.id?'1px solid '+accent+'50':'none',position:'relative'}}>
-            <span style={{fontSize:19}}>{t.icon}</span>
-            <span style={{fontSize:9,fontFamily:"'JetBrains Mono',monospace",color:tab===t.id?accent:C.inkDim,letterSpacing:.5}}>{t.label}</span>
-            {t.id==='world'&&story.loreSummary&&<div style={{position:'absolute',top:6,right:6,width:6,height:6,borderRadius:'50%',background:C.green,boxShadow:'0 0 5px '+C.green}}/>}
-          </button>
-        ))}
-        {story.loreSummary&&(
-          <div style={{marginTop:'auto',marginBottom:14,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
-            <div style={{width:6,height:6,borderRadius:'50%',background:C.green,animation:'pulse 2.5s ease infinite'}}/>
-            <span style={{fontSize:8,color:C.green,fontFamily:"'JetBrains Mono',monospace",textTransform:'uppercase',textAlign:'center',lineHeight:1.4}}>{'lore\non'}</span>
+  return(<div style={{flex:1,display:'flex',overflow:'hidden',position:'relative',zIndex:1}}>
+    {toast&&<Toast msg={toast.msg} type={toast.type} onDone={()=>setToast(null)}/>}
+    {confirmDelChap&&<Modal onClose={()=>setConfirmDelChap(null)}><div style={{padding:'32px 36px',width:380,textAlign:'center'}}><h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:C.ink,marginBottom:10}}>Delete "{confirmDelChap.title}"?</h3><p style={{color:C.inkMuted,fontSize:14,marginBottom:24,fontFamily:"'Crimson Pro',serif"}}>{wc(confirmDelChap.content)} words will be lost.</p><div style={{display:'flex',gap:10,justifyContent:'center'}}><button onClick={()=>deleteChap(confirmDelChap.id)} style={{background:C.red,color:'#fff',border:'none',borderRadius:8,padding:'10px 22px',cursor:'pointer',fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:13}}>Delete</button><button className="ghost-btn" onClick={()=>setConfirmDelChap(null)}>Keep</button></div></div></Modal>}
+
+    <div style={{width:70,background:C.surface,borderRight:`1px solid ${C.border}`,display:'flex',flexDirection:'column',alignItems:'center',paddingTop:14,gap:3,flexShrink:0}}>
+      <button onClick={onBack} title="All Stories" style={{width:40,height:40,borderRadius:10,border:`1px solid ${C.border}`,background:'transparent',color:C.inkMuted,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,marginBottom:12,transition:'all .18s'}} onMouseEnter={e=>{e.currentTarget.style.borderColor=accent;e.currentTarget.style.color=accent;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.inkMuted;}}>←</button>
+      <div style={{width:8,height:8,borderRadius:'50%',background:accent,marginBottom:12,boxShadow:`0 0 10px ${accent}80`}}/>
+      {TABS.map(t=>(<button key={t.id} className="tab-btn" onClick={()=>setTab(t.id)} title={t.label} style={{background:tab===t.id?`${accent}15`:'transparent',outline:tab===t.id?`1px solid ${accent}40`:'none'}}><span style={{fontSize:20}}>{t.icon}</span><span style={{fontSize:9,fontFamily:"'JetBrains Mono',monospace",color:tab===t.id?accent:C.inkDim,letterSpacing:.5}}>{t.label}</span>{t.id==='world'&&story.loreSummary&&<div style={{position:'absolute',top:7,right:7,width:6,height:6,borderRadius:'50%',background:C.green,boxShadow:`0 0 6px ${C.green}`}}/>}</button>))}
+      <div style={{marginTop:'auto',marginBottom:10,display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+        <button onClick={exportStory} title="Export" style={{width:36,height:36,borderRadius:9,border:`1px solid ${C.border}`,background:'transparent',color:C.inkDim,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,transition:'all .18s'}} onMouseEnter={e=>{e.currentTarget.style.borderColor=C.teal;e.currentTarget.style.color=C.teal;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.inkDim;}}>📤</button>
+        {story.loreSummary&&<div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4}}><div style={{width:6,height:6,borderRadius:'50%',background:C.green,animation:'pulse 2.5s ease infinite'}}/><span style={{fontSize:8,color:C.green,fontFamily:"'JetBrains Mono',monospace",textTransform:'uppercase',textAlign:'center',lineHeight:1.4}}>lore{'\n'}on</span></div>}
+      </div>
+    </div>
+
+    {tab==='write'&&(<>
+      <div style={{width:195,background:C.surface,borderRight:`1px solid ${C.border}`,padding:'14px 10px',display:'flex',flexDirection:'column',gap:4,overflowY:'auto',flexShrink:0}}>
+        <div style={{...lbl,marginBottom:4}}><span style={{color:accent}}>✦</span> {story.title}</div>
+        <div style={{...lbl,marginBottom:6}}>Chapters</div>
+        {story.chapters.map(ch=>(<div key={ch.id} style={{display:'flex',alignItems:'center',gap:4}}>
+          <div onClick={()=>setActiveChap(ch.id)} style={{flex:1,padding:'9px 11px',borderRadius:8,cursor:'pointer',transition:'all .18s',borderLeft:`2px solid ${activeChap===ch.id?accent:'transparent'}`,background:activeChap===ch.id?`${accent}0e`:'transparent'}}>
+            {editingTitle===ch.id?(<input autoFocus defaultValue={ch.title} onBlur={e=>{upd({chapters:story.chapters.map(c=>c.id===ch.id?{...c,title:e.target.value||ch.title}:c)});setEditingTitle(null);}} onKeyDown={e=>e.key==='Enter'&&e.target.blur()} style={{background:'transparent',border:'none',outline:'none',color:C.ink,fontSize:13,width:'100%',fontFamily:"'Crimson Pro',serif"}} onClick={e=>e.stopPropagation()}/>):(<div style={{fontSize:13,color:activeChap===ch.id?accent:C.inkMuted,fontFamily:"'Crimson Pro',serif"}} onDoubleClick={e=>{e.stopPropagation();setEditingTitle(ch.id);}}>{ch.title}</div>)}
+            <div style={{fontSize:11,color:C.inkDim,marginTop:3,fontFamily:"'JetBrains Mono',monospace"}}>{wc(ch.content)>0?`${wc(ch.content)} w`:'empty'}</div>
           </div>
-        )}
+          {story.chapters.length>1&&<button onClick={()=>setConfirmDelChap(ch)} title="Delete" style={{background:'transparent',border:'none',color:'transparent',cursor:'pointer',fontSize:11,padding:'2px 4px',borderRadius:4,transition:'all .15s',flexShrink:0}} onMouseEnter={e=>e.target.style.color=C.red} onMouseLeave={e=>e.target.style.color='transparent'}>✕</button>}
+        </div>))}
+        <button onClick={addChap} style={{marginTop:8,padding:'7px 11px',background:'transparent',border:`1px dashed ${C.border}`,borderRadius:8,color:C.inkDim,cursor:'pointer',fontSize:13,fontFamily:"'Crimson Pro',serif",transition:'all .18s'}} onMouseEnter={e=>{e.target.style.borderColor=accent;e.target.style.color=accent;}} onMouseLeave={e=>{e.target.style.borderColor=C.border;e.target.style.color=C.inkDim;}}>+ Chapter</button>
+        <div style={{marginTop:'auto',paddingTop:12,borderTop:`1px solid ${C.border}`}}><div style={{...lbl,marginBottom:4}}>Story Total</div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:18,color:accent,fontWeight:500}}>{totalWC.toLocaleString()} <span style={{fontSize:11,color:C.inkDim}}>words</span></div></div>
       </div>
 
-      {/* WRITE */}
-      {tab==='write'&&(
-        <React.Fragment>
-          <div style={{width:188,background:C.surface,borderRight:'1px solid '+C.border,padding:'12px 8px',display:'flex',flexDirection:'column',gap:3,overflowY:'auto',flexShrink:0}}>
-            <div style={{...lbl,marginBottom:8}}>
-              <span style={{color:accent}}>✦</span> {story.title}
-            </div>
-            <div style={{...lbl,marginTop:4}}>Chapters</div>
-            {story.chapters.map(ch=>(
-              <div key={ch.id} onClick={()=>setActiveChap(ch.id)} style={{padding:'8px 10px',borderRadius:7,cursor:'pointer',transition:'all .15s',borderLeft:'2px solid '+(activeChap===ch.id?accent:'transparent'),background:activeChap===ch.id?accent+'0f':'transparent',display:'flex',alignItems:'flex-start',gap:4}}>
-                <div style={{flex:1,minWidth:0}}>
-                  {editingTitle===ch.id?(
-                    <input autoFocus defaultValue={ch.title}
-                      onBlur={e=>{upd({chapters:story.chapters.map(c=>c.id===ch.id?{...c,title:e.target.value||ch.title}:c)});setEditingTitle(null);}}
-                      onKeyDown={e=>e.key==='Enter'&&e.target.blur()}
-                      style={{background:'transparent',border:'none',outline:'none',color:C.ink,fontSize:13,width:'100%',fontFamily:"'Crimson Pro',serif"}}
-                      onClick={e=>e.stopPropagation()}/>
-                  ):(
-                    <div style={{fontSize:13,color:activeChap===ch.id?accent:C.inkMuted,fontFamily:"'Crimson Pro',serif",overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} onDoubleClick={e=>{e.stopPropagation();setEditingTitle(ch.id);}}>{ch.title}</div>
-                  )}
-                  <div style={{fontSize:11,color:C.inkDim,marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>{wc(ch.content)>0?wc(ch.content)+' w':'empty'}</div>
-                </div>
-                {story.chapters.length>1&&<button onClick={e=>{e.stopPropagation();if(confirm('Delete "'+ch.title+'"?'))deleteChap(ch.id);}} style={{background:'transparent',border:'none',color:C.inkDim,cursor:'pointer',fontSize:11,padding:'0 2px',opacity:0.4,transition:'opacity .15s'}} onMouseEnter={e=>e.target.style.opacity=1} onMouseLeave={e=>e.target.style.opacity=0.4} title="Delete chapter">✕</button>}
-              </div>
-            ))}
-            <button onClick={addChap} style={{marginTop:6,padding:'6px 10px',background:'transparent',border:'1px dashed '+C.border,borderRadius:7,color:C.inkDim,cursor:'pointer',fontSize:13,fontFamily:"'Crimson Pro',serif"}}>+ Chapter</button>
-            <div style={{marginTop:'auto',paddingTop:10,borderTop:'1px solid '+C.border}}>
-              <div style={{...lbl,marginBottom:4}}>Story Total</div>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:16,color:accent}}>{totalWC.toLocaleString()} <span style={{fontSize:11,color:C.inkDim}}>words</span></div>
-            </div>
-          </div>
-
-          <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minWidth:0}}>
-            <div style={{height:52,borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',padding:'0 22px',gap:8,background:C.surface,flexShrink:0,flexWrap:'wrap'}}>
-              <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:C.ink,fontStyle:'italic',marginRight:'auto',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{curChap?.title}</span>
-              {story.loreSummary&&<span style={{fontSize:11,color:C.green,fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>✦ {story.loreSummary.title}</span>}
-              <button className="ghost-btn" style={{borderColor:accent+'40',color:accent,padding:'5px 12px',fontSize:12}} onClick={()=>runAI('continue')}>✨ Continue</button>
-              <button className="ghost-btn" style={{padding:'5px 12px',fontSize:12}} onClick={()=>runAI('humanize')}>🔄 Humanize</button>
-              <button className="ghost-btn" style={{padding:'5px 12px',fontSize:12}} onClick={()=>runAI('next')}>🎯 What's Next</button>
-            </div>
-            <div style={{flex:1,overflow:'auto',padding:'40px 68px'}}>
-              <textarea className="ink-editor"
-                style={{caretColor:accent}}
-                placeholder="Begin your story here…"
-                value={curChap?.content||''}
-                onChange={e=>setContent(e.target.value)}
-                onMouseUp={()=>setSelTxt(window.getSelection()?.toString()||'')}
-                onKeyUp={()=>setSelTxt(window.getSelection()?.toString()||'')}/>
-            </div>
-            <div style={{height:36,borderTop:'1px solid '+C.border,background:C.surface,display:'flex',alignItems:'center',padding:'0 22px',gap:18,flexShrink:0,flexWrap:'wrap'}}>
-              <span style={{fontSize:12,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>{wc(curChap?.content)} words</span>
-              {selTxt&&<span style={{fontSize:12,color:accent,fontFamily:"'JetBrains Mono',monospace"}}>✦ {wc(selTxt)} selected</span>}
-              <span style={{fontSize:11,color:C.inkDim,marginLeft:'auto',fontFamily:"'JetBrains Mono',monospace"}}>double-click chapter to rename</span>
-            </div>
-          </div>
-
-          {aiMode&&(
-            <div className="slide-in" style={{width:350,background:C.panel,borderLeft:'1px solid '+C.border,display:'flex',flexDirection:'column',overflow:'hidden',flexShrink:0}}>
-              <div style={{padding:'14px 18px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:8}}>
-                <span style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:accent,fontWeight:700}}>
-                  {aiMode==='continue'?'✨ Continuation':aiMode==='humanize'?'🔄 Humanized':'🎯 Story Directions'}
-                </span>
-                {story.loreSummary&&<span style={{fontSize:10,color:C.green,fontFamily:"'JetBrains Mono',monospace"}}>✦ lore-aware</span>}
-                <button onClick={()=>{setAiMode(null);setAiOut('');setAiErr('');}} style={{marginLeft:'auto',background:'none',border:'none',color:C.inkDim,cursor:'pointer',fontSize:22}}>×</button>
-              </div>
-              <div style={{flex:1,overflow:'auto',padding:18}}>
-                {aiLoading
-                  ?<div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:180,gap:14}}><Spinner color={accent}/><span style={{color:C.inkMuted,fontStyle:'italic',fontSize:15,animation:'pulse 1.5s ease infinite'}}>Writing…</span></div>
-                  :aiErr
-                    ?<div className="fade-in" style={{color:C.red,fontSize:14,fontFamily:"'JetBrains Mono',monospace",lineHeight:1.7}}>{aiErr}</div>
-                    :<div className="fade-in" style={{fontFamily:"'Crimson Pro',serif",fontSize:16,lineHeight:1.9,color:C.ink,whiteSpace:'pre-wrap'}}>{aiOut}</div>}
-              </div>
-              {aiOut&&!aiLoading&&(
-                <div style={{padding:14,borderTop:'1px solid '+C.border,display:'flex',gap:8,flexWrap:'wrap'}}>
-                  {aiMode!=='next'&&<button className="gold-btn" onClick={()=>{setContent((curChap.content+'\n\n'+aiOut).trim());setAiOut('');setAiMode(null);}} style={{flex:1}}>+ Add to Story</button>}
-                  <button className="ghost-btn" onClick={()=>navigator.clipboard?.writeText(aiOut)}>Copy</button>
-                  <button className="ghost-btn" onClick={()=>runAI(aiMode)}>↻ Redo</button>
-                </div>
-              )}
-            </div>
-          )}
-        </React.Fragment>
-      )}
-
-      {/* IDEAS */}
-      {tab==='ideas'&&(
-        <div style={{flex:1,overflow:'auto',padding:'40px 48px'}}>
-          <div style={{maxWidth:760,margin:'0 auto'}}>
-            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:32,fontWeight:700,color:C.ink,marginBottom:4}}>Story Ideas</h2>
-            <p style={{color:C.inkMuted,fontSize:16,fontFamily:"'Crimson Pro',serif",marginBottom:loreTxt?4:28}}>Generate fresh concepts that feel like they came from a real mind.</p>
-            {loreTxt&&<p style={{color:C.green,fontSize:12,marginBottom:24,fontFamily:"'JetBrains Mono',monospace"}}>✦ Ideas shaped by your world context</p>}
-            <div style={{marginBottom:18}}>
-              <div style={lbl}>Format</div>
-              <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
-                {GENRES.map(g=><button key={g} onClick={()=>upd({genre:g})} style={{padding:'7px 18px',borderRadius:24,cursor:'pointer',fontFamily:"'Playfair Display',serif",fontWeight:600,fontSize:13,transition:'all .18s',border:'1px solid '+(story.genre===g?accent:C.border),background:story.genre===g?accent:'transparent',color:story.genre===g?'#080605':C.inkMuted}}>{g}</button>)}
-              </div>
-            </div>
-            <div style={{marginBottom:22}}>
-              <div style={lbl}>Theme / Mood (optional)</div>
-              <Input value={themeInput} onChange={e=>setThemeInput(e.target.value)} placeholder="e.g. revenge, slow-burn romance, betrayal, redemption arc…"/>
-            </div>
-            <button className="gold-btn" onClick={generateIdeas} disabled={ideasLoading} style={{fontSize:15,padding:'12px 28px'}}>
-              {ideasLoading?<React.Fragment><Spinner color="#080605" size={15}/>Generating…</React.Fragment>:'✨ Generate 3 Ideas'}
-            </button>
-            {story.ideas?.length>0&&(
-              <div style={{marginTop:36,display:'flex',flexDirection:'column',gap:16}} className="fade-in">
-                {story.ideas.map((idea,i)=>(
-                  <div key={i} style={{background:C.card,border:'1px solid '+C.border,borderRadius:12,padding:22,transition:'border-color .2s'}}
-                    onMouseEnter={e=>e.currentTarget.style.borderColor=C.borderLight}
-                    onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
-                    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:10}}>
-                      <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:21,color:accent,fontStyle:'italic',lineHeight:1.3}}>{idea.title}</h3>
-                      <span style={{...chip(C.purple),flexShrink:0,marginLeft:12}}>{idea.tone}</span>
-                    </div>
-                    <p style={{fontSize:16,color:C.inkMuted,fontStyle:'italic',marginBottom:12,lineHeight:1.7,fontFamily:"'Crimson Pro',serif"}}>"{idea.hook}"</p>
-                    <p style={{fontSize:15,color:C.ink,lineHeight:1.8,marginBottom:14,fontFamily:"'Crimson Pro',serif"}}>{idea.premise}</p>
-                    <div style={{display:'flex',gap:14,flexWrap:'wrap',marginBottom:14}}>
-                      <div style={{flex:1,minWidth:140}}><div style={lbl}>Protagonist</div><p style={{color:C.inkMuted,fontSize:14,lineHeight:1.6}}>{idea.protagonist}</p></div>
-                      <div style={{flex:1,minWidth:140}}><div style={lbl}>The Twist</div><p style={{color:C.teal,fontSize:14,lineHeight:1.6}}>{idea.twist}</p></div>
-                    </div>
-                    <button className="ghost-btn" style={{borderColor:accent+'40',color:accent}} onClick={()=>useIdea(idea)}>→ Start Writing This</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minWidth:0}}>
+        <div style={{height:54,borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',padding:'0 24px',gap:8,background:C.surface,flexShrink:0,overflowX:'auto'}}>
+          <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:C.ink,fontStyle:'italic',marginRight:'auto',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',minWidth:80}}>{curChap?.title}</span>
+          {story.loreSummary&&<span style={{fontSize:10,color:C.green,fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>✦ {story.loreSummary.title}</span>}
+          <button className="ghost-btn" style={{borderColor:`${accent}35`,color:accent,fontSize:13,padding:'6px 12px'}} onClick={()=>runAI('continue')}>✨ Continue</button>
+          <button className="ghost-btn" style={{fontSize:13,padding:'6px 12px'}} onClick={()=>runAI('humanize')}>🔄 Humanize</button>
+          <button className="ghost-btn" style={{fontSize:13,padding:'6px 12px'}} onClick={()=>runAI('next')}>🎯 What Next</button>
+          <button className="ghost-btn" style={{fontSize:13,padding:'6px 12px'}} onClick={()=>runAI('synopsis')}>📋 Synopsis</button>
+          <button className="ghost-btn" style={{fontSize:13,padding:'6px 12px'}} onClick={()=>runAI('outline')}>🗺 Outline</button>
+          <div style={{width:1,height:24,background:C.border,flexShrink:0}}/>
+          <button className="ghost-btn" style={{fontSize:13,padding:'6px 12px',borderColor:readerOpen?`${accent}40`:undefined,color:readerOpen?accent:undefined}} onClick={()=>{setReaderOpen(p=>!p);if(!readerOpen)setAiMode(null);}}>🔊 Read</button>
         </div>
-      )}
+        <div style={{flex:1,overflow:'auto',padding:'42px 72px'}}><textarea className="ink-editor" style={{caretColor:accent}} placeholder={"Begin writing here…\n\nTip: Use the toolbar above to get AI help — Continue your story, Humanize the tone, or brainstorm What Comes Next."} value={curChap?.content||''} onChange={e=>setContent(e.target.value)} onMouseUp={()=>setSelTxt(window.getSelection()?.toString()||'')} onKeyUp={()=>setSelTxt(window.getSelection()?.toString()||'')}/></div>
+        <div style={{height:38,borderTop:`1px solid ${C.border}`,background:C.surface,display:'flex',alignItems:'center',padding:'0 72px',gap:18,flexShrink:0}}><span style={{fontSize:12,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>{wc(curChap?.content)} words</span>{selTxt&&<span style={{fontSize:12,color:accent,fontFamily:"'JetBrains Mono',monospace"}}>✦ {wc(selTxt)} selected — Humanize uses selection</span>}<span style={{fontSize:11,color:C.inkDim,marginLeft:'auto',fontFamily:"'JetBrains Mono',monospace"}}>double-click chapter to rename</span></div>
+      </div>
 
-      {/* CAST */}
-      {tab==='characters'&&<CharactersPanel characters={story.characters} setCharacters={c=>upd({characters:c})} loreTxt={loreTxt} accent={accent}/>}
-
-      {/* WORLD */}
-      {tab==='world'&&<WorldTab loreRaw={story.loreRaw} setLoreRaw={v=>upd({loreRaw:v})} loreSummary={story.loreSummary} setLoreSummary={v=>upd({loreSummary:v})} accent={accent}/>}
-
-      {/* COACH */}
-      {tab==='chat'&&(
-        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-          <div style={{padding:'18px 26px',borderBottom:'1px solid '+C.border,background:C.surface,flexShrink:0}}>
-            <div style={{display:'flex',alignItems:'center',gap:10}}>
-              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:C.ink,fontStyle:'italic'}}>Writing Coach</h2>
-              {story.loreSummary&&<span style={{fontSize:11,color:C.green,fontFamily:"'JetBrains Mono',monospace"}}>✦ knows your world</span>}
-            </div>
-            <p style={{fontSize:14,color:C.inkMuted,marginTop:3}}>Ask anything — pacing, structure, dialogue, plot holes, genre rules.</p>
-          </div>
-          <div style={{flex:1,overflow:'auto',padding:'22px 26px',display:'flex',flexDirection:'column',gap:12}}>
-            {chatMsgs.length===0&&(
-              <div style={{textAlign:'center',paddingTop:52,color:C.inkMuted}} className="fade-in">
-                <div style={{fontSize:48,marginBottom:16}}>📖</div>
-                <p style={{fontStyle:'italic',fontSize:18,marginBottom:24,fontFamily:"'Playfair Display',serif"}}>What are you working on?</p>
-                <div style={{display:'flex',flexWrap:'wrap',gap:7,justifyContent:'center'}}>
-                  {PROMPTS.map(p=><button key={p} className="ghost-btn" onClick={()=>setChatIn(p)} style={{fontSize:14}}>{p}</button>)}
-                </div>
-              </div>
-            )}
-            {chatMsgs.map((m,i)=>(
-              <div key={i} className="fade-in" style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start'}}>
-                <div style={{maxWidth:'82%',padding:'11px 16px',lineHeight:1.75,fontSize:16,fontFamily:"'Crimson Pro',serif",...(m.role==='user'?{background:accent+'12',border:'1px solid '+accent+'25',borderRadius:'12px 12px 4px 12px',color:C.ink}:{background:C.card,border:'1px solid '+C.border,borderRadius:'12px 12px 12px 4px',color:C.ink,whiteSpace:'pre-wrap'})}}>{m.content}</div>
-              </div>
-            ))}
-            {chatLoading&&<div style={{display:'flex'}}><div style={{background:C.card,border:'1px solid '+C.border,borderRadius:'12px 12px 12px 4px',padding:'11px 16px',display:'flex',alignItems:'center',gap:10}}><Spinner/><span style={{color:C.inkMuted,fontStyle:'italic',fontSize:15}}>Thinking…</span></div></div>}
-            <div ref={chatEndRef}/>
-          </div>
-          <div style={{padding:'12px 26px',borderTop:'1px solid '+C.border,background:C.surface,display:'flex',gap:10,flexShrink:0}}>
-            <textarea value={chatIn} onChange={e=>setChatIn(e.target.value)}
-              onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}}
-              placeholder="Ask your writing coach… (Enter to send)"
-              rows={2} style={{flex:1,padding:'10px 13px',background:C.card,border:'1px solid '+C.border,borderRadius:9,color:C.ink,fontSize:16,outline:'none',resize:'none',minHeight:46,maxHeight:110,fontFamily:"'Crimson Pro',serif"}}/>
-            <button className="gold-btn" onClick={sendChat} disabled={chatLoading||!chatIn.trim()}>
-              {chatLoading?<Spinner color="#080605" size={15}/>:'Send'}
-            </button>
-          </div>
+      {aiMode&&(<div className="slide-in" style={{width:360,background:C.panel,borderLeft:`1px solid ${C.border}`,display:'flex',flexDirection:'column',overflow:'hidden',flexShrink:0}}>
+        <div style={{padding:'15px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:accent,fontWeight:700}}>{{continue:'✨ Continuation',humanize:'🔄 Humanized',next:'🎯 Story Directions',synopsis:'📋 Synopsis',outline:'🗺 Plot Outline'}[aiMode]}</span>
+          {story.loreSummary&&<span style={{fontSize:10,color:C.green,fontFamily:"'JetBrains Mono',monospace"}}>✦ lore</span>}
+          <button onClick={()=>{setAiMode(null);setAiOut('');}} style={{marginLeft:'auto',background:'none',border:'none',color:C.inkDim,cursor:'pointer',fontSize:22,lineHeight:1,transition:'color .15s'}} onMouseEnter={e=>e.target.style.color=C.red} onMouseLeave={e=>e.target.style.color=C.inkDim}>×</button>
         </div>
-      )}
-    </div>
-  );
+        <div style={{flex:1,overflow:'auto',padding:20}}>{aiLoading?<div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:200,gap:16}}><Spinner color={accent} size={24}/><span style={{color:C.inkMuted,fontStyle:'italic',fontSize:15,animation:'pulse 1.5s ease infinite'}}>{{continue:'Continuing your story…',humanize:'Rewriting naturally…',next:'Brainstorming paths…',synopsis:'Crafting synopsis…',outline:'Building outline…'}[aiMode]}</span></div>:<div className="fade-in" style={{fontFamily:"'Crimson Pro',serif",fontSize:16,lineHeight:1.95,color:C.ink,whiteSpace:'pre-wrap'}}>{aiOut}</div>}</div>
+        {aiOut&&!aiLoading&&(<div style={{padding:14,borderTop:`1px solid ${C.border}`,display:'flex',gap:8,flexWrap:'wrap'}}>
+          {(aiMode==='continue'||aiMode==='humanize'||aiMode==='synopsis')&&<button className="gold-btn" onClick={()=>{if(aiMode==='synopsis'){upd({description:aiOut});}else{setContent(((curChap.content||'')+'\n\n'+aiOut).trim());}setAiOut('');setAiMode(null);setToast({msg:aiMode==='synopsis'?'Synopsis saved!':'Added to story!',type:'success'});}} style={{flex:1}}>{aiMode==='synopsis'?'Save Synopsis':'+ Add to Story'}</button>}
+          <button className="ghost-btn" onClick={()=>{navigator.clipboard?.writeText(aiOut);setToast({msg:'Copied!',type:'info'});}}>Copy</button>
+          <button className="ghost-btn" onClick={()=>runAI(aiMode)}>↻ Redo</button>
+        </div>)}
+      </div>)}
+      {readerOpen&&!aiMode&&<ReadAloudPanel text={selTxt||curChap?.content||''} accent={accent} onClose={()=>setReaderOpen(false)}/>}
+    </>)}
+
+    {tab==='ideas'&&(<div style={{flex:1,overflow:'auto',padding:'42px 52px'}}><div style={{maxWidth:780,margin:'0 auto'}}>
+      <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:34,fontWeight:700,color:C.ink,marginBottom:6}}>Story Ideas</h2>
+      <p style={{color:C.inkMuted,fontSize:16,fontFamily:"'Crimson Pro',serif",marginBottom:loreTxt?6:26,lineHeight:1.7}}>Generate fresh concepts that feel like they came from a real creative mind.</p>
+      {loreTxt&&<p style={{color:C.green,fontSize:12,marginBottom:22,fontFamily:"'JetBrains Mono',monospace"}}>✦ Ideas shaped by your world context</p>}
+      <div style={{marginBottom:18}}><div style={lbl}>Format</div><div style={{display:'flex',flexWrap:'wrap',gap:8}}>{GENRES.map(g=><button key={g} onClick={()=>upd({genre:g})} style={{padding:'7px 18px',borderRadius:24,cursor:'pointer',fontFamily:"'Playfair Display',serif",fontWeight:600,fontSize:13,transition:'all .2s',border:`1px solid ${story.genre===g?accent:C.border}`,background:story.genre===g?accent:'transparent',color:story.genre===g?'#080605':C.inkMuted}}>{g}</button>)}</div></div>
+      <div style={{marginBottom:22}}><div style={lbl}>Theme / Mood (optional)</div><Input value={themeInput} onChange={e=>setThemeInput(e.target.value)} placeholder="e.g. revenge, slow-burn romance, betrayal, redemption arc, cosmic horror…"/></div>
+      <button className="gold-btn" onClick={generateIdeas} disabled={ideasLoading} style={{fontSize:15,padding:'13px 30px'}}>{ideasLoading?<><Spinner color="#080605" size={15}/>Generating…</>:'✨ Generate 3 Ideas'}</button>
+      {story.ideas?.length>0&&(<div style={{marginTop:34,display:'flex',flexDirection:'column',gap:18}} className="fade-in">
+        {story.ideas.map((idea,i)=>(<div key={i} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:24,transition:'all .25s'}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.borderLight} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12}}><h3 style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:accent,fontStyle:'italic',lineHeight:1.3}}>{idea.title}</h3><span style={{...chip(C.purple),flexShrink:0,marginLeft:14}}>{idea.tone}</span></div>
+          <p style={{fontSize:17,color:C.inkSoft,fontStyle:'italic',marginBottom:14,lineHeight:1.75,fontFamily:"'Crimson Pro',serif",borderLeft:`2px solid ${accent}40`,paddingLeft:16}}>"{idea.hook}"</p>
+          <p style={{fontSize:15,color:C.ink,lineHeight:1.85,marginBottom:16,fontFamily:"'Crimson Pro',serif"}}>{idea.premise}</p>
+          <div style={{display:'flex',gap:16,flexWrap:'wrap',marginBottom:16}}><div style={{flex:1,minWidth:140}}><div style={lbl}>Protagonist</div><p style={{color:C.inkMuted,fontSize:14,lineHeight:1.65}}>{idea.protagonist}</p></div><div style={{flex:1,minWidth:140}}><div style={lbl}>The Twist</div><p style={{color:C.teal,fontSize:14,lineHeight:1.65}}>{idea.twist}</p></div></div>
+          <button className="ghost-btn" style={{borderColor:`${accent}35`,color:accent}} onClick={()=>useIdea(idea)}>→ Start Writing This</button>
+        </div>))}
+      </div>)}
+    </div></div>)}
+
+    {tab==='characters'&&<CharactersPanel characters={story.characters} setCharacters={c=>upd({characters:c})} loreTxt={loreTxt} accent={accent}/>}
+    {tab==='world'&&<WorldTab loreRaw={story.loreRaw} setLoreRaw={v=>upd({loreRaw:v})} loreSummary={story.loreSummary} setLoreSummary={v=>upd({loreSummary:v})} accent={accent} story={story} onSetTab={setTab} onRoute={(type,data)=>{
+      if(type==='chapters'){
+        // Add each detected chapter to the story
+        const newChaps=data.map((ch,i)=>{const newId=Math.max(0,...story.chapters.map(c=>c.id))+1+i;return{id:newId,title:ch.title||`Imported Chapter ${i+1}`,content:ch.content||''};});
+        upd({chapters:[...story.chapters,...newChaps]});
+        setActiveChap(newChaps[0].id);
+        setToast({msg:`${newChaps.length} chapter${newChaps.length>1?'s':''} added to Write!`,type:'success'});
+        setTimeout(()=>setTab('write'),800);
+      } else if(type==='characters'){
+        // Add each detected character to the cast
+        const newChars=data.map((c,i)=>({id:Date.now()+i,name:c.name||'Unknown',role:c.role||'Supporting',age:c.age||'',personality:c.personality||'',backstory:c.backstory||'',speech:c.speech||'',voiceSample:''}));
+        upd({characters:[...story.characters,...newChars]});
+        setToast({msg:`${newChars.length} character${newChars.length>1?'s':''} added to Cast!`,type:'success'});
+      } else if(type==='outline'){
+        // Add outline as a special chapter with notes
+        const newId=Math.max(0,...story.chapters.map(c=>c.id))+1;
+        upd({chapters:[...story.chapters,{id:newId,title:'Plot Outline',content:`── PLOT OUTLINE ──\n\n${data}\n\n──────────────\n\n`}]});
+        setToast({msg:'Plot outline added as a chapter!',type:'success'});
+      }
+    }}/>}
+
+    {tab==='chat'&&(<div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{padding:'20px 28px',borderBottom:`1px solid ${C.border}`,background:C.surface,flexShrink:0}}><div style={{display:'flex',alignItems:'center',gap:10}}><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:C.ink,fontStyle:'italic'}}>Writing Coach</h2>{story.loreSummary&&<span style={{fontSize:11,color:C.green,fontFamily:"'JetBrains Mono',monospace"}}>✦ knows your world</span>}{story.characters.length>0&&<span style={{fontSize:11,color:C.purple,fontFamily:"'JetBrains Mono',monospace"}}>✦ knows {story.characters.length} characters</span>}</div><p style={{fontSize:14,color:C.inkMuted,marginTop:4,fontFamily:"'Crimson Pro',serif"}}>Ask about pacing, structure, dialogue, plot holes, genre rules, or get ideas for scenes.</p></div>
+      <div style={{flex:1,overflow:'auto',padding:'24px 28px',display:'flex',flexDirection:'column',gap:14}}>
+        {chatMsgs.length===0&&(<div style={{textAlign:'center',paddingTop:48,color:C.inkMuted}} className="fade-in"><div style={{fontSize:52,marginBottom:18,animation:'float 3s ease-in-out infinite'}}>📖</div><p style={{fontStyle:'italic',fontSize:20,marginBottom:28,fontFamily:"'Playfair Display',serif",color:C.inkSoft}}>What are you working on?</p><div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',maxWidth:600,margin:'0 auto'}}>{PROMPTS.map(p=><button key={p} className="ghost-btn" onClick={()=>setChatIn(p)} style={{fontSize:14}}>{p}</button>)}</div></div>)}
+        {chatMsgs.map((m,i)=>(<div key={i} className="fade-in" style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start'}}><div style={{maxWidth:'80%',padding:'13px 18px',lineHeight:1.8,fontSize:16,fontFamily:"'Crimson Pro',serif",...(m.role==='user'?{background:`${accent}10`,border:`1px solid ${accent}20`,borderRadius:'14px 14px 4px 14px',color:C.ink}:{background:C.card,border:`1px solid ${C.border}`,borderRadius:'14px 14px 14px 4px',color:C.ink,whiteSpace:'pre-wrap'})}}>{m.content}</div></div>))}
+        {chatLoading&&<div style={{display:'flex'}}><div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:'14px 14px 14px 4px',padding:'13px 18px',display:'flex',alignItems:'center',gap:10}}><Spinner size={16}/><span style={{color:C.inkMuted,fontStyle:'italic',fontSize:15}}>Thinking…</span></div></div>}
+        <div ref={chatEndRef}/>
+      </div>
+      <div style={{padding:'14px 28px',borderTop:`1px solid ${C.border}`,background:C.surface,display:'flex',gap:10,flexShrink:0}}>
+        <textarea value={chatIn} onChange={e=>setChatIn(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}} placeholder="Ask your writing coach anything… (Enter to send)" rows={2} style={{flex:1,padding:'11px 15px',background:C.card,border:`1px solid ${C.border}`,borderRadius:10,color:C.ink,fontSize:16,outline:'none',resize:'none',minHeight:48,maxHeight:120,fontFamily:"'Crimson Pro',serif",transition:'border-color .25s'}}/>
+        <button className="gold-btn" onClick={sendChat} disabled={chatLoading||!chatIn.trim()} style={{alignSelf:'flex-end'}}>{chatLoading?<Spinner color="#080605" size={15}/>:'Send'}</button>
+      </div>
+    </div>)}
+  </div>);
 }
 
-/* ─── Root App ────────────────────────────────────────────────────────────── */
 function App(){
-  const [stories,setStories]=useState(()=>loadStories());
-  const [activeId,setActiveId]=useState(null);
-  const [showSettings,setShowSettings]=useState(false);
-
-  // Auto-save to localStorage
-  useEffect(()=>{saveStories(stories);},[stories]);
-
-  // Show settings on first load if no API key
-  useEffect(()=>{if(!getApiKey())setShowSettings(true);},[]);
-
+  const[hasKey,setHasKey]=useState(!!localStorage.getItem('inkforge_api_key'));const[showKeyModal,setShowKeyModal]=useState(false);
+  const[stories,setStories]=useState(()=>{try{return JSON.parse(localStorage.getItem('inkforge_stories')||'[]');}catch{return[];}});
+  const[activeId,setActiveId]=useState(null);
+  useEffect(()=>{try{localStorage.setItem('inkforge_stories',JSON.stringify(stories));}catch(e){console.error(e);}},[stories]);
+  const saveKey=(key)=>{localStorage.setItem('inkforge_api_key',key);setHasKey(true);setShowKeyModal(false);};
   const activeStory=stories.find(s=>s.id===activeId)||null;
-
-  const create=(title,accent,genre)=>{
-    const s=newStory(title,accent);
-    s.genre=genre;
-    setStories(p=>[...p,s]);
-    setActiveId(s.id);
-  };
-
+  const create=(title,accent,genre)=>{const s=newStory(title,accent);s.genre=genre;setStories(p=>[...p,s]);setActiveId(s.id);};
   const update=(id,patch)=>setStories(p=>p.map(s=>s.id===id?{...s,...patch}:s));
   const del=(id)=>{setStories(p=>p.filter(s=>s.id!==id));if(activeId===id)setActiveId(null);};
   const rename=(id,title)=>setStories(p=>p.map(s=>s.id===id?{...s,title,updatedAt:Date.now()}:s));
-
-  return(
-    <React.Fragment>
-      {showSettings&&<SettingsPanel onClose={()=>setShowSettings(false)}/>}
-      <div style={{display:'flex',height:'100vh',background:C.bg,overflow:'hidden',position:'relative'}}>
-        {/* Settings gear - always visible */}
-        <button onClick={()=>setShowSettings(true)} title="Settings" style={{position:'fixed',top:16,right:20,zIndex:50,width:34,height:34,borderRadius:8,border:'1px solid '+C.border,background:C.surface,color:C.inkDim,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,transition:'all .15s'}} onMouseEnter={e=>{e.currentTarget.style.borderColor=C.gold;e.currentTarget.style.color=C.gold;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.inkDim;}}>⚙</button>
-        {activeStory
-          ?<StoryWorkspace story={activeStory} onUpdate={update} onBack={()=>setActiveId(null)}/>
-          :<Dashboard stories={stories} onOpen={setActiveId} onCreate={create} onDelete={del} onRename={rename}/>
-        }
-      </div>
-    </React.Fragment>
-  );
+  if(!hasKey)return<ApiKeyScreen onSave={saveKey}/>;
+  return(<div style={{display:'flex',height:'100vh',background:C.bg,overflow:'hidden'}}>
+    {showKeyModal&&<Modal onClose={()=>setShowKeyModal(false)}><div style={{padding:'38px 40px',width:480}}><h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:C.ink,marginBottom:22,fontStyle:'italic'}}>Update API Key</h2><div style={{marginBottom:18}}><div style={lbl}>New Anthropic API Key</div><input type="password" placeholder="sk-ant-..." onKeyDown={e=>{if(e.key==='Enter'&&e.target.value.trim())saveKey(e.target.value.trim());}} style={{width:'100%',padding:'13px 16px',background:C.card,border:`1px solid ${C.border}`,borderRadius:9,color:C.ink,fontFamily:"'JetBrains Mono',monospace",fontSize:14,outline:'none',transition:'border-color .25s'}} autoFocus onChange={e=>{}}/></div><p style={{color:C.inkDim,fontSize:12,fontFamily:"'JetBrains Mono',monospace",marginBottom:22}}>Press Enter to save. Stored only in this browser.</p><button className="ghost-btn" onClick={()=>setShowKeyModal(false)}>Cancel</button></div></Modal>}
+    {activeStory?<StoryWorkspace story={activeStory} onUpdate={update} onBack={()=>setActiveId(null)}/>:<Dashboard stories={stories} onOpen={setActiveId} onCreate={create} onDelete={del} onRename={rename} onKeyChange={()=>setShowKeyModal(true)}/>}
+  </div>);
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
