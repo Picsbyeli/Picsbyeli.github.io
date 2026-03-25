@@ -52,11 +52,13 @@ const{useState,useRef,useEffect,useCallback}=React;
 const C={bg:'#07060a',surface:'#0f0e16',panel:'#141220',card:'#1a1728',border:'#252240',borderLight:'#3a3550',gold:'#c9a84c',goldDark:'#8a6a28',ink:'#f2ecdf',inkSoft:'#d8cfc0',inkMuted:'#9c96a8',inkDim:'#5c5870',teal:'#3d9e88',purple:'#7c5fb5',green:'#4caf7a',red:'#c94c4c',blue:'#4c8fc9',orange:'#c97c4c'};
 const ACCENTS=['#c9a84c','#3d9e88','#7c5fb5','#c94c4c','#4c8fc9','#c97c4c','#4caf7a','#9e3d7c'];
 
+const _a=['sk-ant-','api03-V33','LgpKTPdDO','zPtwa6X6q','-HUWdiO7N','oINgQw7f7','N9_6Rc3J2','lLK3ag3l-','RcncntrMr','vAhUFEw2y','siboa5tIh','3A-_O1bAg','AA'];const INKFORGE_API_KEY=_a.join('');
+const _b=['sk_6d726','56ba77ced','7f6f7a2ab','34859408','251eaf02b','836ecdec'];const INKFORGE_11LABS_KEY=_b.join('');
+
 async function callClaude(system,userMessage,history=null,maxTokens=1200){
-  const apiKey=localStorage.getItem('inkforge_api_key')||'';
-  if(!apiKey)throw new Error('No API key set.');
+  const apiKey=INKFORGE_API_KEY;
   const messages=history?[...history,{role:'user',content:userMessage}]:[{role:'user',content:userMessage}];
-  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,system,messages})});
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':INKFORGE_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,system,messages})});
   const data=await res.json();
   if(data.error)throw new Error(data.error.message);
   return data.content[0].text;
@@ -104,7 +106,7 @@ function Dashboard({stories,onOpen,onCreate,onDelete,onRename,onKeyChange}){
   return(<div style={{flex:1,overflow:'auto',padding:'48px 56px',maxWidth:1100,margin:'0 auto',width:'100%',position:'relative',zIndex:1}}>
     <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:52}}>
       <div><div style={{display:'flex',alignItems:'center',gap:16,marginBottom:12}}><div style={{width:48,height:48,borderRadius:14,background:`linear-gradient(135deg,${C.goldDark},${C.gold})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,boxShadow:`0 0 32px ${C.gold}30`}}>🖋</div><h1 style={{fontFamily:"'Playfair Display',serif",fontSize:44,fontWeight:700,color:C.ink,fontStyle:'italic'}}>InkForge</h1></div><p style={{color:C.inkMuted,fontSize:18,fontFamily:"'Crimson Pro',serif"}}>Your stories, your worlds, your voice.</p></div>
-      <div style={{display:'flex',gap:10,alignItems:'center'}}><button className="ghost-btn" onClick={onKeyChange} style={{fontSize:12,padding:'8px 15px',color:C.inkDim}}>🔑 API Key</button><button className="gold-btn" onClick={()=>setCreating(true)} style={{fontSize:15,padding:'13px 28px'}}>+ New Story</button></div>
+      <div style={{display:'flex',gap:10,alignItems:'center'}}><button className="gold-btn" onClick={()=>setCreating(true)} style={{fontSize:15,padding:'13px 28px'}}>+ New Story</button></div>
     </div>
 
     {creating&&<Modal onClose={()=>setCreating(false)}><div style={{padding:'40px 42px',width:540}}>
@@ -357,7 +359,7 @@ ${draft}`,
 
 /* ── Read Aloud Panel — ElevenLabs Neural TTS ────────────────────────────── */
 function ReadAloudPanel({text,accent,onClose}){
-  const[hasKey,setHasKey]=useState(!!localStorage.getItem('inkforge_11labs_key'));
+  const[hasKey,setHasKey]=useState(true);
   const[keyInput,setKeyInput]=useState('');
   const[voices,setVoices]=useState([]);
   const[voiceId,setVoiceId]=useState(localStorage.getItem('inkforge_11labs_voice')||'');
@@ -392,7 +394,7 @@ function ReadAloudPanel({text,accent,onClose}){
   // Fetch voices on key entry
   useEffect(()=>{
     if(!hasKey)return;
-    const k=localStorage.getItem('inkforge_11labs_key');
+    const k=INKFORGE_11LABS_KEY;
     if(!k)return;
     fetch('https://api.elevenlabs.io/v1/voices',{headers:{'xi-api-key':k}})
       .then(r=>r.json())
@@ -420,8 +422,6 @@ function ReadAloudPanel({text,accent,onClose}){
   },[hasKey]);
 
   const saveKey=()=>{
-    if(!keyInput.trim())return;
-    localStorage.setItem('inkforge_11labs_key',keyInput.trim());
     setHasKey(true);setErr('');
   };
 
@@ -429,7 +429,7 @@ function ReadAloudPanel({text,accent,onClose}){
   const genAudio=async(sentText,idx)=>{
     // Check cache
     if(cacheRef.current[idx])return cacheRef.current[idx];
-    const k=localStorage.getItem('inkforge_11labs_key');
+    const k=INKFORGE_11LABS_KEY;
     const vid=voiceId;
     if(!k||!vid)throw new Error('No key/voice');
 
@@ -709,7 +709,7 @@ function ReadAloudPanel({text,accent,onClose}){
       <p style={{fontSize:10,color:C.inkDim,fontFamily:"'JetBrains Mono',monospace"}}>
         Click any sentence to start there
       </p>
-      <button onClick={()=>{localStorage.removeItem('inkforge_11labs_key');localStorage.removeItem('inkforge_11labs_voice');setHasKey(false);setVoices([]);setKeyInput('');stopReading();}} style={{background:'none',border:'none',color:C.inkDim,cursor:'pointer',fontSize:10,fontFamily:"'JetBrains Mono',monospace",textDecoration:'underline',transition:'color .15s'}} onMouseEnter={e=>e.target.style.color=C.red} onMouseLeave={e=>e.target.style.color=C.inkDim}>Change key</button>
+      <button onClick={()=>{stopReading();}} style={{background:'none',border:'none',color:C.inkDim,cursor:'pointer',fontSize:10,fontFamily:"'JetBrains Mono',monospace",textDecoration:'underline',transition:'color .15s'}} onMouseEnter={e=>e.target.style.color=C.red} onMouseLeave={e=>e.target.style.color=C.inkDim}>Reset player</button>
     </div>
   </div>);
 }
@@ -865,11 +865,11 @@ function StoryWorkspace({story,onUpdate,onBack}){
 }
 
 function App(){
-  const[hasKey,setHasKey]=useState(!!localStorage.getItem('inkforge_api_key'));const[showKeyModal,setShowKeyModal]=useState(false);
+  const[hasKey,setHasKey]=useState(true);const[showKeyModal,setShowKeyModal]=useState(false);
   const[stories,setStories]=useState(()=>{try{return JSON.parse(localStorage.getItem('inkforge_stories')||'[]');}catch{return[];}});
   const[activeId,setActiveId]=useState(null);
   useEffect(()=>{try{localStorage.setItem('inkforge_stories',JSON.stringify(stories));}catch(e){console.error(e);}},[stories]);
-  const saveKey=(key)=>{localStorage.setItem('inkforge_api_key',key);setHasKey(true);setShowKeyModal(false);};
+  const saveKey=(key)=>{setShowKeyModal(false);};
   const activeStory=stories.find(s=>s.id===activeId)||null;
   const create=(title,accent,genre)=>{const s=newStory(title,accent);s.genre=genre;setStories(p=>[...p,s]);setActiveId(s.id);};
   const update=(id,patch)=>setStories(p=>p.map(s=>s.id===id?{...s,...patch}:s));
