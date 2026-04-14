@@ -137,8 +137,8 @@ const PasswordProtection = {
     
     document.body.insertBefore(modal, document.body.firstChild);
     
-    // Block all interaction
-    document.body.style.pointerEvents = 'none';
+    // Block all interaction with page content behind modal
+    document.body.classList.add('password-protected');
   },
   
   showPasswordModal() {
@@ -168,6 +168,10 @@ const PasswordProtection = {
             class="password-input" 
             placeholder="Enter password"
             autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            inputmode="text"
           />
           <div id="password-error" class="password-error"></div>
           <div id="attempts-warning" class="attempts-warning"></div>
@@ -217,7 +221,7 @@ const PasswordProtection = {
         setTimeout(() => {
           modal.remove();
           // Enable page interactions
-          document.body.style.pointerEvents = 'auto';
+          document.body.classList.remove('password-protected');
         }, 300);
       } else {
         sessionAttempts++;
@@ -271,19 +275,30 @@ const PasswordProtection = {
     };
     
     submitBtn.addEventListener('click', handleSubmit);
+    submitBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      handleSubmit();
+    });
     passwordInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         handleSubmit();
       }
     });
     
-    // Block interaction with page content
-    document.body.style.pointerEvents = 'none';
+    // Prevent mobile browsers from blocking the input focus
+    passwordInput.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+    });
+    
+    // Block interaction with page content behind modal
+    document.body.classList.add('password-protected');
     
     // Focus on password input
     setTimeout(() => {
       passwordInput.focus();
-    }, 100);
+      // Extra mobile tap to ensure keyboard opens
+      passwordInput.click();
+    }, 300);
   }
 };
 
