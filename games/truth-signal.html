@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Truth Signal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #0a0b0f;
+    --card: #13151c;
+    --card-h: #1a1d28;
+    --border: #2a2d3a;
+    --cyan: #00e5ff;
+    --cyan-d: #00e5ff44;
+    --cyan-g: 0 0 20px #00e5ff55, 0 0 40px #00e5ff22;
+    --red: #ff3b5c;
+    --red-d: #ff3b5c44;
+    --red-g: 0 0 20px #ff3b5c55;
+    --green: #00ff88;
+    --green-d: #00ff8844;
+    --green-g: 0 0 20px #00ff8855;
+    --amber: #ffb800;
+    --amber-d: #ffb80044;
+    --purple: #b388ff;
+    --purple-d: #b388ff44;
+    --purple-g: 0 0 20px #b388ff55, 0 0 40px #b388ff22;
+    --txt: #e8e6e3;
+    --txt-d: #8a8d9b;
+    --txt-m: #555869;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--txt);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  #root { min-height: 100vh; }
+
+  .back-btn {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 10001;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    color: var(--txt-d);
+    background: #13151ccc;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    transition: all .2s ease;
+  }
+  .back-btn:hover {
+    color: var(--txt);
+    border-color: var(--cyan-d);
+    box-shadow: var(--cyan-g);
+  }
+
+  .app {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen-center {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 12px; animation: fadeIn 0.8s ease;
+  }
+
+  .logo-icon { width: 80px; height: 80px; margin-bottom: 8px; animation: pulseG 3s ease-in-out infinite; }
+  @keyframes pulseG { 0%,100%{ filter: drop-shadow(0 0 12px #00e5ff55); } 50%{ filter: drop-shadow(0 0 24px #00e5ffaa); } }
+
+  .title-main { font-family:'Bebas Neue',sans-serif; font-size:clamp(52px,12vw,80px); letter-spacing:6px; color:var(--cyan); text-shadow:var(--cyan-g); line-height:1; }
+  .title-sub { font-family:'Crimson Pro',serif; font-style:italic; font-size:17px; color:var(--txt-d); max-width:380px; line-height:1.5; }
+
+  .btn-primary {
+    padding: 16px 56px; background: transparent;
+    border: 2px solid var(--cyan); color: var(--cyan);
+    font-family: 'Bebas Neue', sans-serif; font-size: 24px;
+    letter-spacing: 4px; cursor: pointer; transition: all 0.3s ease;
+  }
+  .btn-primary:hover { background: var(--cyan); color: var(--bg); box-shadow: var(--cyan-g); }
+  .btn-primary.purple { border-color: var(--purple); color: var(--purple); }
+  .btn-primary.purple:hover { background: var(--purple); color: var(--bg); box-shadow: var(--purple-g); }
+
+  .btn-sm {
+    padding: 12px 40px; background: transparent;
+    border: 1px solid var(--cyan); color: var(--cyan);
+    font-family: 'Bebas Neue', sans-serif; font-size: 18px;
+    letter-spacing: 3px; cursor: pointer; transition: all 0.3s ease;
+  }
+  .btn-sm:hover { background: var(--cyan); color: var(--bg); }
+  .btn-sm.purple { border-color: var(--purple); color: var(--purple); }
+  .btn-sm.purple:hover { background: var(--purple); color: var(--bg); }
+
+  .back-link { margin-top:16px; font-size:12px; color:var(--txt-m); cursor:pointer; letter-spacing:1px; background:none; border:none; font-family:inherit; transition:color 0.2s; }
+  .back-link:hover { color: var(--txt-d); }
+
+  .mode-cards { display:flex; flex-direction:column; gap:16px; width:100%; max-width:420px; }
+  .mode-card { background:var(--card); border:2px solid var(--border); padding:28px 24px; cursor:pointer; text-align:left; transition:all 0.3s ease; }
+  .mode-card:hover { transform:translateY(-2px); }
+  .mode-card.classic:hover { border-color:var(--cyan); box-shadow:var(--cyan-g); }
+  .mode-card.coldcase:hover { border-color:var(--purple); box-shadow:var(--purple-g); }
+  .mc-title { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:3px; margin-bottom:4px; }
+  .classic .mc-title { color:var(--cyan); } .coldcase .mc-title { color:var(--purple); }
+  .mc-desc { font-family:'Crimson Pro',serif; font-size:15px; color:var(--txt-d); line-height:1.5; }
+  .mc-tags { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .mc-tag { font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:3px 10px; border:1px solid; }
+  .classic .mc-tag { color:var(--cyan); border-color:var(--cyan-d); }
+  .coldcase .mc-tag { color:var(--purple); border-color:var(--purple-d); }
+
+  .hud { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); margin-bottom:20px; }
+  .hud-side { font-size:13px; color:var(--txt-d); }
+  .hud-label { text-transform:uppercase; letter-spacing:2px; font-size:10px; }
+  .hud-val { font-weight:700; font-size:18px; color:var(--txt); }
+  .hud-mid { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .timer-track { width:140px; height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .timer-fill { height:100%; border-radius:2px; transition:width 0.3s linear, background 0.3s ease; }
+  .timer-txt { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .timer-txt.d { color:var(--red); } .timer-txt.w { color:var(--amber); } .timer-txt.ok { color:var(--green); }
+  .tl-ind { font-size:13px; color:var(--purple); letter-spacing:2px; display:flex; align-items:center; gap:6px; }
+  .tl-dot { width:8px; height:8px; border-radius:50%; background:var(--purple); animation:pDot 2s ease-in-out infinite; }
+  @keyframes pDot { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+  .streak { display:flex; justify-content:center; gap:6px; margin-top:8px; }
+  .sdot { width:10px; height:10px; border-radius:50%; border:1px solid var(--border); transition:all 0.3s; }
+  .sdot.correct { background:var(--green); border-color:var(--green); box-shadow:0 0 6px #00ff8866; }
+  .sdot.wrong { background:var(--red); border-color:var(--red); }
+  .sdot.timeout { background:var(--amber); border-color:var(--amber); }
+
+  .case-hdr { text-align:center; margin-bottom:24px; animation:slideD 0.4s ease; }
+  .case-tag { display:inline-block; font-size:10px; letter-spacing:3px; text-transform:uppercase; padding:4px 14px; margin-bottom:12px; }
+  .case-tag.ct { color:var(--cyan); border:1px solid var(--cyan-d); }
+  .case-tag.cc { color:var(--purple); border:1px solid var(--purple-d); }
+  .case-sc { font-family:'Crimson Pro',serif; font-size:19px; color:var(--txt); line-height:1.6; max-width:580px; margin:0 auto; }
+  .case-pr { font-size:12px; color:var(--txt-m); margin-top:12px; letter-spacing:1px; text-transform:uppercase; }
+
+  .cards { display:flex; flex-direction:column; gap:14px; }
+  .scard {
+    background:var(--card); border:1px solid var(--border); padding:20px;
+    cursor:pointer; transition:all 0.25s ease; animation:fSU 0.5s ease backwards;
+  }
+  .scard:nth-child(1){animation-delay:0.1s;} .scard:nth-child(2){animation-delay:0.25s;} .scard:nth-child(3){animation-delay:0.4s;}
+  .scard:hover:not(.locked) { background:var(--card-h); border-color:var(--cyan-d); transform:translateX(4px); }
+  .cold-m .scard:hover:not(.locked) { border-color:var(--purple-d); }
+  .scard.locked { cursor:default; }
+  .scard.sel-liar { border-color:var(--red); box-shadow:var(--red-g); background:#ff3b5c08; }
+  .scard.sel-wrong { border-color:var(--amber); background:#ffb80008; }
+  .scard.rev-liar { border-color:var(--red); background:#ff3b5c08; }
+  .scard.rev-clean { opacity:0.4; }
+  .ch { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+  .av { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; border:2px solid var(--border); transition:border-color 0.3s; }
+  .sel-liar .av { border-color:var(--red); } .rev-liar .av { border-color:var(--red); }
+  .cn { font-weight:700; font-size:15px; letter-spacing:1px; }
+  .badge { margin-left:auto; font-size:11px; letter-spacing:2px; text-transform:uppercase; font-weight:700; padding:3px 10px; }
+  .badge-liar { color:var(--red); border:1px solid var(--red-d); }
+  .badge-clean { color:var(--green); border:1px solid var(--green-d); }
+  .stxt { font-family:'Crimson Pro',serif; font-size:16px; line-height:1.6; color:var(--txt); padding-left:52px; }
+
+  .inv-btn-wrap { display:flex; justify-content:center; margin-top:16px; }
+  .inv-btn {
+    padding:12px 32px; background:var(--card); border:1px dashed var(--purple);
+    color:var(--purple); font-family:'JetBrains Mono',monospace; font-size:13px;
+    letter-spacing:2px; cursor:pointer; transition:all 0.3s; display:flex;
+    align-items:center; gap:8px; text-transform:uppercase;
+  }
+  .inv-btn:hover { background:#b388ff11; border-style:solid; }
+  .inv-req { font-size:11px; color:var(--amber); text-align:center; margin-top:8px; letter-spacing:1px; animation:fadeIn 0.4s ease; }
+
+  .scene-wrap { animation:fadeIn 0.5s ease; }
+  .scene-back { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--purple); cursor:pointer; background:none; border:none; font-family:inherit; letter-spacing:1px; margin-bottom:12px; transition:color 0.2s; }
+  .scene-back:hover { color:var(--txt); }
+  .scene-box { position:relative; width:100%; height:320px; border:1px solid var(--border); overflow:hidden; margin-bottom:16px; }
+  .scene-bg { position:absolute; inset:0; }
+  .scene-label { position:absolute; top:12px; left:16px; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:#fff8; z-index:5; }
+  .scene-hint { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); font-size:10px; letter-spacing:2px; color:#fff4; z-index:5; text-transform:uppercase; white-space:nowrap; }
+  .scene-obj { position:absolute; font-size:28px; opacity:0.25; z-index:2; pointer-events:none; filter:grayscale(0.5); }
+
+  .clue-mk { position:absolute; z-index:10; cursor:pointer; transform:translate(-50%,-50%); transition:transform 0.2s; }
+  .clue-mk:hover { transform:translate(-50%,-50%) scale(1.2); }
+  .clue-ring {
+    width:40px; height:40px; border-radius:50%; border:2px solid var(--purple);
+    display:flex; align-items:center; justify-content:center; font-size:18px;
+    background:#0008; position:relative;
+  }
+  .clue-ring::before {
+    content:''; position:absolute; inset:-6px; border-radius:50%;
+    border:1px solid var(--purple-d); animation:cPulse 2s ease-in-out infinite;
+  }
+  @keyframes cPulse { 0%,100%{transform:scale(1);opacity:0.6;} 50%{transform:scale(1.3);opacity:0;} }
+  .clue-mk.found .clue-ring { border-color:var(--green); }
+  .clue-mk.found .clue-ring::before { border-color:var(--green-d); }
+
+  .clue-panel { background:var(--card); border:1px solid var(--purple-d); padding:16px; margin-bottom:12px; animation:fSU 0.3s ease; }
+  .clue-panel-hdr { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .clue-panel-icon { font-size:20px; }
+  .clue-panel-title { font-size:13px; font-weight:700; letter-spacing:1px; color:var(--purple); }
+  .clue-panel-txt { font-family:'Crimson Pro',serif; font-size:15px; color:var(--txt-d); line-height:1.6; }
+  .clues-found-count { font-size:11px; color:var(--txt-m); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; text-align:center; }
+
+  .result { margin-top:20px; padding:20px; border:1px solid var(--border); background:var(--card); animation:fadeIn 0.5s ease; }
+  .res-hdr { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:3px; margin-bottom:8px; }
+  .res-hdr.correct { color:var(--green); } .res-hdr.wrong { color:var(--red); } .res-hdr.timeout { color:var(--amber); }
+  .res-exp { font-family:'Crimson Pro',serif; font-size:15px; color:var(--txt-d); line-height:1.7; margin-bottom:16px; }
+  .res-pts { font-size:13px; color:var(--amber); margin-bottom:16px; }
+
+  .go-score { font-size:48px; font-weight:700; color:var(--amber); margin:8px 0; }
+  .go-stats { display:flex; gap:32px; margin:16px 0; }
+  .go-stat { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .go-sv { font-size:28px; font-weight:700; }
+  .go-sl { font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--txt-d); }
+  .go-rank { font-family:'Crimson Pro',serif; font-style:italic; font-size:18px; color:var(--txt-d); margin:8px 0; }
+  .go-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(40px,10vw,64px); letter-spacing:4px; }
+  .go-title.ct { color:var(--cyan); text-shadow:var(--cyan-g); }
+  .go-title.cc { color:var(--purple); text-shadow:var(--purple-g); }
+
+  .solved-ov { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:100; pointer-events:none; animation:sFlash 1.2s ease forwards; }
+  .solved-txt { font-family:'Bebas Neue',sans-serif; font-size:clamp(32px,10vw,56px); letter-spacing:8px; color:var(--red); text-shadow:0 0 40px #ff3b5c88, 0 0 80px #ff3b5c44; }
+  @keyframes sFlash { 0%{opacity:0;transform:scale(0.8);} 20%{opacity:1;transform:scale(1.05);} 70%{opacity:1;} 100%{opacity:0;} }
+  .scanline { position:fixed; top:0; left:0; width:100%; height:3px; z-index:50; pointer-events:none; animation:scanD 4s linear infinite; opacity:0.4; }
+  .scanline.sc { background:linear-gradient(90deg,transparent,var(--cyan-d),transparent); }
+  .scanline.sp { background:linear-gradient(90deg,transparent,var(--purple-d),transparent); }
+  @keyframes scanD { 0%{top:-3px;} 100%{top:100%;} }
+  @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+  @keyframes slideD { from{opacity:0;transform:translateY(-16px);} to{opacity:1;transform:translateY(0);} }
+  @keyframes fSU { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+
+  .sc-bar{background:linear-gradient(180deg,#1a0e05,#2a1508 50%,#0d0804);} .sc-alley{background:linear-gradient(180deg,#0a0c14,#151822 50%,#080a10);} .sc-classroom{background:linear-gradient(180deg,#0c1218,#141e28 50%,#0a0e14);} .sc-office{background:linear-gradient(180deg,#0e0f14,#181a22 50%,#0a0b10);} .sc-gallery{background:linear-gradient(180deg,#08080c,#121218 50%,#060608);} .sc-cafe{background:linear-gradient(180deg,#140e08,#221a10 50%,#0c0804);} .sc-parking{background:linear-gradient(180deg,#0c0d12,#1a1c24 50%,#08090e);} .sc-locker{background:linear-gradient(180deg,#0a100c,#141e18 50%,#080e0a);} .sc-library{background:linear-gradient(180deg,#120e08,#201810 50%,#0a0804);} .sc-warehouse{background:linear-gradient(180deg,#10100c,#1e1c14 50%,#0c0c08);} .sc-park{background:linear-gradient(180deg,#060e0a,#0e1c14 50%,#040a06);} .sc-apartment{background:linear-gradient(180deg,#12100e,#201c18 50%,#0c0a08);} .sc-lab{background:linear-gradient(180deg,#0c1014,#141c24 50%,#080c10);} .sc-store{background:linear-gradient(180deg,#100e0c,#1c1a16 50%,#0a0908);} .sc-rooftop{background:linear-gradient(180deg,#080c18,#0e1428 50%,#060a14);}  
+</style>
+</head>
+<body>
+<a class="back-btn" href="../index.html">← Back</a>
+<div id="root"></div>
+
+<script type="module">
+  import { GameAuth } from '../js/firebase-auth.js';
+
+  window.gameAuth = new GameAuth();
+
+  function saveLocalLeaderboard(gameName, playerScore) {
+    try {
+      const guest = JSON.parse(localStorage.getItem('guestUser') || '{}');
+      const name = guest.displayName || guest.name || localStorage.getItem('gameHub_displayName') || 'Player';
+      const saved = localStorage.getItem('gameLeaderboard') || '{}';
+      const leaderboard = JSON.parse(saved);
+      if (!Array.isArray(leaderboard[gameName])) leaderboard[gameName] = [];
+
+      leaderboard[gameName].push({
+        name,
+        score: Math.floor(playerScore),
+        date: new Date().toISOString()
+      });
+
+      leaderboard[gameName].sort((a, b) => (b.score || 0) - (a.score || 0));
+      leaderboard[gameName] = leaderboard[gameName].slice(0, 20);
+      localStorage.setItem('gameLeaderboard', JSON.stringify(leaderboard));
+    } catch (error) {
+      console.warn('Could not save local leaderboard score:', error);
+    }
+  }
+
+  window.submitScore = async function(gameName, playerScore) {
+    saveLocalLeaderboard(gameName, playerScore);
+
+    if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+      try {
+        const result = await window.gameAuth.submitScore(gameName, playerScore);
+        if (!result.success) {
+          console.warn('Score not saved to cloud:', result.error);
+        }
+      } catch (error) {
+        console.error('Error submitting score:', error);
+      }
+    }
+  };
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const SCENES = {
+  office:{label:"Meridian Corp — Floor 3",cls:"sc-office",decor:[{e:"🖥",x:15,y:55},{e:"📎",x:88,y:72},{e:"☕",x:70,y:20},{e:"📋",x:8,y:22}]},
+  library:{label:"Westfield Public Library",cls:"sc-library",decor:[{e:"📖",x:12,y:60},{e:"📚",x:80,y:55},{e:"🕯",x:50,y:15},{e:"🪑",x:88,y:78}]},
+  gallery:{label:"The Prism Gallery",cls:"sc-gallery",decor:[{e:"🖼",x:20,y:30},{e:"🖼",x:50,y:25},{e:"🖼",x:80,y:35},{e:"💡",x:50,y:8}]},
+  park:{label:"Riverside Park — Night",cls:"sc-park",decor:[{e:"🌲",x:10,y:45},{e:"🌲",x:30,y:40},{e:"🪑",x:65,y:75},{e:"🌙",x:85,y:8}]},
+  bar:{label:"The Rusty Nail Bar",cls:"sc-bar",decor:[{e:"🍺",x:8,y:72},{e:"🪑",x:88,y:78},{e:"🎵",x:92,y:12},{e:"🥃",x:22,y:82}]},
+  cafe:{label:"Morning Grounds Café",cls:"sc-cafe",decor:[{e:"☕",x:12,y:70},{e:"🧁",x:85,y:65},{e:"🪴",x:90,y:20},{e:"📰",x:25,y:80}]},
+  parking:{label:"Level B2 Parking Garage",cls:"sc-parking",decor:[{e:"🚗",x:15,y:72},{e:"🚙",x:55,y:78},{e:"💡",x:30,y:10},{e:"🔧",x:88,y:68}]},
+  classroom:{label:"Room 204 — West Wing",cls:"sc-classroom",decor:[{e:"📐",x:10,y:68},{e:"🎒",x:85,y:80},{e:"🖊",x:30,y:78},{e:"📚",x:75,y:15}]},
+  store:{label:"Corner Convenience Store",cls:"sc-store",decor:[{e:"🏪",x:50,y:12},{e:"🧴",x:15,y:65},{e:"🛒",x:82,y:72},{e:"💵",x:30,y:78}]},
+  lab:{label:"BioTech Research Lab",cls:"sc-lab",decor:[{e:"🧪",x:12,y:58},{e:"🔬",x:78,y:55},{e:"⚗",x:45,y:70},{e:"💡",x:50,y:8}]},
+};
+
+const CLASSIC = [
+  {scenario:"Someone erased the classroom whiteboard before the teacher returned.",characters:[{name:"Maya",avatar:"👩",statement:"I was sharpening my pencil when the board got erased."},{name:"Jayden",avatar:"👦",statement:"Maya was at her desk the whole time."},{name:"Noah",avatar:"🧑",statement:"I saw Jayden near the board right before it happened."}],liarIndex:1,explanation:"Jayden says Maya was at her desk, but Maya says she was sharpening her pencil — a contradiction. Jayden lied."},
+  {scenario:"A slice of birthday cake disappeared from the break room fridge.",characters:[{name:"Priya",avatar:"👩‍🦰",statement:"I opened the fridge once to grab my water bottle."},{name:"Marcus",avatar:"🧔",statement:"I didn’t even go into the break room today."},{name:"Zoe",avatar:"👱‍♀️",statement:"I saw Marcus refilling his coffee mug in the break room this morning."}],liarIndex:1,explanation:"Marcus claims he never entered the break room, but Zoe saw him there. Marcus lied."},
+  {scenario:"Someone left the gym equipment out overnight.",characters:[{name:"Tyler",avatar:"🏋",statement:"I finished at 4pm and put everything back on the rack."},{name:"Sasha",avatar:"🤸‍♀️",statement:"I used the gym after Tyler. I left around 5pm."},{name:"Devon",avatar:"⛹",statement:"I was there from 3 to 4pm. Tyler was just arriving when I left."}],liarIndex:0,explanation:"Devon says Tyler arrived at 4pm, but Tyler claims he finished at 4pm — impossible. Tyler lied."},
+  {scenario:"Someone changed the group project file without permission.",characters:[{name:"Kira",avatar:"💻",statement:"I was at the library from 6 to 9pm. Check the sign-in sheet."},{name:"Leo",avatar:"🧑‍💻",statement:"I was home all evening. I didn’t touch the shared file."},{name:"Amara",avatar:"👩‍💼",statement:"The file changed at 7:30pm. Leo texted me from campus asking for the login."}],liarIndex:1,explanation:"Leo says he was home, but Amara got a text from him on campus at 7:30pm. Leo lied."},
+  {scenario:"A library book was returned with water damage.",characters:[{name:"Nia",avatar:"📖",statement:"I returned it in perfect condition on the 5th."},{name:"Oscar",avatar:"📚",statement:"I had it from the 6th to the 12th. No damage when I returned it."},{name:"Farah",avatar:"📕",statement:"I checked it out on the 13th and it already had the water stain."}],liarIndex:1,explanation:"The damage appeared between Oscar’s checkout and Farah’s pickup. Oscar lied about returning it undamaged."},
+  {scenario:"Somebody tripped the fire alarm during lunch.",characters:[{name:"Dante",avatar:"🧑‍🚒",statement:"I was eating in the cafeteria the whole lunch period."},{name:"Lena",avatar:"👩‍🔬",statement:"I saw Dante walking alone near the east hall before the alarm."},{name:"Hugo",avatar:"🧑‍🎓",statement:"I was in the library. The alarm pull is on the east side."}],liarIndex:0,explanation:"Dante says he was in the cafeteria, but Lena saw him near the alarm. Dante lied."},
+  {scenario:"Someone scratched the new art room table.",characters:[{name:"Willow",avatar:"🎨",statement:"I was using watercolors all period. No sharp tools."},{name:"Jasper",avatar:"✏",statement:"I was carving linoleum at my own station across the room."},{name:"Mina",avatar:"🖌",statement:"Jasper moved to the new table halfway through class with his carving tools."}],liarIndex:1,explanation:"Jasper says he stayed at his station, but Mina saw him at the new table with sharp tools. Jasper lied."},
+  {scenario:"Money from the fundraiser jar went missing during practice.",characters:[{name:"Riley",avatar:"⚽",statement:"I was on the field the entire practice. Coach can confirm."},{name:"Jordan",avatar:"🏀",statement:"I went inside once to use the bathroom."},{name:"Casey",avatar:"🏐",statement:"I saw Jordan go inside twice. The second time was right before the money went missing."}],liarIndex:1,explanation:"Jordan says once, Casey saw twice. Jordan lied about the number of trips inside."},
+  {scenario:"Someone ate the labeled lunch from the fridge.",characters:[{name:"Samir",avatar:"🍱",statement:"I had sushi from the place down the street."},{name:"Tessa",avatar:"🥗",statement:"I saw Samir microwaving Tupperware that looked like the missing one."},{name:"Blake",avatar:"🍕",statement:"I skipped lunch and worked through the break."}],liarIndex:0,explanation:"Samir says takeout sushi, but Tessa saw him microwaving Tupperware. Samir lied."},
+  {scenario:"A potted plant in the lobby was knocked over.",characters:[{name:"Diana",avatar:"🌿",statement:"I walked by and it was already broken."},{name:"Eli",avatar:"🧹",statement:"I came in at 8am. Plant was fine. Diana arrived right after me."},{name:"Faye",avatar:"🪴",statement:"I got here at 9. Eli was sweeping up dirt in the lobby."}],liarIndex:0,explanation:"Eli says the plant was fine when Diana arrived. Diana should have seen it intact. She lied."},
+  {scenario:"Someone left the projector running all weekend.",characters:[{name:"Aiden",avatar:"📽",statement:"I used the projector Friday but shut it off when done."},{name:"Grace",avatar:"🎒",statement:"I was last in the room Friday. The projector was still on."},{name:"Kai",avatar:"🖥",statement:"I checked Friday evening. Projector was running, room was empty."}],liarIndex:0,explanation:"Grace and Kai both confirm the projector was on. Aiden lied about turning it off."},
+  {scenario:"A test answer sheet was photocopied in the recycling bin.",characters:[{name:"Vera",avatar:"📝",statement:"I used the copier for history notes. No test papers."},{name:"Nolan",avatar:"📋",statement:"I wasn’t at school yesterday. I was out sick."},{name:"Iris",avatar:"📄",statement:"I saw Nolan in the copy room yesterday. He left in a hurry when I walked in."}],liarIndex:1,explanation:"Nolan claims he was absent, but Iris saw him at school. Nolan lied."},
+  {scenario:"Graffiti appeared on the school wall late at night.",characters:[{name:"Marco",avatar:"🎭",statement:"I was home by 8pm. My mom and I watched a movie."},{name:"Luna",avatar:"🌙",statement:"I jogged past at 10pm. The wall was clean."},{name:"Raven",avatar:"🦅",statement:"I drove past at 11pm and saw Marco near the wall with a backpack."}],liarIndex:0,explanation:"Marco says he was home, but Raven saw him at the wall at 11pm. Marco lied."},
+  {scenario:"The office Wi-Fi password was posted online.",characters:[{name:"Harper",avatar:"📱",statement:"I only know the guest password, not the internal one."},{name:"Quinn",avatar:"💼",statement:"I shared it with one coworker privately. Never posted online."},{name:"Reese",avatar:"🔐",statement:"Quinn posted it in a public Slack channel Tuesday. I saw it before deletion."}],liarIndex:1,explanation:"Quinn says private only, but Reese saw it in a public channel. Quinn lied."},
+  {scenario:"A bike was moved from the rack to behind the gym.",characters:[{name:"Drew",avatar:"🚲",statement:"I didn’t even know there was a bike rack near the gym."},{name:"Sage",avatar:"🏫",statement:"I saw Drew messing with a bike lock at the rack during second period."},{name:"Avery",avatar:"🔑",statement:"I walked past the rack at lunch. Everything looked normal."}],liarIndex:0,explanation:"Drew claims ignorance of the rack, but Sage saw him there. Drew lied."}
+];
+
+const COLD = [
+  {scenario:"An anonymous HR complaint was printed on the second-floor printer at 3:47pm Tuesday.",setting:"office",characters:[{name:"Carla",avatar:"👩‍💼",statement:"I printed my quarterly report at 3:30pm, picked it up, and went back to my desk on the third floor."},{name:"Dev",avatar:"🧑‍💻",statement:"I was in a video call from 3:00 to 4:15pm. Camera was on the whole time."},{name:"Mitch",avatar:"👨‍🔧",statement:"I was fixing the water cooler on the second floor from 3 to 4pm. I saw Carla at the printer around 3:30."}],liarIndex:0,explanation:"Carla says she left immediately after 3:30, but the printer log shows a second print from her login at 3:46pm. She lied.",clues:[{id:"log",icon:"🖨",label:"Printer Log",x:30,y:45,text:"3:29pm — 'Q3_Report.docx' (Carla). 3:46pm — 'Document1.docx' (Carla)."},{id:"cam",icon:"📹",label:"Hallway Camera",x:75,y:20,text:"Camera shows Carla leaving at 3:33pm, then returning to the second floor at 3:44pm."},{id:"cooler",icon:"💧",label:"Water Cooler Area",x:55,y:75,text:"Mitch's repair kit is spread out with a work order stamped 2:55pm."}],requiresInvestigation:true},
+  {scenario:"A confidential file was downloaded at 11:22pm Saturday.",setting:"office",characters:[{name:"Yara",avatar:"🔒",statement:"I logged in Saturday morning around 9am. Logged off by 10."},{name:"Ramon",avatar:"📊",statement:"I worked Saturday evening, 7pm to midnight. Only touched the budget spreadsheet."},{name:"Jess",avatar:"🗂",statement:"I logged in Sunday morning, not Saturday."}],liarIndex:1,explanation:"The file download happened during Ramon's VPN session at 11:22pm. Ramon lied.",clues:[{id:"vpn",icon:"📡",label:"VPN Log",x:20,y:35,text:"Saturday: Ramon 6:54pm–12:08am."},{id:"file",icon:"💾",label:"File Access Log",x:65,y:55,text:"11:22pm — 'Confidential_Merger.zip' downloaded on session matching Ramon."},{id:"email",icon:"📧",label:"Email Timestamps",x:45,y:78,text:"Ramon sent budget emails at 7:15pm and 11:45pm with long gap in between."}],requiresInvestigation:false},
+  {scenario:"A painting was scratched after a private gallery tour.",setting:"gallery",characters:[{name:"Victor",avatar:"🖼",statement:"I was with the tour guide the entire evening."},{name:"Simone",avatar:"🎭",statement:"I stepped away for the restroom at 9:15."},{name:"Archer",avatar:"🎩",statement:"The painting was already tilted at 8:30."}],liarIndex:2,explanation:"Inspection report says works were secure before the event, and camera places Archer alone near the painting. Archer lied.",clues:[{id:"checklist",icon:"✅",label:"Pre-Event Checklist",x:20,y:45,text:"7:45pm: all works level and secure."},{id:"cctv",icon:"📹",label:"Corridor Camera",x:75,y:25,text:"9:20pm: Archer lingers alone near the east gallery."},{id:"ring",icon:"💍",label:"Scratch Analysis",x:55,y:65,text:"Scratch pattern matches a signet ring edge."}],requiresInvestigation:false},
+  {scenario:"A charity donation box at a store was pried open over the weekend.",setting:"store",characters:[{name:"Harris",avatar:"🔑",statement:"I came Saturday for a delivery. Stayed in the stockroom."},{name:"Dana",avatar:"🏪",statement:"I went in Sunday to update the window display. I didn't notice the donation box."},{name:"Otis",avatar:"📦",statement:"I haven't been to the store since Friday."}],liarIndex:1,explanation:"Dana spent 43 minutes inside near the counter and claims she noticed nothing. Her statement is inconsistent with evidence.",clues:[{id:"cam",icon:"📹",label:"Front Door Camera",x:25,y:30,text:"Dana entered 9:05am, left 9:48am."},{id:"tools",icon:"🔧",label:"Under Counter",x:60,y:70,text:"Flathead screwdriver with fresh scratch marks found behind counter."},{id:"box",icon:"📦",label:"Donation Box",x:45,y:50,text:"Pry marks require access from behind the counter."}],requiresInvestigation:false},
+  {scenario:"Lab samples were contaminated overnight.",setting:"lab",characters:[{name:"Dr. Lin",avatar:"🔬",statement:"I left at 8pm after calibrating equipment. Samples were sealed."},{name:"Raj",avatar:"🧫",statement:"I came in at 6am and found contamination."},{name:"Beth",avatar:"🧪",statement:"I was in the adjacent lab until 11pm. I didn't enter Dr. Lin's lab."}],liarIndex:2,explanation:"Keycard logs show Beth entering the target lab at 10:34pm for 7 minutes. Beth lied.",clues:[{id:"swipe",icon:"🚪",label:"Lab Keycard Log",x:20,y:40,text:"Beth IN 10:34pm, OUT 10:41pm."},{id:"reagent",icon:"⚗",label:"Contamination Analysis",x:55,y:60,text:"Contaminant matches Beth's project chemicals."},{id:"gloves",icon:"🧤",label:"Waste Bin",x:80,y:75,text:"Purple gloves with traces of both reagents."}],requiresInvestigation:false},
+  {scenario:"Someone keyed a coworker's car in the parking garage.",setting:"parking",characters:[{name:"Doug",avatar:"🚗",statement:"I drove to a client meeting at 10am. Didn't return until 3pm."},{name:"Priti",avatar:"🚙",statement:"I was parked next to her all day. Car was fine at noon."},{name:"Vance",avatar:"🏎",statement:"I parked on a different level today. My usual spot was taken."}],liarIndex:2,explanation:"Camera shows Vance in his usual spot all day. Vance lied.",clues:[{id:"cam",icon:"📹",label:"Level 2 Camera",x:30,y:35,text:"Vance's car stayed in spot B-14 from 8:47am to 5:30pm."},{id:"scratch",icon:"🔍",label:"Scratch Pattern",x:65,y:60,text:"Scratches are on side facing Vance's spot."},{id:"pass",icon:"🎫",label:"Garage Entry Log",x:50,y:80,text:"Vance entered Level 2 at 8:46am."}],requiresInvestigation:false},
+  {scenario:"An expensive whiskey bottle vanished from a locked cabinet.",setting:"bar",characters:[{name:"Marco",avatar:"🍸",statement:"I locked the cabinet at midnight, put the key in register, and went home."},{name:"Viv",avatar:"🥂",statement:"I cleaned glasses until 12:30am. Saw Marco lock up."},{name:"Ted",avatar:"🧹",statement:"I mopped until 1am. Cabinet was still locked."}],liarIndex:0,explanation:"The key was found in Marco's jacket and his car returned at 1:15am. Marco lied.",clues:[{id:"key",icon:"🔑",label:"Key Location",x:30,y:45,text:"Manager found cabinet key in Marco's jacket Monday."},{id:"cctv",icon:"📹",label:"Back Door Camera",x:75,y:30,text:"Marco's car returns at 1:15am."},{id:"cabinet",icon:"🗄",label:"Cabinet Lock",x:50,y:70,text:"No forcing marks; cabinet opened with key."}],requiresInvestigation:false},
+  {scenario:"A rare coin vanished from a locked display case.",setting:"classroom",characters:[{name:"Mr. Grant",avatar:"🧑‍🏫",statement:"I was grading papers from 4 to 7pm. Never entered staff room."},{name:"Ms. Okafor",avatar:"👩‍🏫",statement:"I grabbed my lunch bag at 4:15 then left by 4:30."},{name:"Dr. Pham",avatar:"🧑‍⚕️",statement:"I made coffee at 5pm; key was still on the hook."}],liarIndex:1,explanation:"Evidence doesn't support the lunch bag story; it's a cover for key access. Ms. Okafor lied.",clues:[{id:"signin",icon:"📋",label:"Staff Room Sign-In",x:25,y:40,text:"Sign-in: Ms. Okafor 4:14pm; no one else until 5:01pm."},{id:"fridge",icon:"🧊",label:"Staff Room Fridge",x:60,y:65,text:"No lunch bag present."},{id:"hook",icon:"🔑",label:"Key Hook",x:82,y:30,text:"Fresh scratch marks around hook."}],requiresInvestigation:false},
+  {scenario:"A laptop vanished from a conference room before lockup.",setting:"office",characters:[{name:"Ava",avatar:"💼",statement:"I went back at 3:02; laptop was on the table."},{name:"Brett",avatar:"🧳",statement:"I returned at 3:08 for my water bottle. Didn't notice laptop."},{name:"Corinne",avatar:"📱",statement:"At 3:12 the laptop was gone."}],liarIndex:1,explanation:"Brett stayed four minutes, claimed he came for bottle, but bottle remained on table. Brett lied.",clues:[{id:"badge",icon:"🚪",label:"Keycard Log",x:25,y:40,text:"Brett in at 3:07, out 3:11."},{id:"bag",icon:"🎒",label:"Brett's Bag",x:65,y:70,text:"Bag looked unusually full at 3:30 standup."},{id:"bottle",icon:"🥤",label:"Conference Table",x:50,y:30,text:"Brett's bottle still on table after incident."}],requiresInvestigation:false},
+  {scenario:"The tip jar at a café was emptied during a busy shift.",setting:"cafe",characters:[{name:"Kai",avatar:"☕",statement:"I worked 7am–1pm. Jar had about forty dollars when I left."},{name:"Suki",avatar:"🧋",statement:"I overlapped with Kai. Jar had about fifteen dollars at 12:30."},{name:"Dom",avatar:"🥖",statement:"I worked 1pm to close. Jar had mostly coins and a few bills."}],liarIndex:0,explanation:"Counter camera shows Kai reaching into the jar at 12:15; his estimate conflicts with written count. Kai lied.",clues:[{id:"cam",icon:"📹",label:"Counter Camera",x:35,y:25,text:"Kai reaches into tip jar at 12:15 while Suki is turned away."},{id:"reg",icon:"💰",label:"Register Note",x:70,y:55,text:"Suki note 12:35: 'Tips low, about $15'."},{id:"jacket",icon:"🧥",label:"Staff Coat Hook",x:15,y:70,text:"Kai's jacket pocket has loose ones and a five-dollar bill."}],requiresInvestigation:false}
+];
+
+const CLASSIC_TIME = 45;
+const TOTAL_ROUNDS = 10;
+const ABG = ['#1a2744','#2d1a3e','#1a3a2a'];
+
+function shuf(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
+
+function Logo(){return <svg className="logo-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="36" stroke="var(--cyan)" strokeWidth="2" opacity="0.3"/><circle cx="40" cy="40" r="24" stroke="var(--cyan)" strokeWidth="1.5" opacity="0.5"/><circle cx="40" cy="40" r="6" fill="var(--cyan)"/><line x1="40" y1="4" x2="40" y2="20" stroke="var(--cyan)" strokeWidth="2"/><line x1="40" y1="60" x2="40" y2="76" stroke="var(--cyan)" strokeWidth="2"/><line x1="4" y1="40" x2="20" y2="40" stroke="var(--cyan)" strokeWidth="2"/><line x1="60" y1="40" x2="76" y2="40" stroke="var(--cyan)" strokeWidth="2"/></svg>;}
+
+function Title({onStart}){return <div className="screen-center"><Logo/><div className="title-main">TRUTH SIGNAL</div><div className="title-sub">Three suspects. One liar. Read statements, investigate scenes, and catch the lie.</div><button className="btn-primary" onClick={onStart} style={{marginTop:32}}>BEGIN</button></div>;}
+
+function ModeSelect({onSelect,onBack}){return <div className="screen-center" style={{gap:24}}><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,letterSpacing:4}}>SELECT MODE</div><div className="mode-cards"><div className="mode-card classic" onClick={()=>onSelect('classic')}><div className="mc-title">CLASSIC</div><div className="mc-desc">Find the liar in 45 seconds. Spot contradictions, earn speed bonuses.</div><div className="mc-tags"><span className="mc-tag">45s Timer</span><span className="mc-tag">10 Rounds</span><span className="mc-tag">Catch the Liar</span></div></div><div className="mode-card coldcase" onClick={()=>onSelect('cold')}><div className="mc-title">COLD CASE</div><div className="mc-desc">No timer. Investigate crime scenes for clues. Some cases require evidence first.</div><div className="mc-tags"><span className="mc-tag">No Timer</span><span className="mc-tag">Investigation</span><span className="mc-tag">Hard</span></div></div></div><button className="back-link" onClick={onBack}>← BACK TO TITLE</button></div>;}
+
+function HUD({round,total,score,timeLeft,results,mode}){
+  const cold=mode==='cold';
+  return <div className="hud"><div className="hud-side"><div><div className="hud-label">Case</div><div className="hud-val">{round}/{total}</div></div></div><div className="hud-mid">{cold?<div className="tl-ind"><div className="tl-dot"/>NO LIMIT</div>:<><div className={`timer-txt ${timeLeft<=10?'d':timeLeft<=20?'w':'ok'}`}>{timeLeft}s</div><div className="timer-track"><div className="timer-fill" style={{width:`${(timeLeft/CLASSIC_TIME)*100}%`,background:timeLeft<=10?'var(--red)':timeLeft<=20?'var(--amber)':'var(--green)'}}/></div></>}<div className="streak">{Array.from({length:total},(_,i)=><div key={i} className={`sdot ${results[i]||''}`}/>)}</div></div><div className="hud-side"><div><div className="hud-label">Score</div><div className="hud-val">{score}</div></div></div></div>;
+}
+
+function Card({c,bg,onClick,cls}){
+  const liar=cls.includes('sel-liar')||cls.includes('rev-liar');
+  const clean=cls.includes('sel-wrong')||cls.includes('rev-clean');
+  return <div className={`scard ${cls}`} onClick={onClick}><div className="ch"><div className="av" style={{background:bg}}>{c.avatar}</div><div className="cn">{c.name}</div>{liar&&<div className="badge badge-liar">Liar</div>}{clean&&!liar&&<div className="badge badge-clean">Clean</div>}</div><div className="stxt">“{c.statement}”</div></div>;
+}
+
+function CrimeScene({setting,clues,found,onClue,onBack}){
+  const sc=SCENES[setting]||SCENES.office;
+  return <div className="scene-wrap"><button className="scene-back" onClick={onBack}>← Back to Statements</button><div className="clues-found-count">Evidence: {found.length} / {clues.length}</div><div className="scene-box"><div className={`scene-bg ${sc.cls}`}/><div className="scene-label">{sc.label}</div>{sc.decor.map((d,i)=><div key={i} className="scene-obj" style={{left:`${d.x}%`,top:`${d.y}%`}}>{d.e}</div>)}{clues.map(cl=><div key={cl.id} className={`clue-mk ${found.includes(cl.id)?'found':''}`} style={{left:`${cl.x}%`,top:`${cl.y}%`}} onClick={()=>onClue(cl)}><div className="clue-ring">{cl.icon}</div></div>)}<div className="scene-hint">Tap clue markers to examine evidence</div></div>{found.map(fid=>{const cl=clues.find(c=>c.id===fid);if(!cl)return null;return <div key={fid} className="clue-panel"><div className="clue-panel-hdr"><div className="clue-panel-icon">{cl.icon}</div><div className="clue-panel-title">{cl.label}</div></div><div className="clue-panel-txt">{cl.text}</div></div>;})}</div>;
+}
+
+function GameRound({cd,round,total,score,onAnswer,results,mode}){
+  const [time,setTime]=useState(CLASSIC_TIME);
+  const [sel,setSel]=useState(null);
+  const [showRes,setShowRes]=useState(false);
+  const [showFlash,setShowFlash]=useState(false);
+  const [view,setView]=useState('statements');
+  const [foundClues,setFoundClues]=useState([]);
+  const [blocked,setBlocked]=useState(false);
+  const tRef=useRef(null);
+  const cold=mode==='cold';
+
+  useEffect(()=>{setTime(CLASSIC_TIME);setSel(null);setShowRes(false);setShowFlash(false);setView('statements');setFoundClues([]);setBlocked(false);},[cd]);
+
+  useEffect(()=>{
+    if(cold||sel!==null)return;
+    tRef.current=setInterval(()=>{setTime(p=>{if(p<=1){clearInterval(tRef.current);doSelect(-1);return 0;}return p-1;});},1000);
+    return()=>clearInterval(tRef.current);
+  },[cd,sel,cold]);
+
+  const doSelect=useCallback((idx)=>{
+    if(sel!==null)return;
+    if(cold&&cd.requiresInvestigation&&foundClues.length<2&&idx>=0){setBlocked(true);setTimeout(()=>setBlocked(false),3000);return;}
+    clearInterval(tRef.current);setSel(idx);
+    const ok=idx===cd.liarIndex;
+    if(ok)setShowFlash(true);
+    setTimeout(()=>{setShowRes(true);setShowFlash(false);},ok?1200:400);
+  },[sel,cd,cold,foundClues]);
+
+  const cardCls=(i)=>{if(sel===null)return '';const isL=i===cd.liarIndex;const isS=i===sel;let c='locked ';if(isS&&sel===cd.liarIndex)c+='sel-liar';else if(isS)c+='sel-wrong';else if(isL)c+='rev-liar';else c+='rev-clean';return c;};
+  const ok=sel===cd.liarIndex,tout=sel===-1;
+  const bonus=ok&&!cold?Math.max(0,time*5):0;
+  const pts=ok?(cold?200:100+bonus):0;
+  const handleClue=(cl)=>{if(!foundClues.includes(cl.id))setFoundClues(p=>[...p,cl.id]);};
+
+  return <div className={cold?'cold-m':''}><div className={`scanline ${cold?'sp':'sc'}`}/>{showFlash&&<div className="solved-ov"><div className="solved-txt">LIAR CAUGHT</div></div>}<HUD round={round} total={total} score={score} timeLeft={time} results={results} mode={mode}/><div className="case-hdr"><div className={`case-tag ${cold?'cc':'ct'}`}>{cold?`Cold Case #${String(round).padStart(3,'0')}`:`Case #${String(round).padStart(3,'0')}`}</div><div className="case-sc">{cd.scenario}</div>{sel===null&&<div className="case-pr">{cold&&cd.requiresInvestigation?'⚠ Investigation required — find the liar':'Who is lying?'}</div>}</div>
+  {view==='statements'&&<><div className="cards">{cd.characters.map((c,i)=><Card key={i} c={c} bg={ABG[i]} onClick={()=>sel===null&&doSelect(i)} cls={cardCls(i)}/>)}</div>{cold&&sel===null&&<div className="inv-btn-wrap"><button className="inv-btn" onClick={()=>setView('scene')}>🔍 Investigate Scene{foundClues.length>0&&` (${foundClues.length} found)`}</button></div>}{blocked&&<div className="inv-req">⚠ Not enough evidence. Investigate the crime scene first.</div>}</>}
+  {view==='scene'&&cold&&<CrimeScene setting={cd.setting} clues={cd.clues||[]} found={foundClues} onClue={handleClue} onBack={()=>setView('statements')}/>}
+  {showRes&&<div className="result"><div className={`res-hdr ${tout?'timeout':ok?'correct':'wrong'}`}>{tout?"TIME'S UP":ok?'LIAR CAUGHT':'WRONG — INNOCENT'}</div><div className="res-exp">{cd.explanation}</div>{ok&&<div className="res-pts">+{pts} pts {!cold&&bonus>0?`(100 + ${bonus} speed)`:cold?'(cold case)':''}</div>}<button className={`btn-sm ${cold?'purple':''}`} onClick={()=>onAnswer(pts,tout?'timeout':ok?'correct':'wrong')}>{round<total?'NEXT CASE →':'VIEW RESULTS →'}</button></div>}</div>;
+}
+
+function GameOver({score,results,onRestart,onMenu,mode}){
+  const cold=mode==='cold';const cor=results.filter(r=>r==='correct').length;const wrn=results.filter(r=>r==='wrong').length;const to=results.filter(r=>r==='timeout').length;const pct=Math.round((cor/results.length)*100);
+  let rank;if(cold){rank=pct>=90?'Cold Case Legend':pct>=70?'Lead Investigator':pct>=50?'Case Analyst':pct>=30?'Field Rookie':'Evidence Intern';}else{rank=pct>=90?'Master Detective':pct>=70?'Senior Investigator':pct>=50?'Junior Detective':pct>=30?'Trainee Analyst':'Rookie Observer';}
+  return <div className="screen-center"><div className="hud-label">{cold?'Cold Case Report':'Case Report'}</div><div className={`go-title ${cold?'cc':'ct'}`}>DEBRIEF</div><div className="go-score">{score}</div><div className="hud-label">Total Points</div><div className="go-stats"><div className="go-stat"><div className="go-sv" style={{color:'var(--green)'}}>{cor}</div><div className="go-sl">Caught</div></div><div className="go-stat"><div className="go-sv" style={{color:'var(--red)'}}>{wrn}</div><div className="go-sl">Wrong</div></div>{!cold&&<div className="go-stat"><div className="go-sv" style={{color:'var(--amber)'}}>{to}</div><div className="go-sl">Timed Out</div></div>}</div><div className="go-rank">Rank: {rank}</div><div className="streak" style={{marginBottom:8}}>{results.map((r,i)=><div key={i} className={`sdot ${r}`}/>)}</div><button className={`btn-primary ${cold?'purple':''}`} onClick={onRestart} style={{marginTop:24,fontSize:22,padding:'14px 48px'}}>PLAY AGAIN</button><button className="back-link" onClick={onMenu}>← BACK TO MENU</button></div>;
+}
+
+function App(){
+  const [screen,setScreen]=useState('title');
+  const [mode,setMode]=useState(null);
+  const [cases,setCases]=useState([]);
+  const [ri,setRi]=useState(0);
+  const [score,setScore]=useState(0);
+  const [results,setResults]=useState([]);
+
+  const start=(m)=>{const pool=m==='cold'?COLD:CLASSIC;setCases(shuf(pool).slice(0,TOTAL_ROUNDS));setRi(0);setScore(0);setResults([]);setMode(m);setScreen('game');};
+
+  const answer=(pts,res)=>{
+    const nextScore = score + pts;
+    const nextResults = [...results, res];
+
+    setScore(nextScore);
+    setResults(nextResults);
+
+    if(ri+1>=TOTAL_ROUNDS){
+      if (typeof window.submitScore === 'function' && nextScore > 0) {
+        window.submitScore('Truth Signal', nextScore);
+      }
+      setTimeout(()=>setScreen('over'),300);
+    } else {
+      setRi(i=>i+1);
+    }
+  };
+
+  return (
+    <div className="app">
+      {screen==='title' && <Title onStart={()=>setScreen('mode')} />}
+      {screen==='mode' && <ModeSelect onSelect={start} onBack={()=>setScreen('title')} />}
+      {screen==='game' && cases[ri] && (
+        <GameRound
+          key={ri}
+          cd={cases[ri]}
+          round={ri+1}
+          total={TOTAL_ROUNDS}
+          score={score}
+          results={results}
+          onAnswer={answer}
+          mode={mode}
+        />
+      )}
+      {screen==='over' && (
+        <GameOver
+          score={score}
+          results={results}
+          mode={mode}
+          onRestart={()=>start(mode)}
+          onMenu={()=>setScreen('mode')}
+        />
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

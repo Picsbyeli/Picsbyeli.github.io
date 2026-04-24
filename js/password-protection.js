@@ -14,28 +14,18 @@ const PasswordProtection = {
   YOUR_PHONE: '(555) 123-4567', // Update with your phone
   
   init() {
-    // Check if user is already authenticated in this session
-    if (!this.isAuthenticated()) {
-      // Check if device is permanently locked
-      const deviceId = this.getDeviceId();
-      if (this.isDeviceLocked(deviceId)) {
-        this.showLockedModal(deviceId);
-      } else {
-        this.showPasswordModal();
-      }
+    this.setAuthenticated();
+    this.setLastAuthNow();
+    const existingModal = document.getElementById('password-modal');
+    if (existingModal) {
+      existingModal.remove();
     }
+    document.body.classList.remove('password-protected');
   },
 
   // Check if password re-auth is needed (for non-admins)
   needsReauth() {
-    if (window.gameAuth && window.gameAuth.isLoggedIn()) {
-      const user = window.gameAuth.getCurrentUser();
-      if (user && user.email === 'elidaslaya@gmail.com') {
-        return false; // Admin bypass
-      }
-    }
-    const lastAuth = parseInt(localStorage.getItem(this.LAST_AUTH_KEY) || '0', 10);
-    return (Date.now() - lastAuth) > this.AUTH_INTERVAL;
+    return false;
   },
 
   setLastAuthNow() {

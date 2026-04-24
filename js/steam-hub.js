@@ -80,6 +80,7 @@ class GameHub {
                     { name: 'Trivia', storageKey: 'Trivia', scoreField: 'score', unit: 'pts', lowerBetter: false },
                     { name: 'School Trivia', storageKey: 'School Trivia', scoreField: 'score', unit: 'pts', lowerBetter: false },
                     { name: 'Animal 20 Questions', storageKey: 'Animal Twenty Questions', scoreField: 'score', unit: 'pts', lowerBetter: false },
+                    { name: 'Truth Signal', storageKey: 'Truth Signal', scoreField: 'score', unit: 'pts', lowerBetter: false },
                 ]
             }
         };
