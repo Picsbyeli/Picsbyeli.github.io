@@ -65,6 +65,33 @@ nav.mainnav a.active{color:var(--accent);background:var(--card);box-shadow:var(-
 @media(max-width:780px){.tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:60;justify-content:space-around;padding:8px 6px env(safe-area-inset-bottom);background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
 .tabbar a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.62rem;color:var(--muted);padding:4px 8px;border-radius:12px}
 .tabbar a.active{color:var(--accent)}.tabbar a span{font-size:18px}main{padding-bottom:78px!important}}
+/* hamburger button — mobile only */
+.hambtn{display:none;width:40px;height:40px;border-radius:12px;background:var(--card);box-shadow:var(--shadow-sm);border:none;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:.2s}
+.hambtn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:.3s}
+.hambtn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hambtn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hambtn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+@media(max-width:780px){.hambtn{display:flex}}
+/* drawer */
+#drawer{position:fixed;inset:0;z-index:200;pointer-events:none}
+#drawer-overlay{position:absolute;inset:0;background:rgba(10,8,4,.45);opacity:0;transition:opacity .3s;pointer-events:none}
+#drawer-panel{position:absolute;top:0;right:0;bottom:0;width:min(300px,85vw);background:var(--card);box-shadow:-8px 0 40px rgba(0,0,0,.25);transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;overflow-y:auto}
+#drawer.open{pointer-events:all}
+#drawer.open #drawer-overlay{opacity:1;pointer-events:all}
+#drawer.open #drawer-panel{transform:translateX(0)}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
+.drawer-brand{display:flex;align-items:center;gap:10px}
+.drawer-brand .mark{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--gold),var(--accent));color:#fff;font-size:16px}
+.drawer-close{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--card-2);border:none;cursor:pointer;font-size:18px;color:var(--muted)}
+.drawer-nav{padding:12px 10px;flex:1}
+.drawer-nav a{display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:14px;font-size:.95rem;font-weight:500;color:var(--text);cursor:pointer;transition:.18s;text-decoration:none;margin-bottom:2px}
+.drawer-nav a:hover{background:var(--card-2)}
+.drawer-nav a.active{background:linear-gradient(90deg,var(--gold-soft),var(--card-2));color:var(--accent);font-weight:600}
+.drawer-nav a .dnav-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;background:var(--card-2);flex:none}
+.drawer-nav a.active .dnav-icon{background:var(--gold-soft)}
+.drawer-divider{height:1px;background:var(--line);margin:8px 14px}
+.drawer-footer{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.drawer-footer button{flex:1}
 main{max-width:1120px;margin:0 auto;padding:clamp(20px,4vw,40px) clamp(16px,4vw,40px) 60px}
 .page{animation:rise .55s cubic-bezier(.2,.8,.2,1)}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -213,9 +240,25 @@ input[type=range]{accent-color:var(--accent)}
   <button class="iconbtn" onclick="toggleTheme()" id="themeBtn" title="Toggle light/dark">🌙</button>
   <button class="iconbtn" onclick="openSettings()" id="gearBtn" title="Settings">⚙</button>
   <button class="iconbtn" id="authChip" onclick="go('login')">↪</button>
+  <button class="hambtn" id="hambtn" onclick="toggleDrawer()" title="Menu" aria-label="Open menu"><span></span><span></span><span></span></button>
 </header>
 <main id="app"><div class="spinner"></div></main>
 <nav class="tabbar" id="tabbar"></nav>
+<!-- Mobile drawer -->
+<div id="drawer">
+  <div id="drawer-overlay" onclick="closeDrawer()"></div>
+  <div id="drawer-panel">
+    <div class="drawer-header">
+      <div class="drawer-brand"><div class="mark serif">✦</div><div><b class="serif" style="font-size:1.1rem">Lumen</b><div style="font-size:.6rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase">Bible Study</div></div></div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <nav class="drawer-nav" id="drawer-nav"></nav>
+    <div class="drawer-footer">
+      <button class="btn soft sm" id="drawer-theme" onclick="toggleTheme();updateDrawerThemeBtn()">🌙 Theme</button>
+      <button class="btn soft sm" onclick="closeDrawer();openSettings()">⚙ Settings</button>
+    </div>
+  </div>
+</div>
 <div id="toast"></div>
 <div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
 
@@ -432,10 +475,22 @@ function paintNav(){
   const r=current();
   document.getElementById('mainnav').innerHTML=NAV.filter(n=>n[0]!=='dashboard').map(n=>`<a class="${r===n[0]?'active':''}" onclick="go('${n[0]}')">${n[1]}</a>`).join('');
   document.getElementById('tabbar').innerHTML=NAV.slice(0,6).map(n=>`<a class="${r===n[0]?'active':''}" onclick="go('${n[0]}')"><span>${n[2]}</span>${n[1]}</a>`).join('');
+  // drawer — all routes including dashboard
+  const dn=document.getElementById('drawer-nav');
+  if(dn)dn.innerHTML=NAV.map(n=>{
+    const labels={home:'Home',bible:'Bible Reader',ai:'Verse Explain',pastor:'AI Pastor',notes:'Notes',forms:'Tracker',groups:'Groups',lesson:'Daily Lesson',dashboard:'My Dashboard',login:'Sign In'};
+    return `<a class="${r===n[0]?'active':''}" onclick="go('${n[0]}');closeDrawer()"><span class="dnav-icon">${n[2]}</span>${labels[n[0]]||n[1]}</a>`;
+  }).join('')+`<div class="drawer-divider"></div>
+    <a onclick="closeDrawer();openSettings()"><span class="dnav-icon">⚙️</span>Settings</a>
+    <a onclick="closeDrawer();toggleTheme()"><span class="dnav-icon">🌙</span>Toggle Theme</a>`;
   const chip=document.getElementById('authChip');
   if(USER){chip.outerHTML=`<div class="avatar" id="authChip" title="${USER.name}" onclick="go('dashboard')">${(USER.name||'?')[0].toUpperCase()}</div>`;}
   else{chip.outerHTML=`<button class="iconbtn" id="authChip" onclick="go('login')" title="Sign in">↪</button>`;}
+  updateDrawerThemeBtn();
 }
+function toggleDrawer(){const d=document.getElementById('drawer');const b=document.getElementById('hambtn');const open=d.classList.toggle('open');b.classList.toggle('open',open);document.body.style.overflow=open?'hidden':'';}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('hambtn').classList.remove('open');document.body.style.overflow='';}
+function updateDrawerThemeBtn(){const cur=document.documentElement.getAttribute('data-theme');const b=document.getElementById('drawer-theme');if(b)b.textContent=cur==='dark'?'☀️ Theme':'🌙 Theme';}
 const THEMES=[['light','Parchment','#f6f3ec'],['dark','Midnight','#171c26'],['sepia','Sepia','#efe6d4'],['ocean','Ocean','#2f86a6'],['forest','Forest','#5d8c4f']];
 function setTheme(id){document.documentElement.setAttribute('data-theme',id);localStorage.setItem('lumen_theme',id);
   document.getElementById('themeBtn').textContent=id==='dark'?'☀':'🌙';profileSet({theme:id});
