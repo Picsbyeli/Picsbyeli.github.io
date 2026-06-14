@@ -1,6 +1,7 @@
 // Password Protection Module
 // Protects the website with a password and provides access control
 // Tracks device fingerprints to limit attempts per device
+// Admins can bypass password protection
 
 const PasswordProtection = {
   PASSWORD: 'Pic.aso12!',
@@ -14,6 +15,18 @@ const PasswordProtection = {
   YOUR_PHONE: '(555) 123-4567', // Update with your phone
   
   init() {
+    // Check if current user is an admin - admins bypass password protection
+    if (this.isAdminUser()) {
+      this.setAuthenticated();
+      this.setLastAuthNow();
+      const existingModal = document.getElementById('password-modal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      document.body.classList.remove('password-protected');
+      return;
+    }
+    
     this.setAuthenticated();
     this.setLastAuthNow();
     const existingModal = document.getElementById('password-modal');
@@ -23,8 +36,23 @@ const PasswordProtection = {
     document.body.classList.remove('password-protected');
   },
 
+  // Check if the current user is an admin
+  isAdminUser() {
+    if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+      const user = window.gameAuth.getCurrentUser();
+      if (user && window.AdminList && window.AdminList.isAdmin(user.email)) {
+        return true;
+      }
+    }
+    return false;
+  },
+
   // Check if password re-auth is needed (for non-admins)
   needsReauth() {
+    // Admins never need to reauthenticate
+    if (this.isAdminUser()) {
+      return false;
+    }
     return false;
   },
 

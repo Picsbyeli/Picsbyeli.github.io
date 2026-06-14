@@ -1179,9 +1179,14 @@
             if (!container) return;
             
             if (user && window.gameAuth && window.gameAuth.isLoggedIn()) {
+                const isAdminUser = window.AdminList && window.AdminList.isAdmin(user.email);
+                const adminBadge = isAdminUser
+                    ? `<span style="display:inline-block;background:#f1c40f;color:#1a1a1a;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:bold;margin-left:8px;">👑 Owner</span>`
+                    : '';
                 container.innerHTML = `
                     <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <p style="margin: 0 0 10px 0; color: #66c0f4;">Logged in as: <strong>${user.email}</strong></p>
+                        <p style="margin: 0 0 10px 0; color: #66c0f4;">Logged in as: <strong>${user.email}</strong>${adminBadge}</p>
+                        ${isAdminUser ? `<div style="background:rgba(241,196,15,0.1);border:1px solid #f1c40f;border-radius:6px;padding:10px;margin-bottom:6px;font-size:13px;color:#f1c40f;">👑 Admin access active — you can play all locked games.</div>` : ''}
                         <button class="action-btn" onclick="handleSignOut()">Sign Out</button>
                         <button class="action-btn secondary" onclick="clearAllData()">Clear Local Data</button>
                     </div>
@@ -1317,9 +1322,14 @@
             }
             // Reload settings from Firebase
             loadExistingSettings();
+            // Refresh auth actions to show admin badge if applicable
+            if (window.gameAuth && window.gameAuth.isLoggedIn()) {
+                updateAuthActions(window.gameAuth.getCurrentUser());
+            }
         });
     </script>
 
+    <script src="js/admin-list.js"></script>
     <script src="js/admin-module.js"></script>
     <script src="js/help-widget.js"></script>
     <script src="js/music-player.js"></script>

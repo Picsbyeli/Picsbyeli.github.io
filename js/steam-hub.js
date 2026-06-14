@@ -11,9 +11,8 @@ class GameHub {
         this.gamesPerPage = 15;
         this.currentSection = 'library';
         
-        // Admin-only Pokemon games (Evolmon is NOT in this list - it's open to all)
-        this.adminOnlyGames = ['pokemon-veil/VOE', 'pokemon-veil/pokemon-veil-of-eternity'];
-        this.adminEmail = 'elidaslaya@gmail.com';
+        // Use AdminList to get locked games instead of hardcoding
+        this.adminOnlyGames = window.AdminList ? window.AdminList.getLockedGames() : [];
         
         this.initializeGames();
         this.setupEventListeners();
@@ -627,10 +626,13 @@ class GameHub {
     }
 
     isAdmin() {
+        // Check live Firebase auth first
         if (window.gameAuth && window.gameAuth.isLoggedIn()) {
             const user = window.gameAuth.getCurrentUser();
-            if (user && user.email === this.adminEmail) return true;
+            if (user && window.AdminList && window.AdminList.isAdmin(user.email)) return true;
         }
+        // Fall back to cached admin status (set after login to survive async delay)
+        if (sessionStorage.getItem('evol_is_admin') === 'true') return true;
         return false;
     }
 
@@ -965,44 +967,74 @@ function checkUserAuthStatus() {
     return false;
 }
 
-// Initialize Firebase auth if available
+// Initialize Firebase auth and hook into auth state changes
 function initializeFirebaseAuth() {
-    // This will be called when the page loads to set up Firebase auth
-    if (typeof window.gameAuth !== 'undefined') {
-        // Firebase auth is available, set up auth state listener
-        console.log('Firebase auth detected');
-    } else {
-        // Import Firebase auth if not already loaded
-        loadFirebaseAuth();
+    // Poll until gameAuth is available (ES module loads async)
+    const tryHook = () => {
+        if (window.gameAuth) {
+            hookAuthStateChanges();
+        } else {
+            setTimeout(tryHook, 100);
+        }
+    };
+    tryHook();
+}
+
+function hookAuthStateChanges() {
+    const origLogin  = window.gameAuth.onUserLogin.bind(window.gameAuth);
+    const origLogout = window.gameAuth.onUserLogout.bind(window.gameAuth);
+
+    window.gameAuth.onUserLogin = function(user) {
+        origLogin(user);
+        // Cache admin status immediately so isAdmin() works before re-render
+        const isAdminUser = window.AdminList && window.AdminList.isAdmin(user.email);
+        if (isAdminUser) {
+            sessionStorage.setItem('evol_is_admin', 'true');
+        } else {
+            sessionStorage.removeItem('evol_is_admin');
+        }
+        // Re-render library so locked games unlock/lock based on real auth
+        if (gameHub) {
+            gameHub.renderCurrentSection();
+            gameHub.updateSidebar();
+            gameHub.loadAndApplyUserSettings();
+        }
+        // Update account nav label
+        updateAccountNavLabel(user);
+        // Notify admin module
+        window.dispatchEvent(new Event('userAuthenticated'));
+    };
+
+    window.gameAuth.onUserLogout = function() {
+        origLogout();
+        sessionStorage.removeItem('evol_is_admin');
+        if (gameHub) {
+            gameHub.renderCurrentSection();
+            gameHub.updateSidebar();
+        }
+        updateAccountNavLabel(null);
+    };
+
+    // If Firebase already resolved auth before we hooked in, apply now
+    if (window.gameAuth.isLoggedIn()) {
+        const user = window.gameAuth.getCurrentUser();
+        window.gameAuth.onUserLogin(user);
     }
 }
 
-function loadFirebaseAuth() {
-    // Dynamically load Firebase auth if needed
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.innerHTML = `
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-        import { GameAuth } from './js/firebase-auth.js';
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyDn2cL3G7YIU5F9pYcwWp3vd6rT8GHfVlE",
-            authDomain: "profile-9e9f9.firebaseapp.com",
-            projectId: "profile-9e9f9",
-            storageBucket: "profile-9e9f9.appspot.com",
-            messagingSenderId: "412374234567",
-            appId: "1:412374234567:web:8a9b5c6d7e8f9g0h1i2j3k4l"
-        };
-        
-        try {
-            const app = initializeApp(firebaseConfig);
-            window.gameAuth = new GameAuth(app);
-            console.log('Firebase auth initialized');
-        } catch (error) {
-            console.log('Firebase auth not available:', error);
-        }
-    `;
-    document.head.appendChild(script);
+function updateAccountNavLabel(user) {
+    const nav = document.getElementById('account-nav');
+    if (!nav) return;
+    if (user && window.AdminList && window.AdminList.isAdmin(user.email)) {
+        nav.innerHTML = '👑 Admin';
+        nav.style.color = '#f1c40f';
+    } else if (user) {
+        nav.innerHTML = '👤 Account';
+        nav.style.color = '';
+    } else {
+        nav.innerHTML = '👤 Account';
+        nav.style.color = '';
+    }
 }
 
 // Initialize when DOM is loaded

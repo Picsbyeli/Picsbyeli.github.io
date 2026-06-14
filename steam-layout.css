@@ -564,6 +564,11 @@
   opacity: 0.7;
 }
 
+/* Admin nav highlight */
+#account-nav[style*="f1c40f"] {
+  font-weight: bold;
+}
+
 /* ============================================
    ACHIEVEMENTS SECTION
    ============================================ */

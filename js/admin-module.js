@@ -1,8 +1,7 @@
 // Admin Module for tracking online users
-// Only accessible to admin email: elidaslaya@gmail.com
+// Uses AdminList to determine admin access
 
 const AdminModule = {
-  ADMIN_EMAIL: 'elidaslaya@gmail.com',
   ONLINE_USERS_KEY: 'evol_online_users',
   USER_SESSION_KEY: 'evol_user_session_' + Date.now(),
   HEARTBEAT_INTERVAL: 5000, // 5 seconds
@@ -20,13 +19,17 @@ const AdminModule = {
   checkAdminStatus() {
     if (window.gameAuth && window.gameAuth.isLoggedIn()) {
       const currentUser = window.gameAuth.getCurrentUser();
-      if (currentUser && currentUser.email === this.ADMIN_EMAIL) {
+      if (currentUser && window.AdminList && window.AdminList.isAdmin(currentUser.email)) {
         window.isAdmin = true;
+        window.currentAdminEmail = currentUser.email;
+        sessionStorage.setItem('evol_is_admin', 'true');
         this.showAdminTab();
         return true;
       }
     }
     window.isAdmin = false;
+    window.currentAdminEmail = null;
+    sessionStorage.removeItem('evol_is_admin');
     return false;
   },
   
@@ -57,6 +60,7 @@ const AdminModule = {
   updateUserPresence() {
     if (window.gameAuth && window.gameAuth.isLoggedIn()) {
       const currentUser = window.gameAuth.getCurrentUser();
+      const isUserAdmin = window.AdminList && window.AdminList.isAdmin(currentUser.email);
       const onlineUsers = this.getOnlineUsers();
       
       const userSession = {
@@ -64,7 +68,7 @@ const AdminModule = {
         email: currentUser.email,
         displayName: currentUser.displayName || 'Anonymous',
         lastSeen: Date.now(),
-        isAdmin: currentUser.email === this.ADMIN_EMAIL
+        isAdmin: isUserAdmin
       };
       
       // Update or add user to online list
