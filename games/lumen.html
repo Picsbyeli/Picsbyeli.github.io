@@ -506,17 +506,20 @@ function pgHome(){
    ['ai','✨','AI Explanation','Paste a verse and understand its meaning & context.'],
    ['notes','📝','Notes & Groups','Write, organize, and study together with others.'],
    ['lesson','☀','Daily Lesson','A guided scripture lesson for today, with prayer.']];
+  const votdSaved=STORE.notes.some(n=>n.topic==='Saved verses'&&n.ref===v.r);
   return `<section class="hero fadein"><div class="tag">✦ Verse of the day · ${fmt(today())}</div>
     <blockquote>${v.t}</blockquote><div class="ref">${v.r}<span class="ver">${v.v}</span></div>
     <p class="reflect">${v.reflect}</p>
     <div class="acts"><button class="btn" onclick="go('lesson')">Today's lesson →</button>
-      <button class="btn ghost" onclick="saveVotd()">♡ Save verse</button>
+      <button class="btn ghost" style="${votdSaved?'color:#ff6b6b;':'' }" onclick="saveVotd()">${votdSaved?'❤️ Saved':'♡ Save verse'}</button>
       <button class="btn ghost" onclick="explainVerse('${v.r}')">✨ Explain this</button></div></section>
   <div class="section-h"><div><h2 class="serif">Where would you like to go?</h2><p>Four ways to draw closer to the Word today.</p></div></div>
   <div class="widgets">${w.map((x,i)=>`<div class="widget" style="animation:rise .5s ${i*0.08}s both" onclick="go('${x[0]}')"><div class="arrow">→</div><div class="wicon">${x[1]}</div><h3>${x[2]}</h3><p>${x[3]}</p></div>`).join('')}</div>
   ${USER?'':`<div class="card" style="margin-top:34px;text-align:center"><h3 class="serif" style="font-size:1.5rem">Save your journey</h3><p class="muted" style="margin:6px 0 16px">Create a free account to keep your highlights, notes and groups in the cloud.</p><button class="btn" onclick="go('login')">Sign in / Create account</button></div>`}`;
 }
-function saveVotd(){if(!requireUser())return;const v=votd();dbAdd('notes',{uid:USER.uid,title:v.r,body:v.t,topic:'Saved verses',book:v.r.split(' ')[0],ref:v.r,is_shared:false,created:Date.now()}).then(()=>toast('Saved to Notes › Saved verses ♡')).catch(fail);}
+function saveVotd(){if(!requireUser())return;const v=votd();const ex=STORE.notes.find(n=>n.topic==='Saved verses'&&n.ref===v.r);
+  if(ex){dbDelete('notes',ex.id).then(()=>{toast('Removed from saved verses');render();}).catch(fail);}
+  else{dbAdd('notes',{uid:USER.uid,title:v.r,body:v.t,topic:'Saved verses',book:v.r.split(' ')[0],ref:v.r,is_shared:false,created:Date.now()}).then(()=>{toast('Saved to Notes › Saved verses ❤️');render();}).catch(fail);}}
 function explainVerse(ref){localStorage.setItem('lumen_aiprefill',ref);go('ai');}
 
 /* ---- Bible reader ---- */
