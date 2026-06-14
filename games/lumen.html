@@ -118,6 +118,7 @@ textarea.control{min-height:120px;resize:vertical;line-height:1.6}
 .verse:hover .verse-tools{opacity:1}
 .minibtn{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--card-2);font-size:14px}
 .minibtn:hover{background:var(--gold-soft)}
+.minibtn.faved{color:#e53935;font-size:16px;}
 .locked{font-size:.78rem;color:var(--muted);background:var(--card-2);padding:14px;border-radius:12px;border:1px dashed var(--line)}
 .exp-block{border-left:3px solid var(--gold-soft);padding:4px 0 4px 16px;margin:16px 0}
 .exp-block h4{font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
@@ -563,10 +564,10 @@ async function paintRead(){
   if(req!==READ_REQ)return; // a newer selection superseded this load
   if(!arr||!arr.some(x=>x)){pane.innerHTML=`<div class="empty"><div class="big">📖</div><p>Couldn't load ${RD.book} ${RD.ch} right now.</p><p class="muted" style="margin-top:8px">Live chapters need an internet connection. Bundled offline passages: Psalms 23 & 1, John 1, Genesis 1, Romans 8, Philippians 4.</p><button class="btn soft sm" style="margin-top:12px" onclick="paintRead()">Retry</button></div>`;return;}
   pane.innerHTML=`<h3 class="serif" style="font-size:1.6rem;margin-bottom:10px">${RD.book} ${RD.ch} <span class="chip" style="vertical-align:middle">${ver}</span></h3>`+
-   arr.map((tx,i)=>{if(!tx)return '';const n=i+1;const key=`${ver}|${RD.book}|${RD.ch}|${n}`;const hl=STORE.highlights.find(h=>h.key===key);
+   arr.map((tx,i)=>{if(!tx)return '';const n=i+1;const key=`${ver}|${RD.book}|${RD.ch}|${n}`;const hl=STORE.highlights.find(h=>h.key===key);const vref=keyRef(key);const fav=STORE.notes.some(sv=>sv.topic==='Saved verses'&&sv.ref===vref);
     return `<div class="verse ${hl?'hl':''}" onclick="selVerse(this)"><div class="num">${n}</div><div class="txt">${tx}</div>
      <div class="verse-tools"><button class="minibtn" title="Highlight" onclick="event.stopPropagation();toggleHL('${key}','${esc(tx)}')">🖍</button>
-      <button class="minibtn" title="Favorite" onclick="event.stopPropagation();favVerse('${key}','${esc(tx)}')">♡</button>
+      <button class="minibtn${fav?' faved':''}" title="${fav?'Remove from saved':'Save verse'}" onclick="event.stopPropagation();favVerse('${key}','${esc(tx)}')">${fav?'❤️':'♡'}</button>
       <button class="minibtn" title="Note" onclick="event.stopPropagation();noteVerse('${key}','${esc(tx)}')">📝</button></div></div>`;}).join('');
 }
 function selVerse(el){document.querySelectorAll('.verse').forEach(v=>v.classList.remove('sel'));el.classList.add('sel');}
@@ -574,7 +575,9 @@ function keyRef(key){const p=key.split('|');return `${p[1]} ${p[2]}:${p[3]}`;}
 function toggleHL(key,tx){if(!requireUser())return;const ex=STORE.highlights.find(h=>h.key===key);
   if(ex){dbDelete('highlights',ex.id).then(()=>toast('Highlight removed')).catch(fail);}
   else{dbAdd('highlights',{uid:USER.uid,key,text:tx,ref:keyRef(key),created:Date.now()}).then(()=>toast('Verse highlighted 🖍')).catch(fail);}}
-function favVerse(key,tx){if(!requireUser())return;dbAdd('notes',{uid:USER.uid,title:keyRef(key),body:tx,topic:'Saved verses',book:key.split('|')[1],ref:keyRef(key),is_shared:false,created:Date.now()}).then(()=>toast('Saved to Notes › Saved verses ♡')).catch(fail);}
+function favVerse(key,tx){if(!requireUser())return;const ref=keyRef(key);const ex=STORE.notes.find(n=>n.topic==='Saved verses'&&n.ref===ref);
+  if(ex){dbDelete('notes',ex.id).then(()=>{toast('Removed from saved verses');paintRead();}).catch(fail);}
+  else{dbAdd('notes',{uid:USER.uid,title:ref,body:tx,topic:'Saved verses',book:key.split('|')[1],ref,is_shared:false,created:Date.now()}).then(()=>{toast('Saved to Notes › Saved verses ❤️');paintRead();}).catch(fail);}}
 function noteVerse(key,tx){if(!requireUser())return;
   modal(`<h3>Note on ${keyRef(key)}</h3><p class="muted" style="font-size:.85rem;margin-bottom:12px">"${tx.slice(0,90)}…"</p>
    <textarea class="control" id="vn" placeholder="What is God showing you here?"></textarea>
@@ -697,7 +700,7 @@ function paintGroups(){const gs=STORE.groups;const area=document.getElementById(
   area.innerHTML=gs.map(g=>`<div class="grouptop" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;align-items:center">
      <div><div style="font-size:.7rem;letter-spacing:2px;opacity:.85;text-transform:uppercase">${(g.memberNames||g.members||[]).length} member${(g.memberNames||g.members||[]).length>1?'s':''} · ${g.focus||'General study'}</div>
        <h3 class="serif" style="font-size:1.9rem">${g.name}</h3></div>
-     <div class="join">${g.code} <button class="btn ghost sm" onclick="copyCode('${g.code}')">Copy</button></div></div></div>
+     <div style="display:flex;gap:8px;align-items:center"><div class="join">${g.code} <button class="btn ghost sm" onclick="copyCode('${g.code}')">Copy</button></div>${USER&&g.owner===USER.uid?`<button class="btn ghost sm" style="background:rgba(220,60,60,.35);" onclick="deleteGroup('${g.id}')">🗑 Delete</button>`:''}</div></div></div>
    <div class="grid2" style="margin-bottom:30px"><div class="card"><h3 class="serif" style="font-size:1.3rem;margin-bottom:6px">Discussion</h3>
      <div>${(g.msgs||[]).map(m=>msgHTML(m)).join('')||'<p class="muted" style="font-size:.85rem">No messages yet — start the conversation.</p>'}</div>
      <div class="row" style="margin-top:12px"><input class="control" id="mi_${g.id}" placeholder="Share a thought, verse or prayer point…"/><button class="btn" style="flex:0" onclick="postMsg('${g.id}')">Send</button></div></div>
@@ -731,6 +734,10 @@ function postMsg(gid){const inp=document.getElementById('mi_'+gid);const t=inp.v
 function shareToGroup(gid){const inp=document.getElementById('sh_'+gid);const t=inp.value.trim();if(!t)return;inp.value='';
   if(LOCAL){const g=STORE.groups.find(x=>x.id===gid);g.shared=[...(g.shared||[]),t];saveLocalStore();localRefresh();return;}
   db.collection('groups').doc(gid).update({shared:FV.arrayUnion(t)}).catch(fail);}
+function deleteGroup(id){const g=STORE.groups.find(x=>x.id===id);if(!g)return;
+  modal(`<h3 class="serif">Delete "${g.name}"?</h3><p class="muted" style="font-size:.88rem;margin:8px 0 16px">This will permanently remove the group and all its messages.</p>
+  <div class="row"><button class="btn" style="background:#c0392b;color:#fff" onclick="confirmDeleteGroup('${id}')">Yes, delete</button><button class="btn soft" onclick="closeModal()">Cancel</button></div>`);}
+function confirmDeleteGroup(id){dbDelete('groups',id).then(()=>{closeModal();toast('Group deleted');}).catch(fail);}
 
 /* ---- Daily lesson (rotating set) ---- */
 const LESSONS=[
