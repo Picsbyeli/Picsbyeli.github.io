@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lumen · Bible Study (Firebase)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#f6f3ec; --bg-soft:#fffdf8; --card:#ffffff; --card-2:#fbf8f1;
+  --text:#27241d; --muted:#7a7468; --line:#e9e2d4;
+  --gold:#c2a14d; --gold-soft:#e7d6a6; --accent:#8a6d3b;
+  --halo1:#fde9c8; --halo2:#cfe3e8; --halo3:#e7d9f2;
+  --shadow:0 10px 40px -12px rgba(60,48,20,.28);
+  --shadow-sm:0 4px 18px -8px rgba(60,48,20,.25);
+  --radius:22px;
+  --read:1; /* reading text scale, set in Settings */
+}
+html[data-theme="dark"]{
+  --bg:#0f1216; --bg-soft:#141922; --card:#171c26; --card-2:#1c2230;
+  --text:#ece7db; --muted:#9aa3b2; --line:#27303f;
+  --gold:#d8bd6e; --gold-soft:#5a4d27; --accent:#e6cf8a;
+  --halo1:#2a2410; --halo2:#102026; --halo3:#1d1730;
+  --shadow:0 18px 50px -16px rgba(0,0,0,.6);
+  --shadow-sm:0 8px 24px -12px rgba(0,0,0,.55);
+}
+html[data-theme="sepia"]{
+  --bg:#efe6d4; --bg-soft:#f7f0e1; --card:#fbf6ea; --card-2:#f1e7d2; --text:#3b3122; --muted:#8a7c61; --line:#e0d3b6;
+  --gold:#b08a45; --gold-soft:#e7d6ab; --accent:#876632; --halo1:#f3e3c2; --halo2:#e7ddc8; --halo3:#efe0c6;
+  --shadow:0 10px 40px -12px rgba(80,60,20,.25); --shadow-sm:0 4px 18px -8px rgba(80,60,20,.22);
+}
+html[data-theme="ocean"]{
+  --bg:#eaf1f5; --bg-soft:#f4f8fb; --card:#ffffff; --card-2:#e6eef4; --text:#1d2a35; --muted:#5d7184; --line:#d6e2ec;
+  --gold:#2f86a6; --gold-soft:#cbe6f0; --accent:#236b8c; --halo1:#d4ecf5; --halo2:#dbeaf2; --halo3:#e7e1f2;
+  --shadow:0 10px 40px -12px rgba(20,60,80,.22); --shadow-sm:0 4px 18px -8px rgba(20,60,80,.2);
+}
+html[data-theme="forest"]{
+  --bg:#edf2e9; --bg-soft:#f4f8ef; --card:#ffffff; --card-2:#e6eee0; --text:#222a21; --muted:#5f6f59; --line:#d6e0d0;
+  --gold:#5d8c4f; --gold-soft:#d7e8cf; --accent:#436b39; --halo1:#dcecd2; --halo2:#e2ecdc; --halo3:#e8e3d6;
+  --shadow:0 10px 40px -12px rgba(30,60,20,.2); --shadow-sm:0 4px 18px -8px rgba(30,60,20,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .5s ease,color .5s ease}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(40% 50% at 12% 8%,var(--halo1),transparent 70%),radial-gradient(45% 55% at 88% 14%,var(--halo2),transparent 70%),radial-gradient(50% 60% at 50% 100%,var(--halo3),transparent 75%);opacity:.7;transition:opacity .5s}
+.serif{font-family:'Cormorant Garamond',serif}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:.95rem}
+header.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:16px;padding:14px clamp(16px,4vw,42px);background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px;cursor:pointer}
+.brand .mark{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--gold),var(--accent));color:#fff;box-shadow:var(--shadow-sm);font-size:20px}
+.brand h1{font-size:1.35rem;font-weight:600;letter-spacing:.5px}
+.brand small{display:block;font-family:Inter;font-size:.62rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-top:-4px}
+nav.mainnav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav.mainnav a{padding:8px 14px;border-radius:999px;font-size:.86rem;font-weight:500;color:var(--muted);transition:.25s}
+nav.mainnav a:hover{color:var(--text);background:var(--card-2)}
+nav.mainnav a.active{color:var(--accent);background:var(--card);box-shadow:var(--shadow-sm)}
+.iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--card);box-shadow:var(--shadow-sm);font-size:17px;transition:.25s}
+.iconbtn:hover{transform:translateY(-2px)}
+.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--accent),var(--gold));box-shadow:var(--shadow-sm);cursor:pointer}
+@media(max-width:780px){nav.mainnav{display:none}}
+.tabbar{display:none}
+@media(max-width:780px){.tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:60;justify-content:space-around;padding:8px 6px env(safe-area-inset-bottom);background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+.tabbar a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.62rem;color:var(--muted);padding:4px 8px;border-radius:12px}
+.tabbar a.active{color:var(--accent)}.tabbar a span{font-size:18px}main{padding-bottom:78px!important}}
+main{max-width:1120px;margin:0 auto;padding:clamp(20px,4vw,40px) clamp(16px,4vw,40px) 60px}
+.page{animation:rise .55s cubic-bezier(.2,.8,.2,1)}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.fadein{animation:fade .5s ease}@keyframes fade{from{opacity:0}to{opacity:1}}
+.hero{position:relative;border-radius:28px;overflow:hidden;color:#fff;padding:clamp(34px,6vw,68px) clamp(24px,5vw,60px);box-shadow:var(--shadow);background:linear-gradient(180deg,rgba(20,16,8,.15),rgba(20,16,8,.62)),radial-gradient(120% 120% at 80% 0%,#caa86a,#6c5226 40%,#2c2310 100%);isolation:isolate}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;mix-blend-mode:soft-light;opacity:.5;background:radial-gradient(60% 80% at 20% 100%,#fff,transparent 60%);animation:glow 9s ease-in-out infinite alternate}
+@keyframes glow{from{opacity:.25}to{opacity:.6}}
+.hero .tag{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;opacity:.85}
+.hero blockquote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,4.4vw,3rem);font-weight:500;line-height:1.25;margin:14px 0 16px;max-width:18ch;text-wrap:balance}
+.hero .ref{font-weight:600;font-size:1.05rem}
+.hero .ver{display:inline-block;margin-left:10px;font-size:.72rem;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.18);letter-spacing:1px}
+.hero .reflect{margin-top:18px;max-width:54ch;opacity:.92;font-size:.98rem}
+.hero .acts{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;font-weight:600;font-size:.9rem;transition:.25s;background:var(--gold);color:#1d1708;box-shadow:var(--shadow-sm)}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.05)}
+.btn.ghost{background:rgba(255,255,255,.16);color:#fff;backdrop-filter:blur(4px)}
+.btn.soft{background:var(--card);color:var(--text);border:1px solid var(--line)}
+.btn.sm{padding:7px 14px;font-size:.8rem}
+.btn.google{background:#fff;color:#3c4043;border:1px solid var(--line)}
+.section-h{display:flex;align-items:end;justify-content:space-between;margin:38px 4px 18px;gap:12px;flex-wrap:wrap}
+.section-h h2{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:600}
+.section-h p{color:var(--muted);font-size:.88rem}
+.widgets{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:880px){.widgets{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:430px){.widgets{grid-template-columns:1fr}}
+.widget{position:relative;border-radius:var(--radius);padding:26px 22px;background:var(--card);box-shadow:var(--shadow-sm);overflow:hidden;transition:.3s;border:1px solid transparent;cursor:pointer}
+.widget:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:var(--gold-soft)}
+.widget .wicon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:24px;margin-bottom:16px;background:linear-gradient(135deg,var(--halo1),var(--card-2))}
+.widget h3{font-size:1.12rem;font-weight:600;margin-bottom:6px}
+.widget p{font-size:.84rem;color:var(--muted)}
+.widget .arrow{position:absolute;top:24px;right:22px;color:var(--muted);transition:.3s}
+.widget:hover .arrow{transform:translate(3px,-3px);color:var(--accent)}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:22px;border:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:1.4fr .9fr;gap:22px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:5px 12px;border-radius:999px;background:var(--card-2);font-size:.76rem;color:var(--muted);border:1px solid var(--line)}
+.chip.gold{background:var(--gold-soft);color:var(--accent);font-weight:600;border-color:transparent}
+label.fld{display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:0 0 6px}
+.control{width:100%;padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:var(--bg-soft);color:var(--text);transition:.2s}
+.control:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
+textarea.control{min-height:120px;resize:vertical;line-height:1.6}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
+.verse{display:flex;gap:12px;padding:9px 12px;border-radius:12px;transition:.18s;cursor:pointer}
+.verse:hover{background:var(--card-2)}
+.verse .num{color:var(--gold);font-weight:700;font-size:.78rem;min-width:22px;text-align:right;padding-top:5px}
+.verse .txt{font-family:'Cormorant Garamond',serif;font-size:calc(1.3rem * var(--read));line-height:1.5}
+.verse.hl{background:linear-gradient(90deg,var(--gold-soft),transparent)}.verse.hl .txt{font-weight:500}
+.verse.sel{box-shadow:inset 0 0 0 2px var(--gold)}
+.verse-tools{display:flex;gap:6px;margin-left:auto;align-self:center;opacity:0;transition:.2s}
+.verse:hover .verse-tools{opacity:1}
+.minibtn{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--card-2);font-size:14px}
+.minibtn:hover{background:var(--gold-soft)}
+.locked{font-size:.78rem;color:var(--muted);background:var(--card-2);padding:14px;border-radius:12px;border:1px dashed var(--line)}
+.exp-block{border-left:3px solid var(--gold-soft);padding:4px 0 4px 16px;margin:16px 0}
+.exp-block h4{font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.exp-block p{font-size:calc(.96rem * var(--read))}
+.disclaimer{font-size:.78rem;color:var(--muted);background:var(--card-2);padding:12px 14px;border-radius:12px;margin-top:18px}
+.notecard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow-sm);transition:.25s}
+.notecard:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.notecard h4{font-family:'Cormorant Garamond',serif;font-size:1.25rem;margin-bottom:4px}
+.notecard .meta{font-size:.72rem;color:var(--muted);margin-bottom:10px}
+.notecard .body{font-size:.9rem;color:var(--text);opacity:.9;max-height:120px;overflow:hidden}
+.masonry{columns:280px 3;column-gap:18px}.masonry>*{break-inside:avoid;margin-bottom:18px}
+.grouptop{background:linear-gradient(135deg,var(--accent),var(--gold));color:#fff;border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+.join{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.18);border-radius:14px;padding:10px 14px;font-family:monospace;letter-spacing:3px;font-size:1.1rem;font-weight:700}
+.msg{display:flex;gap:12px;margin:14px 0}
+.msg .ava{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-size:.8rem;font-weight:600;background:linear-gradient(135deg,var(--gold),var(--accent))}
+.msg .bubble{background:var(--card-2);border-radius:4px 16px 16px 16px;padding:10px 14px;font-size:.9rem}
+.msg .bubble .who{font-weight:600;font-size:.78rem;margin-bottom:2px}
+.msg .bubble .when{font-size:.66rem;color:var(--muted)}
+.lesson-hero{background:radial-gradient(120% 140% at 0% 0%,#2c2a4a,#16121f);color:#fff;border-radius:var(--radius);padding:clamp(26px,5vw,46px);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.lesson-hero::after{content:"✦";position:absolute;right:30px;top:20px;font-size:120px;opacity:.08}
+.auth-wrap{min-height:72vh;display:grid;place-items:center}
+.auth-card{width:min(420px,100%);background:var(--card);border-radius:26px;box-shadow:var(--shadow);padding:34px;border:1px solid var(--line)}
+.auth-card h2{font-family:'Cormorant Garamond',serif;font-size:2rem;text-align:center}
+.auth-card p.sub{text-align:center;color:var(--muted);font-size:.86rem;margin-bottom:22px}
+.switch{text-align:center;font-size:.85rem;color:var(--muted);margin-top:16px}
+.switch a{color:var(--accent);font-weight:600;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--card);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+.stat .v{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--accent)}
+.stat .l{font-size:.78rem;color:var(--muted)}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--text);color:var(--bg);padding:12px 22px;border-radius:999px;font-size:.85rem;font-weight:600;opacity:0;transition:.35s;z-index:200;box-shadow:var(--shadow);max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal-bg{position:fixed;inset:0;background:rgba(10,8,4,.5);backdrop-filter:blur(4px);display:none;place-items:center;z-index:150;padding:20px}
+.modal-bg.show{display:grid;animation:fade .25s}
+.modal{width:min(460px,100%);background:var(--card);border-radius:22px;padding:26px;box-shadow:var(--shadow);animation:rise .35s}
+.modal h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:6px}
+.muted{color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}.empty .big{font-size:42px;opacity:.5}
+#banner{display:none;padding:10px 16px;background:#b4452f;color:#fff;font-size:.82rem;text-align:center}
+#banner.show{display:block}
+#banner.amber{background:linear-gradient(90deg,var(--accent),var(--gold))}
+.swatch{width:34px;height:34px;border-radius:10px;cursor:pointer;border:2px solid transparent;box-shadow:var(--shadow-sm);transition:.2s}
+.swatch:hover{transform:translateY(-2px)}
+.swatch.sel{border-color:var(--gold);outline:2px solid var(--gold-soft)}
+.chartwrap{position:relative;height:260px;width:100%}
+.fieldpill{display:inline-flex;align-items:center;gap:6px;margin:4px 4px 0 0;padding:5px 10px;border-radius:999px;background:var(--card-2);font-size:.78rem;border:1px solid var(--line)}
+.fieldpill span{cursor:pointer;color:var(--muted);font-weight:700}
+.etable{width:100%;border-collapse:collapse;font-size:.84rem}
+.etable th,.etable td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+.etable th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px}
+.spinner{width:34px;height:34px;border:3px solid var(--gold-soft);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:30px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.cal-h{font-size:.66rem;color:var(--muted);font-weight:700}
+.cal-d{aspect-ratio:1;display:grid;place-items:center;border-radius:10px;font-size:.82rem;background:var(--card-2);color:var(--muted)}
+.cal-d.on{background:linear-gradient(135deg,var(--gold),var(--accent));color:#fff;font-weight:700;box-shadow:var(--shadow-sm)}
+.cal-d.today{outline:2px solid var(--gold);color:var(--text)}
+input[type=range]{accent-color:var(--accent)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div id="banner"></div>
+<header class="topbar">
+  <div class="brand" onclick="go('home')"><div class="mark serif">✦</div><div><h1 class="serif">Lumen</h1><small>Bible Study</small></div></div>
+  <nav class="mainnav" id="mainnav"></nav>
+  <button class="iconbtn" onclick="toggleTheme()" id="themeBtn" title="Toggle light/dark">🌙</button>
+  <button class="iconbtn" onclick="openSettings()" id="gearBtn" title="Settings">⚙</button>
+  <button class="iconbtn" id="authChip" onclick="go('login')">↪</button>
+</header>
+<main id="app"><div class="spinner"></div></main>
+<nav class="tabbar" id="tabbar"></nav>
+<div id="toast"></div>
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
+
+<!-- Chart.js for the Tracker charts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Firebase compat SDK (lets inline handlers stay simple) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============================================================
+   Lumen — Bible Study · wired to Firebase Auth + Firestore.
+   Reads come from in-memory caches (STORE) kept live by
+   onSnapshot listeners; writes go straight to Firestore.
+   ============================================================ */
+
+/* ---- 1. Firebase config (yours) ---- */
+const firebaseConfig = {
+  apiKey: "AIzaSyAUvjkTS015wQyD-nZXIOMcqvaevJMAarU",
+  authDomain: "ebible-30e4a.firebaseapp.com",
+  projectId: "ebible-30e4a",
+  storageBucket: "ebible-30e4a.firebasestorage.app",
+  messagingSenderId: "71312603445",
+  appId: "1:71312603445:web:9cef17497233b806f0347c",
+  measurementId: "G-QWY8JR2P9M"
+};
+let auth=null, db=null, FV=null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  auth=firebase.auth();
+  db=firebase.firestore();
+  FV=firebase.firestore.FieldValue;
+}catch(e){ console.warn(e); }
+
+// Firebase Auth requires http/https. When the page is opened directly as a file://
+// (or init fails), run in OFFLINE/LOCAL mode: identical UI, data saved in this browser.
+const HOSTED=(location.protocol==='http:'||location.protocol==='https:'||location.protocol.indexOf('chrome')===0);
+let LOCAL=!(auth&&HOSTED);
+
+function showBanner(m,type){const b=document.getElementById('banner');b.textContent=m;b.className='show'+(type==='amber'?' amber':'');}
+
+/* ---- storage abstraction: Firestore when hosted, localStorage when LOCAL ---- */
+function DBjson(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
+function loadLocalStore(){STORE=Object.assign({highlights:[],favorites:[],notes:[],groups:[],forms:[],entries:[],profile:{}},DBjson('lumen_store')||{});}
+function saveLocalStore(){localStorage.setItem('lumen_store',JSON.stringify(STORE));}
+function localRefresh(){['highlights','favorites','notes','groups','forms','entries'].forEach(c=>{if(Array.isArray(STORE[c]))STORE[c].sort(byNew);});render();paintNav();}
+function dbAdd(coll,obj){if(LOCAL){const o={...obj,id:uid()};STORE[coll]=[o,...(STORE[coll]||[])];saveLocalStore();localRefresh();return Promise.resolve(o);}return db.collection(coll).add(obj);}
+function dbUpdate(coll,id,patch){if(LOCAL){const a=STORE[coll]||[];const i=a.findIndex(x=>x.id===id);if(i>=0)a[i]={...a[i],...patch};saveLocalStore();localRefresh();return Promise.resolve();}return db.collection(coll).doc(id).update(patch);}
+function dbDelete(coll,id){if(LOCAL){STORE[coll]=(STORE[coll]||[]).filter(x=>x.id!==id);saveLocalStore();localRefresh();return Promise.resolve();}return db.collection(coll).doc(id).delete();}
+function profileSet(patch){if(!USER)return Promise.resolve();if(LOCAL){STORE.profile={...STORE.profile,...patch};saveLocalStore();return Promise.resolve();}return db.collection('users').doc(USER.uid).set(patch,{merge:true});}
+function bootLocal(){LOCAL=true;loadLocalStore();USER=DBjson('lumen_localuser');AUTH_READY=true;
+  showBanner('Offline mode (opened as a file): accounts & cross-device sync are off, but everything you do saves in this browser. To enable Google/email sign-in and live groups, serve the app over http — see FIREBASE-GUIDE.','amber');
+  render();paintNav();}
+
+/* ---- 2. live caches + session ---- */
+let USER=null;                 // {uid,name,email}
+let AUTH_READY=false;
+let STORE={highlights:[],favorites:[],notes:[],groups:[],forms:[],entries:[],profile:{}};
+let UNSUB=[];
+let FORM_VIEW=null, ENTRY_UNSUB=null, CHART=null, NEWFORM={title:'',desc:'',fields:[]};
+
+const uid=()=>Math.random().toString(36).slice(2,10);
+const today=()=>new Date().toISOString().slice(0,10);
+const fmt=d=>{try{return new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}catch(e){return d}};
+const byNew=(a,b)=>(b.created||0)-(a.created||0);
+
+/* ---- 3. scripture data (public domain KJV + WEB) ---- */
+const TRANSLATIONS=[
+  {id:'KJV',name:'King James Version',license:'Public Domain',free:true},
+  {id:'WEB',name:'World English Bible',license:'Public Domain',free:true},
+  {id:'NIV',name:'New International Version',license:'Licensed · API key required',free:false},
+  {id:'NLT',name:'New Living Translation',license:'Licensed · API key required',free:false},
+  {id:'ESV',name:'English Standard Version',license:'Licensed · API key required',free:false},
+];
+const BIBLE={
+ KJV:{
+  'Psalms':{23:["The LORD is my shepherd; I shall not want.","He maketh me to lie down in green pastures: he leadeth me beside the still waters.","He restoreth my soul: he leadeth me in the paths of righteousness for his name's sake.","Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me; thy rod and thy staff they comfort me.","Thou preparest a table before me in the presence of mine enemies: thou anointest my head with oil; my cup runneth over.","Surely goodness and mercy shall follow me all the days of my life: and I will dwell in the house of the LORD for ever."],
+   1:["Blessed is the man that walketh not in the counsel of the ungodly, nor standeth in the way of sinners, nor sitteth in the seat of the scornful.","But his delight is in the law of the LORD; and in his law doth he meditate day and night.","And he shall be like a tree planted by the rivers of water, that bringeth forth his fruit in his season; his leaf also shall not wither; and whatsoever he doeth shall prosper.","The ungodly are not so: but are like the chaff which the wind driveth away.","Therefore the ungodly shall not stand in the judgment, nor sinners in the congregation of the righteous.","For the LORD knoweth the way of the righteous: but the way of the ungodly shall perish."]},
+  'John':{1:["In the beginning was the Word, and the Word was with God, and the Word was God.","The same was in the beginning with God.","All things were made by him; and without him was not any thing made that was made.","In him was life; and the life was the light of men.","And the light shineth in darkness; and the darkness comprehended it not.","There was a man sent from God, whose name was John.","The same came for a witness, to bear witness of the Light, that all men through him might believe.","He was not that Light, but was sent to bear witness of that Light.","That was the true Light, which lighteth every man that cometh into the world.","He was in the world, and the world was made by him, and the world knew him not.","He came unto his own, and his own received him not.","But as many as received him, to them gave he power to become the sons of God, even to them that believe on his name:","Which were born, not of blood, nor of the will of the flesh, nor of the will of man, but of God.","And the Word was made flesh, and dwelt among us, (and we beheld his glory, the glory as of the only begotten of the Father,) full of grace and truth."],
+   3:["","","","","","","","","","","","","","","","","For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.","For God sent not his Son into the world to condemn the world; but that the world through him might be saved."]},
+  'Philippians':{4:["","","","Rejoice in the Lord alway: and again I say, Rejoice.","Let your moderation be known unto all men. The Lord is at hand.","Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God.","And the peace of God, which passeth all understanding, shall keep your hearts and minds through Christ Jesus.","Finally, brethren, whatsoever things are true, whatsoever things are honest, whatsoever things are just, whatsoever things are pure, whatsoever things are lovely, whatsoever things are of good report; if there be any virtue, and if there be any praise, think on these things.","Those things, which ye have both learned, and received, and heard, and seen in me, do: and the God of peace shall be with you.","","","","","I can do all things through Christ which strengtheneth me."]},
+  'Romans':{8:[]},
+  'Genesis':{1:["In the beginning God created the heaven and the earth.","And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.","And God said, Let there be light: and there was light.","And God saw the light, that it was good: and God divided the light from the darkness.","And God called the light Day, and the darkness he called Night. And the evening and the morning were the first day."]}
+ },
+ WEB:{
+  'Psalms':{23:["Yahweh is my shepherd; I shall lack nothing.","He makes me lie down in green pastures. He leads me beside still waters.","He restores my soul. He guides me in the paths of righteousness for his name's sake.","Even though I walk through the valley of the shadow of death, I will fear no evil, for you are with me. Your rod and your staff, they comfort me.","You prepare a table before me in the presence of my enemies. You anoint my head with oil. My cup runs over.","Surely goodness and loving kindness shall follow me all the days of my life, and I will dwell in Yahweh's house forever."],
+   1:["Blessed is the man who doesn't walk in the counsel of the wicked, nor stand on the path of sinners, nor sit in the seat of scoffers;","but his delight is in Yahweh's law. On his law he meditates day and night.","He will be like a tree planted by the streams of water, that produces its fruit in its season, whose leaf also does not wither. Whatever he does shall prosper.","The wicked are not so, but are like the chaff which the wind drives away.","Therefore the wicked shall not stand in the judgment, nor sinners in the congregation of the righteous.","For Yahweh knows the way of the righteous, but the way of the wicked shall perish."]},
+  'John':{3:["","","","","","","","","","","","","","","","","For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.","For God didn't send his Son into the world to judge the world, but that the world should be saved through him."]},
+  'Genesis':{1:["In the beginning, God created the heavens and the earth.","The earth was formless and empty. Darkness was on the surface of the deep and God's Spirit was hovering over the surface of the waters.","God said, “Let there be light,” and there was light.","God saw the light, and saw that it was good. God divided the light from the darkness.","God called the light “Day”, and the darkness he called “Night”. There was evening and there was morning, the first day."]}
+ }
+};
+BIBLE.KJV.Romans[8]=[];
+(function(){const r=new Array(40).fill("");
+ r[27]="And we know that all things work together for good to them that love God, to them who are the called according to his purpose.";
+ r[37]="Nay, in all these things we are more than conquerors through him that loved us.";
+ r[38]="For I am persuaded, that neither death, nor life, nor angels, nor principalities, nor powers, nor things present, nor things to come,";
+ r[39]="Nor height, nor depth, nor any other creature, shall be able to separate us from the love of God, which is in Christ Jesus our Lord.";
+ BIBLE.KJV.Romans[8]=r;})();
+const BOOKS=['Genesis','Psalms','John','Romans','Philippians']; // bundled (offline search)
+// Full Protestant canon with chapter counts — drives the reader navigation.
+const BIBLE_BOOKS=[
+ {n:'Genesis',c:50},{n:'Exodus',c:40},{n:'Leviticus',c:27},{n:'Numbers',c:36},{n:'Deuteronomy',c:34},
+ {n:'Joshua',c:24},{n:'Judges',c:21},{n:'Ruth',c:4},{n:'1 Samuel',c:31},{n:'2 Samuel',c:24},
+ {n:'1 Kings',c:22},{n:'2 Kings',c:25},{n:'1 Chronicles',c:29},{n:'2 Chronicles',c:36},{n:'Ezra',c:10},
+ {n:'Nehemiah',c:13},{n:'Esther',c:10},{n:'Job',c:42},{n:'Psalms',c:150},{n:'Proverbs',c:31},
+ {n:'Ecclesiastes',c:12},{n:'Song of Solomon',c:8},{n:'Isaiah',c:66},{n:'Jeremiah',c:52},{n:'Lamentations',c:5},
+ {n:'Ezekiel',c:48},{n:'Daniel',c:12},{n:'Hosea',c:14},{n:'Joel',c:3},{n:'Amos',c:9},
+ {n:'Obadiah',c:1},{n:'Jonah',c:4},{n:'Micah',c:7},{n:'Nahum',c:3},{n:'Habakkuk',c:3},
+ {n:'Zephaniah',c:3},{n:'Haggai',c:2},{n:'Zechariah',c:14},{n:'Malachi',c:4},{n:'Matthew',c:28},
+ {n:'Mark',c:16},{n:'Luke',c:24},{n:'John',c:21},{n:'Acts',c:28},{n:'Romans',c:16},
+ {n:'1 Corinthians',c:16},{n:'2 Corinthians',c:13},{n:'Galatians',c:6},{n:'Ephesians',c:6},{n:'Philippians',c:4},
+ {n:'Colossians',c:4},{n:'1 Thessalonians',c:5},{n:'2 Thessalonians',c:3},{n:'1 Timothy',c:6},{n:'2 Timothy',c:4},
+ {n:'Titus',c:3},{n:'Philemon',c:1},{n:'Hebrews',c:13},{n:'James',c:5},{n:'1 Peter',c:5},
+ {n:'2 Peter',c:3},{n:'1 John',c:5},{n:'2 John',c:1},{n:'3 John',c:1},{n:'Jude',c:1},{n:'Revelation',c:22}
+];
+function bookChapters(name){const b=BIBLE_BOOKS.find(x=>x.n===name);return b?b.c:1;}
+// Live chapter loader: API.Bible (your key) → bundled passages → public-domain bible-api.com.
+const CHAP_CACHE={};
+async function loadChapter(ver,book,ch){
+  const ck=ver+'|'+book+'|'+ch;
+  if(CHAP_CACHE[ck])return CHAP_CACHE[ck];
+  if(ver.indexOf('AB:')===0){const a=await apibChapter(ver.slice(3),book,ch);CHAP_CACHE[ck]=a;return a;}
+  const bundled=BIBLE[ver]&&BIBLE[ver][book]&&BIBLE[ver][book][ch];
+  if(bundled)return bundled;
+  // bible-api.com serves public-domain translations (kjv, web) for free, no key, CORS-enabled.
+  const url=`https://bible-api.com/${encodeURIComponent(book+' '+ch)}?translation=${ver.toLowerCase()}`;
+  const r=await fetch(url);
+  if(!r.ok)throw new Error('Could not load that chapter');
+  const j=await r.json();
+  const arr=[];(j.verses||[]).forEach(v=>{arr[v.verse-1]=(v.text||'').replace(/\s+/g,' ').trim();});
+  CHAP_CACHE[ck]=arr;return arr;
+}
+
+/* ---- API.Bible integration (full text + your licensed translations) ---- */
+const DEFAULT_BIBLE_KEY='_LoLzqHXgkVPuPOfiNLPh'; // your API.Bible key (override in Settings)
+const APIBIBLE_BASE='https://api.scripture.api.bible/v1';
+let APIBIBLES=null; // bibles discovered for this key
+const USFM={'Genesis':'GEN','Exodus':'EXO','Leviticus':'LEV','Numbers':'NUM','Deuteronomy':'DEU','Joshua':'JOS','Judges':'JDG','Ruth':'RUT','1 Samuel':'1SA','2 Samuel':'2SA','1 Kings':'1KI','2 Kings':'2KI','1 Chronicles':'1CH','2 Chronicles':'2CH','Ezra':'EZR','Nehemiah':'NEH','Esther':'EST','Job':'JOB','Psalms':'PSA','Proverbs':'PRO','Ecclesiastes':'ECC','Song of Solomon':'SNG','Isaiah':'ISA','Jeremiah':'JER','Lamentations':'LAM','Ezekiel':'EZK','Daniel':'DAN','Hosea':'HOS','Joel':'JOL','Amos':'AMO','Obadiah':'OBA','Jonah':'JON','Micah':'MIC','Nahum':'NAM','Habakkuk':'HAB','Zephaniah':'ZEP','Haggai':'HAG','Zechariah':'ZEC','Malachi':'MAL','Matthew':'MAT','Mark':'MRK','Luke':'LUK','John':'JHN','Acts':'ACT','Romans':'ROM','1 Corinthians':'1CO','2 Corinthians':'2CO','Galatians':'GAL','Ephesians':'EPH','Philippians':'PHP','Colossians':'COL','1 Thessalonians':'1TH','2 Thessalonians':'2TH','1 Timothy':'1TI','2 Timothy':'2TI','Titus':'TIT','Philemon':'PHM','Hebrews':'HEB','James':'JAS','1 Peter':'1PE','2 Peter':'2PE','1 John':'1JN','2 John':'2JN','3 John':'3JN','Jude':'JUD','Revelation':'REV'};
+function apibKey(){return (localStorage.getItem('lumen_bible_key')||DEFAULT_BIBLE_KEY||'').trim();}
+function apibProxy(){return (localStorage.getItem('lumen_bible_proxy')||'').trim();}
+function apibOn(){return !!(apibKey()||apibProxy());}
+function APIB_MODE(){return apibOn()&&Array.isArray(APIBIBLES)&&APIBIBLES.length>0;}
+async function apibFetch(path){
+  const proxy=apibProxy();
+  if(proxy){const u=proxy+(proxy.indexOf('?')>=0?'&':'?')+'path='+encodeURIComponent(path);const r=await fetch(u);if(!r.ok)throw new Error('proxy '+r.status);return r.json();}
+  const r=await fetch(APIBIBLE_BASE+path,{headers:{'api-key':apibKey()}});if(!r.ok)throw new Error('API.Bible '+r.status);return r.json();
+}
+async function apibDiscover(){const j=await apibFetch('/bibles');const all=j.data||[];const eng=all.filter(b=>b.language&&b.language.id==='eng');APIBIBLES=eng.length?eng:all;return APIBIBLES;}
+function apibWalk(items,out){if(!Array.isArray(items))return;for(const it of items){if(it.name==='verse'&&it.attrs&&it.attrs.number)out.push({n:parseInt(it.attrs.number,10),t:''});else if(it.type==='text'&&typeof it.text==='string'&&out.length)out[out.length-1].t+=it.text;if(it.items)apibWalk(it.items,out);}}
+async function apibChapter(bibleId,book,ch){
+  const usfm=USFM[book];if(!usfm)throw new Error('Unknown book');
+  const j=await apibFetch(`/bibles/${bibleId}/chapters/${usfm}.${ch}?content-type=json&include-verse-numbers=true&include-titles=false&include-notes=false&include-chapter-numbers=false`);
+  const out=[];apibWalk(j.data&&j.data.content,out);
+  const arr=[];out.forEach(v=>{if(v.n)arr[v.n-1]=v.t.replace(/\s+/g,' ').trim();});
+  if(!arr.some(x=>x))throw new Error('No verses parsed');return arr;
+}
+function readerTranslations(){
+  if(APIB_MODE()){const base=[{id:'KJV',name:'King James Version (offline)',free:true},{id:'WEB',name:'World English Bible (offline)',free:true}];
+    const extra=APIBIBLES.map(b=>({id:'AB:'+b.id,name:((b.abbreviationLocal||b.abbreviation||'')+' — '+(b.nameLocal||b.name||'')).slice(0,64),free:true}));
+    return base.concat(extra);}
+  return TRANSLATIONS;
+}
+const iso=d=>d.toISOString().slice(0,10);
+function computeStreak(days){const set=new Set(days||[]);let s=0;const d=new Date();
+  if(!set.has(iso(d))){d.setDate(d.getDate()-1);if(!set.has(iso(d)))return 0;}
+  while(set.has(iso(d))){s++;d.setDate(d.getDate()-1);}return s;}
+const VOTD=[
+ {t:"I can do all things through Christ which strengtheneth me.",r:"Philippians 4:13",v:"KJV",reflect:"Strength isn't found in your own willpower today, but in the One who holds you. Whatever you face, you do not face it alone."},
+ {t:"The LORD is my shepherd; I shall not want.",r:"Psalm 23:1",v:"KJV",reflect:"To be shepherded is to be guided, fed, and protected. Rest in the truth that your needs are seen and cared for."},
+ {t:"And we know that all things work together for good to them that love God.",r:"Romans 8:28",v:"KJV",reflect:"Not every moment is good, but no moment is wasted. God is weaving even the hard threads into something whole."},
+];
+function votd(){return VOTD[new Date().getDate()%VOTD.length];}
+
+/* ============================================================
+   4. FIRESTORE data layer
+   ============================================================ */
+function startListeners(u){
+  stopListeners();
+  if(!db) return;
+  const own=c=>db.collection(c).where('uid','==',u.uid);
+  UNSUB.push(own('highlights').onSnapshot(s=>{STORE.highlights=docs(s).sort(byNew);refreshIf(['bible','dashboard']);},err));
+  UNSUB.push(own('favorites').onSnapshot(s=>{STORE.favorites=docs(s).sort(byNew);refreshIf(['dashboard','home']);},err));
+  UNSUB.push(own('notes').onSnapshot(s=>{STORE.notes=docs(s).sort(byNew);refreshIf(['notes','dashboard']);},err));
+  UNSUB.push(db.collection('groups').where('members','array-contains',u.uid).onSnapshot(s=>{STORE.groups=docs(s).sort(byNew);refreshIf(['groups','dashboard','forms']);},err));
+  UNSUB.push(db.collection('forms').where('members','array-contains',u.uid).onSnapshot(s=>{STORE.forms=docs(s).sort(byNew);refreshIf(['forms','dashboard']);},err));
+  UNSUB.push(db.collection('users').doc(u.uid).onSnapshot(d=>{STORE.profile=d.data()||{};refreshIf(['dashboard']);},err));
+  function err(e){if(e.code==='permission-denied')showBanner("Firestore blocked the read — publish the security rules from FIREBASE-GUIDE.md, then reload.");else console.warn(e);}
+}
+function stopListeners(){UNSUB.forEach(fn=>{try{fn()}catch(e){}});UNSUB=[];STORE={highlights:[],favorites:[],notes:[],groups:[],forms:[],entries:[],profile:{}};}
+function docs(snap){const a=[];snap.forEach(d=>a.push({id:d.id,...d.data()}));return a;}
+function refreshIf(routes){if(routes.includes(current()))render();paintNav();}
+function fail(e){console.warn(e);toast(e.code==='permission-denied'?'Permission denied — publish Firestore rules':'Error: '+(e.message||e));}
+
+/* ============================================================
+   5. routing + chrome
+   ============================================================ */
+const ROUTES={home:pgHome,bible:pgBible,ai:pgAI,notes:pgNotes,forms:pgForms,groups:pgGroups,lesson:pgLesson,login:pgLogin,dashboard:pgDash};
+const NAV=[['home','Home','✦'],['bible','Bible','📖'],['ai','Explain','✨'],['notes','Notes','📝'],['forms','Tracker','📊'],['groups','Groups','👥'],['lesson','Daily','☀'],['dashboard','Me','◉']];
+function go(r){location.hash='#/'+r;}
+function current(){return (location.hash.replace('#/','')||'home');}
+function render(){
+  const r=current();
+  if(!AUTH_READY){return;}
+  if(r!=='forms'){FORM_VIEW=null;if(ENTRY_UNSUB){try{ENTRY_UNSUB()}catch(e){}ENTRY_UNSUB=null;}}
+  if((r==='dashboard'||r==='notes'||r==='groups'||r==='forms')&&!USER){document.getElementById('app').innerHTML=`<div class="page">${authGate(r)}</div>`;paintNav();return;}
+  const fn=ROUTES[r]||pgHome;
+  document.getElementById('app').innerHTML=`<div class="page">${fn()}</div>`;
+  if(window.__after){window.__after();window.__after=null;}
+  paintNav();window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',render);
+function paintNav(){
+  const r=current();
+  document.getElementById('mainnav').innerHTML=NAV.filter(n=>n[0]!=='dashboard').map(n=>`<a class="${r===n[0]?'active':''}" onclick="go('${n[0]}')">${n[1]}</a>`).join('');
+  document.getElementById('tabbar').innerHTML=NAV.slice(0,6).map(n=>`<a class="${r===n[0]?'active':''}" onclick="go('${n[0]}')"><span>${n[2]}</span>${n[1]}</a>`).join('');
+  const chip=document.getElementById('authChip');
+  if(USER){chip.outerHTML=`<div class="avatar" id="authChip" title="${USER.name}" onclick="go('dashboard')">${(USER.name||'?')[0].toUpperCase()}</div>`;}
+  else{chip.outerHTML=`<button class="iconbtn" id="authChip" onclick="go('login')" title="Sign in">↪</button>`;}
+}
+const THEMES=[['light','Parchment','#f6f3ec'],['dark','Midnight','#171c26'],['sepia','Sepia','#efe6d4'],['ocean','Ocean','#2f86a6'],['forest','Forest','#5d8c4f']];
+function setTheme(id){document.documentElement.setAttribute('data-theme',id);localStorage.setItem('lumen_theme',id);
+  document.getElementById('themeBtn').textContent=id==='dark'?'☀':'🌙';profileSet({theme:id});
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('sel',s.dataset.t===id));}
+function toggleTheme(){const cur=document.documentElement.getAttribute('data-theme');setTheme(cur==='dark'?'light':'dark');}
+(function(){const t=localStorage.getItem('lumen_theme')||'light';document.documentElement.setAttribute('data-theme',t);
+  document.documentElement.style.setProperty('--read',localStorage.getItem('lumen_read')||'1');})();
+function openSettings(){const scale=localStorage.getItem('lumen_read')||'1';
+  modal(`<h3>Settings</h3>
+   <div class="setrow"><div><b>Reading text size</b><div class="muted" style="font-size:.78rem">Affects verses & explanations</div></div>
+     <span class="serif" style="font-size:calc(1.3rem*var(--read))">Aa</span></div>
+   <input type="range" min="0.85" max="1.6" step="0.05" value="${scale}" oninput="applyReadScale(this.value)" style="width:100%;margin:12px 0"/>
+   <div class="setrow" style="display:block"><b>Appearance</b><div class="muted" style="font-size:.78rem;margin:2px 0 8px">Pick a look that's comfortable for you</div>
+     <div class="row" style="gap:10px">${THEMES.map(t=>`<div class="swatch ${(localStorage.getItem('lumen_theme')||'light')===t[0]?'sel':''}" data-t="${t[0]}" title="${t[1]}" style="background:${t[2]}" onclick="setTheme('${t[0]}')"></div>`).join('')}</div></div>
+   <div class="setrow"><div><b>Default translation</b></div>
+     <select class="control" style="width:auto" onchange="setDefaultVer(this.value)">${TRANSLATIONS.filter(t=>t.free).map(t=>`<option value="${t.id}" ${RD.ver===t.id?'selected':''}>${t.id}</option>`).join('')}</select></div>
+   <div class="setrow" style="display:block"><b>AI explanation</b><div class="muted" style="font-size:.78rem;margin:2px 0 8px">Use a Cloud Function URL (key stays private) or paste an Anthropic key to test in-browser. Leave both blank for offline samples.</div>
+     <input class="control" id="aiUrl" placeholder="Cloud Function URL (recommended)" value="${(localStorage.getItem('lumen_ai_url')||'').replace(/"/g,'&quot;')}" style="margin-bottom:8px"/>
+     <input class="control" id="aiKey" type="password" placeholder="Anthropic API key (browser test only)" value="${(localStorage.getItem('lumen_ai_key')||'').replace(/"/g,'&quot;')}"/>
+     <button class="btn soft sm" style="margin-top:8px" onclick="saveAICfg()">Save AI settings</button></div>
+   <div class="setrow" style="display:block"><b>Bible source (API.Bible)</b><div class="muted" style="font-size:.78rem;margin:2px 0 8px">Your key unlocks full text & extra translations. On a public site, use a proxy URL (Cloud Function) so the key isn't exposed.</div>
+     <input class="control" id="bibleKey" placeholder="API.Bible key" value="${(localStorage.getItem('lumen_bible_key')||DEFAULT_BIBLE_KEY||'').replace(/"/g,'&quot;')}" style="margin-bottom:8px"/>
+     <input class="control" id="bibleProxy" placeholder="Proxy URL (optional, recommended for public sites)" value="${(localStorage.getItem('lumen_bible_proxy')||'').replace(/"/g,'&quot;')}"/>
+     <button class="btn soft sm" style="margin-top:8px" onclick="saveBibleCfg()">Save Bible source</button></div>
+   <div class="setrow" style="border:none"><div><b>Account</b><div class="muted" style="font-size:.78rem">${USER?USER.email||USER.name:'Not signed in'}</div></div>
+     ${USER?`<button class="btn soft sm" onclick="closeModal();signOut()">Sign out</button>`:`<button class="btn sm" onclick="closeModal();go('login')">Sign in</button>`}</div>
+   <div style="text-align:right;margin-top:16px"><button class="btn" onclick="closeModal()">Done</button></div>`);}
+function applyReadScale(v){document.documentElement.style.setProperty('--read',v);localStorage.setItem('lumen_read',v);profileSet({readScale:v});}
+function setDefaultVer(v){RD.ver=v;localStorage.setItem('lumen_ver',v);toast('Default translation: '+v);if(current()==='bible')render();}
+function saveAICfg(){localStorage.setItem('lumen_ai_url',document.getElementById('aiUrl').value.trim());localStorage.setItem('lumen_ai_key',document.getElementById('aiKey').value.trim());toast('AI settings saved');}
+function saveBibleCfg(){localStorage.setItem('lumen_bible_key',document.getElementById('bibleKey').value.trim());localStorage.setItem('lumen_bible_proxy',document.getElementById('bibleProxy').value.trim());APIBIBLES=null;Object.keys(CHAP_CACHE).forEach(k=>delete CHAP_CACHE[k]);toast('Bible source saved');if(current()==='bible')render();}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function modal(html){document.getElementById('modal').innerHTML=html;document.getElementById('modalBg').classList.add('show');}
+function closeModal(){document.getElementById('modalBg').classList.remove('show');}
+function esc(s){return (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+
+/* ============================================================
+   6. AUTH (Firebase)
+   ============================================================ */
+let AUTHMODE='in';
+if(auth && !LOCAL){
+  auth.onAuthStateChanged(u=>{
+    AUTH_READY=true;
+    if(u){
+      USER={uid:u.uid,name:u.displayName||(u.email?u.email.split('@')[0]:'Friend'),email:u.email||''};
+      startListeners(u);
+      db&&db.collection('users').doc(u.uid).set({name:USER.name,email:USER.email,updated:Date.now()},{merge:true}).catch(()=>{});
+      if(current()==='login')go('dashboard');else render();
+    }else{
+      USER=null;stopListeners();render();
+    }
+    paintNav();
+  });
+}else{ bootLocal(); }
+
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
+function localAuth(mode){
+  let email='',name='Friend';
+  if(mode!=='guest'){email=(document.getElementById('aem')||{}).value?.trim()||'';const ne=document.getElementById('anm');name=(ne&&ne.value.trim())||(email?email.split('@')[0]:'Friend');}
+  USER={uid:'local',name:cap(name),email};localStorage.setItem('lumen_localuser',JSON.stringify(USER));
+  toast('Welcome, '+USER.name+' ✦');go('dashboard');paintNav();
+}
+function doAuth(mode){
+  if(LOCAL)return localAuth(mode);
+  const email=(document.getElementById('aem')||{}).value?.trim();
+  const pw=(document.getElementById('apw')||{}).value;
+  const nameEl=document.getElementById('anm');
+  if(!auth)return toast('Firebase not initialized');
+  if(mode==='guest'){auth.signInAnonymously().then(()=>toast('Signed in as guest ✦')).catch(fail);return;}
+  if(!email||!pw)return toast('Enter email and password');
+  if(AUTHMODE==='up'){
+    auth.createUserWithEmailAndPassword(email,pw).then(cred=>{
+      const nm=(nameEl&&nameEl.value.trim())||email.split('@')[0];
+      return cred.user.updateProfile({displayName:nm});
+    }).then(()=>toast('Welcome ✦')).catch(fail);
+  }else{
+    auth.signInWithEmailAndPassword(email,pw).then(()=>toast('Welcome back ✦')).catch(e=>{
+      if(e.code==='auth/invalid-credential'||e.code==='auth/user-not-found')toast('No match — try Create account');else fail(e);
+    });
+  }
+}
+function googleAuth(){if(LOCAL){toast('Google sign-in needs http — using a local account');return localAuth('guest');}if(!auth)return;auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(()=>toast('Welcome ✦')).catch(fail);}
+function signOut(){if(LOCAL){USER=null;localStorage.removeItem('lumen_localuser');toast('Signed out');go('home');paintNav();return;}auth&&auth.signOut().then(()=>{toast('Signed out');go('home');});}
+function requireUser(){if(!USER){go('login');return false;}return true;}
+
+/* ============================================================
+   7. PAGES
+   ============================================================ */
+function pgHome(){
+  const v=votd();
+  const w=[['bible','📖','Bible Reader','Read any version — highlight, save & annotate verses.'],
+   ['ai','✨','AI Explanation','Paste a verse and understand its meaning & context.'],
+   ['notes','📝','Notes & Groups','Write, organize, and study together with others.'],
+   ['lesson','☀','Daily Lesson','A guided scripture lesson for today, with prayer.']];
+  return `<section class="hero fadein"><div class="tag">✦ Verse of the day · ${fmt(today())}</div>
+    <blockquote>${v.t}</blockquote><div class="ref">${v.r}<span class="ver">${v.v}</span></div>
+    <p class="reflect">${v.reflect}</p>
+    <div class="acts"><button class="btn" onclick="go('lesson')">Today's lesson →</button>
+      <button class="btn ghost" onclick="saveVotd()">♡ Save verse</button>
+      <button class="btn ghost" onclick="explainVerse('${v.r}')">✨ Explain this</button></div></section>
+  <div class="section-h"><div><h2 class="serif">Where would you like to go?</h2><p>Four ways to draw closer to the Word today.</p></div></div>
+  <div class="widgets">${w.map((x,i)=>`<div class="widget" style="animation:rise .5s ${i*0.08}s both" onclick="go('${x[0]}')"><div class="arrow">→</div><div class="wicon">${x[1]}</div><h3>${x[2]}</h3><p>${x[3]}</p></div>`).join('')}</div>
+  ${USER?'':`<div class="card" style="margin-top:34px;text-align:center"><h3 class="serif" style="font-size:1.5rem">Save your journey</h3><p class="muted" style="margin:6px 0 16px">Create a free account to keep your highlights, notes and groups in the cloud.</p><button class="btn" onclick="go('login')">Sign in / Create account</button></div>`}`;
+}
+function saveVotd(){if(!requireUser())return;const v=votd();dbAdd('notes',{uid:USER.uid,title:v.r,body:v.t,topic:'Saved verses',book:v.r.split(' ')[0],ref:v.r,is_shared:false,created:Date.now()}).then(()=>toast('Saved to Notes › Saved verses ♡')).catch(fail);}
+function explainVerse(ref){localStorage.setItem('lumen_aiprefill',ref);go('ai');}
+
+/* ---- Bible reader ---- */
+let RD={ver:localStorage.getItem('lumen_ver')||'KJV',book:'Psalms',ch:23};
+let READ_REQ=0;
+function pgBible(){
+  window.__after=bindReader;
+  return `<div class="section-h"><div><h2 class="serif">Bible Reader</h2><p>Choose a translation, book and chapter — all 66 books. Tap any verse to highlight, save, or add a note.</p></div></div>
+  <div class="grid2"><div>
+    <div class="card" style="margin-bottom:18px"><div class="row">
+      <div><label class="fld">Translation</label><select class="control" id="selVer"></select></div>
+      <div><label class="fld">Book</label><select class="control" id="selBook">${BIBLE_BOOKS.map(b=>`<option ${b.n===RD.book?'selected':''}>${b.n}</option>`).join('')}</select></div>
+      <div><label class="fld">Chapter</label><select class="control" id="selCh"></select></div>
+    </div><div id="licNote" style="margin-top:12px"></div></div>
+    <div class="card" id="readPane"></div></div>
+    <div><div class="card"><h3 class="serif" style="font-size:1.3rem;margin-bottom:4px">Search</h3>
+      <input class="control" id="bsearch" placeholder="Keyword, e.g. shepherd, light, peace"/><div id="bresults" style="margin-top:14px"></div></div>
+      <div class="card" style="margin-top:18px"><h3 class="serif" style="font-size:1.3rem;margin-bottom:8px">Your highlights</h3><div id="hlList"></div></div></div></div>`;
+}
+function bindReader(){
+  const sv=document.getElementById('selVer'),sb=document.getElementById('selBook'),sc=document.getElementById('selCh');
+  function fillVer(){const list=readerTranslations();if(!list.some(x=>x.id===RD.ver))RD.ver=list[0].id;
+    sv.innerHTML=list.map(x=>`<option value="${x.id}" ${x.id===RD.ver?'selected':''}>${x.id.indexOf('AB:')===0?x.name:(x.id+' — '+x.name)}${x.free?'':' 🔒'}</option>`).join('');}
+  function fillCh(){const c=bookChapters(RD.book);if(RD.ch>c)RD.ch=1;let o='';for(let i=1;i<=c;i++)o+=`<option ${i===RD.ch?'selected':''}>${i}</option>`;sc.innerHTML=o;}
+  sv.onchange=()=>{RD.ver=sv.value;paintRead();};
+  sb.onchange=()=>{RD.book=sb.value;RD.ch=1;fillCh();paintRead();};
+  sc.onchange=()=>{RD.ch=+sc.value;paintRead();};
+  document.getElementById('bsearch').oninput=e=>searchBible(e.target.value);
+  fillVer();fillCh();paintRead();paintHL();
+  if(apibOn()&&!APIBIBLES){apibDiscover().then(()=>fillVer()).catch(e=>console.warn('API.Bible discovery failed (CORS? add your origin in the API.Bible dashboard, or use a proxy):',e&&e.message));}
+}
+async function paintRead(){
+  const isAB=RD.ver.indexOf('AB:')===0;
+  const tr=TRANSLATIONS.find(x=>x.id===RD.ver);
+  const ln=document.getElementById('licNote');
+  if(ln)ln.innerHTML=isAB?`<span class="chip gold">✓ Live from API.Bible</span>`
+    :(tr&&!tr.free?`<div class="locked">🔒 <b>${tr.name}</b> is ${tr.license}. ${apibOn()?'If your API.Bible key includes it, pick it from the list above.':'Add an API.Bible key in ⚙ Settings to unlock licensed translations.'} Showing public-domain KJV instead.</div>`
+    :`<span class="chip gold">✓ ${tr?tr.license:'Public Domain'}</span>`);
+  const ver=isAB?RD.ver:((tr&&tr.free)?RD.ver:'KJV');
+  const pane=document.getElementById('readPane');if(!pane)return;
+  const req=++READ_REQ;
+  pane.innerHTML=`<h3 class="serif" style="font-size:1.6rem;margin-bottom:10px">${RD.book} ${RD.ch} <span class="chip" style="vertical-align:middle">${ver}</span></h3><div class="spinner"></div>`;
+  let arr=null;
+  try{arr=await loadChapter(ver,RD.book,RD.ch);}catch(e){arr=null;}
+  if(req!==READ_REQ)return; // a newer selection superseded this load
+  if(!arr||!arr.some(x=>x)){pane.innerHTML=`<div class="empty"><div class="big">📖</div><p>Couldn't load ${RD.book} ${RD.ch} right now.</p><p class="muted" style="margin-top:8px">Live chapters need an internet connection. Bundled offline passages: Psalms 23 & 1, John 1, Genesis 1, Romans 8, Philippians 4.</p><button class="btn soft sm" style="margin-top:12px" onclick="paintRead()">Retry</button></div>`;return;}
+  pane.innerHTML=`<h3 class="serif" style="font-size:1.6rem;margin-bottom:10px">${RD.book} ${RD.ch} <span class="chip" style="vertical-align:middle">${ver}</span></h3>`+
+   arr.map((tx,i)=>{if(!tx)return '';const n=i+1;const key=`${ver}|${RD.book}|${RD.ch}|${n}`;const hl=STORE.highlights.find(h=>h.key===key);
+    return `<div class="verse ${hl?'hl':''}" onclick="selVerse(this)"><div class="num">${n}</div><div class="txt">${tx}</div>
+     <div class="verse-tools"><button class="minibtn" title="Highlight" onclick="event.stopPropagation();toggleHL('${key}','${esc(tx)}')">🖍</button>
+      <button class="minibtn" title="Favorite" onclick="event.stopPropagation();favVerse('${key}','${esc(tx)}')">♡</button>
+      <button class="minibtn" title="Note" onclick="event.stopPropagation();noteVerse('${key}','${esc(tx)}')">📝</button></div></div>`;}).join('');
+}
+function selVerse(el){document.querySelectorAll('.verse').forEach(v=>v.classList.remove('sel'));el.classList.add('sel');}
+function keyRef(key){const p=key.split('|');return `${p[1]} ${p[2]}:${p[3]}`;}
+function toggleHL(key,tx){if(!requireUser())return;const ex=STORE.highlights.find(h=>h.key===key);
+  if(ex){dbDelete('highlights',ex.id).then(()=>toast('Highlight removed')).catch(fail);}
+  else{dbAdd('highlights',{uid:USER.uid,key,text:tx,ref:keyRef(key),created:Date.now()}).then(()=>toast('Verse highlighted 🖍')).catch(fail);}}
+function favVerse(key,tx){if(!requireUser())return;dbAdd('notes',{uid:USER.uid,title:keyRef(key),body:tx,topic:'Saved verses',book:key.split('|')[1],ref:keyRef(key),is_shared:false,created:Date.now()}).then(()=>toast('Saved to Notes › Saved verses ♡')).catch(fail);}
+function noteVerse(key,tx){if(!requireUser())return;
+  modal(`<h3>Note on ${keyRef(key)}</h3><p class="muted" style="font-size:.85rem;margin-bottom:12px">"${tx.slice(0,90)}…"</p>
+   <textarea class="control" id="vn" placeholder="What is God showing you here?"></textarea>
+   <div class="row" style="margin-top:14px"><button class="btn" onclick="saveVN('${key}','${esc(tx)}')">Save note</button><button class="btn soft" onclick="closeModal()">Cancel</button></div>`);}
+function saveVN(key,tx){const body=document.getElementById('vn').value.trim();if(!body)return;
+  dbAdd('notes',{uid:USER.uid,title:keyRef(key),body,topic:'Verse note',book:key.split('|')[1],ref:keyRef(key),is_shared:false,created:Date.now()}).then(()=>{closeModal();toast('Note saved 📝');}).catch(fail);}
+function paintHL(){const el=document.getElementById('hlList');if(!el)return;const h=STORE.highlights;
+  el.innerHTML=h.length?h.slice(0,8).map(x=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div class="chip gold" style="font-size:.7rem">${x.ref}</div><div style="font-size:.86rem;margin-top:4px" class="muted">${(x.text||'').slice(0,80)}…</div></div>`).join(''):`<p class="muted" style="font-size:.85rem">${USER?'Tap 🖍 on a verse to highlight it.':'Sign in to save highlights.'}</p>`;}
+function searchBible(q){q=q.trim().toLowerCase();const el=document.getElementById('bresults');if(q.length<2){el.innerHTML='<p class="muted" style="font-size:.84rem">Type to search bundled passages…</p>';return;}
+  const out=[];['KJV','WEB'].forEach(v=>{const bk=BIBLE[v]||{};Object.keys(bk).forEach(b=>Object.keys(bk[b]).forEach(c=>bk[b][c].forEach((tx,i)=>{if(tx&&tx.toLowerCase().includes(q))out.push({v,ref:`${b} ${c}:${i+1}`,tx});})));});
+  el.innerHTML=out.length?out.slice(0,12).map(o=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div class="chip gold" style="font-size:.7rem">${o.ref} · ${o.v}</div><div style="font-size:.86rem;margin-top:4px">${o.tx.replace(new RegExp('('+q+')','ig'),'<mark style="background:var(--gold-soft)">$1</mark>')}</div></div>`).join(''):`<p class="muted" style="font-size:.84rem">No matches in bundled text. The full Bible is searchable in production.</p>`;}
+
+/* ---- AI explanation ---- */
+function pgAI(){
+  window.__after=()=>{const p=localStorage.getItem('lumen_aiprefill');if(p){document.getElementById('aiInput').value=p;localStorage.removeItem('lumen_aiprefill');}};
+  return `<div class="section-h"><div><h2 class="serif">AI Verse Explanation</h2><p>Paste a verse or passage. You'll get context, meaning, themes, related verses, application, and a prayer.</p></div></div>
+  <div class="grid2"><div class="card"><label class="fld">Verse or passage</label>
+    <textarea class="control" id="aiInput" placeholder="e.g. John 3:16  — or paste the full verse text"></textarea>
+    <div class="row" style="margin-top:14px"><button class="btn" style="flex:0" onclick="runAI()">✨ Explain</button>
+      <button class="btn soft" style="flex:0" onclick="document.getElementById('aiInput').value='Philippians 4:6-7'">Try an example</button></div>
+    <div class="disclaimer">⚖️ This explanation is generated to be accurate and respectful, grounded in historical and biblical context. Where Christians interpret a passage differently, it says so. It is a study aid, not a replacement for Scripture, prayer, or your church community.</div></div>
+  <div class="card" id="aiOut"><div class="empty"><div class="big">✨</div><p>Your explanation will appear here.</p></div></div></div>`;
+}
+/* Swap for a newer Claude model id if you like. */
+const AI_MODEL='claude-3-5-sonnet-latest';
+const AI_SYS=`You are a careful, respectful Bible study assistant. Explain the given passage grounded in its actual text and historical/biblical context. Be accurate and humble. NEVER invent facts, quotes, authors, dates, or cross-references; if unsure a cross-reference is real, omit it. Where Christian traditions differ, say so without endorsing one. Return ONLY valid JSON (no markdown) with keys: "context","meaning","themes"(array of 3-5 short strings),"related"(array of real "Book chapter:verse" strings),"application","reflection","prayer","interpretation_notes"(empty unless genuinely debated).`;
+
+async function runAI(){
+  const q=document.getElementById('aiInput').value.trim();if(!q)return toast('Type a verse first');
+  const out=document.getElementById('aiOut');
+  out.innerHTML=`<div class="empty fadein"><div class="big">✦</div><p>Reflecting on the Word…</p><div class="spinner"></div></div>`;
+  let data,source;
+  try{const res=await explainAI(q);data=res.data;source=res.source;}
+  catch(e){data=templateExplain(q);source='template';toast('Live AI unavailable — showing sample. '+(e.message||''));}
+  out.innerHTML=renderExplanation(q,data,source);
+}
+async function explainAI(ref){
+  const url=(localStorage.getItem('lumen_ai_url')||'').trim();
+  const key=(localStorage.getItem('lumen_ai_key')||'').trim();
+  if(url){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reference:ref,version:RD.ver})});if(!r.ok)throw new Error('Function '+r.status);return{data:await r.json(),source:'cloud'};}
+  if(key){return{data:await callAnthropic(ref,key),source:'browser'};}
+  return{data:templateExplain(ref),source:'template'};
+}
+async function fetchVerseText(ref,ver){try{const r=await fetch(`https://bible-api.com/${encodeURIComponent(ref)}?translation=${(ver||'kjv').toLowerCase()}`);if(!r.ok)return '';const j=await r.json();return (j.text||'').replace(/\s+/g,' ').trim();}catch(e){return '';}}
+async function callAnthropic(ref,key){
+  const t=TRANSLATIONS.find(x=>x.id===RD.ver);const apiVer=(t&&t.free)?RD.ver:'KJV';
+  const vt=await fetchVerseText(ref,apiVer);
+  const user=`Passage reference: ${ref} (version: ${apiVer})\nVerse text (authoritative, do not contradict):\n"""\n${vt||'(text unavailable — do not fabricate wording)'}\n"""\nExplain it using the JSON schema in your instructions.`;
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:AI_MODEL,max_tokens:1024,temperature:0.3,system:AI_SYS,messages:[{role:'user',content:user}]})});
+  if(!r.ok)throw new Error('Anthropic '+r.status+' (check key/model)');
+  const j=await r.json();const txt=(j.content&&j.content[0]&&j.content[0].text)||'';
+  return parseAIJSON(txt);
+}
+function parseAIJSON(txt){try{return JSON.parse(txt);}catch(e){}const m=txt.match(/\{[\s\S]*\}/);if(m){try{return JSON.parse(m[0]);}catch(e){}}throw new Error('AI returned non-JSON');}
+function templateExplain(ref){
+  const lib={
+   'philippians 4:6-7':{context:"Paul wrote Philippians from prison (~AD 62), yet the letter overflows with joy. He addresses anxiety directly in a community facing pressure and uncertainty.",meaning:"Rather than being consumed by worry, bring every concern to God in prayer — with thanksgiving, not just requests. The promised result is a peace that guards the heart, beyond what reason can explain.",themes:["Peace","Prayer","Anxiety","Thanksgiving"],related:["Matthew 6:25-34","1 Peter 5:7","Psalm 55:22","John 14:27"],application:"When worry rises today, name the specific concern in prayer and pair it with one thing you're thankful for. Peace is described as a guard — protective, active, and given, not manufactured.",reflection:"What worry do you keep picking back up after praying about it?",prayer:"Father, I hand You what I've been carrying alone. Guard my heart with Your peace, even before things change. Amen."},
+   'john 3:16':{context:"Spoken in Jesus' night conversation with Nicodemus, a Pharisee. It sits within John's Gospel theme of light coming into darkness and belief leading to life.",meaning:"God's love for the world is the motive; giving His Son is the action; believing is the response; eternal life is the result. 'World' here means humanity broadly, not one nation.",themes:["Love","Salvation","Belief","Eternal life"],related:["Romans 5:8","1 John 4:9-10","John 1:12","Ephesians 2:8-9"],application:"Receive this personally today — not as abstract doctrine but as God's posture toward you.",reflection:"Do you live as someone deeply loved by God?",prayer:"Thank You, God, for loving the world — and me — enough to give. Help me believe and live in that love. Amen."}};
+  return lib[ref.toLowerCase().replace(/\s+/g,' ').trim()]||{
+    context:`Background for "${ref}" comes from the book's author, audience, and historical setting. Add an AI key in ⚙ Settings for a live, verified explanation.`,
+    meaning:`A plain-language explanation of what "${ref}" communicates, staying close to the text.`,
+    themes:["Faith","Hope","God's character"],related:[],
+    application:`How "${ref}" speaks into everyday life — without overreaching beyond the text.`,
+    reflection:`What is God inviting you to notice in ${ref}?`,
+    prayer:`Lord, open my eyes to what You're saying in ${ref}, and help me live it. Amen.`};
+}
+function renderExplanation(ref,d,source){
+  const themes=d.themes||[],related=d.related||[];
+  const label={cloud:'✓ Live AI · Cloud Function',browser:'✓ Live AI · browser key',template:'Offline sample — add an AI key or Cloud Function URL in ⚙ Settings for live explanations'}[source]||'';
+  return `<div class="fadein"><h3 class="serif" style="font-size:1.6rem">${ref}</h3>
+    ${themes.length?`<div class="chips" style="margin:8px 0 6px">${themes.map(t=>`<span class="chip gold">${t}</span>`).join('')}</div>`:''}
+    <div class="exp-block"><h4>Historical & background context</h4><p>${d.context||''}</p></div>
+    <div class="exp-block"><h4>What it means — in simple words</h4><p>${d.meaning||''}</p></div>
+    ${related.length?`<div class="exp-block"><h4>Related verses</h4><p>${related.map(r=>`<span class="chip gold" style="cursor:pointer;margin:2px" onclick="explainVerse('${esc(r)}')">${r}</span>`).join(' ')}</p></div>`:''}
+    <div class="exp-block"><h4>Applying it today</h4><p>${d.application||''}</p></div>
+    <div class="exp-block"><h4>Prayer & reflection</h4><p>${d.reflection?'<i>'+d.reflection+'</i><br><br>':''}${d.prayer||''}</p></div>
+    ${d.interpretation_notes?`<div class="exp-block"><h4>Different interpretations</h4><p>${d.interpretation_notes}</p></div>`:''}
+    <div class="row" style="margin-top:16px"><button class="btn sm" style="flex:0" onclick="aiToNote('${esc(ref)}')">📝 Save as note</button></div>
+    <div class="disclaimer">${label?label+' · ':''}A study aid grounded in the passage; where traditions differ it says so. Not a replacement for Scripture, prayer, or your church community.</div></div>`;
+}
+function aiToNote(ref){if(!requireUser())return;const out=document.getElementById('aiOut').innerText.slice(0,1500);
+  dbAdd('notes',{uid:USER.uid,title:'Study: '+ref,body:out,topic:'AI study',book:ref.split(' ')[0],ref,is_shared:false,created:Date.now()}).then(()=>toast('Saved to your notes 📝')).catch(fail);}
+
+/* ---- Notes ---- */
+let NOTEFILTER='All';
+function pgNotes(){if(!USER)return authGate('notes');window.__after=paintNotes;
+  return `<div class="section-h"><div><h2 class="serif">Notes</h2><p>Organize by topic, book or date. Share any note with a link.</p></div><button class="btn" onclick="newNote()">+ New note</button></div>
+  <div class="chips" id="noteFilters" style="margin-bottom:18px"></div><div class="masonry" id="noteList"></div>`;}
+function paintNotes(){const notes=STORE.notes;const topics=['All',...new Set(notes.map(n=>n.topic).filter(Boolean))];
+  const ff=document.getElementById('noteFilters');if(ff)ff.innerHTML=topics.map(t=>`<span class="chip ${t===NOTEFILTER?'gold':''}" style="cursor:pointer" onclick="NOTEFILTER='${t}';paintNotes()">${t}</span>`).join('');
+  const list=notes.filter(n=>NOTEFILTER==='All'||n.topic===NOTEFILTER);const el=document.getElementById('noteList');if(!el)return;
+  el.innerHTML=list.length?list.map(n=>`<div class="notecard"><h4>${n.title||'Untitled'}</h4>
+    <div class="meta">${fmt(n.created)} · ${n.book||'General'} ${n.is_shared?'· 🔗 shared':''}</div>
+    <div class="body">${(n.body||'').replace(/\n/g,'<br>')}</div>
+    <div class="row" style="margin-top:12px"><button class="btn soft sm" style="flex:0" onclick="newNote('${n.id}')">Edit</button>
+     <button class="btn soft sm" style="flex:0" onclick="shareNote('${n.id}')">${n.is_shared?'Copy link':'Share'}</button>
+     <button class="btn soft sm" style="flex:0" onclick="delNote('${n.id}')">Delete</button></div></div>`).join('')
+   :`<div class="empty"><div class="big">📝</div><p>No notes yet. Start your first study note.</p></div>`;}
+function newNote(id){const n=id?STORE.notes.find(x=>x.id===id):{title:'',body:'',topic:'',book:''};
+  modal(`<h3>${id?'Edit note':'New note'}</h3>
+   <label class="fld">Title</label><input class="control" id="nt" value="${(n.title||'').replace(/"/g,'&quot;')}" placeholder="e.g. The Good Shepherd"/>
+   <div class="row" style="margin:12px 0"><div><label class="fld">Topic</label><input class="control" id="ntp" value="${(n.topic||'').replace(/"/g,'&quot;')}" placeholder="Grace, Prayer…"/></div>
+    <div><label class="fld">Book</label><input class="control" id="nbk" value="${(n.book||'').replace(/"/g,'&quot;')}" placeholder="John"/></div></div>
+   <label class="fld">Note</label><textarea class="control" id="nbd" placeholder="Write your reflection…">${n.body||''}</textarea>
+   <div class="row" style="margin-top:14px"><button class="btn" onclick="saveNote('${id||''}')">Save</button><button class="btn soft" onclick="closeModal()">Cancel</button></div>`);}
+function saveNote(id){const data={title:document.getElementById('nt').value.trim()||'Untitled',topic:document.getElementById('ntp').value.trim(),book:document.getElementById('nbk').value.trim(),body:document.getElementById('nbd').value.trim()};
+  const p=id?dbUpdate('notes',id,data):dbAdd('notes',{uid:USER.uid,...data,is_shared:false,created:Date.now()});
+  p.then(()=>{closeModal();toast('Note saved');}).catch(fail);}
+function delNote(id){dbDelete('notes',id).then(()=>toast('Note deleted')).catch(fail);}
+function shareNote(id){const n=STORE.notes.find(x=>x.id===id);const token=n.share_token||uid()+uid();
+  dbUpdate('notes',id,{is_shared:true,share_token:token}).then(()=>{const link=`${location.origin}${location.pathname}#/shared/${token}`;navigator.clipboard&&navigator.clipboard.writeText(link);toast('Share link copied 🔗');}).catch(fail);}
+
+/* ---- Groups ---- */
+function pgGroups(){if(!USER)return authGate('groups');window.__after=paintGroups;
+  return `<div class="section-h"><div><h2 class="serif">Group Bible Study</h2><p>Create a group, invite with a code, and study together.</p></div>
+   <div class="row" style="flex:0"><button class="btn" onclick="newGroup()">+ Create group</button><button class="btn soft" onclick="joinGroup()">Join with code</button></div></div>
+  <div id="groupArea"></div>`;}
+function paintGroups(){const gs=STORE.groups;const area=document.getElementById('groupArea');if(!area)return;
+  if(!gs.length){area.innerHTML=`<div class="empty"><div class="big">👥</div><p>You're not in a group yet. Create one and invite your friends or small group.</p></div>`;return;}
+  area.innerHTML=gs.map(g=>`<div class="grouptop" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;align-items:center">
+     <div><div style="font-size:.7rem;letter-spacing:2px;opacity:.85;text-transform:uppercase">${(g.memberNames||g.members||[]).length} member${(g.memberNames||g.members||[]).length>1?'s':''} · ${g.focus||'General study'}</div>
+       <h3 class="serif" style="font-size:1.9rem">${g.name}</h3></div>
+     <div class="join">${g.code} <button class="btn ghost sm" onclick="copyCode('${g.code}')">Copy</button></div></div></div>
+   <div class="grid2" style="margin-bottom:30px"><div class="card"><h3 class="serif" style="font-size:1.3rem;margin-bottom:6px">Discussion</h3>
+     <div>${(g.msgs||[]).map(m=>msgHTML(m)).join('')||'<p class="muted" style="font-size:.85rem">No messages yet — start the conversation.</p>'}</div>
+     <div class="row" style="margin-top:12px"><input class="control" id="mi_${g.id}" placeholder="Share a thought, verse or prayer point…"/><button class="btn" style="flex:0" onclick="postMsg('${g.id}')">Send</button></div></div>
+    <div><div class="card" style="margin-bottom:14px"><h3 class="serif" style="font-size:1.2rem;margin-bottom:8px">Shared verses & prayer</h3>
+      ${(g.shared||[]).map(s=>`<div class="chip gold" style="display:block;margin-bottom:6px">${s}</div>`).join('')||'<p class="muted" style="font-size:.84rem">Nothing shared yet.</p>'}
+      <div class="row" style="margin-top:10px"><input class="control" id="sh_${g.id}" placeholder="e.g. Pray for Maria · Psalm 23"/><button class="btn soft" style="flex:0" onclick="shareToGroup('${g.id}')">Add</button></div></div>
+     <div class="card" style="margin-bottom:14px"><h3 class="serif" style="font-size:1.2rem;margin-bottom:6px">Members</h3><div class="chips">${(g.memberNames||['You']).map(m=>`<span class="chip">${m}</span>`).join('')}</div></div>
+     <div class="card"><h3 class="serif" style="font-size:1.2rem;margin-bottom:6px">Shared trackers</h3>${(STORE.forms||[]).filter(f=>f.groupId===g.id).length?(STORE.forms||[]).filter(f=>f.groupId===g.id).map(f=>`<div style="padding:6px 0;cursor:pointer;border-bottom:1px solid var(--line)" onclick="openForm('${f.id}')"><b>📊 ${f.title}</b></div>`).join(''):'<p class="muted" style="font-size:.84rem">Share a tracker from the Tracker tab to collect entries together.</p>'}</div></div></div>`).join('');}
+function msgHTML(m){return `<div class="msg"><div class="ava">${(m.who||'?')[0].toUpperCase()}</div><div class="bubble"><div class="who">${m.who} <span class="when">· ${m.when}</span></div>${m.text}</div></div>`;}
+function newGroup(){modal(`<h3>Create a group</h3><label class="fld">Group name</label><input class="control" id="gn" placeholder="Tuesday Night Study"/>
+  <label class="fld" style="margin-top:12px">Focus (optional)</label><input class="control" id="gf" placeholder="Gospel of John"/>
+  <div class="row" style="margin-top:14px"><button class="btn" onclick="createGroup()">Create</button><button class="btn soft" onclick="closeModal()">Cancel</button></div>`);}
+function createGroup(){const name=document.getElementById('gn').value.trim()||'My Group';
+  dbAdd('groups',{name,focus:document.getElementById('gf').value.trim(),owner:USER.uid,code:uid().slice(0,6).toUpperCase(),members:[USER.uid],memberNames:[USER.name],msgs:[],shared:[],created:Date.now()})
+   .then(()=>{closeModal();toast('Group created 👥');}).catch(fail);}
+function joinGroup(){modal(`<h3>Join a group</h3><p class="muted" style="font-size:.85rem;margin-bottom:10px">Enter the 6-character code a friend shared with you.</p>
+  <input class="control" id="jc" placeholder="ABC123" style="text-transform:uppercase"/>
+  <div class="row" style="margin-top:14px"><button class="btn" onclick="doJoin()">Join</button><button class="btn soft" onclick="closeModal()">Cancel</button></div>`);}
+function doJoin(){const code=document.getElementById('jc').value.trim().toUpperCase();if(!code)return;
+  if(LOCAL){const g=(STORE.groups||[]).find(x=>x.code===code);if(!g){toast('No group with that code (offline mode only sees groups on this device)');return;}if(!(g.members||[]).includes(USER.uid)){g.members=[...(g.members||[]),USER.uid];g.memberNames=[...(g.memberNames||[]),USER.name];saveLocalStore();localRefresh();}closeModal();toast('Joined group 👥');return;}
+  db.collection('groups').where('code','==',code).limit(1).get().then(s=>{
+    if(s.empty){toast('No group with that code');return;}
+    const d=s.docs[0];const dt=d.data();if((dt.members||[]).includes(USER.uid)){toast('You are already a member');closeModal();return;}
+    return d.ref.update({members:FV.arrayUnion(USER.uid),memberNames:FV.arrayUnion(USER.name)}).then(()=>{closeModal();toast('Joined group 👥');});
+  }).catch(fail);}
+function copyCode(c){navigator.clipboard&&navigator.clipboard.writeText(c);toast('Code copied');}
+function postMsg(gid){const inp=document.getElementById('mi_'+gid);const t=inp.value.trim();if(!t)return;inp.value='';
+  const msg={who:USER.name,text:t,when:'just now'};
+  if(LOCAL){const g=STORE.groups.find(x=>x.id===gid);g.msgs=[...(g.msgs||[]),msg];saveLocalStore();localRefresh();return;}
+  db.collection('groups').doc(gid).update({msgs:FV.arrayUnion(msg)}).catch(fail);}
+function shareToGroup(gid){const inp=document.getElementById('sh_'+gid);const t=inp.value.trim();if(!t)return;inp.value='';
+  if(LOCAL){const g=STORE.groups.find(x=>x.id===gid);g.shared=[...(g.shared||[]),t];saveLocalStore();localRefresh();return;}
+  db.collection('groups').doc(gid).update({shared:FV.arrayUnion(t)}).catch(fail);}
+
+/* ---- Daily lesson (rotating set) ---- */
+const LESSONS=[
+ {ref:'Philippians 4:6-7',title:'Trading Anxiety for Peace',
+  passage:'"Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God. And the peace of God, which passeth all understanding, shall keep your hearts and minds through Christ Jesus." — Philippians 4:6-7 (KJV)',
+  explain:'Paul writes from prison, yet tells the Philippians not to be consumed by anxiety. The instruction isn\'t "try harder to stop worrying" — it\'s "redirect the worry." Every anxious thought becomes an invitation to pray, and prayer mixed with thanksgiving reorients the heart toward what is already true about God.',
+  life:'When that familiar tightening rises today, treat it as a prompt: pray about the exact thing, and name one thing you\'re grateful for. You\'re not pretending the problem isn\'t real — you\'re refusing to carry it alone.',
+  reflect:'What is the one worry you keep picking back up after you\'ve prayed about it?',
+  pray:'Father, I bring You the things I\'ve been carrying alone. Guard my heart and mind with Your peace, even before my circumstances change. Amen.',
+  related:['Matthew 6:25-34','1 Peter 5:7','Psalm 55:22','John 14:27'],
+  challenge:'Each time you catch yourself worrying today, pause for a 10-second prayer before doing anything else.'},
+ {ref:'Psalm 23:1-4',title:'The Shepherd Who Leads',
+  passage:'"The LORD is my shepherd; I shall not want... he leadeth me beside the still waters. He restoreth my soul... Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me." — Psalm 23:1-4 (KJV)',
+  explain:'David, once a shepherd himself, pictures God as the one who provides, guides, and stays close — even through the darkest valley. The comfort isn\'t the absence of danger but the presence of the Shepherd within it.',
+  life:'You may be walking through a "valley" right now. This psalm doesn\'t promise an easy path; it promises company on the hard one. Let that reframe today\'s fear from "I\'m alone in this" to "I am led."',
+  reflect:'Where do you most need to sense God\'s presence with you today?',
+  pray:'Good Shepherd, lead me beside still waters and restore my soul. When the way is dark, remind me You are near. Amen.',
+  related:['John 10:11','Psalm 121:1-2','Isaiah 40:11','Revelation 7:17'],
+  challenge:'Name one "valley" you\'re in and speak aloud: "You are with me." Carry that sentence through the day.'},
+ {ref:'Isaiah 40:31',title:'Strength to Keep Going',
+  passage:'"But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint." — Isaiah 40:31 (KJV)',
+  explain:'Spoken to a worn-out, exiled people, this promise ties renewed strength to waiting on God — not passive idleness, but a trusting dependence that draws energy from Him rather than self.',
+  life:'Burnout often comes from running on our own reserves. Today, build in a pause to "wait on the Lord" before pushing forward — strength to walk and not faint is promised to the dependent, not the self-sufficient.',
+  reflect:'Where are you running on empty, trying to be strong on your own?',
+  pray:'Lord, I\'m tired. Renew my strength as I wait on You. Help me walk through today without fainting. Amen.',
+  related:['Matthew 11:28','2 Corinthians 12:9','Psalm 27:14','Nehemiah 8:10'],
+  challenge:'Before your busiest task today, stop for two quiet minutes and ask God for strength.'},
+ {ref:'Matthew 11:28-30',title:'Rest for the Weary',
+  passage:'"Come unto me, all ye that labour and are heavy laden, and I will give you rest... for my yoke is easy, and my burden is light." — Matthew 11:28-30 (KJV)',
+  explain:'A "yoke" was a teacher\'s set of teachings. Jesus offers His way of life as one that fits well and lightens the load, in contrast to religion experienced as crushing pressure.',
+  life:'Rest here isn\'t just sleep — it\'s relief from striving to earn approval. Today, notice where you\'re "heavy laden" by self-imposed pressure, and accept the invitation to come as you are.',
+  reflect:'What burden are you carrying that Jesus never asked you to carry?',
+  pray:'Jesus, I come to You tired. Teach me Your gentler way and give my soul rest. Amen.',
+  related:['Hebrews 4:9-10','Psalm 62:1','1 Peter 5:7','Exodus 33:14'],
+  challenge:'Protect 15 minutes of genuine rest today — no screen, no task — and bring your tiredness to God.'},
+ {ref:'Proverbs 3:5-6',title:'Trusting When You Can\'t See',
+  passage:'"Trust in the LORD with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths." — Proverbs 3:5-6 (KJV)',
+  explain:'Wisdom literature contrasts two foundations: our own limited understanding versus trust in God. To "acknowledge him in all thy ways" is to involve God in the ordinary decisions, not just the crises.',
+  life:'When you can\'t see the whole path, trust doesn\'t mean having no plan — it means holding your plan with open hands and inviting God into it.',
+  reflect:'What decision are you trying to figure out entirely on your own?',
+  pray:'Lord, I don\'t see the whole way. I choose to trust You with it and invite You into my next step. Amen.',
+  related:['Jeremiah 29:11','Psalm 37:5','James 1:5','Isaiah 55:8-9'],
+  challenge:'Pick one decision you\'re facing and pray about it before researching or asking anyone else.'},
+ {ref:'Romans 8:28',title:'When Things Don\'t Make Sense',
+  passage:'"And we know that all things work together for good to them that love God, to them who are the called according to his purpose." — Romans 8:28 (KJV)',
+  explain:'Paul doesn\'t say every event is good, but that God works through all of them — even the painful ones — toward good for those who love Him. It\'s a promise about God\'s redeeming activity, not a denial of suffering.',
+  life:'This verse is not a quick fix to hand someone in pain. It\'s a slow anchor: nothing in your story is wasted, even what hasn\'t made sense yet.',
+  reflect:'What hard thread in your life are you struggling to believe God can use?',
+  pray:'God, I don\'t understand all of this. Help me trust that You are working even now, weaving good I can\'t yet see. Amen.',
+  related:['Genesis 50:20','Jeremiah 29:11','2 Corinthians 4:17','Philippians 1:6'],
+  challenge:'Write down one past hardship and one good that eventually came from it. Thank God for it.'},
+ {ref:'1 Corinthians 13:4-7',title:'What Love Actually Looks Like',
+  passage:'"Charity suffereth long, and is kind; charity envieth not... is not easily provoked, thinketh no evil... beareth all things, believeth all things, hopeth all things, endureth all things." — 1 Corinthians 13:4-7 (KJV)',
+  explain:'Paul defines love not as a feeling but as a set of actions — patient, kind, humble, forgiving. Read in a church full of conflict, it was a mirror held up to how they treated each other.',
+  life:'Try reading it with your own name in place of "charity": "______ suffereth long, is kind..." It quickly shows where love is growing and where it needs to.',
+  reflect:'Which quality of love is hardest for you with a specific person right now?',
+  pray:'Lord, make my love patient and kind where it has been impatient and harsh. Love through me today. Amen.',
+  related:['John 13:34-35','1 John 4:7-8','Colossians 3:14','Romans 12:9-10'],
+  challenge:'Show one concrete act of patient kindness to the person who tests you most.'},
+ {ref:'Joshua 1:9',title:'Courage for What\'s Ahead',
+  passage:'"Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest." — Joshua 1:9 (KJV)',
+  explain:'Joshua faced leading a nation into the unknown after Moses\' death. God\'s command to be courageous is grounded not in Joshua\'s ability but in God\'s presence: "for the LORD thy God is with thee."',
+  life:'Courage isn\'t the absence of fear; it\'s moving forward because of who goes with you. Whatever you\'re stepping into, you don\'t step alone.',
+  reflect:'What are you avoiding because it scares you? What would courage look like there?',
+  pray:'Lord, give me courage for what\'s ahead. I\'ll take the next step trusting You go with me. Amen.',
+  related:['Deuteronomy 31:6','Isaiah 41:10','Psalm 27:1','2 Timothy 1:7'],
+  challenge:'Take one small, scary step today that you\'ve been putting off.'},
+ {ref:'Lamentations 3:22-23',title:'Mercy Every Morning',
+  passage:'"It is of the LORD\'s mercies that we are not consumed, because his compassions fail not. They are new every morning: great is thy faithfulness." — Lamentations 3:22-23 (KJV)',
+  explain:'Astonishingly, this hope sits in the middle of a book of grief over a ruined city. Even amid loss, the writer insists God\'s mercy is freshly available each day.',
+  life:'Yesterday\'s failures and exhaustion don\'t carry over as a deficit. Each morning is a genuine reset of God\'s compassion toward you.',
+  reflect:'What do you need to stop carrying from yesterday into today?',
+  pray:'Faithful God, thank You for mercy that is new this morning. I receive a fresh start in You. Amen.',
+  related:['Psalm 30:5','2 Corinthians 5:17','Isaiah 43:18-19','Psalm 103:8-12'],
+  challenge:'Begin tomorrow morning by naming God\'s mercy before checking your phone.'},
+ {ref:'James 1:2-4',title:'Growth Through Trials',
+  passage:'"Count it all joy when ye fall into divers temptations; Knowing this, that the trying of your faith worketh patience. But let patience have her perfect work, that ye may be perfect and entire, wanting nothing." — James 1:2-4 (KJV)',
+  explain:'James doesn\'t say trials are joyful, but that they can be counted as joy because of what they produce — perseverance and maturity. The "joy" is in the outcome, not the pain.',
+  life:'A hardship you\'re in may be developing something in you that comfort never could. That doesn\'t make it pleasant; it makes it purposeful.',
+  reflect:'What might God be growing in you through what you\'re facing now?',
+  pray:'Lord, I don\'t enjoy this trial, but I trust You\'re using it. Grow patience and maturity in me. Amen.',
+  related:['Romans 5:3-5','1 Peter 1:6-7','2 Corinthians 4:17','Hebrews 12:11'],
+  challenge:'Name one trial you\'re in and one character trait it could be building. Cooperate with that growth today.'},
+ {ref:'Micah 6:8',title:'The Life God Asks For',
+  passage:'"He hath shewed thee, O man, what is good; and what doth the LORD require of thee, but to do justly, and to love mercy, and to walk humbly with thy God?" — Micah 6:8 (KJV)',
+  explain:'Against a backdrop of empty religious ritual, Micah distills what God truly wants into three things: justice, mercy, and humble closeness with God. Worship is meant to overflow into how we treat people.',
+  life:'It\'s tempting to reduce faith to private feelings. This verse pulls it outward: be fair, be merciful, stay humble before God — today, with real people.',
+  reflect:'Which of the three — justice, mercy, or humility — is God highlighting for you?',
+  pray:'Lord, help me do justly, love mercy, and walk humbly with You today, not just in word but in action. Amen.',
+  related:['Hosea 6:6','Matthew 23:23','Isaiah 1:17','James 1:27'],
+  challenge:'Do one just or merciful act for someone today without being asked.'},
+ {ref:'John 8:12',title:'Walking in the Light',
+  passage:'"Then spake Jesus again unto them, saying, I am the light of the world: he that followeth me shall not walk in darkness, but shall have the light of life." — John 8:12 (KJV)',
+  explain:'Spoken during a festival lit by great lamps, Jesus claims to be the true light. Following Him is described as the way out of moral and spiritual darkness into clarity and life.',
+  life:'When life feels confusing or heavy with shame, the answer isn\'t to figure it all out alone but to follow the Light one step at a time.',
+  reflect:'Where do you most need clarity or hope right now?',
+  pray:'Jesus, light of the world, shine into my confusion and shame. I choose to follow You today. Amen.',
+  related:['Psalm 119:105','1 John 1:5-7','Matthew 5:14-16','John 1:4-5'],
+  challenge:'Bring one thing you\'ve kept "in the dark" into honest prayer or trusted conversation today.'},
+ {ref:'1 Thessalonians 5:16-18',title:'Gratitude in All Circumstances',
+  passage:'"Rejoice evermore. Pray without ceasing. In every thing give thanks: for this is the will of God in Christ Jesus concerning you." — 1 Thessalonians 5:16-18 (KJV)',
+  explain:'Paul says "in every thing give thanks" — not "for every thing." Even when circumstances are hard, there is always something to be thankful for, and gratitude reorients the heart toward God.',
+  life:'Gratitude is a practice, not just a mood. Choosing thanks in a hard moment doesn\'t deny the difficulty; it refuses to let the difficulty have the last word.',
+  reflect:'What can you give thanks for today, even in the middle of something hard?',
+  pray:'Lord, teach me to rejoice and give thanks in all circumstances. Open my eyes to Your goodness today. Amen.',
+  related:['Psalm 100:4','Colossians 3:15-17','Philippians 4:11-12','Ephesians 5:20'],
+  challenge:'Write down three specific things you\'re thankful for before bed tonight.'},
+ {ref:'2 Corinthians 5:17',title:'A Fresh Start',
+  passage:'"Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new." — 2 Corinthians 5:17 (KJV)',
+  explain:'Paul announces that being joined to Christ makes a person genuinely new — not merely improved. Identity is no longer defined by the past but by belonging to God.',
+  life:'You are not the sum of your worst moments. If your sense of self is anchored in old failures, this verse invites you to live from a new identity instead.',
+  reflect:'What "old thing" about yourself do you need to stop believing defines you?',
+  pray:'Lord, thank You for making me new. Help me live today from who I am in You, not who I used to be. Amen.',
+  related:['Ezekiel 36:26','Romans 6:4','Galatians 2:20','Isaiah 43:18-19'],
+  challenge:'Replace one piece of negative self-talk today with a truth about who you are in Christ.'},
+];
+let LESSON_OFFSET=0;
+function pgLesson(){
+  const base=Math.floor(Date.now()/86400000);
+  const idx=(((base+LESSON_OFFSET)%LESSONS.length)+LESSONS.length)%LESSONS.length;
+  const L=LESSONS[idx];
+  const dateLabel=fmt(new Date(Date.now()+LESSON_OFFSET*86400000));
+  return `<div class="lesson-hero">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div class="tag" style="font-size:.7rem;letter-spacing:3px;text-transform:uppercase;opacity:.8">☀ Daily lesson · ${dateLabel}</div>
+      <div class="row" style="flex:0">${LESSON_OFFSET!==0?`<button class="btn ghost sm" onclick="LESSON_OFFSET=0;render()">Today</button>`:''}<button class="btn ghost sm" onclick="LESSON_OFFSET--;render()" title="Previous">←</button><button class="btn ghost sm" onclick="LESSON_OFFSET++;render()" title="Next">→</button></div>
+    </div>
+    <h2 class="serif" style="font-size:clamp(1.8rem,4vw,2.6rem);margin:8px 0 4px">${L.title}</h2>
+    <div class="chip gold" style="background:rgba(255,255,255,.2);color:#fff">${L.ref}</div></div>
+  <div class="grid2" style="margin-top:22px"><div class="card">
+    <div class="exp-block"><h4>Main passage</h4><p class="serif" style="font-size:calc(1.25rem*var(--read));line-height:1.5">${L.passage}</p></div>
+    <div class="exp-block"><h4>Simple explanation</h4><p>${L.explain}</p></div>
+    <div class="exp-block"><h4>Life application</h4><p>${L.life}</p></div>
+    <div class="exp-block"><h4>Reflection question</h4><p>${L.reflect}</p></div>
+    <div class="exp-block"><h4>Prayer</h4><p>${L.pray}</p></div></div>
+   <div><div class="card" style="margin-bottom:18px"><h3 class="serif" style="font-size:1.2rem;margin-bottom:10px">⚑ Challenge for today</h3><p style="font-size:.94rem">${L.challenge}</p>
+     <button class="btn sm" style="margin-top:14px" onclick="acceptChallenge()">I accept the challenge</button></div>
+    <div class="card" style="margin-bottom:18px"><h3 class="serif" style="font-size:1.2rem;margin-bottom:10px">Related verses</h3>
+     <div class="chips">${L.related.map(r=>`<span class="chip gold" style="cursor:pointer" onclick="explainVerse('${esc(r)}')">${r}</span>`).join('')}</div></div>
+    <div class="card"><h3 class="serif" style="font-size:1.2rem;margin-bottom:8px">Make it yours</h3>
+     <button class="btn soft sm" onclick="lessonToNote('${esc(L.ref)}','${esc(L.title)}')">📝 Save reflection</button>
+     <button class="btn soft sm" onclick="explainVerse('${esc(L.ref)}')">✨ Go deeper</button></div></div></div>`;
+}
+function acceptChallenge(){if(!requireUser())return;
+  const days=Array.from(new Set([...(STORE.profile.days||[]),today()]));
+  const s=computeStreak(days);
+  profileSet({days,streak:s}).then(()=>{render();toast('Marked today ✓ — streak '+s+' 🔥');}).catch(fail);}
+function lessonToNote(ref,title){if(!requireUser())return;dbAdd('notes',{uid:USER.uid,title:'Lesson: '+title,body:'My reflection on '+ref+':\n\n',topic:'Daily lesson',book:ref.split(' ')[0],ref,is_shared:false,created:Date.now()}).then(()=>{toast('Saved — edit it in Notes 📝');go('notes');}).catch(fail);}
+
+/* ---- Auth page ---- */
+function pgLogin(){
+  if(USER)return `<div class="empty"><div class="big">✦</div><p>You're signed in as <b>${USER.name}</b>.</p><button class="btn" style="margin-top:14px" onclick="go('dashboard')">Go to dashboard</button></div>`;
+  return `<div class="auth-wrap"><div class="auth-card"><h2 class="serif">${AUTHMODE==='in'?'Welcome back':'Create your account'}</h2>
+    <p class="sub">${AUTHMODE==='in'?'Continue your study journey.':'Save your highlights, notes and groups.'}</p>
+    ${AUTHMODE==='up'?`<label class="fld">Name</label><input class="control" id="anm" placeholder="Your name" style="margin-bottom:12px"/>`:''}
+    <label class="fld">Email</label><input class="control" id="aem" placeholder="you@example.com" style="margin-bottom:12px"/>
+    <label class="fld">Password</label><input class="control" id="apw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAuth()"/>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:18px" onclick="doAuth()">${AUTHMODE==='in'?'Sign in':'Create account'}</button>
+    <button class="btn google" style="width:100%;justify-content:center;margin-top:10px" onclick="googleAuth()">Continue with Google</button>
+    <button class="btn soft" style="width:100%;justify-content:center;margin-top:10px" onclick="doAuth('guest')">Continue as guest</button>
+    <p class="switch">${AUTHMODE==='in'?"New here? ":"Have an account? "}<a onclick="AUTHMODE='${AUTHMODE==='in'?'up':'in'}';render()">${AUTHMODE==='in'?'Create account':'Sign in'}</a></p>
+    <p class="muted" style="font-size:.7rem;text-align:center;margin-top:14px">${LOCAL?'Offline mode — a local account on this device. Serve over http for Firebase accounts & Google sign-in.':'Secured by Firebase Authentication.'}</p></div></div>`;
+}
+
+/* ---- Dashboard ---- */
+function calendarHTML(){
+  const set=new Set(STORE.profile.days||[]);const now=new Date();const y=now.getFullYear(),m=now.getMonth();
+  const first=new Date(y,m,1).getDay();const dim=new Date(y,m+1,0).getDate();
+  let cells=['S','M','T','W','T','F','S'].map(n=>`<div class="cal-h">${n}</div>`).join('');
+  for(let i=0;i<first;i++)cells+='<div></div>';
+  for(let d=1;d<=dim;d++){const k=iso(new Date(y,m,d));cells+=`<div class="cal-d ${set.has(k)?'on':''} ${k===today()?'today':''}">${d}</div>`;}
+  const month=now.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h3 class="serif" style="font-size:1.3rem">Study calendar</h3><span class="muted" style="font-size:.78rem">${month}</span></div><div class="cal">${cells}</div><p class="muted" style="font-size:.72rem;margin-top:10px">Gold days are days you showed up. Accept a daily challenge to mark today.</p></div>`;
+}
+function pgDash(){if(!USER)return authGate('dashboard');
+  const notes=STORE.notes,hl=STORE.highlights,groups=STORE.groups;
+  const saved=notes.filter(n=>n.topic==='Saved verses');
+  const streak=computeStreak(STORE.profile.days);
+  return `<div class="section-h"><div><h2 class="serif">Hello, ${USER.name}</h2><p>Your study at a glance.</p></div><button class="btn soft" onclick="openSettings()">⚙ Settings</button></div>
+  <div class="stats"><div class="stat"><div class="v">${hl.length}</div><div class="l">Highlights</div></div>
+    <div class="stat"><div class="v">${notes.length}</div><div class="l">Notes</div></div>
+    <div class="stat"><div class="v">${saved.length}</div><div class="l">Saved verses</div></div>
+    <div class="stat"><div class="v">${groups.length}</div><div class="l">Groups</div></div></div>
+  <div class="card" style="margin-top:18px;display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap">
+    <div><b>🔥 ${streak}-day streak.</b> <span class="muted">Keep showing up.</span></div><button class="btn sm" onclick="go('lesson')">Today's lesson →</button></div>
+  <div class="grid2" style="margin-top:18px">
+    ${calendarHTML()}
+    <div class="card"><h3 class="serif" style="font-size:1.3rem;margin-bottom:10px">Saved verses</h3>
+     ${saved.length?saved.slice(0,6).map(f=>`<div style="padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="go('notes')"><div class="chip gold" style="font-size:.7rem">${f.ref||f.title}</div><div class="muted" style="font-size:.82rem;margin-top:3px">${(f.body||'').slice(0,70)}…</div></div>`).join(''):'<p class="muted" style="font-size:.85rem">Tap ♡ on a verse to save it here and into Notes.</p>'}</div>
+  </div>
+  <div class="card" style="margin-top:18px"><h3 class="serif" style="font-size:1.3rem;margin-bottom:10px">Recent notes</h3>
+    ${notes.length?notes.slice(0,6).map(n=>`<div style="padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="go('notes')"><b>${n.title||'Untitled'}</b><div class="muted" style="font-size:.78rem">${n.topic||'General'} · ${fmt(n.created)}</div></div>`).join(''):'<p class="muted" style="font-size:.85rem">No notes yet.</p>'}</div>`;
+}
+
+/* ---- Tracker: custom forms + charts ---- */
+function pgForms(){
+  if(!USER)return authGate('trackers');
+  if(FORM_VIEW)return formDetail(FORM_VIEW);
+  const forms=STORE.forms||[];
+  return `<div class="section-h"><div><h2 class="serif">Tracker</h2><p>Build forms to log anything — moods, prayers, habits, study scores — then see it as interactive charts. Share with a group to fill it in together.</p></div><button class="btn" onclick="newForm()">+ New tracker</button></div>
+   ${forms.length?`<div class="widgets" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">${forms.map(f=>{const n=(STORE.entries||[]).filter(e=>e.formId===f.id).length;return `<div class="widget" onclick="openForm('${f.id}')"><div class="arrow">→</div><div class="wicon">📊</div><h3>${f.title||'Untitled'}</h3><p>${f.desc||(f.fields||[]).map(x=>x.label).join(', ')}</p><div class="chip gold" style="margin-top:10px">${n} ${n===1?'entry':'entries'}${f.groupName?' · '+f.groupName:''}</div></div>`;}).join('')}</div>`
+   :`<div class="empty"><div class="big">📊</div><p>No trackers yet. Create one to start logging and charting.</p></div>`}`;
+}
+function openForm(id){FORM_VIEW=id;subscribeEntries(id);if(current()==='forms')render();else go('forms');}
+function subscribeEntries(id){
+  if(ENTRY_UNSUB){try{ENTRY_UNSUB()}catch(e){}ENTRY_UNSUB=null;}
+  if(LOCAL||!db)return;
+  ENTRY_UNSUB=db.collection('entries').where('formId','==',id).onSnapshot(s=>{
+    const others=(STORE.entries||[]).filter(e=>e.formId!==id);STORE.entries=[...others,...docs(s)];
+    if(current()==='forms'&&FORM_VIEW===id)render();
+  },e=>console.warn(e));
+}
+function formDetail(id){
+  const f=(STORE.forms||[]).find(x=>x.id===id);
+  if(!f){FORM_VIEW=null;return pgForms();}
+  const entries=(STORE.entries||[]).filter(e=>e.formId===id).sort(byNew);
+  const numFields=f.fields.filter(x=>x.type==='number'||x.type==='scale');
+  window.__after=()=>buildChart(f,entries);
+  return `<div class="section-h"><div><button class="btn soft sm" onclick="FORM_VIEW=null;render()">← All trackers</button>
+      <h2 class="serif" style="margin-top:10px">${f.title}</h2><p>${f.desc||''}</p></div>
+      <div class="row" style="flex:0"><button class="btn" onclick="addEntry('${id}')">+ Add entry</button><button class="btn soft" onclick="shareForm('${id}')">Share</button></div></div>
+   <div class="grid2"><div class="card"><h3 class="serif" style="font-size:1.2rem;margin-bottom:8px">Trend</h3>
+     ${numFields.length?`<div class="chartwrap"><canvas id="formChart"></canvas></div>`:`<p class="muted" style="font-size:.85rem">Add a number or scale field to chart this tracker.</p>`}</div>
+    <div class="card"><h3 class="serif" style="font-size:1.2rem;margin-bottom:8px">Fields</h3>
+     <div>${f.fields.map(x=>`<span class="fieldpill">${x.label} · ${x.type}</span>`).join('')}</div>
+     ${f.groupName?`<div class="chip gold" style="margin-top:12px">Shared with ${f.groupName}</div>`:''}
+     <button class="btn soft sm" style="margin-top:14px" onclick="deleteForm('${id}')">Delete tracker</button></div></div>
+   <div class="card" style="margin-top:18px"><h3 class="serif" style="font-size:1.2rem;margin-bottom:8px">Entries (${entries.length})</h3>
+     ${entries.length?`<div style="overflow:auto"><table class="etable"><thead><tr><th>When</th><th>By</th>${f.fields.map(x=>`<th>${x.label}</th>`).join('')}</tr></thead>
+      <tbody>${entries.map(e=>`<tr><td>${fmt(e.created)}</td><td>${e.by||''}</td>${f.fields.map(x=>`<td>${e.values&&e.values[x.key]!==undefined&&e.values[x.key]!==''?e.values[x.key]:'—'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+     :`<p class="muted" style="font-size:.85rem">No entries yet. Tap “Add entry”.</p>`}</div>`;
+}
+function buildChart(f,entries){
+  const cv=document.getElementById('formChart');if(!cv||typeof Chart==='undefined')return;
+  if(CHART){CHART.destroy();CHART=null;}
+  const num=f.fields.filter(x=>x.type==='number'||x.type==='scale');
+  if(!num.length||!entries.length)return;
+  const asc=entries.slice().sort((a,b)=>(a.created||0)-(b.created||0));
+  const labels=asc.map(e=>fmt(e.created));
+  const pal=['#c2a14d','#2f86a6','#5d8c4f','#9a6db0','#c46b5a'];
+  const ds=num.map((x,i)=>({label:x.label,data:asc.map(e=>Number(e.values&&e.values[x.key])||0),borderColor:pal[i%pal.length],backgroundColor:pal[i%pal.length]+'33',tension:.3,pointRadius:3,fill:false}));
+  const cs=getComputedStyle(document.documentElement);const txt=(cs.getPropertyValue('--text')||'#333').trim(),mut=(cs.getPropertyValue('--muted')||'#999').trim(),ln=(cs.getPropertyValue('--line')||'#eee').trim();
+  CHART=new Chart(cv,{type:'line',data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:txt}}},scales:{x:{ticks:{color:mut},grid:{color:ln}},y:{beginAtZero:true,ticks:{color:mut},grid:{color:ln}}}}});
+}
+function newForm(){NEWFORM={title:'',desc:'',fields:[]};openFormBuilder();}
+function captureForm(){const t=document.getElementById('fmTitle');if(t)NEWFORM.title=t.value;const d=document.getElementById('fmDesc');if(d)NEWFORM.desc=d.value;}
+function addField(){captureForm();const l=document.getElementById('fLabel').value.trim();const ty=document.getElementById('fType').value;if(!l)return toast('Name the field');NEWFORM.fields.push({key:'f'+uid(),label:l,type:ty});openFormBuilder();}
+function rmField(i){captureForm();NEWFORM.fields.splice(i,1);openFormBuilder();}
+function openFormBuilder(){
+  modal(`<h3>New tracker</h3>
+   <label class="fld">Title</label><input class="control" id="fmTitle" value="${(NEWFORM.title||'').replace(/"/g,'&quot;')}" placeholder="e.g. Daily Mood & Prayer"/>
+   <label class="fld" style="margin-top:10px">Description (optional)</label><input class="control" id="fmDesc" value="${(NEWFORM.desc||'').replace(/"/g,'&quot;')}" placeholder="What is this for?"/>
+   <div style="margin-top:14px"><b style="font-size:.85rem">Fields</b><div style="margin-top:6px">${NEWFORM.fields.length?NEWFORM.fields.map((f,i)=>`<span class="fieldpill">${f.label} · ${f.type} <span onclick="rmField(${i})">✕</span></span>`).join(''):'<span class="muted" style="font-size:.8rem">Add at least one field.</span>'}</div></div>
+   <div class="row" style="margin-top:10px"><input class="control" id="fLabel" placeholder="Field name (e.g. Mood)"/>
+     <select class="control" id="fType" style="flex:0;min-width:130px"><option value="scale">Scale 1–5</option><option value="number">Number</option><option value="yesno">Yes / No</option><option value="text">Text</option></select>
+     <button class="btn soft" style="flex:0" onclick="addField()">Add field</button></div>
+   <div class="row" style="margin-top:16px"><button class="btn" onclick="createForm()">Create tracker</button><button class="btn soft" onclick="closeModal()">Cancel</button></div>`);
+}
+function createForm(){captureForm();if(!NEWFORM.title.trim())return toast('Give it a title');if(!NEWFORM.fields.length)return toast('Add at least one field');
+  dbAdd('forms',{uid:USER.uid,title:NEWFORM.title.trim(),desc:NEWFORM.desc.trim(),fields:NEWFORM.fields,members:[USER.uid],groupId:null,groupName:null,created:Date.now()}).then(()=>{closeModal();toast('Tracker created 📊');}).catch(fail);}
+function entryInput(x){const id='e_'+x.key;
+  if(x.type==='scale')return `<label class="fld" style="margin-top:8px">${x.label}</label><input type="range" id="${id}" min="1" max="5" step="1" value="3" oninput="document.getElementById('${id}v').textContent=this.value" style="width:100%"/><div class="muted" style="font-size:.78rem">Value: <span id="${id}v">3</span> / 5</div>`;
+  if(x.type==='number')return `<label class="fld" style="margin-top:8px">${x.label}</label><input class="control" id="${id}" type="number" placeholder="0"/>`;
+  if(x.type==='yesno')return `<label class="fld" style="margin-top:8px">${x.label}</label><select class="control" id="${id}"><option>Yes</option><option>No</option></select>`;
+  return `<label class="fld" style="margin-top:8px">${x.label}</label><input class="control" id="${id}" placeholder="…"/>`;
+}
+function addEntry(id){const f=(STORE.forms||[]).find(x=>x.id===id);if(!f)return;
+  modal(`<h3>Add entry</h3><p class="muted" style="font-size:.8rem;margin-bottom:6px">${f.title}</p>
+   ${f.fields.map(x=>entryInput(x)).join('')}
+   <div class="row" style="margin-top:16px"><button class="btn" onclick="saveEntry('${id}')">Save entry</button><button class="btn soft" onclick="closeModal()">Cancel</button></div>`);}
+function saveEntry(id){const f=(STORE.forms||[]).find(x=>x.id===id);const values={};
+  f.fields.forEach(x=>{const el=document.getElementById('e_'+x.key);if(el)values[x.key]=el.value;});
+  dbAdd('entries',{uid:USER.uid,formId:id,by:USER.name,values,created:Date.now()}).then(()=>{closeModal();toast('Entry added 📊');}).catch(fail);}
+function shareForm(id){const f=(STORE.forms||[]).find(x=>x.id===id);const myGroups=STORE.groups||[];
+  modal(`<h3>Share “${f.title}”</h3>
+   ${myGroups.length?`<label class="fld">Attach to a group — members can add entries</label>
+     <select class="control" id="shgrp">${myGroups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}</select>
+     <button class="btn soft sm" style="margin-top:10px" onclick="doShareForm('${id}')">Share to group</button>`:`<p class="muted" style="font-size:.85rem">Create or join a group first to share a tracker with others.</p>`}
+   <div class="row" style="margin-top:16px"><button class="btn soft" onclick="copyFormLink()">Copy link</button><button class="btn soft" onclick="closeModal()">Close</button></div>`);}
+function doShareForm(id){const sel=document.getElementById('shgrp');const g=(STORE.groups||[]).find(x=>x.id===sel.value);if(!g)return;
+  const f=(STORE.forms||[]).find(x=>x.id===id);const merged=Array.from(new Set([...(f.members||[]),...(g.members||[])]));
+  dbUpdate('forms',id,{groupId:g.id,groupName:g.name,members:merged}).then(()=>{closeModal();toast('Shared with '+g.name+' 👥');}).catch(fail);}
+function copyFormLink(){const link=`${location.origin}${location.pathname}#/forms`;navigator.clipboard&&navigator.clipboard.writeText(link);toast('Link copied 🔗');}
+function deleteForm(id){dbDelete('forms',id).then(()=>{FORM_VIEW=null;toast('Tracker deleted');render();}).catch(fail);}
+
+function authGate(what){return `<div class="empty"><div class="big">🔒</div><p>Sign in to access your ${what}.</p><button class="btn" style="margin-top:14px" onclick="go('login')">Sign in</button></div>`;}
+
+/* ---- boot ---- */
+/* Auth state (hosted) or bootLocal() (file://) above drives the first render. */
+</script>
+</body>
+</html>
