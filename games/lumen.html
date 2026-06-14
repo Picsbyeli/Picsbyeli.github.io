@@ -185,6 +185,24 @@ input[type=range]{accent-color:var(--accent)}
 .tts-label{flex:1;font-size:.85rem;font-weight:600;color:var(--accent);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .tts-ctrl{padding:7px 16px;border-radius:999px;background:var(--gold);color:#1d1708;font-weight:600;font-size:.82rem;border:none;cursor:pointer;white-space:nowrap}
 .tts-speed{padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card-2);color:var(--text);font-size:.82rem;cursor:pointer}
+.chat-wrap{display:flex;flex-direction:column;gap:0;max-width:800px;margin:0 auto}
+.chat-msg{display:flex;gap:14px;padding:18px 0;border-bottom:1px solid var(--line);animation:rise .35s both}
+.chat-msg.user{flex-direction:row-reverse}
+.chat-ava{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:20px;font-weight:700;color:#fff;box-shadow:var(--shadow-sm)}
+.chat-ava.pastor{background:linear-gradient(135deg,var(--accent),var(--gold))}
+.chat-ava.me{background:linear-gradient(135deg,#4a6cf7,#7c3aed);font-size:14px}
+.chat-bubble{background:var(--card);border-radius:4px 18px 18px 18px;padding:14px 18px;box-shadow:var(--shadow-sm);border:1px solid var(--line);max-width:min(580px,88%);line-height:1.65}
+.chat-msg.user .chat-bubble{background:linear-gradient(135deg,var(--accent),var(--gold));color:#fff;border-radius:18px 4px 18px 18px;border-color:transparent}
+.chat-bubble h4{font-family:'Cormorant Garamond',serif;font-size:1.05rem;margin:14px 0 4px;color:var(--accent)}
+.chat-msg.user .chat-bubble h4{color:#fff}
+.vref{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--gold-soft);color:var(--accent);font-size:.74rem;font-weight:700;margin:2px;cursor:pointer}
+.chat-msg.user .vref{background:rgba(255,255,255,.25);color:#fff}
+.save-btn{display:inline-flex;align-items:center;gap:5px;margin-top:12px;padding:6px 14px;border-radius:999px;background:var(--card-2);border:1px solid var(--line);font-size:.78rem;font-weight:600;cursor:pointer;color:var(--accent)}
+.save-btn:hover{background:var(--gold-soft)}
+.chat-input-row{display:flex;gap:10px;margin-top:18px;position:sticky;bottom:0;background:var(--bg);padding:12px 0 4px;z-index:10}
+@media(max-width:780px){.chat-input-row{bottom:70px}}
+.pastor-hero{background:linear-gradient(135deg,#1a1230,#3a2060,#6b3a8c);color:#fff;border-radius:var(--radius);padding:clamp(22px,4vw,38px);box-shadow:var(--shadow);margin-bottom:24px;position:relative;overflow:hidden}
+.pastor-hero::after{content:"✝";position:absolute;right:24px;top:16px;font-size:100px;opacity:.07}
 </style>
 </head>
 <body>
@@ -395,8 +413,8 @@ function fail(e){console.warn(e);toast(e.code==='permission-denied'?'Permission 
 /* ============================================================
    5. routing + chrome
    ============================================================ */
-const ROUTES={home:pgHome,bible:pgBible,ai:pgAI,notes:pgNotes,forms:pgForms,groups:pgGroups,lesson:pgLesson,login:pgLogin,dashboard:pgDash};
-const NAV=[['home','Home','✦'],['bible','Bible','📖'],['ai','Explain','✨'],['notes','Notes','📝'],['forms','Tracker','📊'],['groups','Groups','👥'],['lesson','Daily','☀'],['dashboard','Me','◉']];
+const ROUTES={home:pgHome,bible:pgBible,ai:pgAI,pastor:pgPastor,notes:pgNotes,forms:pgForms,groups:pgGroups,lesson:pgLesson,login:pgLogin,dashboard:pgDash};
+const NAV=[['home','Home','✦'],['bible','Bible','📖'],['ai','Explain','✨'],['pastor','Pastor','✝'],['notes','Notes','📝'],['forms','Tracker','📊'],['groups','Groups','👥'],['lesson','Daily','☀'],['dashboard','Me','◉']];
 function go(r){location.hash='#/'+r;}
 function current(){return (location.hash.replace('#/','')||'home');}
 function render(){
@@ -671,6 +689,85 @@ function renderExplanation(ref,d,source){
 }
 function aiToNote(ref){if(!requireUser())return;const out=document.getElementById('aiOut').innerText.slice(0,1500);
   dbAdd('notes',{uid:USER.uid,title:'Study: '+ref,body:out,topic:'AI study',book:ref.split(' ')[0],ref,is_shared:false,created:Date.now()}).then(()=>toast('Saved to your notes 📝')).catch(fail);}
+
+/* ---- AI Pastor ---- */
+let PASTOR_HISTORY=[];
+const PASTOR_SYS=`You are a warm, knowledgeable AI Pastor and Bible teacher. Answer any question about faith, the Bible, theology, Christian living, prayer, doubt, grief, relationships, or purpose. Rules: (1) Only cite Bible verses you are CERTAIN are real — format as [Book chapter:verse]. (2) Be warm, direct, honest, like a pastor over coffee. (3) Acknowledge where Christian traditions differ without taking sides. (4) NEVER invent scripture or historical facts. Return ONLY valid JSON (no markdown) with keys: "answer" (string with inline [Ref] citations), "verses" (array of {ref,text,note} — real verses only, max 4), "examples" (array of 2-3 real-world strings), "takeaway" (string — one practical step or prayer), "topic" (short label).`;
+const PASTOR_STARTERS=['What does the Bible say about anxiety?','How do I forgive someone who hurt me?','Why does God allow suffering?','How do I know God\'s will for my life?','What does it mean to have faith?','How do I pray when I don\'t know what to say?','What does the Bible say about depression?','How do I deal with loneliness?'];
+function pgPastor(){
+  window.__after=()=>{const i=document.getElementById('pastorInput');if(i)i.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();askPastor();}});scrollPastorBottom();};
+  const starters=PASTOR_HISTORY.length===0?`<div class="card" style="margin-bottom:20px"><p class="muted" style="font-size:.84rem;margin-bottom:10px">Start with a question, or pick one:</p><div class="chips" style="flex-wrap:wrap">${PASTOR_STARTERS.map(s=>`<span class="chip" style="cursor:pointer;padding:7px 12px" onclick="startPastorQ('${esc(s)}')">${s}</span>`).join('')}</div></div>`:'';
+  return `<div class="pastor-hero"><div style="font-size:.7rem;letter-spacing:3px;text-transform:uppercase;opacity:.8">✝ AI Pastor</div><h2 class="serif" style="font-size:clamp(1.6rem,4vw,2.4rem);margin:6px 0 4px">Ask anything about faith</h2><p style="opacity:.88;font-size:.95rem;max-width:52ch">Every answer rooted in real Scripture, real-world examples, and honest reasoning.</p></div>
+  ${starters}<div class="chat-wrap" id="chatWrap">${PASTOR_HISTORY.map((m,i)=>pastorMsgHTML(m,i)).join('')}</div>
+  <div class="chat-input-row"><textarea class="control" id="pastorInput" placeholder="Ask your question… (Enter to send, Shift+Enter for new line)" style="min-height:52px;max-height:140px;resize:vertical"></textarea><button class="btn" style="flex:0;align-self:flex-end" onclick="askPastor()">Send →</button>${PASTOR_HISTORY.length?'<button class="btn soft" style="flex:0;align-self:flex-end" onclick="clearPastor()">Clear</button>':''}</div>
+  <div class="disclaimer" style="margin-top:14px">✝ AI Pastor is a study aid. It is not a replacement for your local church, pastor, or spiritual community. Where traditions genuinely differ, it says so.</div>`;
+}
+function startPastorQ(q){const i=document.getElementById('pastorInput');if(i){i.value=q;askPastor();}else{localStorage.setItem('pastor_prefill',q);render();}}
+function pastorMsgHTML(m,idx){
+  if(m.role==='user')return `<div class="chat-msg user"><div class="chat-ava me">${USER?(USER.name||'?')[0].toUpperCase():'Me'}</div><div class="chat-bubble" style="font-size:.95rem">${m.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div></div>`;
+  return `<div class="chat-msg pastor"><div class="chat-ava pastor">✝</div><div class="chat-bubble">${m.rendered||''}<button class="save-btn" onclick="savePastorMsg(${idx})">📝 Save to Notes</button></div></div>`;
+}
+function scrollPastorBottom(){const w=document.getElementById('chatWrap');if(w)setTimeout(()=>w.lastElementChild&&w.lastElementChild.scrollIntoView({behavior:'smooth'}),60);}
+async function askPastor(){
+  const inp=document.getElementById('pastorInput');if(!inp)return;
+  const q=inp.value.trim();if(!q)return;
+  inp.value=inp.style.height='';  
+  PASTOR_HISTORY.push({role:'user',text:q});
+  const wrap=document.getElementById('chatWrap');
+  if(wrap){wrap.innerHTML=PASTOR_HISTORY.map((m,i)=>pastorMsgHTML(m,i)).join('');const th=document.createElement('div');th.className='chat-msg pastor';th.id='pThink';th.innerHTML='<div class="chat-ava pastor">✝</div><div class="chat-bubble"><span class="muted">Reflecting…</span><div class="spinner" style="width:22px;height:22px;margin:8px auto"></div></div>';wrap.appendChild(th);scrollPastorBottom();}
+  let data;
+  try{
+    const key=(localStorage.getItem('lumen_ai_key')||'').trim();
+    const url=(localStorage.getItem('lumen_ai_url')||'').trim();
+    if(!key&&!url)throw new Error('no-key');
+    data=await callPastorAI(q,key,url);
+  }catch(e){
+    data=pastorFallback(q);
+    if(e.message!=='no-key')toast('Live AI unavailable — add your AI key in ⚙ Settings for real responses.');
+  }
+  PASTOR_HISTORY.push({role:'pastor',data,rendered:buildPastorHTML(data)});
+  const w2=document.getElementById('chatWrap');if(w2){const t=document.getElementById('pThink');if(t)t.remove();w2.innerHTML=PASTOR_HISTORY.map((m,i)=>pastorMsgHTML(m,i)).join('');scrollPastorBottom();}
+  // show/hide Clear button
+  const row=document.querySelector('.chat-input-row');if(row&&!row.querySelector('.btn.soft')){const b=document.createElement('button');b.className='btn soft';b.style.cssText='flex:0;align-self:flex-end';b.textContent='Clear';b.onclick=clearPastor;row.appendChild(b);}
+}
+async function callPastorAI(q,key,url){
+  const msgs=PASTOR_HISTORY.slice(-12).map(m=>({role:m.role==='user'?'user':'assistant',content:m.role==='pastor'?(m.data?JSON.stringify(m.data):m.text):m.text})).filter(m=>m.content);
+  if(!msgs.length||msgs[msgs.length-1].role!=='user')msgs.push({role:'user',content:q});
+  if(url){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,history:msgs})});if(!r.ok)throw new Error('url '+r.status);return r.json();}
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:AI_MODEL,max_tokens:1800,temperature:0.4,system:PASTOR_SYS,messages:msgs})});
+  if(!r.ok)throw new Error('Anthropic '+r.status);
+  const j=await r.json();return parseAIJSON((j.content&&j.content[0]&&j.content[0].text)||'');
+}
+function buildPastorHTML(d){
+  if(!d||typeof d!=='object')return `<p>${d||''}</p>`;
+  const ans=(d.answer||'').replace(/\[([^\]]+)\]/g,(_,r)=>`<span class="vref" onclick="explainVerse('${esc(r)}')">${r}</span>`);
+  let h=`<p style="font-size:.96rem;line-height:1.7">${ans}</p>`;
+  if((d.verses||[]).length){
+    h+='<h4>📖 Key Verses</h4>';
+    h+=d.verses.map(v=>`<div style="margin:8px 0;padding:10px 14px;background:var(--card-2);border-radius:12px;border-left:3px solid var(--gold)"><span class="vref" onclick="explainVerse('${esc(v.ref||'')}')">${v.ref||''}</span><p style="font-size:.87rem;margin:5px 0;font-style:italic;color:var(--muted)">&ldquo;${v.text||''}&rdquo;</p>${v.note?`<p style="font-size:.83rem;margin-top:3px">${v.note}</p>`:''}</div>`).join('');
+  }
+  if((d.examples||[]).length){
+    h+='<h4>🌍 Real-World Examples</h4><ul style="padding-left:18px;margin:6px 0">';
+    h+=d.examples.map(e=>`<li style="font-size:.9rem;margin:5px 0">${e}</li>`).join('')+'</ul>';
+  }
+  if(d.takeaway)h+=`<h4>🙏 Takeaway</h4><p style="font-size:.9rem;padding:10px 14px;background:linear-gradient(90deg,var(--gold-soft),transparent);border-radius:10px">${d.takeaway}</p>`;
+  return h;
+}
+function pastorFallback(q){
+  return{answer:`Thank you for bringing "${q}" to prayer and reflection. While a live AI response isn't available right now (add your Anthropic key in ⚙ Settings), here is a grounded starting point. God invites every honest question [Psalm 34:4] and promises wisdom to those who ask [James 1:5].`,verses:[{ref:'James 1:5',text:'If any of you lacks wisdom, let him ask God, who gives generously to all without reproach.',note:'God does not shame honest seeking — He meets it generously.'},{ref:'Psalm 34:4',text:'I sought the Lord, and he answered me and delivered me from all my fears.',note:'Bringing your real questions to God is itself an act of faith.'}],examples:['Just as a student goes to a trusted teacher with hard questions, bringing your questions to God and Scripture is where wisdom grows — not in pretending you have it all figured out.'],takeaway:'Bring this question to God in your own words today. Honesty is the only requirement.',topic:q.slice(0,40)};
+}
+function savePastorMsg(idx){
+  if(!requireUser())return;
+  const m=PASTOR_HISTORY[idx];if(!m||m.role!=='pastor')return;
+  const d=m.data||{};const prev=PASTOR_HISTORY[idx-1];
+  const title='Pastor: '+(d.topic||prev&&prev.text.slice(0,40)||'Chat');
+  let body=prev?'Q: '+prev.text+'\n\n':'';
+  body+=(d.answer||'').replace(/\[([^\]]+)\]/g,'[$1]').replace(/<[^>]+>/g,'')+'\n\n';
+  if(d.verses&&d.verses.length)body+='Verses:\n'+d.verses.map(v=>`${v.ref}: "${v.text}"`).join('\n')+'\n\n';
+  if(d.takeaway)body+='Takeaway: '+d.takeaway;
+  dbAdd('notes',{uid:USER.uid,title,body:body.trim(),topic:'AI Pastor',book:'',is_shared:false,created:Date.now()}).then(()=>toast('Saved to Notes 📝')).catch(fail);
+}
+function clearPastor(){PASTOR_HISTORY=[];render();}
 
 /* ---- Notes ---- */
 let NOTEFILTER='All';
