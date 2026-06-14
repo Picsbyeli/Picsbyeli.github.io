@@ -452,10 +452,9 @@ function openSettings(){const scale=localStorage.getItem('lumen_read')||'1';
      <div class="row" style="gap:10px">${THEMES.map(t=>`<div class="swatch ${(localStorage.getItem('lumen_theme')||'light')===t[0]?'sel':''}" data-t="${t[0]}" title="${t[1]}" style="background:${t[2]}" onclick="setTheme('${t[0]}')"></div>`).join('')}</div></div>
    <div class="setrow"><div><b>Default translation</b></div>
      <select class="control" style="width:auto" onchange="setDefaultVer(this.value)">${TRANSLATIONS.filter(t=>t.free).map(t=>`<option value="${t.id}" ${RD.ver===t.id?'selected':''}>${t.id}</option>`).join('')}</select></div>
-   <div class="setrow" style="display:block"><b>AI explanation</b><div class="muted" style="font-size:.78rem;margin:2px 0 8px">Use a Cloud Function URL (key stays private) or paste an Anthropic key to test in-browser. Leave both blank for offline samples.</div>
-     <input class="control" id="aiUrl" placeholder="Cloud Function URL (recommended)" value="${(localStorage.getItem('lumen_ai_url')||'').replace(/"/g,'&quot;')}" style="margin-bottom:8px"/>
-     <input class="control" id="aiKey" type="password" placeholder="Anthropic API key (browser test only)" value="${(localStorage.getItem('lumen_ai_key')||'').replace(/"/g,'&quot;')}"/>
-     <button class="btn soft sm" style="margin-top:8px" onclick="saveAICfg()">Save AI settings</button></div>
+   <div class="setrow" style="display:block"><b>AI (Grok) server URL</b><div class="muted" style="font-size:.78rem;margin:2px 0 8px">The AI key is stored securely on the server — never in the browser. Point this to your running server (e.g. http://localhost:4000 when developing locally, or your deployed server URL).</div>
+     <input class="control" id="aiUrl" placeholder="http://localhost:4000" value="${(localStorage.getItem('lumen_ai_url')||'').replace(/"/g,'&quot;')}"/>
+     <button class="btn soft sm" style="margin-top:8px" onclick="saveAICfg()">Save server URL</button></div>
    <div class="setrow" style="display:block"><b>Bible source (API.Bible)</b><div class="muted" style="font-size:.78rem;margin:2px 0 8px">Your key unlocks full text & extra translations. On a public site, use a proxy URL (Cloud Function) so the key isn't exposed.</div>
      <input class="control" id="bibleKey" placeholder="API.Bible key" value="${(localStorage.getItem('lumen_bible_key')||DEFAULT_BIBLE_KEY||'').replace(/"/g,'&quot;')}" style="margin-bottom:8px"/>
      <input class="control" id="bibleProxy" placeholder="Proxy URL (optional, recommended for public sites)" value="${(localStorage.getItem('lumen_bible_proxy')||'').replace(/"/g,'&quot;')}"/>
@@ -465,7 +464,7 @@ function openSettings(){const scale=localStorage.getItem('lumen_read')||'1';
    <div style="text-align:right;margin-top:16px"><button class="btn" onclick="closeModal()">Done</button></div>`);}
 function applyReadScale(v){document.documentElement.style.setProperty('--read',v);localStorage.setItem('lumen_read',v);profileSet({readScale:v});}
 function setDefaultVer(v){RD.ver=v;localStorage.setItem('lumen_ver',v);toast('Default translation: '+v);if(current()==='bible')render();}
-function saveAICfg(){localStorage.setItem('lumen_ai_url',document.getElementById('aiUrl').value.trim());localStorage.setItem('lumen_ai_key',document.getElementById('aiKey').value.trim());toast('AI settings saved');}
+function saveAICfg(){localStorage.setItem('lumen_ai_url',document.getElementById('aiUrl').value.trim());toast('Server URL saved');}
 function saveBibleCfg(){localStorage.setItem('lumen_bible_key',document.getElementById('bibleKey').value.trim());localStorage.setItem('lumen_bible_proxy',document.getElementById('bibleProxy').value.trim());APIBIBLES=null;Object.keys(CHAP_CACHE).forEach(k=>delete CHAP_CACHE[k]);toast('Bible source saved');if(current()==='bible')render();}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 function modal(html){document.getElementById('modal').innerHTML=html;document.getElementById('modalBg').classList.add('show');}
@@ -631,35 +630,32 @@ function pgAI(){
   <div class="card" id="aiOut"><div class="empty"><div class="big">✨</div><p>Your explanation will appear here.</p></div></div></div>`;
 }
 /* Swap for a newer Claude model id if you like. */
-const AI_MODEL='claude-3-5-sonnet-latest';
-const AI_SYS=`You are a careful, respectful Bible study assistant. Explain the given passage grounded in its actual text and historical/biblical context. Be accurate and humble. NEVER invent facts, quotes, authors, dates, or cross-references; if unsure a cross-reference is real, omit it. Where Christian traditions differ, say so without endorsing one. Return ONLY valid JSON (no markdown) with keys: "context","meaning","themes"(array of 3-5 short strings),"related"(array of real "Book chapter:verse" strings),"application","reflection","prayer","interpretation_notes"(empty unless genuinely debated).`;
+const AI_MODEL='grok-3-mini'; // kept for reference; actual model lives server-side
+const AI_SYS=''; // system prompt lives server-side
 
 async function runAI(){
   const q=document.getElementById('aiInput').value.trim();if(!q)return toast('Type a verse first');
   const out=document.getElementById('aiOut');
-  out.innerHTML=`<div class="empty fadein"><div class="big">✦</div><p>Reflecting on the Word…</p><div class="spinner"></div></div>`;
+  out.innerHTML=`<div class="empty fadein"><div class="big">✦</div><p>Fetching verse & reflecting…</p><div class="spinner"></div></div>`;
   let data,source;
   try{const res=await explainAI(q);data=res.data;source=res.source;}
-  catch(e){data=templateExplain(q);source='template';toast('Live AI unavailable — showing sample. '+(e.message||''));}
+  catch(e){data=templateExplain(q);source='template';toast('AI unavailable — showing sample. '+(e.message||''));}
   out.innerHTML=renderExplanation(q,data,source);
 }
 async function explainAI(ref){
-  const url=(localStorage.getItem('lumen_ai_url')||'').trim();
-  const key=(localStorage.getItem('lumen_ai_key')||'').trim();
-  if(url){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reference:ref,version:RD.ver})});if(!r.ok)throw new Error('Function '+r.status);return{data:await r.json(),source:'cloud'};}
-  if(key){return{data:await callAnthropic(ref,key),source:'browser'};}
-  return{data:templateExplain(ref),source:'template'};
+  const base=lumenServerBase();
+  const r=await fetch(base+'/api/lumen-explain',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reference:ref,version:RD.ver})});
+  if(!r.ok)throw new Error('Server '+r.status);
+  return{data:await r.json(),source:'server'};
+}
+function lumenServerBase(){
+  const saved=(localStorage.getItem('lumen_ai_url')||'').trim().replace(/\/$/,'');
+  if(saved)return saved;
+  // Auto-detect: use localhost when running locally
+  if(location.hostname==='localhost'||location.hostname==='127.0.0.1')return 'http://localhost:4000';
+  return ''; // will throw — user needs to set server URL in Settings
 }
 async function fetchVerseText(ref,ver){try{const r=await fetch(`https://bible-api.com/${encodeURIComponent(ref)}?translation=${(ver||'kjv').toLowerCase()}`);if(!r.ok)return '';const j=await r.json();return (j.text||'').replace(/\s+/g,' ').trim();}catch(e){return '';}}
-async function callAnthropic(ref,key){
-  const t=TRANSLATIONS.find(x=>x.id===RD.ver);const apiVer=(t&&t.free)?RD.ver:'KJV';
-  const vt=await fetchVerseText(ref,apiVer);
-  const user=`Passage reference: ${ref} (version: ${apiVer})\nVerse text (authoritative, do not contradict):\n"""\n${vt||'(text unavailable — do not fabricate wording)'}\n"""\nExplain it using the JSON schema in your instructions.`;
-  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:AI_MODEL,max_tokens:1024,temperature:0.3,system:AI_SYS,messages:[{role:'user',content:user}]})});
-  if(!r.ok)throw new Error('Anthropic '+r.status+' (check key/model)');
-  const j=await r.json();const txt=(j.content&&j.content[0]&&j.content[0].text)||'';
-  return parseAIJSON(txt);
-}
 function parseAIJSON(txt){try{return JSON.parse(txt);}catch(e){}const m=txt.match(/\{[\s\S]*\}/);if(m){try{return JSON.parse(m[0]);}catch(e){}}throw new Error('AI returned non-JSON');}
 function templateExplain(ref){
   const lib={
@@ -675,15 +671,17 @@ function templateExplain(ref){
 }
 function renderExplanation(ref,d,source){
   const themes=d.themes||[],related=d.related||[];
-  const label={cloud:'✓ Live AI · Cloud Function',browser:'✓ Live AI · browser key',template:'Offline sample — add an AI key or Cloud Function URL in ⚙ Settings for live explanations'}[source]||'';
+  const label={server:'✓ Live AI · Grok · Verified KJV verses from bible-api.com',cloud:'✓ Live AI · Cloud Function',browser:'✓ Live AI · browser key',template:'Offline sample — set your server URL in ⚙ Settings for live Grok-powered responses'}[source]||'';
   return `<div class="fadein"><h3 class="serif" style="font-size:1.6rem">${ref}</h3>
+    ${d._verifiedText?`<div style="padding:10px 16px;background:var(--gold-soft);border-radius:12px;margin:8px 0 4px"><span class="chip gold" style="font-size:.7rem;margin-bottom:4px;display:inline-block">📖 Verified KJV · bible-api.com</span><p class="serif" style="font-size:1.05rem;line-height:1.55;font-style:italic">"${d._verifiedText}"</p></div>`:''}
     ${themes.length?`<div class="chips" style="margin:8px 0 6px">${themes.map(t=>`<span class="chip gold">${t}</span>`).join('')}</div>`:''}
-    <div class="exp-block"><h4>Historical & background context</h4><p>${d.context||''}</p></div>
-    <div class="exp-block"><h4>What it means — in simple words</h4><p>${d.meaning||''}</p></div>
-    ${related.length?`<div class="exp-block"><h4>Related verses</h4><p>${related.map(r=>`<span class="chip gold" style="cursor:pointer;margin:2px" onclick="explainVerse('${esc(r)}')">${r}</span>`).join(' ')}</p></div>`:''}
-    <div class="exp-block"><h4>Applying it today</h4><p>${d.application||''}</p></div>
-    <div class="exp-block"><h4>Prayer & reflection</h4><p>${d.reflection?'<i>'+d.reflection+'</i><br><br>':''}${d.prayer||''}</p></div>
-    ${d.interpretation_notes?`<div class="exp-block"><h4>Different interpretations</h4><p>${d.interpretation_notes}</p></div>`:''}
+    <div class="exp-block"><h4>1 · Historical &amp; background context</h4><p>${d.context||''}</p></div>
+    <div class="exp-block"><h4>2 · What it means — in plain words</h4><p>${d.meaning||''}</p></div>
+    ${related.length?`<div class="exp-block"><h4>Supporting verses</h4><p>${related.map(r=>`<span class="chip gold" style="cursor:pointer;margin:2px" onclick="explainVerse('${esc(r)}')">${r}</span>`).join(' ')}</p></div>`:''}
+    <div class="exp-block"><h4>3 · Practical real-world application</h4><p>${d.application||''}</p></div>
+    ${d.reflection?`<div class="exp-block"><h4>4 · Reflection question</h4><p><i>${d.reflection}</i></p></div>`:''}
+    ${d.prayer?`<div class="exp-block"><h4>5 · Prayer</h4><p>${d.prayer}</p></div>`:''}
+    ${d.interpretation_notes?`<div class="exp-block"><h4>6 · Different interpretations</h4><p>${d.interpretation_notes}</p></div>`:''}
     <div class="row" style="margin-top:16px"><button class="btn sm" style="flex:0" onclick="aiToNote('${esc(ref)}')">📝 Save as note</button></div>
     <div class="disclaimer">${label?label+' · ':''}A study aid grounded in the passage; where traditions differ it says so. Not a replacement for Scripture, prayer, or your church community.</div></div>`;
 }
@@ -717,13 +715,10 @@ async function askPastor(){
   if(wrap){wrap.innerHTML=PASTOR_HISTORY.map((m,i)=>pastorMsgHTML(m,i)).join('');const th=document.createElement('div');th.className='chat-msg pastor';th.id='pThink';th.innerHTML='<div class="chat-ava pastor">✝</div><div class="chat-bubble"><span class="muted">Reflecting…</span><div class="spinner" style="width:22px;height:22px;margin:8px auto"></div></div>';wrap.appendChild(th);scrollPastorBottom();}
   let data;
   try{
-    const key=(localStorage.getItem('lumen_ai_key')||'').trim();
-    const url=(localStorage.getItem('lumen_ai_url')||'').trim();
-    if(!key&&!url)throw new Error('no-key');
-    data=await callPastorAI(q,key,url);
+    data=await callPastorAI(q,'','');
   }catch(e){
     data=pastorFallback(q);
-    if(e.message!=='no-key')toast('Live AI unavailable — add your AI key in ⚙ Settings for real responses.');
+    if(e.message!=='no-key')toast('AI unavailable — set server URL in ⚙ Settings.');
   }
   PASTOR_HISTORY.push({role:'pastor',data,rendered:buildPastorHTML(data)});
   const w2=document.getElementById('chatWrap');if(w2){const t=document.getElementById('pThink');if(t)t.remove();w2.innerHTML=PASTOR_HISTORY.map((m,i)=>pastorMsgHTML(m,i)).join('');scrollPastorBottom();}
@@ -731,30 +726,32 @@ async function askPastor(){
   const row=document.querySelector('.chat-input-row');if(row&&!row.querySelector('.btn.soft')){const b=document.createElement('button');b.className='btn soft';b.style.cssText='flex:0;align-self:flex-end';b.textContent='Clear';b.onclick=clearPastor;row.appendChild(b);}
 }
 async function callPastorAI(q,key,url){
-  const msgs=PASTOR_HISTORY.slice(-12).map(m=>({role:m.role==='user'?'user':'assistant',content:m.role==='pastor'?(m.data?JSON.stringify(m.data):m.text):m.text})).filter(m=>m.content);
-  if(!msgs.length||msgs[msgs.length-1].role!=='user')msgs.push({role:'user',content:q});
-  if(url){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,history:msgs})});if(!r.ok)throw new Error('url '+r.status);return r.json();}
-  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:AI_MODEL,max_tokens:1800,temperature:0.4,system:PASTOR_SYS,messages:msgs})});
-  if(!r.ok)throw new Error('Anthropic '+r.status);
-  const j=await r.json();return parseAIJSON((j.content&&j.content[0]&&j.content[0].text)||'');
+  const base=url||lumenServerBase();
+  if(!base)throw new Error('no-key');
+  const history=PASTOR_HISTORY.slice(-10).map(m=>({role:m.role==='pastor'?'assistant':'user',content:m.role==='pastor'?(m.data?JSON.stringify(m.data):m.text):m.text})).filter(m=>m.content);
+  const r=await fetch(base+'/api/lumen-pastor',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,history})});
+  if(!r.ok)throw new Error('Server '+r.status);
+  return r.json();
 }
 function buildPastorHTML(d){
   if(!d||typeof d!=='object')return `<p>${d||''}</p>`;
   const ans=(d.answer||'').replace(/\[([^\]]+)\]/g,(_,r)=>`<span class="vref" onclick="explainVerse('${esc(r)}')">${r}</span>`);
   let h=`<p style="font-size:.96rem;line-height:1.7">${ans}</p>`;
   if((d.verses||[]).length){
-    h+='<h4>📖 Key Verses</h4>';
+    h+='<h4>📖 Bible Verses <span style="font-size:.7rem;font-weight:400;color:var(--muted)">(verified KJV · bible-api.com)</span></h4>';
     h+=d.verses.map(v=>`<div style="margin:8px 0;padding:10px 14px;background:var(--card-2);border-radius:12px;border-left:3px solid var(--gold)"><span class="vref" onclick="explainVerse('${esc(v.ref||'')}')">${v.ref||''}</span><p style="font-size:.87rem;margin:5px 0;font-style:italic;color:var(--muted)">&ldquo;${v.text||''}&rdquo;</p>${v.note?`<p style="font-size:.83rem;margin-top:3px">${v.note}</p>`:''}</div>`).join('');
   }
   if((d.examples||[]).length){
     h+='<h4>🌍 Real-World Examples</h4><ul style="padding-left:18px;margin:6px 0">';
     h+=d.examples.map(e=>`<li style="font-size:.9rem;margin:5px 0">${e}</li>`).join('')+'</ul>';
   }
-  if(d.takeaway)h+=`<h4>🙏 Takeaway</h4><p style="font-size:.9rem;padding:10px 14px;background:linear-gradient(90deg,var(--gold-soft),transparent);border-radius:10px">${d.takeaway}</p>`;
+  if(d.takeaway)h+=`<h4>✅ Practical Takeaway</h4><p style="font-size:.9rem;padding:10px 14px;background:linear-gradient(90deg,var(--gold-soft),transparent);border-radius:10px">${d.takeaway}</p>`;
+  if(d.reflection)h+=`<h4>🤔 Reflection Question</h4><p style="font-size:.9rem;font-style:italic;padding:8px 14px;border-left:3px solid var(--gold-soft)">${d.reflection}</p>`;
+  if(d.prayer)h+=`<h4>🙏 Prayer</h4><p style="font-size:.9rem;padding:10px 14px;background:var(--card-2);border-radius:10px;line-height:1.7">${d.prayer}</p>`;
   return h;
 }
 function pastorFallback(q){
-  return{answer:`Thank you for bringing "${q}" to prayer and reflection. While a live AI response isn't available right now (add your Anthropic key in ⚙ Settings), here is a grounded starting point. God invites every honest question [Psalm 34:4] and promises wisdom to those who ask [James 1:5].`,verses:[{ref:'James 1:5',text:'If any of you lacks wisdom, let him ask God, who gives generously to all without reproach.',note:'God does not shame honest seeking — He meets it generously.'},{ref:'Psalm 34:4',text:'I sought the Lord, and he answered me and delivered me from all my fears.',note:'Bringing your real questions to God is itself an act of faith.'}],examples:['Just as a student goes to a trusted teacher with hard questions, bringing your questions to God and Scripture is where wisdom grows — not in pretending you have it all figured out.'],takeaway:'Bring this question to God in your own words today. Honesty is the only requirement.',topic:q.slice(0,40)};
+  return{answer:`Thank you for bringing "${q}" to reflection. The AI server isn't reachable right now — set your server URL in ⚙ Settings to get live responses powered by Grok, with real verified Bible verses. In the meantime, here is a grounded starting point. God invites every honest question [Psalm 34:4] and promises wisdom to those who ask [James 1:5].`,verses:[{ref:'James 1:5',text:'If any of you lacks wisdom, let him ask God, who gives generously to all without reproach.',note:'God does not shame honest seeking — He meets it generously.'},{ref:'Psalm 34:4',text:'I sought the Lord, and he answered me and delivered me from all my fears.',note:'Bringing your real questions to God is itself an act of faith.'}],examples:['Just as a student goes to a trusted teacher with hard questions, bringing your questions to God and Scripture is where wisdom grows.'],takeaway:'Bring this question to God in your own words today.',reflection:'What would it look like to trust God with this question?',prayer:'Lord, I don\'t have all the answers, but I bring this question to You. Guide me through Your Word. Amen.',topic:q.slice(0,40)};
 }
 function savePastorMsg(idx){
   if(!requireUser())return;
@@ -763,8 +760,11 @@ function savePastorMsg(idx){
   const title='Pastor: '+(d.topic||prev&&prev.text.slice(0,40)||'Chat');
   let body=prev?'Q: '+prev.text+'\n\n':'';
   body+=(d.answer||'').replace(/\[([^\]]+)\]/g,'[$1]').replace(/<[^>]+>/g,'')+'\n\n';
-  if(d.verses&&d.verses.length)body+='Verses:\n'+d.verses.map(v=>`${v.ref}: "${v.text}"`).join('\n')+'\n\n';
-  if(d.takeaway)body+='Takeaway: '+d.takeaway;
+  if(d.verses&&d.verses.length)body+='Verses (KJV · verified):\n'+d.verses.map(v=>`${v.ref}: "${v.text}"\n  → ${v.note||''}`).join('\n')+'\n\n';
+  if(d.examples&&d.examples.length)body+='Real-world examples:\n'+d.examples.map((e,i)=>`${i+1}. ${e}`).join('\n')+'\n\n';
+  if(d.takeaway)body+='Takeaway: '+d.takeaway+'\n\n';
+  if(d.reflection)body+='Reflection: '+d.reflection+'\n\n';
+  if(d.prayer)body+='Prayer: '+d.prayer;
   dbAdd('notes',{uid:USER.uid,title,body:body.trim(),topic:'AI Pastor',book:'',is_shared:false,created:Date.now()}).then(()=>toast('Saved to Notes 📝')).catch(fail);
 }
 function clearPastor(){PASTOR_HISTORY=[];render();}
