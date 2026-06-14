@@ -179,6 +179,12 @@ textarea.control{min-height:120px;resize:vertical;line-height:1.6}
 .cal-d.today{outline:2px solid var(--gold);color:var(--text)}
 input[type=range]{accent-color:var(--accent)}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.tts-bar{position:fixed;bottom:0;left:0;right:0;z-index:70;display:flex;align-items:center;gap:12px;padding:12px clamp(16px,4vw,40px);background:color-mix(in srgb,var(--card) 96%,transparent);backdrop-filter:blur(16px);border-top:2px solid var(--gold);box-shadow:0 -6px 24px -8px rgba(60,48,20,.25);transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.tts-bar.show{transform:translateY(0)}
+@media(max-width:780px){.tts-bar.show{bottom:66px}}
+.tts-label{flex:1;font-size:.85rem;font-weight:600;color:var(--accent);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tts-ctrl{padding:7px 16px;border-radius:999px;background:var(--gold);color:#1d1708;font-weight:600;font-size:.82rem;border:none;cursor:pointer;white-space:nowrap}
+.tts-speed{padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card-2);color:var(--text);font-size:.82rem;cursor:pointer}
 </style>
 </head>
 <body>
@@ -512,6 +518,7 @@ function pgHome(){
     <p class="reflect">${v.reflect}</p>
     <div class="acts"><button class="btn" onclick="go('lesson')">Today's lesson →</button>
       <button class="btn ghost" style="${votdSaved?'color:#ff6b6b;':'' }" onclick="saveVotd()">${votdSaved?'❤️ Saved':'♡ Save verse'}</button>
+      <button class="btn ghost" onclick="speakText('${esc(v.t)}','${esc(v.r)}')">🔊 Listen</button>
       <button class="btn ghost" onclick="explainVerse('${v.r}')">✨ Explain this</button></div></section>
   <div class="section-h"><div><h2 class="serif">Where would you like to go?</h2><p>Four ways to draw closer to the Word today.</p></div></div>
   <div class="widgets">${w.map((x,i)=>`<div class="widget" style="animation:rise .5s ${i*0.08}s both" onclick="go('${x[0]}')"><div class="arrow">→</div><div class="wicon">${x[1]}</div><h3>${x[2]}</h3><p>${x[3]}</p></div>`).join('')}</div>
@@ -566,11 +573,12 @@ async function paintRead(){
   try{arr=await loadChapter(ver,RD.book,RD.ch);}catch(e){arr=null;}
   if(req!==READ_REQ)return; // a newer selection superseded this load
   if(!arr||!arr.some(x=>x)){pane.innerHTML=`<div class="empty"><div class="big">📖</div><p>Couldn't load ${RD.book} ${RD.ch} right now.</p><p class="muted" style="margin-top:8px">Live chapters need an internet connection. Bundled offline passages: Psalms 23 & 1, John 1, Genesis 1, Romans 8, Philippians 4.</p><button class="btn soft sm" style="margin-top:12px" onclick="paintRead()">Retry</button></div>`;return;}
-  pane.innerHTML=`<h3 class="serif" style="font-size:1.6rem;margin-bottom:10px">${RD.book} ${RD.ch} <span class="chip" style="vertical-align:middle">${ver}</span></h3>`+
+  pane.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px"><h3 class="serif" style="font-size:1.6rem">${RD.book} ${RD.ch} <span class="chip" style="vertical-align:middle">${ver}</span></h3><button class="btn soft sm" onclick="readChapter()">🔊 Read chapter</button></div>`+
    arr.map((tx,i)=>{if(!tx)return '';const n=i+1;const key=`${ver}|${RD.book}|${RD.ch}|${n}`;const hl=STORE.highlights.find(h=>h.key===key);const vref=keyRef(key);const fav=STORE.notes.some(sv=>sv.topic==='Saved verses'&&sv.ref===vref);
     return `<div class="verse ${hl?'hl':''}" onclick="selVerse(this)"><div class="num">${n}</div><div class="txt">${tx}</div>
      <div class="verse-tools"><button class="minibtn" title="Highlight" onclick="event.stopPropagation();toggleHL('${key}','${esc(tx)}')">🖍</button>
       <button class="minibtn${fav?' faved':''}" title="${fav?'Remove from saved':'Save verse'}" onclick="event.stopPropagation();favVerse('${key}','${esc(tx)}')">${fav?'❤️':'♡'}</button>
+      <button class="minibtn" title="Read aloud" onclick="event.stopPropagation();speakText('${esc(tx)}','${esc(keyRef(key))}')">🔊</button>
       <button class="minibtn" title="Note" onclick="event.stopPropagation();noteVerse('${key}','${esc(tx)}')">📝</button></div></div>`;}).join('');
 }
 function selVerse(el){document.querySelectorAll('.verse').forEach(v=>v.classList.remove('sel'));el.classList.add('sel');}
@@ -871,7 +879,7 @@ function pgLesson(){
     <h2 class="serif" style="font-size:clamp(1.8rem,4vw,2.6rem);margin:8px 0 4px">${L.title}</h2>
     <div class="chip gold" style="background:rgba(255,255,255,.2);color:#fff">${L.ref}</div></div>
   <div class="grid2" style="margin-top:22px"><div class="card">
-    <div class="exp-block"><h4>Main passage</h4><p class="serif" style="font-size:calc(1.25rem*var(--read));line-height:1.5">${L.passage}</p></div>
+    <div class="exp-block"><h4>Main passage</h4><p class="serif" style="font-size:calc(1.25rem*var(--read));line-height:1.5">${L.passage}</p><button class="btn soft sm" style="margin-top:10px" onclick="speakText('${esc(L.passage)}','${esc(L.ref)}')">🔊 Read passage</button></div>
     <div class="exp-block"><h4>Simple explanation</h4><p>${L.explain}</p></div>
     <div class="exp-block"><h4>Life application</h4><p>${L.life}</p></div>
     <div class="exp-block"><h4>Reflection question</h4><p>${L.reflect}</p></div>
@@ -1027,6 +1035,43 @@ function copyFormLink(){const link=`${location.origin}${location.pathname}#/form
 function deleteForm(id){dbDelete('forms',id).then(()=>{FORM_VIEW=null;toast('Tracker deleted');render();}).catch(fail);}
 
 function authGate(what){return `<div class="empty"><div class="big">🔒</div><p>Sign in to access your ${what}.</p><button class="btn" style="margin-top:14px" onclick="go('login')">Sign in</button></div>`;}
+
+/* ---- Text-to-Speech ---- */
+let TTS_PLAYING=false,TTS_UTT=null;
+function speakText(text,label){
+  stopSpeech();
+  if(!window.speechSynthesis){toast('Text-to-speech not supported in this browser');return;}
+  TTS_UTT=new SpeechSynthesisUtterance(text);
+  TTS_UTT.rate=parseFloat(localStorage.getItem('tts_rate')||'0.9');
+  TTS_UTT.pitch=1;
+  TTS_UTT.onstart=()=>{TTS_PLAYING=true;showTTSBar(label||'Reading…');};
+  TTS_UTT.onend=TTS_UTT.onerror=()=>{TTS_PLAYING=false;hideTTSBar();};
+  speechSynthesis.speak(TTS_UTT);
+}
+function stopSpeech(){speechSynthesis.cancel();TTS_PLAYING=false;hideTTSBar();}
+function readChapter(){
+  if(TTS_PLAYING){stopSpeech();return;}
+  const pane=document.getElementById('readPane');if(!pane)return;
+  const verses=[...pane.querySelectorAll('.verse .txt')].map(el=>el.textContent.trim()).filter(Boolean);
+  if(!verses.length)return toast('No verses loaded yet');
+  speakText(verses.join('. '),`${RD.book} ${RD.ch}`);
+}
+function showTTSBar(label){
+  let bar=document.getElementById('ttsBar');
+  if(!bar){bar=document.createElement('div');bar.id='ttsBar';bar.className='tts-bar';document.body.appendChild(bar);}
+  const r=localStorage.getItem('tts_rate')||'0.9';
+  bar.innerHTML=`<span class="tts-label">🔊 ${label}</span>
+    <select class="tts-speed" onchange="setTTSRate(this.value)" title="Reading speed">
+      <option value="0.7"${r==='0.7'?' selected':''}>0.7× Slow</option>
+      <option value="0.9"${r==='0.9'?' selected':''}>0.9× Normal</option>
+      <option value="1.1"${r==='1.1'?' selected':''}>1.1× Fast</option>
+      <option value="1.4"${r==='1.4'?' selected':''}>1.4× Faster</option>
+    </select>
+    <button class="tts-ctrl" onclick="stopSpeech()">⏹ Stop</button>`;
+  bar.classList.add('show');
+}
+function hideTTSBar(){const bar=document.getElementById('ttsBar');if(bar)bar.classList.remove('show');}
+function setTTSRate(r){localStorage.setItem('tts_rate',r);}
 
 /* ---- boot ---- */
 /* Auth state (hosted) or bootLocal() (file://) above drives the first render. */
