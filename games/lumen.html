@@ -383,15 +383,22 @@ async function loadChapter(ver,book,ch){
   const ck=ver+'|'+book+'|'+ch;
   if(CHAP_CACHE[ck])return CHAP_CACHE[ck];
   if(ver.indexOf('AB:')===0){const a=await apibChapter(ver.slice(3),book,ch);CHAP_CACHE[ck]=a;return a;}
-  const bundled=BIBLE[ver]&&BIBLE[ver][book]&&BIBLE[ver][book][ch];
-  if(bundled)return bundled;
-  // bible-api.com serves public-domain translations (kjv, web) for free, no key, CORS-enabled.
-  const url=`https://bible-api.com/${encodeURIComponent(book+' '+ch)}?translation=${ver.toLowerCase()}`;
-  const r=await fetch(url);
-  if(!r.ok)throw new Error('Could not load that chapter');
-  const j=await r.json();
-  const arr=[];(j.verses||[]).forEach(v=>{arr[v.verse-1]=(v.text||'').replace(/\s+/g,' ').trim();});
-  CHAP_CACHE[ck]=arr;return arr;
+  // Always try live API first so we get the full chapter (not just the short bundled excerpts).
+  // Fall back to bundled data only if the network request fails.
+  try{
+    const url=`https://bible-api.com/${encodeURIComponent(book+' '+ch)}?translation=${ver.toLowerCase()}`;
+    const r=await fetch(url);
+    if(!r.ok)throw new Error('status '+r.status);
+    const j=await r.json();
+    const arr=[];(j.verses||[]).forEach(v=>{arr[v.verse-1]=(v.text||'').replace(/\s+/g,' ').trim();});
+    if(arr.some(x=>x)){CHAP_CACHE[ck]=arr;return arr;}
+    throw new Error('empty response');
+  }catch(_){
+    // Offline fallback — bundled excerpts
+    const bundled=BIBLE[ver]&&BIBLE[ver][book]&&BIBLE[ver][book][ch];
+    if(bundled){CHAP_CACHE[ck]=bundled;return bundled;}
+    throw new Error('Could not load '+book+' '+ch);
+  }
 }
 
 /* ---- API.Bible integration (full text + your licensed translations) ---- */
