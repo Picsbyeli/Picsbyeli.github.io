@@ -179,9 +179,10 @@ textarea.control{min-height:120px;resize:vertical;line-height:1.6}
 .stat .l{font-size:.78rem;color:var(--muted)}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--text);color:var(--bg);padding:12px 22px;border-radius:999px;font-size:.85rem;font-weight:600;opacity:0;transition:.35s;z-index:200;box-shadow:var(--shadow);max-width:90vw;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.modal-bg{position:fixed;inset:0;background:rgba(10,8,4,.5);backdrop-filter:blur(4px);display:none;place-items:center;z-index:150;padding:20px}
+.modal-bg{position:fixed;inset:0;background:rgba(10,8,4,.5);backdrop-filter:blur(4px);display:none;place-items:center;z-index:150;padding:20px;overflow-y:auto;align-items:flex-start}
 .modal-bg.show{display:grid;animation:fade .25s}
-.modal{width:min(460px,100%);background:var(--card);border-radius:22px;padding:26px;box-shadow:var(--shadow);animation:rise .35s}
+@media(max-width:600px){.modal-bg{padding:12px;align-items:flex-start}}
+.modal{width:min(460px,100%);background:var(--card);border-radius:22px;padding:26px;box-shadow:var(--shadow);animation:rise .35s;max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain;margin:auto}
 .modal h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:6px}
 .muted{color:var(--muted)}
 .empty{text-align:center;color:var(--muted);padding:40px 10px}.empty .big{font-size:42px;opacity:.5}
