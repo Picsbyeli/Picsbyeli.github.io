@@ -65,33 +65,6 @@ nav.mainnav a.active{color:var(--accent);background:var(--card);box-shadow:var(-
 @media(max-width:780px){.tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:60;justify-content:space-around;padding:8px 6px env(safe-area-inset-bottom);background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
 .tabbar a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.62rem;color:var(--muted);padding:4px 8px;border-radius:12px}
 .tabbar a.active{color:var(--accent)}.tabbar a span{font-size:18px}main{padding-bottom:78px!important}}
-/* hamburger button — mobile only */
-.hambtn{display:none;width:40px;height:40px;border-radius:12px;background:var(--card);box-shadow:var(--shadow-sm);border:none;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:.2s}
-.hambtn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:.3s}
-.hambtn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-.hambtn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
-.hambtn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-@media(max-width:780px){.hambtn{display:flex}}
-/* drawer */
-#drawer{position:fixed;inset:0;z-index:200;pointer-events:none}
-#drawer-overlay{position:absolute;inset:0;background:rgba(10,8,4,.45);opacity:0;transition:opacity .3s;pointer-events:none}
-#drawer-panel{position:absolute;top:0;right:0;bottom:0;width:min(300px,85vw);background:var(--card);box-shadow:-8px 0 40px rgba(0,0,0,.25);transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;overflow-y:auto}
-#drawer.open{pointer-events:all}
-#drawer.open #drawer-overlay{opacity:1;pointer-events:all}
-#drawer.open #drawer-panel{transform:translateX(0)}
-.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
-.drawer-brand{display:flex;align-items:center;gap:10px}
-.drawer-brand .mark{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--gold),var(--accent));color:#fff;font-size:16px}
-.drawer-close{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--card-2);border:none;cursor:pointer;font-size:18px;color:var(--muted)}
-.drawer-nav{padding:12px 10px;flex:1}
-.drawer-nav a{display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:14px;font-size:.95rem;font-weight:500;color:var(--text);cursor:pointer;transition:.18s;text-decoration:none;margin-bottom:2px}
-.drawer-nav a:hover{background:var(--card-2)}
-.drawer-nav a.active{background:linear-gradient(90deg,var(--gold-soft),var(--card-2));color:var(--accent);font-weight:600}
-.drawer-nav a .dnav-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;background:var(--card-2);flex:none}
-.drawer-nav a.active .dnav-icon{background:var(--gold-soft)}
-.drawer-divider{height:1px;background:var(--line);margin:8px 14px}
-.drawer-footer{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
-.drawer-footer button{flex:1}
 main{max-width:1120px;margin:0 auto;padding:clamp(20px,4vw,40px) clamp(16px,4vw,40px) 60px}
 .page{animation:rise .55s cubic-bezier(.2,.8,.2,1)}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -145,7 +118,6 @@ textarea.control{min-height:120px;resize:vertical;line-height:1.6}
 .verse:hover .verse-tools{opacity:1}
 .minibtn{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--card-2);font-size:14px}
 .minibtn:hover{background:var(--gold-soft)}
-.minibtn.faved{color:#e53935;font-size:16px;}
 .locked{font-size:.78rem;color:var(--muted);background:var(--card-2);padding:14px;border-radius:12px;border:1px dashed var(--line)}
 .exp-block{border-left:3px solid var(--gold-soft);padding:4px 0 4px 16px;margin:16px 0}
 .exp-block h4{font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
@@ -179,10 +151,9 @@ textarea.control{min-height:120px;resize:vertical;line-height:1.6}
 .stat .l{font-size:.78rem;color:var(--muted)}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--text);color:var(--bg);padding:12px 22px;border-radius:999px;font-size:.85rem;font-weight:600;opacity:0;transition:.35s;z-index:200;box-shadow:var(--shadow);max-width:90vw;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.modal-bg{position:fixed;inset:0;background:rgba(10,8,4,.5);backdrop-filter:blur(4px);display:none;place-items:center;z-index:150;padding:20px;overflow-y:auto;align-items:flex-start}
+.modal-bg{position:fixed;inset:0;background:rgba(10,8,4,.5);backdrop-filter:blur(4px);display:none;place-items:center;z-index:150;padding:20px}
 .modal-bg.show{display:grid;animation:fade .25s}
-@media(max-width:600px){.modal-bg{padding:12px;align-items:flex-start}}
-.modal{width:min(460px,100%);background:var(--card);border-radius:22px;padding:26px;box-shadow:var(--shadow);animation:rise .35s;max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain;margin:auto}
+.modal{width:min(460px,100%);background:var(--card);border-radius:22px;padding:26px;box-shadow:var(--shadow);animation:rise .35s}
 .modal h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:6px}
 .muted{color:var(--muted)}
 .empty{text-align:center;color:var(--muted);padding:40px 10px}.empty .big{font-size:42px;opacity:.5}
@@ -207,30 +178,6 @@ textarea.control{min-height:120px;resize:vertical;line-height:1.6}
 .cal-d.today{outline:2px solid var(--gold);color:var(--text)}
 input[type=range]{accent-color:var(--accent)}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
-.tts-bar{position:fixed;bottom:0;left:0;right:0;z-index:70;display:flex;align-items:center;gap:12px;padding:12px clamp(16px,4vw,40px);background:color-mix(in srgb,var(--card) 96%,transparent);backdrop-filter:blur(16px);border-top:2px solid var(--gold);box-shadow:0 -6px 24px -8px rgba(60,48,20,.25);transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
-.tts-bar.show{transform:translateY(0)}
-@media(max-width:780px){.tts-bar.show{bottom:66px}}
-.tts-label{flex:1;font-size:.85rem;font-weight:600;color:var(--accent);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.tts-ctrl{padding:7px 16px;border-radius:999px;background:var(--gold);color:#1d1708;font-weight:600;font-size:.82rem;border:none;cursor:pointer;white-space:nowrap}
-.tts-speed{padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card-2);color:var(--text);font-size:.82rem;cursor:pointer}
-.chat-wrap{display:flex;flex-direction:column;gap:0;max-width:800px;margin:0 auto}
-.chat-msg{display:flex;gap:14px;padding:18px 0;border-bottom:1px solid var(--line);animation:rise .35s both}
-.chat-msg.user{flex-direction:row-reverse}
-.chat-ava{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:20px;font-weight:700;color:#fff;box-shadow:var(--shadow-sm)}
-.chat-ava.pastor{background:linear-gradient(135deg,var(--accent),var(--gold))}
-.chat-ava.me{background:linear-gradient(135deg,#4a6cf7,#7c3aed);font-size:14px}
-.chat-bubble{background:var(--card);border-radius:4px 18px 18px 18px;padding:14px 18px;box-shadow:var(--shadow-sm);border:1px solid var(--line);max-width:min(580px,88%);line-height:1.65}
-.chat-msg.user .chat-bubble{background:linear-gradient(135deg,var(--accent),var(--gold));color:#fff;border-radius:18px 4px 18px 18px;border-color:transparent}
-.chat-bubble h4{font-family:'Cormorant Garamond',serif;font-size:1.05rem;margin:14px 0 4px;color:var(--accent)}
-.chat-msg.user .chat-bubble h4{color:#fff}
-.vref{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--gold-soft);color:var(--accent);font-size:.74rem;font-weight:700;margin:2px;cursor:pointer}
-.chat-msg.user .vref{background:rgba(255,255,255,.25);color:#fff}
-.save-btn{display:inline-flex;align-items:center;gap:5px;margin-top:12px;padding:6px 14px;border-radius:999px;background:var(--card-2);border:1px solid var(--line);font-size:.78rem;font-weight:600;cursor:pointer;color:var(--accent)}
-.save-btn:hover{background:var(--gold-soft)}
-.chat-input-row{display:flex;gap:10px;margin-top:18px;position:sticky;bottom:0;background:var(--bg);padding:12px 0 4px;z-index:10}
-@media(max-width:780px){.chat-input-row{bottom:70px}}
-.pastor-hero{background:linear-gradient(135deg,#1a1230,#3a2060,#6b3a8c);color:#fff;border-radius:var(--radius);padding:clamp(22px,4vw,38px);box-shadow:var(--shadow);margin-bottom:24px;position:relative;overflow:hidden}
-.pastor-hero::after{content:"✝";position:absolute;right:24px;top:16px;font-size:100px;opacity:.07}
 </style>
 </head>
 <body>
@@ -241,25 +188,9 @@ input[type=range]{accent-color:var(--accent)}
   <button class="iconbtn" onclick="toggleTheme()" id="themeBtn" title="Toggle light/dark">🌙</button>
   <button class="iconbtn" onclick="openSettings()" id="gearBtn" title="Settings">⚙</button>
   <button class="iconbtn" id="authChip" onclick="go('login')">↪</button>
-  <button class="hambtn" id="hambtn" onclick="toggleDrawer()" title="Menu" aria-label="Open menu"><span></span><span></span><span></span></button>
 </header>
 <main id="app"><div class="spinner"></div></main>
 <nav class="tabbar" id="tabbar"></nav>
-<!-- Mobile drawer -->
-<div id="drawer">
-  <div id="drawer-overlay" onclick="closeDrawer()"></div>
-  <div id="drawer-panel">
-    <div class="drawer-header">
-      <div class="drawer-brand"><div class="mark serif">✦</div><div><b class="serif" style="font-size:1.1rem">Lumen</b><div style="font-size:.6rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase">Bible Study</div></div></div>
-      <button class="drawer-close" onclick="closeDrawer()">✕</button>
-    </div>
-    <nav class="drawer-nav" id="drawer-nav"></nav>
-    <div class="drawer-footer">
-      <button class="btn soft sm" id="drawer-theme" onclick="toggleTheme();updateDrawerThemeBtn()">🌙 Theme</button>
-      <button class="btn soft sm" onclick="closeDrawer();openSettings()">⚙ Settings</button>
-    </div>
-  </div>
-</div>
 <div id="toast"></div>
 <div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
 
@@ -321,6 +252,7 @@ let AUTH_READY=false;
 let STORE={highlights:[],favorites:[],notes:[],groups:[],forms:[],entries:[],profile:{}};
 let UNSUB=[];
 let FORM_VIEW=null, ENTRY_UNSUB=null, CHART=null, NEWFORM={title:'',desc:'',fields:[]};
+let NOTE_VIEW=null;
 
 const uid=()=>Math.random().toString(36).slice(2,10);
 const today=()=>new Date().toISOString().slice(0,10);
@@ -383,22 +315,15 @@ async function loadChapter(ver,book,ch){
   const ck=ver+'|'+book+'|'+ch;
   if(CHAP_CACHE[ck])return CHAP_CACHE[ck];
   if(ver.indexOf('AB:')===0){const a=await apibChapter(ver.slice(3),book,ch);CHAP_CACHE[ck]=a;return a;}
-  // Always try live API first so we get the full chapter (not just the short bundled excerpts).
-  // Fall back to bundled data only if the network request fails.
-  try{
-    const url=`https://bible-api.com/${encodeURIComponent(book+' '+ch)}?translation=${ver.toLowerCase()}`;
-    const r=await fetch(url);
-    if(!r.ok)throw new Error('status '+r.status);
-    const j=await r.json();
-    const arr=[];(j.verses||[]).forEach(v=>{arr[v.verse-1]=(v.text||'').replace(/\s+/g,' ').trim();});
-    if(arr.some(x=>x)){CHAP_CACHE[ck]=arr;return arr;}
-    throw new Error('empty response');
-  }catch(_){
-    // Offline fallback — bundled excerpts
-    const bundled=BIBLE[ver]&&BIBLE[ver][book]&&BIBLE[ver][book][ch];
-    if(bundled){CHAP_CACHE[ck]=bundled;return bundled;}
-    throw new Error('Could not load '+book+' '+ch);
-  }
+  const bundled=BIBLE[ver]&&BIBLE[ver][book]&&BIBLE[ver][book][ch];
+  if(bundled)return bundled;
+  // bible-api.com serves public-domain translations (kjv, web) for free, no key, CORS-enabled.
+  const url=`https://bible-api.com/${encodeURIComponent(book+' '+ch)}?translation=${ver.toLowerCase()}`;
+  const r=await fetch(url);
+  if(!r.ok)throw new Error('Could not load that chapter');
+  const j=await r.json();
+  const arr=[];(j.verses||[]).forEach(v=>{arr[v.verse-1]=(v.text||'').replace(/\s+/g,' ').trim();});
+  CHAP_CACHE[ck]=arr;return arr;
 }
 
 /* ---- API.Bible integration (full text + your licensed translations) ---- */
@@ -424,6 +349,15 @@ async function apibChapter(bibleId,book,ch){
   const arr=[];out.forEach(v=>{if(v.n)arr[v.n-1]=v.t.replace(/\s+/g,' ').trim();});
   if(!arr.some(x=>x))throw new Error('No verses parsed');return arr;
 }
+async function apibSearch(topic){
+  if(!apibOn())throw new Error('No Bible source configured');
+  if(!APIBIBLES)await apibDiscover();
+  if(!APIBIBLES||!APIBIBLES.length)throw new Error('No bibles available');
+  const pref=APIBIBLES.find(b=>/KJV|ASV|WEB|ESV|NIV|NLT|CSB/i.test((b.abbreviation||'')+(b.abbreviationLocal||'')))||APIBIBLES[0];
+  const j=await apibFetch(`/bibles/${pref.id}/search?query=${encodeURIComponent(topic)}&limit=10&sort=relevance`);
+  const vs=(j.data&&j.data.verses)||[];
+  return vs.filter(v=>v.text&&v.reference).slice(0,6).map(v=>({ref:v.reference,text:(v.text||'').replace(/\s+/g,' ').trim()}));
+}
 function readerTranslations(){
   if(APIB_MODE()){const base=[{id:'KJV',name:'King James Version (offline)',free:true},{id:'WEB',name:'World English Bible (offline)',free:true}];
     const extra=APIBIBLES.map(b=>({id:'AB:'+b.id,name:((b.abbreviationLocal||b.abbreviation||'')+' — '+(b.nameLocal||b.name||'')).slice(0,64),free:true}));
@@ -438,8 +372,29 @@ const VOTD=[
  {t:"I can do all things through Christ which strengtheneth me.",r:"Philippians 4:13",v:"KJV",reflect:"Strength isn't found in your own willpower today, but in the One who holds you. Whatever you face, you do not face it alone."},
  {t:"The LORD is my shepherd; I shall not want.",r:"Psalm 23:1",v:"KJV",reflect:"To be shepherded is to be guided, fed, and protected. Rest in the truth that your needs are seen and cared for."},
  {t:"And we know that all things work together for good to them that love God.",r:"Romans 8:28",v:"KJV",reflect:"Not every moment is good, but no moment is wasted. God is weaving even the hard threads into something whole."},
+ {t:"Trust in the LORD with all thine heart; and lean not unto thine own understanding.",r:"Proverbs 3:5",v:"KJV",reflect:"Trust doesn't mean having all the answers — it means handing the unknown to the One who does."},
+ {t:"Be still, and know that I am God.",r:"Psalm 46:10",v:"KJV",reflect:"Before you do anything today, be still for a moment. God is God, and you can rest in that."},
+ {t:"Fear thou not; for I am with thee: be not dismayed; for I am thy God.",r:"Isaiah 41:10",v:"KJV",reflect:"His presence is the antidote to fear. You are not abandoned to face today alone."},
+ {t:"Come unto me, all ye that labour and are heavy laden, and I will give you rest.",r:"Matthew 11:28",v:"KJV",reflect:"You don't have to earn rest. It's an invitation — come as you are, tired and all."},
+ {t:"The LORD is my light and my salvation; whom shall I fear?",r:"Psalm 27:1",v:"KJV",reflect:"When God is your light, the shadows lose their power to intimidate."},
+ {t:"Casting all your care upon him; for he careth for you.",r:"1 Peter 5:7",v:"KJV",reflect:"The reason you can let go of worry is simple: He genuinely cares about what's weighing on you."},
+ {t:"But they that wait upon the LORD shall renew their strength.",r:"Isaiah 40:31",v:"KJV",reflect:"Renewal comes through dependence, not pushing harder. Wait on Him and be refilled."},
+ {t:"This is the day which the LORD hath made; we will rejoice and be glad in it.",r:"Psalm 118:24",v:"KJV",reflect:"Today is a gift, not a given. There is something here worth being glad about."},
+ {t:"For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil.",r:"Jeremiah 29:11",v:"KJV",reflect:"God's intentions toward you are good, even when the path is unclear."},
+ {t:"Thy word is a lamp unto my feet, and a light unto my path.",r:"Psalm 119:105",v:"KJV",reflect:"Scripture doesn't always light the whole road — just the next faithful step."},
+ {t:"Let not your heart be troubled: ye believe in God, believe also in me.",r:"John 14:1",v:"KJV",reflect:"Trouble is real, but it doesn't get the final word over a heart anchored in Him."},
+ {t:"Weeping may endure for a night, but joy cometh in the morning.",r:"Psalm 30:5",v:"KJV",reflect:"Whatever season of sorrow you're in, it is not the end of your story."},
+ {t:"In every thing give thanks: for this is the will of God in Christ Jesus concerning you.",r:"1 Thessalonians 5:18",v:"KJV",reflect:"Not thanks for everything, but thanks in everything — gratitude reframes the day."},
+ {t:"The LORD is nigh unto them that are of a broken heart.",r:"Psalm 34:18",v:"KJV",reflect:"God doesn't keep His distance from your pain — He draws nearest to it."},
+ {t:"Greater is he that is in you, than he that is in the world.",r:"1 John 4:4",v:"KJV",reflect:"Whatever you're up against, the One within you is greater than it."},
+ {t:"Delight thyself also in the LORD; and he shall give thee the desires of thine heart.",r:"Psalm 37:4",v:"KJV",reflect:"As you find joy in Him, your very desires begin to be shaped by His."},
+ {t:"Cast thy burden upon the LORD, and he shall sustain thee.",r:"Psalm 55:22",v:"KJV",reflect:"You were never meant to carry it all. Hand the weight over and be held up."},
+ {t:"My grace is sufficient for thee: for my strength is made perfect in weakness.",r:"2 Corinthians 12:9",v:"KJV",reflect:"Your weak places aren't disqualifications — they're where His strength shows up most."},
+ {t:"Rejoice in the Lord alway: and again I say, Rejoice.",r:"Philippians 4:4",v:"KJV",reflect:"Joy here is a choice rooted in God, not in circumstances. Choose it again today."},
 ];
+let SHOWN_VERSE=null;
 function votd(){return VOTD[new Date().getDate()%VOTD.length];}
+function currentVerse(){return SHOWN_VERSE||votd();}
 
 /* ============================================================
    4. FIRESTORE data layer
@@ -464,14 +419,15 @@ function fail(e){console.warn(e);toast(e.code==='permission-denied'?'Permission 
 /* ============================================================
    5. routing + chrome
    ============================================================ */
-const ROUTES={home:pgHome,bible:pgBible,ai:pgAI,pastor:pgPastor,notes:pgNotes,forms:pgForms,groups:pgGroups,lesson:pgLesson,login:pgLogin,dashboard:pgDash};
-const NAV=[['home','Home','✦'],['bible','Bible','📖'],['ai','Explain','✨'],['pastor','Pastor','✝'],['notes','Notes','📝'],['forms','Tracker','📊'],['groups','Groups','👥'],['lesson','Daily','☀'],['dashboard','Me','◉']];
+const ROUTES={home:pgHome,bible:pgBible,ai:pgAI,notes:pgNotes,forms:pgForms,groups:pgGroups,lesson:pgLesson,login:pgLogin,dashboard:pgDash};
+const NAV=[['home','Home','✦'],['bible','Bible','📖'],['ai','Explain','✨'],['notes','Notes','📝'],['forms','Tracker','📊'],['groups','Groups','👥'],['lesson','Daily','☀'],['dashboard','Me','◉']];
 function go(r){location.hash='#/'+r;}
 function current(){return (location.hash.replace('#/','')||'home');}
 function render(){
   const r=current();
   if(!AUTH_READY){return;}
   if(r!=='forms'){FORM_VIEW=null;if(ENTRY_UNSUB){try{ENTRY_UNSUB()}catch(e){}ENTRY_UNSUB=null;}}
+  if(r!=='notes')NOTE_VIEW=null;
   if((r==='dashboard'||r==='notes'||r==='groups'||r==='forms')&&!USER){document.getElementById('app').innerHTML=`<div class="page">${authGate(r)}</div>`;paintNav();return;}
   const fn=ROUTES[r]||pgHome;
   document.getElementById('app').innerHTML=`<div class="page">${fn()}</div>`;
@@ -483,22 +439,10 @@ function paintNav(){
   const r=current();
   document.getElementById('mainnav').innerHTML=NAV.filter(n=>n[0]!=='dashboard').map(n=>`<a class="${r===n[0]?'active':''}" onclick="go('${n[0]}')">${n[1]}</a>`).join('');
   document.getElementById('tabbar').innerHTML=NAV.slice(0,6).map(n=>`<a class="${r===n[0]?'active':''}" onclick="go('${n[0]}')"><span>${n[2]}</span>${n[1]}</a>`).join('');
-  // drawer — all routes including dashboard
-  const dn=document.getElementById('drawer-nav');
-  if(dn)dn.innerHTML=NAV.map(n=>{
-    const labels={home:'Home',bible:'Bible Reader',ai:'Verse Explain',pastor:'AI Pastor',notes:'Notes',forms:'Tracker',groups:'Groups',lesson:'Daily Lesson',dashboard:'My Dashboard',login:'Sign In'};
-    return `<a class="${r===n[0]?'active':''}" onclick="go('${n[0]}');closeDrawer()"><span class="dnav-icon">${n[2]}</span>${labels[n[0]]||n[1]}</a>`;
-  }).join('')+`<div class="drawer-divider"></div>
-    <a onclick="closeDrawer();openSettings()"><span class="dnav-icon">⚙️</span>Settings</a>
-    <a onclick="closeDrawer();toggleTheme()"><span class="dnav-icon">🌙</span>Toggle Theme</a>`;
   const chip=document.getElementById('authChip');
   if(USER){chip.outerHTML=`<div class="avatar" id="authChip" title="${USER.name}" onclick="go('dashboard')">${(USER.name||'?')[0].toUpperCase()}</div>`;}
   else{chip.outerHTML=`<button class="iconbtn" id="authChip" onclick="go('login')" title="Sign in">↪</button>`;}
-  updateDrawerThemeBtn();
 }
-function toggleDrawer(){const d=document.getElementById('drawer');const b=document.getElementById('hambtn');const open=d.classList.toggle('open');b.classList.toggle('open',open);document.body.style.overflow=open?'hidden':'';}
-function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('hambtn').classList.remove('open');document.body.style.overflow='';}
-function updateDrawerThemeBtn(){const cur=document.documentElement.getAttribute('data-theme');const b=document.getElementById('drawer-theme');if(b)b.textContent=cur==='dark'?'☀️ Theme':'🌙 Theme';}
 const THEMES=[['light','Parchment','#f6f3ec'],['dark','Midnight','#171c26'],['sepia','Sepia','#efe6d4'],['ocean','Ocean','#2f86a6'],['forest','Forest','#5d8c4f']];
 function setTheme(id){document.documentElement.setAttribute('data-theme',id);localStorage.setItem('lumen_theme',id);
   document.getElementById('themeBtn').textContent=id==='dark'?'☀':'🌙';profileSet({theme:id});
@@ -515,9 +459,10 @@ function openSettings(){const scale=localStorage.getItem('lumen_read')||'1';
      <div class="row" style="gap:10px">${THEMES.map(t=>`<div class="swatch ${(localStorage.getItem('lumen_theme')||'light')===t[0]?'sel':''}" data-t="${t[0]}" title="${t[1]}" style="background:${t[2]}" onclick="setTheme('${t[0]}')"></div>`).join('')}</div></div>
    <div class="setrow"><div><b>Default translation</b></div>
      <select class="control" style="width:auto" onchange="setDefaultVer(this.value)">${TRANSLATIONS.filter(t=>t.free).map(t=>`<option value="${t.id}" ${RD.ver===t.id?'selected':''}>${t.id}</option>`).join('')}</select></div>
-   <div class="setrow" style="display:block"><b>AI (Grok) server URL</b><div class="muted" style="font-size:.78rem;margin:2px 0 8px">The AI key is stored securely on the server — never in the browser. Point this to your running server (e.g. http://localhost:4000 when developing locally, or your deployed server URL).</div>
-     <input class="control" id="aiUrl" placeholder="http://localhost:4000" value="${(localStorage.getItem('lumen_ai_url')||'').replace(/"/g,'&quot;')}"/>
-     <button class="btn soft sm" style="margin-top:8px" onclick="saveAICfg()">Save server URL</button></div>
+   <div class="setrow" style="display:block"><b>AI explanation</b><div class="muted" style="font-size:.78rem;margin:2px 0 8px">Use a Cloud Function URL (key stays private) or paste an Anthropic key to test in-browser. Leave both blank for offline samples.</div>
+     <input class="control" id="aiUrl" placeholder="Cloud Function URL (recommended)" value="${(localStorage.getItem('lumen_ai_url')||'').replace(/"/g,'&quot;')}" style="margin-bottom:8px"/>
+     <input class="control" id="aiKey" type="password" placeholder="Anthropic API key (browser test only)" value="${(localStorage.getItem('lumen_ai_key')||'').replace(/"/g,'&quot;')}"/>
+     <button class="btn soft sm" style="margin-top:8px" onclick="saveAICfg()">Save AI settings</button></div>
    <div class="setrow" style="display:block"><b>Bible source (API.Bible)</b><div class="muted" style="font-size:.78rem;margin:2px 0 8px">Your key unlocks full text & extra translations. On a public site, use a proxy URL (Cloud Function) so the key isn't exposed.</div>
      <input class="control" id="bibleKey" placeholder="API.Bible key" value="${(localStorage.getItem('lumen_bible_key')||DEFAULT_BIBLE_KEY||'').replace(/"/g,'&quot;')}" style="margin-bottom:8px"/>
      <input class="control" id="bibleProxy" placeholder="Proxy URL (optional, recommended for public sites)" value="${(localStorage.getItem('lumen_bible_proxy')||'').replace(/"/g,'&quot;')}"/>
@@ -527,7 +472,7 @@ function openSettings(){const scale=localStorage.getItem('lumen_read')||'1';
    <div style="text-align:right;margin-top:16px"><button class="btn" onclick="closeModal()">Done</button></div>`);}
 function applyReadScale(v){document.documentElement.style.setProperty('--read',v);localStorage.setItem('lumen_read',v);profileSet({readScale:v});}
 function setDefaultVer(v){RD.ver=v;localStorage.setItem('lumen_ver',v);toast('Default translation: '+v);if(current()==='bible')render();}
-function saveAICfg(){localStorage.setItem('lumen_ai_url',document.getElementById('aiUrl').value.trim());toast('Server URL saved');}
+function saveAICfg(){localStorage.setItem('lumen_ai_url',document.getElementById('aiUrl').value.trim());localStorage.setItem('lumen_ai_key',document.getElementById('aiKey').value.trim());toast('AI settings saved');}
 function saveBibleCfg(){localStorage.setItem('lumen_bible_key',document.getElementById('bibleKey').value.trim());localStorage.setItem('lumen_bible_proxy',document.getElementById('bibleProxy').value.trim());APIBIBLES=null;Object.keys(CHAP_CACHE).forEach(k=>delete CHAP_CACHE[k]);toast('Bible source saved');if(current()==='bible')render();}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 function modal(html){document.getElementById('modal').innerHTML=html;document.getElementById('modalBg').classList.add('show');}
@@ -586,27 +531,26 @@ function requireUser(){if(!USER){go('login');return false;}return true;}
 /* ============================================================
    7. PAGES
    ============================================================ */
+function heroHTML(v){return `<div class="fadein" id="heroInner"><div class="tag">✦ ${SHOWN_VERSE?'Verse':'Verse of the day'} · ${fmt(today())}</div>
+    <blockquote>${v.t}</blockquote><div class="ref">${v.r}<span class="ver">${v.v}</span></div>
+    <p class="reflect">${v.reflect}</p>
+    <div class="acts"><button class="btn" onclick="shuffleVerse()">🔀 Shuffle verse</button>
+      <button class="btn ghost" onclick="saveVotd()">♡ Save verse</button>
+      <button class="btn ghost" onclick="explainVerse('${esc(v.r)}')">✨ Explain this</button>
+      <button class="btn ghost" onclick="go('lesson')">Today's lesson →</button></div></div>`;}
+function shuffleVerse(){let i;do{i=Math.floor(Math.random()*VOTD.length);}while(VOTD[i]===currentVerse()&&VOTD.length>1);
+  SHOWN_VERSE=VOTD[i];const el=document.getElementById('votdHero');if(el)el.innerHTML=heroHTML(SHOWN_VERSE);}
 function pgHome(){
-  const v=votd();
   const w=[['bible','📖','Bible Reader','Read any version — highlight, save & annotate verses.'],
    ['ai','✨','AI Explanation','Paste a verse and understand its meaning & context.'],
    ['notes','📝','Notes & Groups','Write, organize, and study together with others.'],
    ['lesson','☀','Daily Lesson','A guided scripture lesson for today, with prayer.']];
-  const votdSaved=STORE.notes.some(n=>n.topic==='Saved verses'&&n.ref===v.r);
-  return `<section class="hero fadein"><div class="tag">✦ Verse of the day · ${fmt(today())}</div>
-    <blockquote>${v.t}</blockquote><div class="ref">${v.r}<span class="ver">${v.v}</span></div>
-    <p class="reflect">${v.reflect}</p>
-    <div class="acts"><button class="btn" onclick="go('lesson')">Today's lesson →</button>
-      <button class="btn ghost" style="${votdSaved?'color:#ff6b6b;':'' }" onclick="saveVotd()">${votdSaved?'❤️ Saved':'♡ Save verse'}</button>
-      <button class="btn ghost" onclick="speakText('${esc(v.t)}','${esc(v.r)}')">🔊 Listen</button>
-      <button class="btn ghost" onclick="explainVerse('${v.r}')">✨ Explain this</button></div></section>
+  return `<section class="hero" id="votdHero">${heroHTML(currentVerse())}</section>
   <div class="section-h"><div><h2 class="serif">Where would you like to go?</h2><p>Four ways to draw closer to the Word today.</p></div></div>
   <div class="widgets">${w.map((x,i)=>`<div class="widget" style="animation:rise .5s ${i*0.08}s both" onclick="go('${x[0]}')"><div class="arrow">→</div><div class="wicon">${x[1]}</div><h3>${x[2]}</h3><p>${x[3]}</p></div>`).join('')}</div>
   ${USER?'':`<div class="card" style="margin-top:34px;text-align:center"><h3 class="serif" style="font-size:1.5rem">Save your journey</h3><p class="muted" style="margin:6px 0 16px">Create a free account to keep your highlights, notes and groups in the cloud.</p><button class="btn" onclick="go('login')">Sign in / Create account</button></div>`}`;
 }
-function saveVotd(){if(!requireUser())return;const v=votd();const ex=STORE.notes.find(n=>n.topic==='Saved verses'&&n.ref===v.r);
-  if(ex){dbDelete('notes',ex.id).then(()=>{toast('Removed from saved verses');render();}).catch(fail);}
-  else{dbAdd('notes',{uid:USER.uid,title:v.r,body:v.t,topic:'Saved verses',book:v.r.split(' ')[0],ref:v.r,is_shared:false,created:Date.now()}).then(()=>{toast('Saved to Notes › Saved verses ❤️');render();}).catch(fail);}}
+function saveVotd(){if(!requireUser())return;const v=currentVerse();dbAdd('notes',{uid:USER.uid,title:v.r,body:v.t,topic:'Saved verses',book:v.r.split(' ')[0],ref:v.r,is_shared:false,created:Date.now()}).then(()=>toast('Saved to Notes › Saved verses ♡')).catch(fail);}
 function explainVerse(ref){localStorage.setItem('lumen_aiprefill',ref);go('ai');}
 
 /* ---- Bible reader ---- */
@@ -653,12 +597,11 @@ async function paintRead(){
   try{arr=await loadChapter(ver,RD.book,RD.ch);}catch(e){arr=null;}
   if(req!==READ_REQ)return; // a newer selection superseded this load
   if(!arr||!arr.some(x=>x)){pane.innerHTML=`<div class="empty"><div class="big">📖</div><p>Couldn't load ${RD.book} ${RD.ch} right now.</p><p class="muted" style="margin-top:8px">Live chapters need an internet connection. Bundled offline passages: Psalms 23 & 1, John 1, Genesis 1, Romans 8, Philippians 4.</p><button class="btn soft sm" style="margin-top:12px" onclick="paintRead()">Retry</button></div>`;return;}
-  pane.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px"><h3 class="serif" style="font-size:1.6rem">${RD.book} ${RD.ch} <span class="chip" style="vertical-align:middle">${ver}</span></h3><button class="btn soft sm" onclick="readChapter()">🔊 Read chapter</button></div>`+
-   arr.map((tx,i)=>{if(!tx)return '';const n=i+1;const key=`${ver}|${RD.book}|${RD.ch}|${n}`;const hl=STORE.highlights.find(h=>h.key===key);const vref=keyRef(key);const fav=STORE.notes.some(sv=>sv.topic==='Saved verses'&&sv.ref===vref);
+  pane.innerHTML=`<h3 class="serif" style="font-size:1.6rem;margin-bottom:10px">${RD.book} ${RD.ch} <span class="chip" style="vertical-align:middle">${ver}</span></h3>`+
+   arr.map((tx,i)=>{if(!tx)return '';const n=i+1;const key=`${ver}|${RD.book}|${RD.ch}|${n}`;const hl=STORE.highlights.find(h=>h.key===key);
     return `<div class="verse ${hl?'hl':''}" onclick="selVerse(this)"><div class="num">${n}</div><div class="txt">${tx}</div>
      <div class="verse-tools"><button class="minibtn" title="Highlight" onclick="event.stopPropagation();toggleHL('${key}','${esc(tx)}')">🖍</button>
-      <button class="minibtn${fav?' faved':''}" title="${fav?'Remove from saved':'Save verse'}" onclick="event.stopPropagation();favVerse('${key}','${esc(tx)}')">${fav?'❤️':'♡'}</button>
-      <button class="minibtn" title="Read aloud" onclick="event.stopPropagation();speakText('${esc(tx)}','${esc(keyRef(key))}')">🔊</button>
+      <button class="minibtn" title="Favorite" onclick="event.stopPropagation();favVerse('${key}','${esc(tx)}')">♡</button>
       <button class="minibtn" title="Note" onclick="event.stopPropagation();noteVerse('${key}','${esc(tx)}')">📝</button></div></div>`;}).join('');
 }
 function selVerse(el){document.querySelectorAll('.verse').forEach(v=>v.classList.remove('sel'));el.classList.add('sel');}
@@ -666,9 +609,7 @@ function keyRef(key){const p=key.split('|');return `${p[1]} ${p[2]}:${p[3]}`;}
 function toggleHL(key,tx){if(!requireUser())return;const ex=STORE.highlights.find(h=>h.key===key);
   if(ex){dbDelete('highlights',ex.id).then(()=>toast('Highlight removed')).catch(fail);}
   else{dbAdd('highlights',{uid:USER.uid,key,text:tx,ref:keyRef(key),created:Date.now()}).then(()=>toast('Verse highlighted 🖍')).catch(fail);}}
-function favVerse(key,tx){if(!requireUser())return;const ref=keyRef(key);const ex=STORE.notes.find(n=>n.topic==='Saved verses'&&n.ref===ref);
-  if(ex){dbDelete('notes',ex.id).then(()=>{toast('Removed from saved verses');paintRead();}).catch(fail);}
-  else{dbAdd('notes',{uid:USER.uid,title:ref,body:tx,topic:'Saved verses',book:key.split('|')[1],ref,is_shared:false,created:Date.now()}).then(()=>{toast('Saved to Notes › Saved verses ❤️');paintRead();}).catch(fail);}}
+function favVerse(key,tx){if(!requireUser())return;dbAdd('notes',{uid:USER.uid,title:keyRef(key),body:tx,topic:'Saved verses',book:key.split('|')[1],ref:keyRef(key),is_shared:false,created:Date.now()}).then(()=>toast('Saved to Notes › Saved verses ♡')).catch(fail);}
 function noteVerse(key,tx){if(!requireUser())return;
   modal(`<h3>Note on ${keyRef(key)}</h3><p class="muted" style="font-size:.85rem;margin-bottom:12px">"${tx.slice(0,90)}…"</p>
    <textarea class="control" id="vn" placeholder="What is God showing you here?"></textarea>
@@ -693,32 +634,35 @@ function pgAI(){
   <div class="card" id="aiOut"><div class="empty"><div class="big">✨</div><p>Your explanation will appear here.</p></div></div></div>`;
 }
 /* Swap for a newer Claude model id if you like. */
-const AI_MODEL='grok-3-mini'; // kept for reference; actual model lives server-side
-const AI_SYS=''; // system prompt lives server-side
+const AI_MODEL='claude-3-5-sonnet-latest';
+const AI_SYS=`You are a careful, respectful Bible study assistant. Explain the given passage grounded in its actual text and historical/biblical context. Be accurate and humble. NEVER invent facts, quotes, authors, dates, or cross-references; if unsure a cross-reference is real, omit it. Where Christian traditions differ, say so without endorsing one. Return ONLY valid JSON (no markdown) with keys: "context","meaning","themes"(array of 3-5 short strings),"related"(array of real "Book chapter:verse" strings),"application","reflection","prayer","interpretation_notes"(empty unless genuinely debated).`;
 
 async function runAI(){
   const q=document.getElementById('aiInput').value.trim();if(!q)return toast('Type a verse first');
   const out=document.getElementById('aiOut');
-  out.innerHTML=`<div class="empty fadein"><div class="big">✦</div><p>Fetching verse & reflecting…</p><div class="spinner"></div></div>`;
+  out.innerHTML=`<div class="empty fadein"><div class="big">✦</div><p>Reflecting on the Word…</p><div class="spinner"></div></div>`;
   let data,source;
   try{const res=await explainAI(q);data=res.data;source=res.source;}
-  catch(e){data=templateExplain(q);source='template';toast('AI unavailable — showing sample. '+(e.message||''));}
+  catch(e){data=templateExplain(q);source='template';toast('Live AI unavailable — showing sample. '+(e.message||''));}
   out.innerHTML=renderExplanation(q,data,source);
 }
 async function explainAI(ref){
-  const base=lumenServerBase();
-  const r=await fetch(base+'/api/lumen-explain',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reference:ref,version:RD.ver})});
-  if(!r.ok)throw new Error('Server '+r.status);
-  return{data:await r.json(),source:'server'};
-}
-function lumenServerBase(){
-  const saved=(localStorage.getItem('lumen_ai_url')||'').trim().replace(/\/$/,'');
-  if(saved)return saved;
-  // Auto-detect: use localhost when running locally
-  if(location.hostname==='localhost'||location.hostname==='127.0.0.1')return 'http://localhost:4000';
-  return ''; // will throw — user needs to set server URL in Settings
+  const url=(localStorage.getItem('lumen_ai_url')||'').trim();
+  const key=(localStorage.getItem('lumen_ai_key')||'').trim();
+  if(url){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reference:ref,version:RD.ver})});if(!r.ok)throw new Error('Function '+r.status);return{data:await r.json(),source:'cloud'};}
+  if(key){return{data:await callAnthropic(ref,key),source:'browser'};}
+  return{data:templateExplain(ref),source:'template'};
 }
 async function fetchVerseText(ref,ver){try{const r=await fetch(`https://bible-api.com/${encodeURIComponent(ref)}?translation=${(ver||'kjv').toLowerCase()}`);if(!r.ok)return '';const j=await r.json();return (j.text||'').replace(/\s+/g,' ').trim();}catch(e){return '';}}
+async function callAnthropic(ref,key){
+  const t=TRANSLATIONS.find(x=>x.id===RD.ver);const apiVer=(t&&t.free)?RD.ver:'KJV';
+  const vt=await fetchVerseText(ref,apiVer);
+  const user=`Passage reference: ${ref} (version: ${apiVer})\nVerse text (authoritative, do not contradict):\n"""\n${vt||'(text unavailable — do not fabricate wording)'}\n"""\nExplain it using the JSON schema in your instructions.`;
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:AI_MODEL,max_tokens:1024,temperature:0.3,system:AI_SYS,messages:[{role:'user',content:user}]})});
+  if(!r.ok)throw new Error('Anthropic '+r.status+' (check key/model)');
+  const j=await r.json();const txt=(j.content&&j.content[0]&&j.content[0].text)||'';
+  return parseAIJSON(txt);
+}
 function parseAIJSON(txt){try{return JSON.parse(txt);}catch(e){}const m=txt.match(/\{[\s\S]*\}/);if(m){try{return JSON.parse(m[0]);}catch(e){}}throw new Error('AI returned non-JSON');}
 function templateExplain(ref){
   const lib={
@@ -734,118 +678,137 @@ function templateExplain(ref){
 }
 function renderExplanation(ref,d,source){
   const themes=d.themes||[],related=d.related||[];
-  const label={server:'✓ Live AI · Grok · Verified KJV verses from bible-api.com',cloud:'✓ Live AI · Cloud Function',browser:'✓ Live AI · browser key',template:'Offline sample — set your server URL in ⚙ Settings for live Grok-powered responses'}[source]||'';
+  const label={cloud:'✓ Live AI · Cloud Function',browser:'✓ Live AI · browser key',template:'Offline sample — add an AI key or Cloud Function URL in ⚙ Settings for live explanations'}[source]||'';
   return `<div class="fadein"><h3 class="serif" style="font-size:1.6rem">${ref}</h3>
-    ${d._verifiedText?`<div style="padding:10px 16px;background:var(--gold-soft);border-radius:12px;margin:8px 0 4px"><span class="chip gold" style="font-size:.7rem;margin-bottom:4px;display:inline-block">📖 Verified KJV · bible-api.com</span><p class="serif" style="font-size:1.05rem;line-height:1.55;font-style:italic">"${d._verifiedText}"</p></div>`:''}
     ${themes.length?`<div class="chips" style="margin:8px 0 6px">${themes.map(t=>`<span class="chip gold">${t}</span>`).join('')}</div>`:''}
-    <div class="exp-block"><h4>1 · Historical &amp; background context</h4><p>${d.context||''}</p></div>
-    <div class="exp-block"><h4>2 · What it means — in plain words</h4><p>${d.meaning||''}</p></div>
-    ${related.length?`<div class="exp-block"><h4>Supporting verses</h4><p>${related.map(r=>`<span class="chip gold" style="cursor:pointer;margin:2px" onclick="explainVerse('${esc(r)}')">${r}</span>`).join(' ')}</p></div>`:''}
-    <div class="exp-block"><h4>3 · Practical real-world application</h4><p>${d.application||''}</p></div>
-    ${d.reflection?`<div class="exp-block"><h4>4 · Reflection question</h4><p><i>${d.reflection}</i></p></div>`:''}
-    ${d.prayer?`<div class="exp-block"><h4>5 · Prayer</h4><p>${d.prayer}</p></div>`:''}
-    ${d.interpretation_notes?`<div class="exp-block"><h4>6 · Different interpretations</h4><p>${d.interpretation_notes}</p></div>`:''}
+    <div class="exp-block"><h4>Historical & background context</h4><p>${d.context||''}</p></div>
+    <div class="exp-block"><h4>What it means — in simple words</h4><p>${d.meaning||''}</p></div>
+    ${related.length?`<div class="exp-block"><h4>Related verses</h4><p>${related.map(r=>`<span class="chip gold" style="cursor:pointer;margin:2px" onclick="explainVerse('${esc(r)}')">${r}</span>`).join(' ')}</p></div>`:''}
+    <div class="exp-block"><h4>Applying it today</h4><p>${d.application||''}</p></div>
+    <div class="exp-block"><h4>Prayer & reflection</h4><p>${d.reflection?'<i>'+d.reflection+'</i><br><br>':''}${d.prayer||''}</p></div>
+    ${d.interpretation_notes?`<div class="exp-block"><h4>Different interpretations</h4><p>${d.interpretation_notes}</p></div>`:''}
     <div class="row" style="margin-top:16px"><button class="btn sm" style="flex:0" onclick="aiToNote('${esc(ref)}')">📝 Save as note</button></div>
     <div class="disclaimer">${label?label+' · ':''}A study aid grounded in the passage; where traditions differ it says so. Not a replacement for Scripture, prayer, or your church community.</div></div>`;
 }
 function aiToNote(ref){if(!requireUser())return;const out=document.getElementById('aiOut').innerText.slice(0,1500);
   dbAdd('notes',{uid:USER.uid,title:'Study: '+ref,body:out,topic:'AI study',book:ref.split(' ')[0],ref,is_shared:false,created:Date.now()}).then(()=>toast('Saved to your notes 📝')).catch(fail);}
 
-/* ---- AI Pastor ---- */
-let PASTOR_HISTORY=[];
-const PASTOR_SYS=`You are a warm, knowledgeable AI Pastor and Bible teacher. Answer any question about faith, the Bible, theology, Christian living, prayer, doubt, grief, relationships, or purpose. Rules: (1) Only cite Bible verses you are CERTAIN are real — format as [Book chapter:verse]. (2) Be warm, direct, honest, like a pastor over coffee. (3) Acknowledge where Christian traditions differ without taking sides. (4) NEVER invent scripture or historical facts. Return ONLY valid JSON (no markdown) with keys: "answer" (string with inline [Ref] citations), "verses" (array of {ref,text,note} — real verses only, max 4), "examples" (array of 2-3 real-world strings), "takeaway" (string — one practical step or prayer), "topic" (short label).`;
-const PASTOR_STARTERS=['What does the Bible say about anxiety?','How do I forgive someone who hurt me?','Why does God allow suffering?','How do I know God\'s will for my life?','What does it mean to have faith?','How do I pray when I don\'t know what to say?','What does the Bible say about depression?','How do I deal with loneliness?'];
-function pgPastor(){
-  window.__after=()=>{const i=document.getElementById('pastorInput');if(i)i.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();askPastor();}});scrollPastorBottom();};
-  const starters=PASTOR_HISTORY.length===0?`<div class="card" style="margin-bottom:20px"><p class="muted" style="font-size:.84rem;margin-bottom:10px">Start with a question, or pick one:</p><div class="chips" style="flex-wrap:wrap">${PASTOR_STARTERS.map(s=>`<span class="chip" style="cursor:pointer;padding:7px 12px" onclick="startPastorQ('${esc(s)}')">${s}</span>`).join('')}</div></div>`:'';
-  return `<div class="pastor-hero"><div style="font-size:.7rem;letter-spacing:3px;text-transform:uppercase;opacity:.8">✝ AI Pastor</div><h2 class="serif" style="font-size:clamp(1.6rem,4vw,2.4rem);margin:6px 0 4px">Ask anything about faith</h2><p style="opacity:.88;font-size:.95rem;max-width:52ch">Every answer rooted in real Scripture, real-world examples, and honest reasoning.</p></div>
-  ${starters}<div class="chat-wrap" id="chatWrap">${PASTOR_HISTORY.map((m,i)=>pastorMsgHTML(m,i)).join('')}</div>
-  <div class="chat-input-row"><textarea class="control" id="pastorInput" placeholder="Ask your question… (Enter to send, Shift+Enter for new line)" style="min-height:52px;max-height:140px;resize:vertical"></textarea><button class="btn" style="flex:0;align-self:flex-end" onclick="askPastor()">Send →</button>${PASTOR_HISTORY.length?'<button class="btn soft" style="flex:0;align-self:flex-end" onclick="clearPastor()">Clear</button>':''}</div>
-  <div class="disclaimer" style="margin-top:14px">✝ AI Pastor is a study aid. It is not a replacement for your local church, pastor, or spiritual community. Where traditions genuinely differ, it says so.</div>`;
-}
-function startPastorQ(q){const i=document.getElementById('pastorInput');if(i){i.value=q;askPastor();}else{localStorage.setItem('pastor_prefill',q);render();}}
-function pastorMsgHTML(m,idx){
-  if(m.role==='user')return `<div class="chat-msg user"><div class="chat-ava me">${USER?(USER.name||'?')[0].toUpperCase():'Me'}</div><div class="chat-bubble" style="font-size:.95rem">${m.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div></div>`;
-  return `<div class="chat-msg pastor"><div class="chat-ava pastor">✝</div><div class="chat-bubble">${m.rendered||''}<button class="save-btn" onclick="savePastorMsg(${idx})">📝 Save to Notes</button></div></div>`;
-}
-function scrollPastorBottom(){const w=document.getElementById('chatWrap');if(w)setTimeout(()=>w.lastElementChild&&w.lastElementChild.scrollIntoView({behavior:'smooth'}),60);}
-async function askPastor(){
-  const inp=document.getElementById('pastorInput');if(!inp)return;
-  const q=inp.value.trim();if(!q)return;
-  inp.value=inp.style.height='';  
-  PASTOR_HISTORY.push({role:'user',text:q});
-  const wrap=document.getElementById('chatWrap');
-  if(wrap){wrap.innerHTML=PASTOR_HISTORY.map((m,i)=>pastorMsgHTML(m,i)).join('');const th=document.createElement('div');th.className='chat-msg pastor';th.id='pThink';th.innerHTML='<div class="chat-ava pastor">✝</div><div class="chat-bubble"><span class="muted">Reflecting…</span><div class="spinner" style="width:22px;height:22px;margin:8px auto"></div></div>';wrap.appendChild(th);scrollPastorBottom();}
-  let data;
-  try{
-    data=await callPastorAI(q,'','');
-  }catch(e){
-    data=pastorFallback(q);
-    if(e.message!=='no-key')toast('AI unavailable — set server URL in ⚙ Settings.');
-  }
-  PASTOR_HISTORY.push({role:'pastor',data,rendered:buildPastorHTML(data)});
-  const w2=document.getElementById('chatWrap');if(w2){const t=document.getElementById('pThink');if(t)t.remove();w2.innerHTML=PASTOR_HISTORY.map((m,i)=>pastorMsgHTML(m,i)).join('');scrollPastorBottom();}
-  // show/hide Clear button
-  const row=document.querySelector('.chat-input-row');if(row&&!row.querySelector('.btn.soft')){const b=document.createElement('button');b.className='btn soft';b.style.cssText='flex:0;align-self:flex-end';b.textContent='Clear';b.onclick=clearPastor;row.appendChild(b);}
-}
-async function callPastorAI(q,key,url){
-  const base=url||lumenServerBase();
-  if(!base)throw new Error('no-key');
-  const history=PASTOR_HISTORY.slice(-10).map(m=>({role:m.role==='pastor'?'assistant':'user',content:m.role==='pastor'?(m.data?JSON.stringify(m.data):m.text):m.text})).filter(m=>m.content);
-  const r=await fetch(base+'/api/lumen-pastor',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,history})});
-  if(!r.ok)throw new Error('Server '+r.status);
-  return r.json();
-}
-function buildPastorHTML(d){
-  if(!d||typeof d!=='object')return `<p>${d||''}</p>`;
-  const ans=(d.answer||'').replace(/\[([^\]]+)\]/g,(_,r)=>`<span class="vref" onclick="explainVerse('${esc(r)}')">${r}</span>`);
-  let h=`<p style="font-size:.96rem;line-height:1.7">${ans}</p>`;
-  if((d.verses||[]).length){
-    h+='<h4>📖 Bible Verses <span style="font-size:.7rem;font-weight:400;color:var(--muted)">(verified KJV · bible-api.com)</span></h4>';
-    h+=d.verses.map(v=>`<div style="margin:8px 0;padding:10px 14px;background:var(--card-2);border-radius:12px;border-left:3px solid var(--gold)"><span class="vref" onclick="explainVerse('${esc(v.ref||'')}')">${v.ref||''}</span><p style="font-size:.87rem;margin:5px 0;font-style:italic;color:var(--muted)">&ldquo;${v.text||''}&rdquo;</p>${v.note?`<p style="font-size:.83rem;margin-top:3px">${v.note}</p>`:''}</div>`).join('');
-  }
-  if((d.examples||[]).length){
-    h+='<h4>🌍 Real-World Examples</h4><ul style="padding-left:18px;margin:6px 0">';
-    h+=d.examples.map(e=>`<li style="font-size:.9rem;margin:5px 0">${e}</li>`).join('')+'</ul>';
-  }
-  if(d.takeaway)h+=`<h4>✅ Practical Takeaway</h4><p style="font-size:.9rem;padding:10px 14px;background:linear-gradient(90deg,var(--gold-soft),transparent);border-radius:10px">${d.takeaway}</p>`;
-  if(d.reflection)h+=`<h4>🤔 Reflection Question</h4><p style="font-size:.9rem;font-style:italic;padding:8px 14px;border-left:3px solid var(--gold-soft)">${d.reflection}</p>`;
-  if(d.prayer)h+=`<h4>🙏 Prayer</h4><p style="font-size:.9rem;padding:10px 14px;background:var(--card-2);border-radius:10px;line-height:1.7">${d.prayer}</p>`;
-  return h;
-}
-function pastorFallback(q){
-  return{answer:`Thank you for bringing "${q}" to reflection. The AI server isn't reachable right now — set your server URL in ⚙ Settings to get live responses powered by Grok, with real verified Bible verses. In the meantime, here is a grounded starting point. God invites every honest question [Psalm 34:4] and promises wisdom to those who ask [James 1:5].`,verses:[{ref:'James 1:5',text:'If any of you lacks wisdom, let him ask God, who gives generously to all without reproach.',note:'God does not shame honest seeking — He meets it generously.'},{ref:'Psalm 34:4',text:'I sought the Lord, and he answered me and delivered me from all my fears.',note:'Bringing your real questions to God is itself an act of faith.'}],examples:['Just as a student goes to a trusted teacher with hard questions, bringing your questions to God and Scripture is where wisdom grows.'],takeaway:'Bring this question to God in your own words today.',reflection:'What would it look like to trust God with this question?',prayer:'Lord, I don\'t have all the answers, but I bring this question to You. Guide me through Your Word. Amen.',topic:q.slice(0,40)};
-}
-function savePastorMsg(idx){
+/* ---- AI-generated themed Bible study (Notes) ---- */
+const AI_STUDY_SYS=`You are a careful, respectful Bible study guide. Create a personal Bible study on the user's theme or idea. Use only real scripture (prefer KJV); NEVER invent references or quotes; if unsure a reference is real, omit it. Return ONLY valid JSON (no markdown) with keys: "title","opening_prayer","scriptures"(array of 4-6 objects {"ref","text"} — real verses that clearly support the theme, quoted accurately),"teaching"(2-4 sentences linking the verses to the theme),"questions"(array of 4-6 reflection/application questions),"application"(1-2 sentences),"closing_prayer". Warm, pastoral, non-denominational; if a point is debated across traditions, keep it general.`;
+function newStudy(){if(!requireUser())return go('login');
+  modal(`<h3>Create a Bible study</h3>
+   <p class="muted" style="font-size:.82rem;margin-bottom:10px">Type a theme or idea and Lumen builds a personal study — scripture that speaks to it, questions to answer, and opening &amp; closing prayers.</p>
+   <input class="control" id="studyTheme" placeholder="e.g. discipline, forgiveness, anxiety, patience" onkeydown="if(event.key==='Enter')runStudy()"/>
+   <div class="chips" style="margin-top:8px">${['Discipline','Forgiveness','Faith','Anxiety','Gratitude','Patience'].map(t=>`<span class="chip" style="cursor:pointer" onclick="document.getElementById('studyTheme').value='${t}'">${t}</span>`).join('')}</div>
+   <div class="row" style="margin-top:12px"><button class="btn" style="flex:0" onclick="runStudy()">✨ Generate study</button><button class="btn soft" style="flex:0" onclick="closeModal()">Cancel</button></div>
+   <div id="studyOut" style="margin-top:16px"></div>`);}
+const STUDY_ANGLES=['Center it on a specific Bible character whose life illustrates this','Focus on concrete, practical daily steps','Anchor it in God\'s promises and His character','Contrast the world\'s view with the biblical view','Frame it as a journey from struggle to growth','Center it on the heart — motives and attitudes','Tie it to prayer and dependence on the Holy Spirit','Connect it to loving and serving other people'];
+function pickAngle(){return STUDY_ANGLES[Math.floor(Math.random()*STUDY_ANGLES.length)];}
+async function runStudy(){
+  const theme=document.getElementById('studyTheme').value.trim();if(!theme)return toast('Type a theme first');
   if(!requireUser())return;
-  const m=PASTOR_HISTORY[idx];if(!m||m.role!=='pastor')return;
-  const d=m.data||{};const prev=PASTOR_HISTORY[idx-1];
-  const title='Pastor: '+(d.topic||prev&&prev.text.slice(0,40)||'Chat');
-  let body=prev?'Q: '+prev.text+'\n\n':'';
-  body+=(d.answer||'').replace(/\[([^\]]+)\]/g,'[$1]').replace(/<[^>]+>/g,'')+'\n\n';
-  if(d.verses&&d.verses.length)body+='Verses (KJV · verified):\n'+d.verses.map(v=>`${v.ref}: "${v.text}"\n  → ${v.note||''}`).join('\n')+'\n\n';
-  if(d.examples&&d.examples.length)body+='Real-world examples:\n'+d.examples.map((e,i)=>`${i+1}. ${e}`).join('\n')+'\n\n';
-  if(d.takeaway)body+='Takeaway: '+d.takeaway+'\n\n';
-  if(d.reflection)body+='Reflection: '+d.reflection+'\n\n';
-  if(d.prayer)body+='Prayer: '+d.prayer;
-  dbAdd('notes',{uid:USER.uid,title,body:body.trim(),topic:'AI Pastor',book:'',is_shared:false,created:Date.now()}).then(()=>toast('Saved to Notes 📝')).catch(fail);
+  const out=document.getElementById('studyOut');if(out)out.innerHTML=`<div class="empty fadein"><div class="big">✦</div><p>Building your study on “${theme}”…</p><div class="spinner"></div></div>`;
+  let data;try{const r=await generateStudy(theme);data=r.data;}catch(e){data=await buildLocalStudy(theme);toast('Built from the study library. '+(e.message||''));}
+  try{const ref=await dbAdd('notes',{uid:USER.uid,title:(data.title||('Study: '+theme)),theme,study:data,body:studyText(theme,data),topic:'Study guides',book:'',ref:'',is_shared:false,created:Date.now()});
+    closeModal();toast('Study added to Notes 📝');openNote(ref&&ref.id);}catch(e){fail(e);}
 }
-function clearPastor(){PASTOR_HISTORY=[];render();}
+async function generateStudy(theme){
+  const angle=pickAngle();
+  const url=(localStorage.getItem('lumen_ai_url')||'').trim();const key=(localStorage.getItem('lumen_ai_key')||'').trim();
+  if(url){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({theme,angle})});if(!r.ok)throw new Error('Function '+r.status);return{data:await r.json(),source:'cloud'};}
+  if(key){return{data:await callAnthropicStudy(theme,key,angle),source:'browser'};}
+  return{data:await buildLocalStudy(theme),source:'library'};}
+async function callAnthropicStudy(theme,key,angle){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:AI_MODEL,max_tokens:1500,temperature:0.85,system:AI_STUDY_SYS,messages:[{role:'user',content:'Theme: '+theme+'\nApproach for this study: '+(angle||'')+'\nVary the wording, structure, and verse selection so each study feels fresh and distinct. Create the personal Bible study as JSON.'}]})});
+  if(!r.ok)throw new Error('Anthropic '+r.status);const j=await r.json();return parseAIJSON((j.content&&j.content[0]&&j.content[0].text)||'');}
+/* Built-in study library — real references + teaching for common themes.
+   Verse TEXT is fetched live (KJV) so it's always accurate; AI (if connected) overrides this for any theme. */
+const THEME_LIBRARY={
+ discipline:{refs:['Hebrews 12:11','1 Corinthians 9:27','Proverbs 25:28','Proverbs 12:1','2 Timothy 1:7'],teaching:'Scripture treats discipline not as punishment but as loving training that yields "the peaceable fruit of righteousness." Like an athlete, the believer brings body and habits under the Spirit\'s control — not to earn God\'s love, but to grow in it.',questions:['Where do you sense God lovingly training you right now?','What does "ruling your own spirit" (Prov 25:28) look like for you this week?','Which one habit, if disciplined, would most help your walk with God?','How do you tell the difference between condemnation and God\'s loving correction?'],application:'Pick one small area — time, words, appetite, attention — and practice Spirit-led self-control in it for seven days.'},
+ faith:{refs:['Hebrews 11:1','Hebrews 11:6','Romans 10:17','2 Corinthians 5:7','Mark 9:23'],teaching:'Faith is confident trust in God and His promises even when we cannot see the outcome. It grows by hearing God\'s Word, and it pleases Him because it takes Him at His word.',questions:['Where is God asking you to walk by faith and not by sight?','What promise of God do you most need to trust today?','How has hearing Scripture grown your faith before?','What would believing "all things are possible" change about this week?'],application:'Name one situation you will deliberately entrust to God this week, and a verse to stand on.'},
+ forgiveness:{refs:['Ephesians 4:32','Colossians 3:13','Matthew 6:14-15','1 John 1:9','Matthew 18:21-22'],teaching:'We forgive because we have first been forgiven in Christ. Forgiveness is not pretending nothing happened, but releasing the debt to God — freeing the heart from bitterness.',questions:['Is there someone you sense God asking you to forgive?','How does remembering God\'s forgiveness of you help you forgive others?','What makes forgiveness hard, and where do you need God\'s help?','What would "seventy times seven" forgiveness look like for you?'],application:'Bring one specific hurt to God in prayer and ask Him for the grace to release it.'},
+ anxiety:{refs:['Philippians 4:6-7','1 Peter 5:7','Matthew 6:34','Psalm 55:22','John 14:27'],teaching:'God invites us to trade anxiety for prayer. Worry is redirected into specific requests offered with thanksgiving, and the result is a peace that guards the heart beyond what reason can explain.',questions:['What specific worry can you turn into a prayer right now?','What does it mean that God "careth for you" (1 Pet 5:7)?','How does thanksgiving change the way you carry anxiety?','What helps you receive the peace Jesus gives in John 14:27?'],application:'Each time worry rises today, pause for a 10-second prayer and name one thing you\'re thankful for.'},
+ patience:{refs:['James 1:3-4','Romans 12:12','Galatians 6:9','Psalm 37:7','Romans 8:25'],teaching:'Biblical patience is steadfast trust in God\'s timing and goodness. Trials produce it, and it matures us — so we "rest in the LORD, and wait patiently for him" rather than forcing our own way.',questions:['Where are you being asked to wait on God right now?','How might God be using a delay to grow you?','What helps you "not be weary in well doing"?','What does resting in the Lord look like for you this week?'],application:'Identify one area of waiting and choose to respond with prayer and trust instead of frustration.'},
+ love:{refs:['1 Corinthians 13:4-7','John 13:34-35','1 John 4:7-8','Romans 13:8','1 John 4:19'],teaching:'Love in Scripture is action before it is feeling — patient, kind, humble, and self-giving. We love because God first loved us, and our love for others marks us as His.',questions:['Read 1 Cor 13 with your name in place of "charity" — where do you fall short?','Who is hard for you to love, and what would love do there?','How does God\'s love for you fuel your love for others?','What concrete act of love can you offer someone today?'],application:'Do one specific, patient act of kindness for the person who tests you most.'},
+ prayer:{refs:['Philippians 4:6','1 Thessalonians 5:17','Matthew 6:6','James 5:16','Jeremiah 33:3'],teaching:'Prayer is honest, ongoing conversation with a Father who hears. It is meant to be constant and personal, and Scripture promises it is effective and that God answers those who call.',questions:['What keeps you from praying more consistently?','What would "pray without ceasing" look like in your day?','What have you been carrying that you haven\'t yet brought to God?','How has God answered prayer in your life before?'],application:'Set one fixed time to pray each day this week, and start by bringing God one real need.'},
+ gratitude:{refs:['1 Thessalonians 5:18','Psalm 100:4','Colossians 3:15-17','Psalm 107:1','Philippians 4:6'],teaching:'Thankfulness is God\'s will for us — not for everything, but in everything. Gratitude reorients the heart toward God\'s goodness even in hard seasons.',questions:['What can you thank God for today, even amid difficulty?','How does gratitude change your outlook?','What good gifts have you been overlooking?','How can thanksgiving become part of your daily rhythm?'],application:'Write down three specific things you\'re thankful for tonight, and thank God for each.'},
+ hope:{refs:['Romans 15:13','Jeremiah 29:11','Romans 5:5','Hebrews 6:19','Psalm 39:7'],teaching:'Christian hope is not wishful thinking but confident expectation anchored in God\'s character and promises. It is "an anchor of the soul" that holds in every storm.',questions:['Where do you most need hope right now?','What does it mean that God\'s thoughts toward you are "of peace"?','How is hope different from optimism?','What anchors your hope when circumstances are shaky?'],application:'Memorize one verse of hope and speak it over the situation weighing on you.'},
+ fear:{refs:['Isaiah 41:10','2 Timothy 1:7','Psalm 27:1','Joshua 1:9','Psalm 56:3'],teaching:'God repeatedly says "fear not" — not because danger isn\'t real, but because He is with us. His presence, power, and love are the antidote to fear.',questions:['What are you most afraid of right now?','How does God\'s presence change how you face it?','What would courage look like in your situation this week?','What helps you trust God when you\'re afraid?'],application:'Name one fear, and take one small, faith-filled step forward in spite of it.'},
+ money:{refs:['1 Timothy 6:10','Matthew 6:24','Proverbs 3:9-10','Hebrews 13:5','Philippians 4:19'],teaching:'Scripture warns that the love of money divides the heart, and calls us to contentment and trust in God\'s provision. We honor God with what we have and rest in His care.',questions:['Where might money be competing with God for your trust?','What would contentment look like for you right now?','How can you honor God with your finances this season?','Where do you need to trust God\'s provision?'],application:'Take one step toward honoring God with money this week — giving, generosity, or wise stewardship.'},
+ temptation:{refs:['1 Corinthians 10:13','James 1:13-15','Matthew 26:41','Hebrews 4:15-16','James 4:7'],teaching:'Temptation is common to everyone, but God always provides a way of escape. Jesus understands our struggles and offers grace; we resist by submitting to God and staying alert in prayer.',questions:['Where are you most vulnerable to temptation?','What "way of escape" has God provided that you can take?','How does it help that Jesus was tempted yet without sin?','What would "watch and pray" look like for you?'],application:'Identify one recurring temptation and set a concrete guardrail plus a prayer for this week.'},
+ wisdom:{refs:['James 1:5','Proverbs 9:10','Proverbs 3:5-6','Colossians 3:16','Psalm 111:10'],teaching:'Wisdom begins with the fear of the LORD and is freely given to those who ask. It means trusting God over our own understanding and letting His Word shape our choices.',questions:['What decision do you need God\'s wisdom for right now?','Where are you leaning on your own understanding?','How does reverence for God lead to wise living?','What Scripture could guide this choice?'],application:'Ask God specifically for wisdom about one decision, and search His Word before acting.'},
+ humility:{refs:['Philippians 2:3-4','James 4:6','1 Peter 5:6','Proverbs 11:2','Micah 6:8'],teaching:'Humility values others and depends on God rather than self. God gives grace to the humble, and in due time lifts them up; pride, by contrast, leads to a fall.',questions:['Where is God inviting you to put others first?','How does pride show up subtly in your life?','What does it mean to "humble yourself under God\'s hand"?','How can you walk humbly with God today?'],application:'Do one hidden act of service this week with no one to thank you but God.'},
+ trust:{refs:['Proverbs 3:5-6','Psalm 56:3','Isaiah 26:3','Psalm 37:5','Nahum 1:7'],teaching:'Trust means leaning on God rather than our own understanding, even when the path is unclear. He keeps in perfect peace those whose minds are fixed on Him.',questions:['What are you trying to figure out entirely on your own?','What helps you trust God when you can\'t see the outcome?','How has God proven trustworthy before?','What would "commit thy way unto the LORD" look like here?'],application:'Hand one specific worry to God in prayer and leave it with Him this week.'},
+ strength:{refs:['Isaiah 40:31','Philippians 4:13','2 Corinthians 12:9','Psalm 46:1','Nehemiah 8:10'],teaching:'God is our strength, and His power is made perfect in our weakness. Waiting on Him renews us, so we can run and not be weary.',questions:['Where do you feel weak or worn out right now?','How might God want to be your strength there?','What does it mean that His grace is "sufficient"?','How can the joy of the Lord be your strength today?'],application:'Before your hardest task this week, pause and ask God for His strength.'},
+ peace:{refs:['John 14:27','Philippians 4:7','Isaiah 26:3','Colossians 3:15','Romans 5:1'],teaching:'The peace Jesus gives is unlike the world\'s — it guards the heart and rests on being right with God. It grows as our minds stay fixed on Him.',questions:['Where do you most need God\'s peace right now?','What is stealing your peace, and can you bring it to God?','How is Christ\'s peace different from circumstances being calm?','What helps you keep your mind "stayed" on God?'],application:'When unrest rises today, pause, breathe, and pray Philippians 4:6-7 back to God.'},
+ perseverance:{refs:['James 1:12','Galatians 6:9','Hebrews 12:1-2','Romans 5:3-4','2 Timothy 4:7'],teaching:'Perseverance is endurance fueled by hope — running the race set before us with eyes on Jesus. Trials build it, and there is a promised reward for those who don\'t give up.',questions:['Where are you tempted to give up right now?','What keeps you going when faith is hard?','How does fixing your eyes on Jesus help you endure?','What "weight" might you need to lay aside to keep running?'],application:'Choose one good thing you\'ve been tempted to quit, and take the next faithful step.'},
+ lust:{refs:['Matthew 5:27-28','James 1:14-15','1 Corinthians 6:18-20','Galatians 5:16','2 Timothy 2:22'],teaching:'Jesus locates lust in the heart, not only the act — yet He never leaves us in shame. Scripture is honest that desire left unchecked grows into sin, and just as clear about the way out: flee from it, walk by the Spirit, guard the eyes and mind, and pursue Christ alongside others rather than fighting alone. The goal is not mere willpower but a heart increasingly captured by something better.',questions:['When are you most vulnerable to lustful thoughts, and what tends to trigger them?','What would it look like to "flee" rather than linger (1 Cor 6:18; 2 Tim 2:22)?','How does walking in the Spirit (Gal 5:16) differ from just trying harder to stop on your own?','Who could you invite into honest accountability and prayer about this?'],application:'Set one concrete guardrail this week (what you watch, scroll, or where your eyes go), memorize one verse above, and tell one trusted person so you are not fighting alone.'},
+};
+const THEME_ALIAS={worry:'anxiety',anxious:'anxiety',stress:'anxiety',stressed:'anxiety',thankfulness:'gratitude',thankful:'gratitude',thanks:'gratitude',giving:'money',finances:'money',wealth:'money',generosity:'money',afraid:'fear',courage:'fear',fearless:'fear',trusting:'trust',endurance:'perseverance',persistence:'perseverance',perseverence:'perseverance',forgive:'forgiveness',forgiving:'forgiveness',loving:'love',praying:'prayer',humble:'humility',wise:'wisdom',hopeful:'hope',peaceful:'peace','self-control':'discipline',selfcontrol:'discipline',selfdiscipline:'discipline','self discipline':'discipline',belief:'faith',believing:'faith',patient:'patience',waiting:'patience',pornography:'lust',porn:'lust','sexual sin':'lust',purity:'lust',sexuality:'lust'};
+function studyQuestions(theme){return ['What do these verses reveal about '+theme+'?','Which verse speaks most to your situation, and why?','Where is God inviting you to grow in '+theme+'?','What is one concrete step you can take this week?'];}
+async function buildLocalStudy(theme){
+  const T=theme.charAt(0).toUpperCase()+theme.slice(1);const key=theme.toLowerCase().trim();
+  const k=THEME_LIBRARY[key]?key:(THEME_ALIAS[key]||'');const e=THEME_LIBRARY[k];
+  const opens=['Father, as I open Your Word on '+theme+', quiet my heart and teach me. Amen.','Lord, meet me here as I study '+theme+'. Open my eyes to see and my heart to obey. Amen.','God, thank You that Your Word speaks to '+theme+'. Speak to me now, and help me listen. Amen.'];
+  const closes=['Lord, help me live what I have seen about '+theme+', by Your grace. Amen.','Father, take this study on '+theme+' from my head to my hands and heart. Amen.','Thank You, God, for meeting me here. Help me walk in '+theme+' this week. Amen.'];
+  const r=Math.floor(Math.random()*3);
+  const wrap=(scriptures,teaching,questions,application)=>({title:'A Study on '+T,opening_prayer:opens[r%opens.length],scriptures,teaching,questions,application,closing_prayer:closes[r%closes.length]});
+  // 1) curated library theme
+  if(e){const scriptures=await Promise.all(e.refs.map(async ref=>({ref,text:await fetchVerseText(ref,'KJV')})));return wrap(scriptures,e.teaching,e.questions,e.application);}
+  // 2) new/unknown topic → research it by searching Scripture for real, accurate verses
+  try{const found=await apibSearch(theme);
+    if(found&&found.length>=3){return wrap(found,
+      'These passages were found by searching Scripture for "'+theme+'". They are accurate quotations — read each in its surrounding context, and notice what God reveals about '+theme+' and how it calls you to respond.',
+      studyQuestions(theme),
+      'Choose the verse that speaks most to you, read its full chapter for context, and act on one thing it shows you this week.');}
+  }catch(err){/* search unavailable — fall through to general study */}
+  // 3) graceful fallback (no Bible search available)
+  const refs=['2 Timothy 3:16-17','Psalm 119:105','Proverbs 3:5-6','Romans 12:2','James 1:22'];
+  const scriptures=await Promise.all(refs.map(async ref=>({ref,text:await fetchVerseText(ref,'KJV')})));
+  return wrap(scriptures,
+    'God\'s Word speaks into '+theme+' as it does into all of life — revealing His heart, exposing ours, and guiding our steps. (Connect a Bible source or AI key in ⚙ Settings for verses chosen specifically for this topic.) As you read, ask the Spirit to show you the next faithful step.',
+    studyQuestions(theme),
+    'Choose one verse above to carry with you, and one action it calls you to this week.');
+}
+function studyBlocks(theme,d){
+  const sc=(d.scriptures||[]).map(s=>`<div style="margin:8px 0"><span class="chip gold" style="cursor:pointer" onclick="explainVerse('${esc(s.ref||'')}')">${s.ref||''}</span> <span class="serif" style="font-size:calc(1.08rem*var(--read))">${s.text||''}</span></div>`).join('');
+  const qs=(d.questions||[]).map(q=>`<li style="margin:7px 0">${q}</li>`).join('');
+  return `<div class="exp-block"><h4>Opening prayer</h4><p>${d.opening_prayer||''}</p></div>
+   <div class="exp-block"><h4>Scriptures that speak to ${theme}</h4>${sc||'<p class="muted">—</p>'}</div>
+   ${d.teaching?`<div class="exp-block"><h4>Teaching</h4><p>${d.teaching}</p></div>`:''}
+   <div class="exp-block"><h4>Questions to answer</h4><ol style="padding-left:18px">${qs}</ol></div>
+   ${d.application?`<div class="exp-block"><h4>Apply it</h4><p>${d.application}</p></div>`:''}
+   <div class="exp-block"><h4>Closing prayer</h4><p>${d.closing_prayer||''}</p></div>`;}
+function studyText(theme,d){
+  const sc=(d.scriptures||[]).map(s=>`• ${s.ref}: ${s.text}`).join('\n');
+  const qs=(d.questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n');
+  return `${d.title||('A Study on '+theme)}\n\nOPENING PRAYER\n${d.opening_prayer||''}\n\nSCRIPTURES\n${sc}\n\nTEACHING\n${d.teaching||''}\n\nQUESTIONS TO ANSWER\n${qs}\n\nAPPLY IT\n${d.application||''}\n\nCLOSING PRAYER\n${d.closing_prayer||''}`;}
+function openNote(id){if(!id){go('notes');return;}NOTE_VIEW=id;if(current()==='notes')render();else go('notes');}
+function noteReader(id){const n=(STORE.notes||[]).find(x=>x.id===id);
+  if(!n)return `<div class="section-h"><div><button class="btn soft sm" onclick="NOTE_VIEW=null;render()">← All notes</button></div></div><div class="empty"><div class="spinner"></div><p>Loading…</p></div>`;
+  const inner=n.study?studyBlocks(n.theme||n.title,n.study):`<div style="white-space:pre-wrap;font-size:calc(.98rem*var(--read))">${(n.body||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`;
+  return `<div class="section-h"><div><button class="btn soft sm" onclick="NOTE_VIEW=null;render()">← All notes</button>
+     <h2 class="serif" style="margin-top:10px">${n.title||'Note'}</h2><p>${fmt(n.created)} · ${n.topic||'General'}${n.is_shared?' · 🔗 shared':''}</p></div>
+     <div class="row" style="flex:0"><button class="btn soft" onclick="newNote('${n.id}')">Edit</button><button class="btn soft" onclick="shareNote('${n.id}')">${n.is_shared?'Copy link':'Share'}</button><button class="btn soft" onclick="NOTE_VIEW=null;delNote('${n.id}')">Delete</button></div></div>
+   <div class="card">${inner}</div>`;}
 
 /* ---- Notes ---- */
 let NOTEFILTER='All';
-function pgNotes(){if(!USER)return authGate('notes');window.__after=paintNotes;
-  return `<div class="section-h"><div><h2 class="serif">Notes</h2><p>Organize by topic, book or date. Share any note with a link.</p></div><button class="btn" onclick="newNote()">+ New note</button></div>
+function pgNotes(){if(!USER)return authGate('notes');
+  if(NOTE_VIEW)return noteReader(NOTE_VIEW);
+  window.__after=paintNotes;
+  return `<div class="section-h"><div><h2 class="serif">Notes</h2><p>Organize by topic, book or date. Share any note with a link, or generate a study from a theme.</p></div><div class="row" style="flex:0"><button class="btn" onclick="newStudy()">✨ Create study</button><button class="btn soft" onclick="newNote()">+ New note</button></div></div>
   <div class="chips" id="noteFilters" style="margin-bottom:18px"></div><div class="masonry" id="noteList"></div>`;}
 function paintNotes(){const notes=STORE.notes;const topics=['All',...new Set(notes.map(n=>n.topic).filter(Boolean))];
   const ff=document.getElementById('noteFilters');if(ff)ff.innerHTML=topics.map(t=>`<span class="chip ${t===NOTEFILTER?'gold':''}" style="cursor:pointer" onclick="NOTEFILTER='${t}';paintNotes()">${t}</span>`).join('');
   const list=notes.filter(n=>NOTEFILTER==='All'||n.topic===NOTEFILTER);const el=document.getElementById('noteList');if(!el)return;
-  el.innerHTML=list.length?list.map(n=>`<div class="notecard"><h4>${n.title||'Untitled'}</h4>
-    <div class="meta">${fmt(n.created)} · ${n.book||'General'} ${n.is_shared?'· 🔗 shared':''}</div>
-    <div class="body">${(n.body||'').replace(/\n/g,'<br>')}</div>
-    <div class="row" style="margin-top:12px"><button class="btn soft sm" style="flex:0" onclick="newNote('${n.id}')">Edit</button>
-     <button class="btn soft sm" style="flex:0" onclick="shareNote('${n.id}')">${n.is_shared?'Copy link':'Share'}</button>
-     <button class="btn soft sm" style="flex:0" onclick="delNote('${n.id}')">Delete</button></div></div>`).join('')
+  el.innerHTML=list.length?list.map(n=>`<div class="notecard" style="cursor:pointer" onclick="openNote('${n.id}')"><h4>${n.title||'Untitled'}</h4>
+    <div class="meta">${fmt(n.created)} · ${n.book||n.topic||'General'} ${n.is_shared?'· 🔗 shared':''}</div>
+    <div class="body">${(n.body||'').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
+    <div class="row" style="margin-top:12px"><button class="btn soft sm" style="flex:0" onclick="event.stopPropagation();openNote('${n.id}')">Open</button>
+     <button class="btn soft sm" style="flex:0" onclick="event.stopPropagation();newNote('${n.id}')">Edit</button>
+     <button class="btn soft sm" style="flex:0" onclick="event.stopPropagation();shareNote('${n.id}')">${n.is_shared?'Copy link':'Share'}</button>
+     <button class="btn soft sm" style="flex:0" onclick="event.stopPropagation();delNote('${n.id}')">Delete</button></div></div>`).join('')
    :`<div class="empty"><div class="big">📝</div><p>No notes yet. Start your first study note.</p></div>`;}
 function newNote(id){const n=id?STORE.notes.find(x=>x.id===id):{title:'',body:'',topic:'',book:''};
   modal(`<h3>${id?'Edit note':'New note'}</h3>
@@ -871,7 +834,7 @@ function paintGroups(){const gs=STORE.groups;const area=document.getElementById(
   area.innerHTML=gs.map(g=>`<div class="grouptop" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;align-items:center">
      <div><div style="font-size:.7rem;letter-spacing:2px;opacity:.85;text-transform:uppercase">${(g.memberNames||g.members||[]).length} member${(g.memberNames||g.members||[]).length>1?'s':''} · ${g.focus||'General study'}</div>
        <h3 class="serif" style="font-size:1.9rem">${g.name}</h3></div>
-     <div style="display:flex;gap:8px;align-items:center"><div class="join">${g.code} <button class="btn ghost sm" onclick="copyCode('${g.code}')">Copy</button></div>${USER&&g.owner===USER.uid?`<button class="btn ghost sm" style="background:rgba(220,60,60,.35);" onclick="deleteGroup('${g.id}')">🗑 Delete</button>`:''}</div></div></div>
+     <div class="join">${g.code} <button class="btn ghost sm" onclick="copyCode('${g.code}')">Copy</button></div></div></div>
    <div class="grid2" style="margin-bottom:30px"><div class="card"><h3 class="serif" style="font-size:1.3rem;margin-bottom:6px">Discussion</h3>
      <div>${(g.msgs||[]).map(m=>msgHTML(m)).join('')||'<p class="muted" style="font-size:.85rem">No messages yet — start the conversation.</p>'}</div>
      <div class="row" style="margin-top:12px"><input class="control" id="mi_${g.id}" placeholder="Share a thought, verse or prayer point…"/><button class="btn" style="flex:0" onclick="postMsg('${g.id}')">Send</button></div></div>
@@ -905,10 +868,6 @@ function postMsg(gid){const inp=document.getElementById('mi_'+gid);const t=inp.v
 function shareToGroup(gid){const inp=document.getElementById('sh_'+gid);const t=inp.value.trim();if(!t)return;inp.value='';
   if(LOCAL){const g=STORE.groups.find(x=>x.id===gid);g.shared=[...(g.shared||[]),t];saveLocalStore();localRefresh();return;}
   db.collection('groups').doc(gid).update({shared:FV.arrayUnion(t)}).catch(fail);}
-function deleteGroup(id){const g=STORE.groups.find(x=>x.id===id);if(!g)return;
-  modal(`<h3 class="serif">Delete "${g.name}"?</h3><p class="muted" style="font-size:.88rem;margin:8px 0 16px">This will permanently remove the group and all its messages.</p>
-  <div class="row"><button class="btn" style="background:#c0392b;color:#fff" onclick="confirmDeleteGroup('${id}')">Yes, delete</button><button class="btn soft" onclick="closeModal()">Cancel</button></div>`);}
-function confirmDeleteGroup(id){dbDelete('groups',id).then(()=>{closeModal();toast('Group deleted');}).catch(fail);}
 
 /* ---- Daily lesson (rotating set) ---- */
 const LESSONS=[
@@ -1039,7 +998,7 @@ function pgLesson(){
     <h2 class="serif" style="font-size:clamp(1.8rem,4vw,2.6rem);margin:8px 0 4px">${L.title}</h2>
     <div class="chip gold" style="background:rgba(255,255,255,.2);color:#fff">${L.ref}</div></div>
   <div class="grid2" style="margin-top:22px"><div class="card">
-    <div class="exp-block"><h4>Main passage</h4><p class="serif" style="font-size:calc(1.25rem*var(--read));line-height:1.5">${L.passage}</p><button class="btn soft sm" style="margin-top:10px" onclick="speakText('${esc(L.passage)}','${esc(L.ref)}')">🔊 Read passage</button></div>
+    <div class="exp-block"><h4>Main passage</h4><p class="serif" style="font-size:calc(1.25rem*var(--read));line-height:1.5">${L.passage}</p></div>
     <div class="exp-block"><h4>Simple explanation</h4><p>${L.explain}</p></div>
     <div class="exp-block"><h4>Life application</h4><p>${L.life}</p></div>
     <div class="exp-block"><h4>Reflection question</h4><p>${L.reflect}</p></div>
@@ -1195,43 +1154,6 @@ function copyFormLink(){const link=`${location.origin}${location.pathname}#/form
 function deleteForm(id){dbDelete('forms',id).then(()=>{FORM_VIEW=null;toast('Tracker deleted');render();}).catch(fail);}
 
 function authGate(what){return `<div class="empty"><div class="big">🔒</div><p>Sign in to access your ${what}.</p><button class="btn" style="margin-top:14px" onclick="go('login')">Sign in</button></div>`;}
-
-/* ---- Text-to-Speech ---- */
-let TTS_PLAYING=false,TTS_UTT=null;
-function speakText(text,label){
-  stopSpeech();
-  if(!window.speechSynthesis){toast('Text-to-speech not supported in this browser');return;}
-  TTS_UTT=new SpeechSynthesisUtterance(text);
-  TTS_UTT.rate=parseFloat(localStorage.getItem('tts_rate')||'0.9');
-  TTS_UTT.pitch=1;
-  TTS_UTT.onstart=()=>{TTS_PLAYING=true;showTTSBar(label||'Reading…');};
-  TTS_UTT.onend=TTS_UTT.onerror=()=>{TTS_PLAYING=false;hideTTSBar();};
-  speechSynthesis.speak(TTS_UTT);
-}
-function stopSpeech(){speechSynthesis.cancel();TTS_PLAYING=false;hideTTSBar();}
-function readChapter(){
-  if(TTS_PLAYING){stopSpeech();return;}
-  const pane=document.getElementById('readPane');if(!pane)return;
-  const verses=[...pane.querySelectorAll('.verse .txt')].map(el=>el.textContent.trim()).filter(Boolean);
-  if(!verses.length)return toast('No verses loaded yet');
-  speakText(verses.join('. '),`${RD.book} ${RD.ch}`);
-}
-function showTTSBar(label){
-  let bar=document.getElementById('ttsBar');
-  if(!bar){bar=document.createElement('div');bar.id='ttsBar';bar.className='tts-bar';document.body.appendChild(bar);}
-  const r=localStorage.getItem('tts_rate')||'0.9';
-  bar.innerHTML=`<span class="tts-label">🔊 ${label}</span>
-    <select class="tts-speed" onchange="setTTSRate(this.value)" title="Reading speed">
-      <option value="0.7"${r==='0.7'?' selected':''}>0.7× Slow</option>
-      <option value="0.9"${r==='0.9'?' selected':''}>0.9× Normal</option>
-      <option value="1.1"${r==='1.1'?' selected':''}>1.1× Fast</option>
-      <option value="1.4"${r==='1.4'?' selected':''}>1.4× Faster</option>
-    </select>
-    <button class="tts-ctrl" onclick="stopSpeech()">⏹ Stop</button>`;
-  bar.classList.add('show');
-}
-function hideTTSBar(){const bar=document.getElementById('ttsBar');if(bar)bar.classList.remove('show');}
-function setTTSRate(r){localStorage.setItem('tts_rate',r);}
 
 /* ---- boot ---- */
 /* Auth state (hosted) or bootLocal() (file://) above drives the first render. */
