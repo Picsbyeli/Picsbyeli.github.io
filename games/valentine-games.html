@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Valentine Games</title>
+<style>
+  :root{
+    --bg1:#10141b; --bg2:#1b2433; --surface:#222c3b; --surface2:#1a2230;
+    --text:#e7ecf3; --muted:#9aa7ba; --line:#374459;
+    --gold:#c9a55c; --gold-d:#9c7e3f; --teal:#3b9c8f;
+    --good:#4caf7d; --bad:#e0635c; --shield:#5b9bd5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+    background:radial-gradient(circle at 25% 0%,#1d2737,#10141b 70%);
+    color:var(--text); min-height:100vh; padding:18px;
+  }
+  h1{
+    text-align:center; margin:8px 0 2px; font-size:clamp(26px,4.5vw,44px);
+    font-family:Georgia,"Times New Roman",serif; font-weight:600;
+    letter-spacing:3px; color:var(--text);
+  }
+  h1 .accent{color:var(--gold);}
+  .sub{text-align:center;color:var(--muted);margin:0 0 18px;letter-spacing:2px;
+    text-transform:uppercase;font-size:13px;}
+  .hidden{display:none !important;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:24px;max-width:760px;margin:0 auto;box-shadow:0 12px 30px rgba(0,0,0,.4);}
+  .team-row{display:flex;gap:10px;align-items:center;margin:10px 0;}
+  .team-row input{flex:1;padding:12px;border:1px solid var(--line);border-radius:8px;
+    font-size:16px;background:var(--surface2);color:var(--text);}
+  .team-row input:focus{outline:none;border-color:var(--gold);}
+  button{cursor:pointer;font-family:inherit;font-weight:600;border:none;border-radius:9px;
+    padding:11px 18px;font-size:15px;transition:transform .07s,filter .15s,background .15s;}
+  button:active{transform:translateY(1px);}
+  .btn-main{background:var(--gold);color:#1a1305;}
+  .btn-main:hover{filter:brightness(1.08);}
+  .btn-soft{background:transparent;color:var(--gold);border:1px solid var(--gold);}
+  .btn-soft:hover{background:rgba(201,165,92,.12);}
+  .btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--gold);}
+  .center{text-align:center;}
+  /* scoreboard */
+  #scoreboard{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:1300px;margin:0 auto 18px;}
+  .score-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:10px 18px;min-width:150px;text-align:center;border-top:3px solid var(--teal);}
+  .score-card.active{border-top-color:var(--gold);box-shadow:0 0 0 1px var(--gold);}
+  .score-name{font-weight:600;font-size:17px;color:var(--text);margin-bottom:2px;}
+  .score-val{font-size:30px;font-weight:700;color:var(--gold);}
+  .shields{font-size:14px;color:var(--shield);min-height:20px;letter-spacing:2px;}
+  .steals{font-size:14px;color:var(--bad);min-height:20px;letter-spacing:2px;cursor:pointer;}
+  /* board */
+  #boardWrap{overflow-x:auto;max-width:1300px;margin:0 auto;}
+  #board{display:grid;gap:8px;min-width:880px;}
+  .cat{background:var(--surface2);color:var(--gold);border:1px solid var(--line);
+    border-radius:8px;padding:12px 6px;text-align:center;font-weight:700;font-size:13px;
+    letter-spacing:.5px;min-height:58px;display:flex;align-items:center;justify-content:center;
+    text-transform:uppercase;}
+  .tile{background:linear-gradient(160deg,#2b3749,#1e2735);color:var(--gold);
+    border:1px solid var(--line);border-radius:8px;font-size:24px;font-weight:700;
+    padding:20px 4px;text-align:center;cursor:pointer;}
+  .tile:hover{border-color:var(--gold);filter:brightness(1.12);}
+  .tile.used{background:var(--surface2);color:#46536a;border-style:dashed;cursor:default;pointer-events:none;}
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(8,11,16,.82);display:flex;align-items:center;
+    justify-content:center;padding:18px;z-index:50;}
+  .modal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:26px;
+    max-width:680px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.6);max-height:92vh;overflow:auto;}
+  .modal .tag{display:inline-block;background:var(--surface2);color:var(--gold);
+    border:1px solid var(--gold-d);padding:4px 12px;border-radius:18px;font-weight:600;
+    font-size:12px;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase;}
+  .modal h2{margin:8px 0;color:var(--text);}
+  .qtext{font-size:22px;margin:16px 0;line-height:1.45;text-align:center;white-space:pre-line;}
+  .rebus{font-family:"Courier New",monospace;font-size:30px;letter-spacing:4px;
+    background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:22px;font-weight:700;}
+  .atext{font-size:20px;color:var(--good);font-weight:700;background:rgba(76,175,125,.1);
+    border:1px solid var(--good);border-radius:10px;padding:12px;margin:12px 0;text-align:center;}
+  .desc{font-size:17px;line-height:1.5;background:var(--surface2);border:1px solid var(--line);
+    border-radius:10px;padding:16px;margin:12px 0;}
+  .opts{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+  .opts button{flex:1;min-width:130px;}
+  .pick-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0;}
+  .pick-list button{min-width:120px;}
+  .note{font-size:14px;color:var(--muted);margin-top:10px;}
+  .roulette-val{font-size:46px;font-weight:700;text-align:center;margin:14px 0;}
+  .pos{color:var(--good);} .neg{color:var(--bad);}
+  .shield-badge{display:inline-block;background:rgba(91,155,213,.15);color:var(--shield);
+    border:1px solid var(--shield);border-radius:9px;padding:6px 12px;font-weight:600;margin:8px 0;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#000;
+    border:1px solid var(--gold-d);color:var(--gold);padding:12px 22px;border-radius:8px;
+    font-weight:600;z-index:99;opacity:0;transition:opacity .3s;}
+  .toast.show{opacity:1;}
+  .topbar{max-width:1300px;margin:0 auto 10px;display:flex;justify-content:flex-end;gap:8px;}
+</style>
+</head>
+<body>
+
+<h1>THE <span class="accent">VALENTINE</span> GAMES</h1>
+<p class="sub">A high-stakes trivia showdown</p>
+
+<!-- ================= SETUP ================= -->
+<div id="setup" class="card">
+  <h2 class="center" style="color:var(--gold)">Add Your Teams</h2>
+  <p class="center note">Enter 2 to 4 team names, then start the game.</p>
+  <div id="teamInputs"></div>
+  <div class="center" style="margin-top:10px">
+    <button class="btn-soft" id="addTeamBtn">+ Add Team</button>
+    <button class="btn-main" id="startBtn">Start Game</button>
+  </div>
+</div>
+
+<!-- ================= GAME ================= -->
+<div id="game" class="hidden">
+  <div class="topbar"><button class="btn-ghost" id="restartBtn">&#8635; Restart</button></div>
+  <div id="scoreboard"></div>
+  <div id="boardWrap"><div id="board"></div></div>
+</div>
+
+<div id="overlay" class="overlay hidden"><div id="modal" class="modal"></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============================================================
+   THE VALENTINE GAMES
+   ============================================================ */
+
+// ---------- QUESTION DATA ----------
+const CATEGORIES = [
+  {
+    name:"Challenge Card", type:"challenge",
+    q:[
+      {p:100, physical:true, title:"Rock · Paper · Scissors",
+        desc:"Each team sends ONE player. Best of three throws. Winner takes the points."},
+      {p:200, q:"What is the smallest country in the world by land area?", a:"Vatican City"},
+      {p:300, physical:true, title:"Tic-Tac-Toe Duel",
+        desc:"Each team sends ONE player. Play a round of tic-tac-toe on paper. The winner takes the points (if it's a draw, replay)."},
+      {p:400, physical:true, both:true, title:"One-Foot Balance Standoff",
+        desc:"Each team sends ONE player. Both stand on one foot. First to put a second foot on the ground LOSES. If both are still balancing by the end of the next round, BOTH teams get the points."},
+      {p:500, q:"Other than Mount Everest, what is the second-highest mountain on Earth?", a:"K2"}
+    ]
+  },
+  {
+    name:"Risky Roll", type:"risky",
+    q:[
+      {p:100, q:"What is 12 × 12?", a:"144"},
+      {p:200, q:"How many sides does an octagon have?", a:"8"},
+      {p:300, q:"What is the capital city of Canada?", a:"Ottawa"},
+      {p:400, q:"What is the square root of 169?", a:"13"},
+      {p:500, q:"In what year did the first humans land on the Moon?", a:"1969"}
+    ]
+  },
+  {
+    name:"Steal Card", type:"steal",
+    q:[
+      {p:100, q:"What is the chemical symbol for potassium?", a:"K"},
+      {p:200, q:"Who painted 'The Starry Night'?", a:"Vincent van Gogh"},
+      {p:300, q:"What is the largest organ in the human body?", a:"The skin"},
+      {p:400, q:"In which country would you find the ancient city of Petra?", a:"Jordan"},
+      {p:500, q:"What is the only mammal capable of true, sustained flight?", a:"The bat"}
+    ]
+  },
+  {
+    name:"Riddles", type:"normal",
+    q:[
+      {p:100, q:"The more you take, the more you leave behind. What are they?", a:"Footsteps"},
+      {p:200, q:"What can travel all around the world while staying in one corner?", a:"A stamp"},
+      {p:300, q:"It belongs to you, but other people use it far more than you do. What is it?", a:"Your name"},
+      {p:400, q:"It has cities but no houses, forests but no trees, and water but no fish. What is it?", a:"A map"},
+      {p:500, q:"I have branches, but no fruit, trunk, or leaves. What am I?", a:"A bank"}
+    ]
+  },
+  {
+    name:"Rebus", type:"normal", rebus:true,
+    q:[
+      {p:100, q:"ECNALG", a:"A backward glance"},
+      {p:200, q:"HEAD\n———\nHEELS", a:"Head over heels"},
+      {p:300, q:"STAND\n— I —", a:"I understand  (I-under-stand)"},
+      {p:400, q:"T\nO\nW\nN", a:"Downtown"},
+      {p:500, q:"FEET  FEET  FEET\nFEET  FEET  FEET\n——————————\nGROUND", a:"Six feet underground"}
+    ]
+  },
+  {
+    name:"Random Knowledge", type:"normal",
+    q:[
+      {p:100, q:"What is the smallest prime number?", a:"2"},
+      {p:200, q:"What is the official currency of Japan?", a:"The yen"},
+      {p:300, q:"How many bones are in the adult human body?", a:"206"},
+      {p:400, q:"By area, what is the largest desert on Earth?", a:"The Antarctic Desert (a polar desert)"},
+      {p:500, q:"Roughly how fast does light travel in a vacuum, in km per second?", a:"About 300,000 km/s"}
+    ]
+  },
+  {
+    name:"School", type:"normal",
+    q:[
+      {p:100, q:"What is the value of pi rounded to two decimal places?", a:"3.14"},
+      {p:200, q:"Who developed the theory of general relativity?", a:"Albert Einstein"},
+      {p:300, q:"What is the chemical formula for table salt?", a:"NaCl"},
+      {p:400, q:"In what year did the Berlin Wall fall?", a:"1989"},
+      {p:500, q:"What is the derivative of x² with respect to x?", a:"2x"}
+    ]
+  }
+];
+
+// Tiles that award a SHIELD when answered correctly.
+const SHIELD_TILES = ["Riddles-400","School-300","Random Knowledge-200","Steal Card-100","Rebus-200"];
+
+// A correct Random Knowledge answer has this chance to award a STEAL CARD.
+const STEAL_CHANCE = 0.34;
+// A redeemed steal card takes this many points from the chosen team.
+const STEAL_VALUE  = 300;
+
+// ---------- STATE ----------
+let teams = [];
+let activeTeam = 0;
+const used = {};
+
+// ---------- SETUP ----------
+const teamInputs = document.getElementById("teamInputs");
+function renderTeamInputs(count){
+  teamInputs.innerHTML="";
+  for(let i=0;i<count;i++){
+    const row=document.createElement("div");
+    row.className="team-row";
+    row.innerHTML=`<span style="color:var(--teal)">◆</span><input type="text" placeholder="Team ${i+1} name">`;
+    teamInputs.appendChild(row);
+  }
+}
+let teamCount=2;
+renderTeamInputs(teamCount);
+document.getElementById("addTeamBtn").onclick=()=>{
+  if(teamCount<4){teamCount++;renderTeamInputs(teamCount);} else toast("Max 4 teams");
+};
+document.getElementById("startBtn").onclick=()=>{
+  const inputs=[...teamInputs.querySelectorAll("input")];
+  teams=inputs.map((inp,i)=>({name:inp.value.trim()||`Team ${i+1}`,score:0,shields:0,steals:0}));
+  if(teams.length<2){toast("Need at least 2 teams");return;}
+  document.getElementById("setup").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  buildBoard(); renderScores();
+};
+document.getElementById("restartBtn").onclick=()=>location.reload();
+
+// ---------- SCOREBOARD ----------
+function renderScores(){
+  const sb=document.getElementById("scoreboard");
+  sb.innerHTML="";
+  teams.forEach((t,i)=>{
+    const c=document.createElement("div");
+    c.className="score-card"+(i===activeTeam?" active":"");
+    c.innerHTML=`<div class="score-name">${escapeHtml(t.name)}</div>
+      <div class="score-val">${t.score}</div>
+      <div class="shields">${"🛡️".repeat(t.shields)||"&nbsp;"}</div>
+      <div class="steals" title="Click to use a steal card">${t.steals>0?"🗡️".repeat(t.steals):"&nbsp;"}</div>`;
+    if(t.steals>0) c.querySelector(".steals").onclick=()=>openStealRedeem(i);
+    sb.appendChild(c);
+  });
+}
+
+// ---------- BOARD ----------
+function buildBoard(){
+  const board=document.getElementById("board");
+  board.style.gridTemplateColumns=`repeat(${CATEGORIES.length},1fr)`;
+  board.innerHTML="";
+  CATEGORIES.forEach(cat=>{
+    const h=document.createElement("div");
+    h.className="cat"; h.textContent=cat.name; board.appendChild(h);
+  });
+  for(let r=0;r<5;r++){
+    CATEGORIES.forEach(cat=>{
+      const item=cat.q[r];
+      const key=cat.name+"-"+item.p;
+      const tile=document.createElement("div");
+      tile.className="tile"; tile.textContent=item.p;
+      tile.onclick=()=>openQuestion(cat,item,key,tile);
+      board.appendChild(tile);
+    });
+  }
+}
+
+// ---------- MODAL ----------
+const overlay=document.getElementById("overlay");
+const modal=document.getElementById("modal");
+function show(html){ modal.innerHTML=html; overlay.classList.remove("hidden"); }
+function close(){ overlay.classList.add("hidden"); }
+function markUsed(key,tile){ used[key]=true; tile.classList.add("used"); }
+function qBlock(item){
+  return item.rebus||CATEGORIES.find(c=>c.q.includes(item))?.rebus
+    ? `<div class="qtext"><div class="rebus">${escapeHtml(item.q)}</div></div>`
+    : `<div class="qtext">${escapeHtml(item.q)}</div>`;
+}
+
+function openQuestion(cat,item,key,tile){
+  if(used[key]) return;
+  if(cat.type==="challenge") challengeFlow(cat,item,key,tile);
+  else if(cat.type==="risky") riskyFlow(cat,item,key,tile);
+  else if(cat.type==="steal") stealFlow(cat,item,key,tile);
+  else normalFlow(cat,item,key,tile);
+}
+
+// ================= NORMAL =================
+function normalFlow(cat,item,key,tile){
+  const rebus=cat.rebus;
+  show(`
+    <span class="tag">${escapeHtml(cat.name)} • ${item.p} pts</span>
+    <h2>${rebus?"Solve the Rebus":"Question"}</h2>
+    ${rebus?`<div class="qtext"><div class="rebus">${escapeHtml(item.q)}</div></div>`:`<div class="qtext">${escapeHtml(item.q)}</div>`}
+    <div class="opts">
+      <button class="btn-main" id="reveal">Reveal Answer</button>
+      <button class="btn-soft" id="cancel">Close</button>
+    </div>`);
+  document.getElementById("cancel").onclick=close;
+  document.getElementById("reveal").onclick=()=>{
+    show(`
+      <span class="tag">${escapeHtml(cat.name)} • ${item.p} pts</span>
+      <h2>Answer</h2>
+      ${rebus?`<div class="qtext"><div class="rebus">${escapeHtml(item.q)}</div></div>`:`<div class="qtext">${escapeHtml(item.q)}</div>`}
+      <div class="atext">✓ ${escapeHtml(item.a)}</div>
+      <p class="note">Tap a team to add points, or tap “Wrong” to subtract.</p>
+      <div id="resultArea"></div>
+      <div class="opts"><button class="btn-soft" id="done">No one / Close</button></div>`);
+    document.getElementById("done").onclick=()=>{markUsed(key,tile);close();renderScores();};
+    const area=document.getElementById("resultArea");
+    teams.forEach((t,i)=>{
+      const wrap=document.createElement("div");
+      wrap.className="pick-list";
+      wrap.innerHTML=`<span style="align-self:center;font-weight:600;min-width:90px">${escapeHtml(t.name)}</span>`;
+      const right=document.createElement("button");
+      right.className="btn-main"; right.textContent=`✓ +${item.p}`;
+      right.onclick=()=>{addScore(i,item.p);maybeAwardShield(key,i);maybeAwardSteal(cat,i);markUsed(key,tile);close();renderScores();};
+      const wrong=document.createElement("button");
+      wrong.className="btn-soft"; wrong.textContent=`✗ −${item.p}`;
+      wrong.onclick=()=>{addScore(i,-item.p);markUsed(key,tile);close();renderScores();};
+      wrap.appendChild(right); wrap.appendChild(wrong);
+      area.appendChild(wrap);
+    });
+  };
+}
+
+// ================= CHALLENGE CARD (trivia OR physical) =================
+function challengeFlow(cat,item,key,tile){
+  let teamA=null, teamB=null;
+  function picker(){
+    show(`
+      <span class="tag">⚔ Challenge Card • ${item.p} pts</span>
+      <h2>Choose the Challengers</h2>
+      <p class="note">Pick two teams to face off. ${item.physical?"This is a <b>physical challenge</b> — each team sends one player.":"The card is revealed only after both are chosen — first correct answer wins."}</p>
+      <p style="font-weight:600">Challenger:</p><div id="pa" class="pick-list"></div>
+      <p style="font-weight:600">Opponent:</p><div id="pb" class="pick-list"></div>
+      <div class="opts"><button class="btn-soft" id="cancel">Close</button></div>`);
+    document.getElementById("cancel").onclick=close;
+    fillPick("pa",i=>{teamA=i;if(teamB===i)teamB=null;refresh();});
+    fillPick("pb",i=>{teamB=i;if(teamA===i)teamA=null;refresh();});
+    refresh();
+  }
+  function fillPick(id,cb){
+    const box=document.getElementById(id);
+    teams.forEach((t,i)=>{
+      const b=document.createElement("button");
+      b.className="btn-ghost"; b.textContent=t.name; b.dataset.i=i;
+      b.onclick=()=>cb(i); box.appendChild(b);
+    });
+  }
+  function refresh(){
+    [...document.querySelectorAll("#pa button")].forEach(b=>b.style.outline=(+b.dataset.i===teamA)?"2px solid var(--gold)":"");
+    [...document.querySelectorAll("#pb button")].forEach(b=>b.style.outline=(+b.dataset.i===teamB)?"2px solid var(--gold)":"");
+    if(teamA!=null&&teamB!=null&&teamA!==teamB&&!document.getElementById("goBtn")){
+      const go=document.createElement("button");
+      go.id="goBtn"; go.className="btn-main";
+      go.textContent=item.physical?"Begin Face-Off":"Reveal Card";
+      go.onclick=item.physical?physical:revealTrivia;
+      document.querySelector(".opts").prepend(go);
+    }
+  }
+  function physical(){
+    show(`
+      <span class="tag">⚔ Physical Challenge • ${item.p} pts</span>
+      <h2>${escapeHtml(item.title)}</h2>
+      <p class="center" style="font-weight:600">${escapeHtml(teams[teamA].name)} &nbsp;vs&nbsp; ${escapeHtml(teams[teamB].name)}</p>
+      <div class="desc">${escapeHtml(item.desc)}</div>
+      <p class="note">Who won?</p>
+      <div class="pick-list">
+        <button class="btn-main" id="winA">${escapeHtml(teams[teamA].name)} +${item.p}</button>
+        <button class="btn-main" id="winB">${escapeHtml(teams[teamB].name)} +${item.p}</button>
+      </div>
+      ${item.both?`<div class="pick-list"><button class="btn-soft" id="both">Both survived — both get +${item.p}</button></div>`:""}
+      <div class="opts"><button class="btn-soft" id="none">No winner / Close</button></div>`);
+    document.getElementById("winA").onclick=()=>{award(teamA);};
+    document.getElementById("winB").onclick=()=>{award(teamB);};
+    if(item.both)document.getElementById("both").onclick=()=>{
+      addScore(teamA,item.p); addScore(teamB,item.p);
+      maybeAwardShield(key,teamA);
+      markUsed(key,tile);close();renderScores();
+    };
+    document.getElementById("none").onclick=()=>{markUsed(key,tile);close();renderScores();};
+  }
+  function revealTrivia(){
+    show(`
+      <span class="tag">⚔ Challenge • ${item.p} pts</span>
+      <h2>${escapeHtml(teams[teamA].name)} vs ${escapeHtml(teams[teamB].name)}</h2>
+      <div class="qtext">${escapeHtml(item.q)}</div>
+      <div class="opts">
+        <button class="btn-main" id="reveal">Reveal Answer</button>
+        <button class="btn-soft" id="cancel">Close</button>
+      </div>`);
+    document.getElementById("cancel").onclick=close;
+    document.getElementById("reveal").onclick=()=>{
+      show(`
+        <span class="tag">⚔ Challenge • ${item.p} pts</span>
+        <div class="atext">✓ ${escapeHtml(item.a)}</div>
+        <p class="note">Who answered correctly first?</p>
+        <div class="pick-list">
+          <button class="btn-main" id="winA">${escapeHtml(teams[teamA].name)} +${item.p}</button>
+          <button class="btn-main" id="winB">${escapeHtml(teams[teamB].name)} +${item.p}</button>
+        </div>
+        <div class="opts"><button class="btn-soft" id="none">No winner / Close</button></div>`);
+      document.getElementById("winA").onclick=()=>award(teamA);
+      document.getElementById("winB").onclick=()=>award(teamB);
+      document.getElementById("none").onclick=()=>{markUsed(key,tile);close();renderScores();};
+    };
+  }
+  function award(i){addScore(i,item.p);maybeAwardShield(key,i);markUsed(key,tile);close();renderScores();}
+  picker();
+}
+
+// ================= STEAL CARD =================
+function stealFlow(cat,item,key,tile){
+  show(`
+    <span class="tag">🗡 Steal Card • ${item.p} pts</span>
+    <h2>Make the Steal</h2>
+    <p class="note">A steal is high-risk: answer correctly and <b>gain ${item.p}</b>, answer wrong and <b>lose ${item.p}</b>. Which team is attempting it?</p>
+    <div id="pick" class="pick-list"></div>
+    <div class="opts"><button class="btn-soft" id="cancel">Close</button></div>`);
+  document.getElementById("cancel").onclick=close;
+  const pick=document.getElementById("pick");
+  teams.forEach((t,i)=>{
+    const b=document.createElement("button");
+    b.className="btn-ghost"; b.textContent=t.name; b.onclick=()=>ask(i); pick.appendChild(b);
+  });
+  function ask(i){
+    show(`
+      <span class="tag">🗡 Steal • ${escapeHtml(teams[i].name)}</span>
+      <div class="qtext">${escapeHtml(item.q)}</div>
+      <div class="opts">
+        <button class="btn-main" id="reveal">Reveal Answer</button>
+        <button class="btn-soft" id="cancel">Close</button>
+      </div>`);
+    document.getElementById("cancel").onclick=close;
+    document.getElementById("reveal").onclick=()=>{
+      show(`
+        <span class="tag">🗡 Steal • ${escapeHtml(teams[i].name)}</span>
+        <div class="atext">✓ ${escapeHtml(item.a)}</div>
+        <div class="pick-list">
+          <button class="btn-main" id="ok">Correct  +${item.p}</button>
+          <button class="btn-soft" id="no">Wrong  −${item.p}</button>
+        </div>
+        <div id="shieldArea" class="center"></div>`);
+      document.getElementById("ok").onclick=()=>{addScore(i,item.p);maybeAwardShield(key,i);markUsed(key,tile);close();renderScores();};
+      document.getElementById("no").onclick=()=>{applyWithShield(i,-item.p,()=>{markUsed(key,tile);close();renderScores();});};
+    };
+  }
+}
+
+// ================= RISKY ROLL =================
+function riskyFlow(cat,item,key,tile){
+  show(`
+    <span class="tag">🎲 Risky Roll</span>
+    <h2>Whose turn?</h2>
+    <p class="note">Pick the team taking the roll, then answer the question.</p>
+    <div id="pick" class="pick-list"></div>
+    <div class="opts"><button class="btn-soft" id="cancel">Close</button></div>`);
+  document.getElementById("cancel").onclick=close;
+  const pick=document.getElementById("pick");
+  teams.forEach((t,i)=>{
+    const b=document.createElement("button");
+    b.className="btn-ghost"; b.textContent=t.name; b.onclick=()=>ask(i); pick.appendChild(b);
+  });
+  function ask(roller){
+    show(`
+      <span class="tag">🎲 Risky Roll</span>
+      <h2>${escapeHtml(teams[roller].name)}, answer this:</h2>
+      <div class="qtext">${escapeHtml(item.q)}</div>
+      <div class="atext" style="display:none" id="ans">✓ ${escapeHtml(item.a)}</div>
+      <div class="opts" id="revBox"><button class="btn-main" id="reveal">Reveal Answer</button></div>
+      <div id="judge" class="opts" style="display:none">
+        <button class="btn-main" id="correct">Correct ✓</button>
+        <button class="btn-soft" id="wrong">Wrong ✗</button>
+      </div>`);
+    document.getElementById("reveal").onclick=()=>{
+      document.getElementById("ans").style.display="block";
+      document.getElementById("revBox").style.display="none";
+      document.getElementById("judge").style.display="flex";
+    };
+    document.getElementById("wrong").onclick=()=>{markUsed(key,tile);close();renderScores();toast("No points this round.");};
+    document.getElementById("correct").onclick=()=>choose(roller);
+  }
+  function choose(roller){
+    show(`
+      <span class="tag">🎲 Risky Roll — decision</span>
+      <h2>Take it or Give it?</h2>
+      <p class="note">The roll amount is still <b>hidden</b>. It might ADD points… or SUBTRACT them. Decide before it's revealed.</p>
+      <div class="pick-list"><button class="btn-main" id="take">Take it 🎲</button></div>
+      <p style="text-align:center;font-weight:600">— or give it to —</p>
+      <div id="give" class="pick-list"></div>`);
+    document.getElementById("take").onclick=()=>spin(roller);
+    const give=document.getElementById("give");
+    teams.forEach((t,i)=>{
+      if(i===roller)return;
+      const b=document.createElement("button");
+      b.className="btn-soft"; b.textContent="Give to "+t.name; b.onclick=()=>spin(i);
+      give.appendChild(b);
+    });
+  }
+  function spin(target){
+    const opts=[-500,-400,-300,-200,-100,100,200,300,400,500];
+    const val=opts[Math.floor(Math.random()*opts.length)];
+    show(`<span class="tag">🎲 Risky Roll</span><h2 class="center">Rolling…</h2><div class="roulette-val" id="rv">?</div>`);
+    let ticks=0;
+    const iv=setInterval(()=>{
+      const v=opts[Math.floor(Math.random()*opts.length)];
+      document.getElementById("rv").textContent=(v>0?"+":"")+v;
+      if(++ticks>12){clearInterval(iv);finalize(target,val);}
+    },90);
+  }
+  function finalize(target,val){
+    const sign=val>0?"+":"";
+    show(`
+      <span class="tag">🎲 Risky Roll — result</span>
+      <div class="roulette-val ${val>0?'pos':'neg'}">${sign}${val}</div>
+      <h2 class="center">${val>0?"Lucky!":"Ouch!"} Goes to ${escapeHtml(teams[target].name)}</h2>
+      <div id="shieldArea" class="center"></div>
+      <div class="opts"><button class="btn-main" id="apply">Apply</button></div>`);
+    document.getElementById("apply").onclick=()=>applyWithShield(target,val,()=>{markUsed(key,tile);close();renderScores();});
+  }
+}
+
+// ================= SCORING + SHIELDS =================
+function addScore(i,delta){ if(delta<0) applyWithShield(i,delta); else teams[i].score+=delta; }
+
+function applyWithShield(i,delta,after){
+  if(delta>=0){ teams[i].score+=delta; if(after)after(); return; }
+  if(teams[i].shields>0){
+    const area=document.getElementById("shieldArea");
+    if(!area || overlay.classList.contains("hidden")){
+      const useIt=confirm(`${teams[i].name} would lose ${-delta} points. Use a 🛡️ shield to block it? (${teams[i].shields} available)`);
+      if(useIt){teams[i].shields--;toast(`${teams[i].name} blocked the loss with a shield!`);}
+      else teams[i].score+=delta;
+      renderScores(); if(after)after(); return;
+    }
+    area.innerHTML=`<div class="shield-badge">🛡️ ${escapeHtml(teams[i].name)} has ${teams[i].shields} shield(s)</div><br>
+      <button class="btn-main" id="useShield">Use shield (block loss)</button>
+      <button class="btn-soft" id="takeLoss">Take the loss</button>`;
+    document.getElementById("useShield").onclick=()=>{teams[i].shields--;toast(`${teams[i].name} blocked it with a shield!`);renderScores();if(after)after();};
+    document.getElementById("takeLoss").onclick=()=>{teams[i].score+=delta;renderScores();if(after)after();};
+    return;
+  }
+  teams[i].score+=delta; if(after)after();
+}
+
+function maybeAwardShield(key,i){
+  if(SHIELD_TILES.includes(key)){teams[i].shields++;toast(`🛡️ ${teams[i].name} earned a SHIELD!`);}
+}
+
+// Random chance to award a steal card on a correct Random Knowledge answer.
+function maybeAwardSteal(cat,i){
+  if(cat.name==="Random Knowledge" && Math.random()<STEAL_CHANCE){
+    teams[i].steals++; toast(`🗡️ ${teams[i].name} earned a STEAL CARD!`);
+  }
+}
+
+// Redeem a held steal card: take STEAL_VALUE points from a chosen team (guaranteed).
+function openStealRedeem(i){
+  if(teams[i].steals<1) return;
+  show(`
+    <span class="tag">🗡️ Steal Card • ${escapeHtml(teams[i].name)}</span>
+    <h2>Steal ${STEAL_VALUE} points</h2>
+    <p class="note">Choose a team to take ${STEAL_VALUE} points from. This is guaranteed — no question, no shield can block it.</p>
+    <div id="stealTargets" class="pick-list" style="flex-wrap:wrap"></div>
+    <div class="opts"><button class="btn-soft" id="cancelSteal">Cancel</button></div>`);
+  document.getElementById("cancelSteal").onclick=close;
+  const area=document.getElementById("stealTargets");
+  teams.forEach((t,j)=>{
+    if(j===i) return;
+    const b=document.createElement("button");
+    b.className="btn-main"; b.style.margin="4px";
+    b.textContent=`Steal from ${t.name} (${t.score})`;
+    b.onclick=()=>{
+      teams[j].score-=STEAL_VALUE;
+      teams[i].score+=STEAL_VALUE;
+      teams[i].steals--;
+      toast(`🗡️ ${teams[i].name} stole ${STEAL_VALUE} from ${teams[j].name}!`);
+      close(); renderScores();
+    };
+    area.appendChild(b);
+  });
+}
+
+// ---------- UTIL ----------
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2200);
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+</script>
+</body>
+</html>
